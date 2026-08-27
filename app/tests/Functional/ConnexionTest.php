@@ -21,6 +21,29 @@ final class ConnexionTest extends WebTestCase
         self::assertResponseRedirects('/connexion');
     }
 
+    /**
+     * La protection CSRF du projet est « stateless » : le jeton réel est produit
+     * dans le navigateur, qui le dépose aussi en cookie (double-submit). Le
+     * script qui s'en charge n'est chargé par Stimulus que si un élément porte
+     * data-controller="csrf-protection".
+     *
+     * Les formulaires Symfony reçoivent cet attribut d'office. Celui de
+     * connexion est écrit à la main : sans lui, toute connexion échoue sur
+     * « Invalid CSRF token » — en navigateur seulement, jamais ici, puisque le
+     * client de test n'exécute pas de JavaScript. D'où cette vérification de
+     * structure, seule capable d'attraper la régression.
+     */
+    public function testLeChampCsrfDeConnexionActiveLeScriptQuiPoseLeCookie(): void
+    {
+        $client = static::createClient();
+
+        $crawler = $client->request('GET', '/connexion');
+
+        $champ = $crawler->filter('input[name="_csrf_token"]');
+        self::assertCount(1, $champ);
+        self::assertSame('csrf-protection', $champ->attr('data-controller'));
+    }
+
     public function testUnJoueurSeConnecteAvecSesIdentifiants(): void
     {
         $client = static::createClient();
