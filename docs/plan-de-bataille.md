@@ -45,7 +45,7 @@ travail de cadrage restant est *technique*, pas du game design.
 | Auth | `symfony/security-bundle`, entité `User`, hash argon2, `symfony/form` + validation. Vérification d'email et réinitialisation de mot de passe via `symfony/mailer` |
 | Assets | AssetMapper — même mécanisme que Tailwind, un seul système d'assets pour tout le projet |
 | Infra | Docker / FrankenPHP (mode worker) + Caddy intégré, Ember pour l'observabilité. Généré par `.claude/scripts/setup-symfony.sh` selon `.claude/rules/stack-conventions.md` |
-| Tests | PHPUnit (unitaire/intégration) + Behat (parcours joueur en Gherkin) dès la Phase 1 |
+| Tests | PHPUnit : unitaire, intégration (`KernelTestCase`) et fonctionnel (`WebTestCase`), avec `dama/doctrine-test-bundle` pour l'isolation. Behat reste envisagé pour les scénarios de jeu, où la lisibilité Gherkin profite à la relecture fonctionnelle |
 
 **Pourquoi ce choix.** Le jeu n'a pas besoin de temps réel ni d'un état client
 complexe : chaque action se résout côté serveur, le joueur rafraîchit une vue.
@@ -62,12 +62,12 @@ incarner plusieurs **familles** jouées dans le temps, chaque partie étant une
 complète, pas une sauvegarde infinie »).
 
 **Tranché** : le nom de famille se choisit **au lancement d'une partie**, pas à
-l'inscription. Un compte peut avoir **plusieurs parties en cours simultanément**.
+l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément**.
 
 | Entité (esquisse) | Rôle | Doc source |
 |---|---|---|
 | `User` | Compte joueur — email, mot de passe, statut de vérification, rôles | — |
-| `GameSave` | Une run : mode (Campagne/Aventure), mission ou règne en cours, cycle courant. Plusieurs `GameSave` actifs par `User` | 00, 14 |
+| `GameSave` | Une run : mode (Campagne/Aventure), mission ou règne en cours, cycle courant. Jusqu'à 5 `GameSave` actifs par `User` | 00, 14 |
 | `Family` | Nom de famille choisi au lancement (1 par `GameSave`), renommée, héritage, contacts commerciaux | 13 |
 | … (Phase 2+) | Ville, bâtiments, ressources, carte, Medjaÿ, faveur divine, énigmes | 01–12 |
 
@@ -195,10 +195,11 @@ comptes ayant lancé une partie.
 
 Un visiteur découvre le jeu sur l'accueil, crée un compte (utilisable
 immédiatement), reçoit un email de vérification, se connecte, réinitialise son
-mot de passe si besoin, voit sa page compte. Parcours couverts par des tests
-Behat de bout en bout (inscription, vérification, expiration à 7 jours, mot de
-passe oublié), formulaires accessibles (labels, focus clavier), revue sécurité
-(CSRF, hashing, liens signés à expiration) passée avant merge.
+mot de passe si besoin, voit sa page compte. Parcours couverts de bout en bout
+par des tests fonctionnels `WebTestCase` (inscription, vérification, purge à
+7 jours, connexion, mot de passe oublié), formulaires accessibles (labels, focus
+visible), revue sécurité (CSRF, hashing, liens signés à expiration) passée avant
+merge.
 
 ---
 
@@ -253,14 +254,15 @@ quinzaines, le grenier est debout. »*
 - [ ] `Family` : nom choisi par le joueur (défaut proposé : **Nakht**), renommée,
       trésorerie
 - [ ] `City` : nom de la ville, difficulté de la région
-- [ ] Un compte porte **plusieurs `GameSave` actifs** (décision §9)
+- [ ] Un compte porte **plusieurs `GameSave` actifs, plafonnés à 5** (décision §9)
 - [ ] **Étendre `app:users:purge-unverified`** pour supprimer les parties d'un
       compte purgé — dette identifiée en Phase 1, la clé étrangère bloquerait
       sinon la suppression
 
 #### 2.2 — Parcours « nouvelle partie »
 
-- [ ] Choix du mode : Campagne (démarre à la mission 1, Avaris) ou Aventure (Memphis)
+- [ ] Choix du mode : Campagne (démarre toujours à la mission 1, Avaris — l'ordre
+      des missions est imposé) ou Aventure (Memphis)
 - [ ] Saisie du nom de famille, avec **Nakht** proposé par défaut (doc 09)
 - [ ] En mode Aventure uniquement : choix de la difficulté (0 à 9) et de la taille
       de grille (doc 14)
@@ -272,8 +274,12 @@ quinzaines, le grenier est debout. »*
 #### 2.3 — Liste et gestion des parties
 
 - [ ] La page de compte liste les parties en cours (ville, mode, cycle atteint)
-- [ ] Reprendre une partie
-- [ ] Abandonner une partie, avec confirmation — action destructive
+- [ ] Reprendre une partie, via un **récapitulatif d'état** (cycle et saison,
+      chantiers en cours, stock) avant de rendre la main sur la ville
+- [ ] Abandonner une partie : **suppression définitive**, derrière une confirmation
+      explicite — action irréversible
+- [ ] Refus de création au-delà de **5 parties**, avec un message qui invite à en
+      abandonner une
 
 #### 2.4 — Vue de la ville et bâtiments
 
@@ -327,15 +333,26 @@ Les quatre portes qualité au vert, revue de sécurité sur les nouvelles routes
 (une partie ne doit être lisible et modifiable que par son propriétaire — un
 **Voter** plutôt qu'un simple contrôle de rôle).
 
-#### Points à trancher avant de commencer
+#### Points tranchés
 
-1. **Abandonner une partie** : suppression définitive, ou archivage consultable ?
-2. **Nombre de parties simultanées** : illimité, ou plafonné pour éviter qu'un
-   compte n'en accumule des centaines ?
-3. **Mode Campagne** : la mission 1 est-elle imposée, ou le joueur choisit-il sa
-   région parmi celles déjà débloquées ?
-4. **Reprise de partie** : faut-il un récapitulatif de ce qui s'est passé depuis
-   la dernière session, ou retour direct à la ville ?
+| Question | Décision |
+|---|---|
+| Abandonner une partie | **Suppression définitive**, derrière une confirmation explicite |
+| Parties simultanées | **Plafonnées à 5** par compte |
+| Ordre des missions | **Imposé** : la campagne se joue de la mission 1 à la 10, sans choix de région |
+| Reprise de partie | **Récapitulatif** avant de rendre la main sur la ville |
+
+Deux conséquences à retenir :
+
+- L'ordre imposé des missions **simplifie le modèle** : un `GameSave` de campagne
+  porte un simple numéro de mission qui s'incrémente. Aucun écran de sélection
+  de région, aucune notion de région débloquée à gérer.
+- Le récapitulatif n'est **pas un journal d'événements**. Le jeu n'ayant aucun
+  temps réel, rien ne se produit pendant l'absence du joueur : un « depuis votre
+  dernière visite » serait toujours vide. Le récapitulatif porte donc sur
+  **l'état où la partie a été laissée** — cycle et saison en cours, chantiers
+  engagés avec les cycles restants, stock, et ce qui s'est résolu au dernier
+  cycle déclenché. C'est une reprise de contexte, pas une notification.
 
 ---
 
@@ -370,7 +387,7 @@ Skills à mobiliser au fil du développement, pas en revue finale :
 | `symfony-coding-standards` | À chaque fichier `.php`/`.twig` écrit ou modifié |
 | `phpstan-analysis` | En continu, typage strict dès la Phase 0 |
 | `phpunit-testing-standards` | Tests unitaires/intégration pour chaque service |
-| `functional-e2e-testing` | Parcours Behat, dès la Phase 1 |
+| `functional-e2e-testing` | Si Behat est introduit pour les scénarios de jeu (voir §2) |
 | `web-security-checklist` | Revue dédiée avant merge de l'inscription/connexion (OWASP) |
 | `web-accessibility-a11y` | Formulaires et navigation dès la Phase 1 (WCAG 2.2 AA) |
 | `git-commit-conventions` | Tout au long, dès le premier commit |
@@ -391,6 +408,9 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Mot de passe oublié | **Inclus dès la Phase 1** |
 | Base de données | **PostgreSQL** |
 | Hébergement | Pas de choix figé — **VPS envisagé** pour la production ultérieure. Plan indépendant de l'hébergeur |
-| Parties simultanées | **Oui**, plusieurs `GameSave` actifs par compte |
+| Parties simultanées | **Oui**, jusqu'à **5** `GameSave` actifs par compte |
 | CSS | **Tailwind CSS 4.3** via `symfonycasts/tailwind-bundle`, pas de Node.js |
 | Serveur staging/prod | **Dédié** (`--dedicated-server`), pas de Traefik partagé |
+| Abandon d'une partie | **Suppression définitive**, derrière confirmation |
+| Ordre des missions | **Imposé**, de la mission 1 à la 10 |
+| Reprise de partie | **Récapitulatif d'état** avant de rendre la main |
