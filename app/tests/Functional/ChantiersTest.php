@@ -25,11 +25,16 @@ final class ChantiersTest extends KernelTestCase
         $ville = $partie->getVille();
         $orAvant = $ville->getOr();
 
+        $boisAvant = $ville->getBois();
+        $argileAvant = $ville->getArgile();
+
         $this->chantiers()->lancer($partie, TypeDeBatiment::Entrepot);
 
-        // Entrepôt niveau 1 : 20 bois, 10 pierre, 15 or (doc 01).
+        // Entrepôt niveau 1 : 20 bois, 10 argile, 15 or (doc 01). L'Entrepôt
+        // est en brique crue : c'est l'argile qu'il consomme, jamais le calcaire.
         self::assertSame($orAvant - 15, $ville->getOr());
-        self::assertSame(0, $ville->getBois(), 'La dotation de 20 bois est entièrement consommée.');
+        self::assertSame($boisAvant - 20, $ville->getBois());
+        self::assertSame($argileAvant - 10, $ville->getArgile());
         self::assertCount(1, $ville->getChantiers());
     }
 
@@ -104,11 +109,12 @@ final class ChantiersTest extends KernelTestCase
         self::bootKernel();
         $partie = $this->lancerPartie('pauvre@example.com');
         $ville = $partie->getVille();
+
+        // On vide les réserves d'argile : la Caserne en réclame 30.
+        $ville->debiterRessources([Ressource::Argile->value => $ville->getArgile()]);
         $orAvant = $ville->getOr();
 
         try {
-            // Caserne : 40 or, la dotation n'en donne que 50 mais seulement
-            // 10 pierre pour 30 exigées.
             $this->chantiers()->lancer($partie, TypeDeBatiment::Caserne);
             self::fail('Le chantier aurait dû être refusé.');
         } catch (ChantierImpossible) {

@@ -23,6 +23,12 @@ final readonly class CoutDeConstruction
         public int $pierre = 0,
         public int $or = 0,
         public int $lin = 0,
+        /**
+         * La maçonnerie dans laquelle s'exprime la ligne « pierre » : brique
+         * crue pour presque toute la ville, pierre de taille pour le Temple et
+         * le Port (doc 01, colonne « matériau dominant »).
+         */
+        public FamilleDeMateriau $maconnerie = FamilleDeMateriau::BriqueCrue,
     ) {
     }
 
@@ -38,6 +44,7 @@ final readonly class CoutDeConstruction
             pierre: (int) ceil($this->pierre * $multiplicateur),
             or: (int) ceil($this->or * $multiplicateur),
             lin: (int) ceil($this->lin * $multiplicateur),
+            maconnerie: $this->maconnerie,
         );
     }
 
@@ -50,9 +57,10 @@ final readonly class CoutDeConstruction
      * Détail affichable, libellés en toutes lettres. Les lignes nulles sont
      * exclues : inutile de montrer ce qu'on ne réclame pas.
      *
-     * Le bois et la pierre s'y affichent sous leur nom de famille, car c'est
-     * bien ce qui est exigé : n'importe quelle pierre fait l'affaire (voir
-     * FamilleDeMateriau). C'est le stock, lui, qui nomme le calcaire.
+     * Le bois et la maçonnerie s'y affichent sous leur nom de famille, car
+     * c'est bien ce qui est exigé : n'importe quelle pierre de taille fait
+     * l'affaire pour un temple (voir FamilleDeMateriau). C'est le stock, lui,
+     * qui nomme le calcaire.
      *
      * @return array<string, int> libellé => quantité
      */
@@ -60,7 +68,7 @@ final readonly class CoutDeConstruction
     {
         return array_filter([
             FamilleDeMateriau::Bois->libelle() => $this->bois,
-            FamilleDeMateriau::Pierre->libelle() => $this->pierre,
+            $this->maconnerie->libelle() => $this->pierre,
             Ressource::Or->libelle() => $this->or,
             Ressource::Lin->libelle() => $this->lin,
         ]);

@@ -170,6 +170,11 @@ class City
         return $this->quantiteDeFamille(FamilleDeMateriau::Bois);
     }
 
+    public function getArgile(): int
+    {
+        return $this->quantiteDeFamille(FamilleDeMateriau::BriqueCrue);
+    }
+
     public function getPierre(): int
     {
         return $this->quantiteDeFamille(FamilleDeMateriau::Pierre);
@@ -298,7 +303,7 @@ class City
         ]);
 
         $this->prelever(FamilleDeMateriau::Bois, $cout->bois);
-        $this->prelever(FamilleDeMateriau::Pierre, $cout->pierre);
+        $this->prelever($cout->maconnerie, $cout->pierre);
 
         return true;
     }
@@ -317,7 +322,7 @@ class City
             [Ressource::Or->libelle(), $cout->or, $this->getOr()],
             [Ressource::Lin->libelle(), $cout->lin, $this->quantite(Ressource::Lin)],
             [FamilleDeMateriau::Bois->libelle(), $cout->bois, $this->getBois()],
-            [FamilleDeMateriau::Pierre->libelle(), $cout->pierre, $this->getPierre()],
+            [$cout->maconnerie->libelle(), $cout->pierre, $this->quantiteDeFamille($cout->maconnerie)],
         ];
 
         foreach ($exigences as [$libelle, $exige, $possede]) {

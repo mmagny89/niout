@@ -305,6 +305,82 @@ final readonly class GenerateurDeCarte
 
             $this->tirerLeContenu($zone, $geographie, $poids, $quantite);
         }
+
+        foreach (self::MATERIAUX_DE_ZONE_HUMIDE as $materiau) {
+            $this->garantirUnGisementRiverain($grille, $geographie, $materiau, $quantite);
+        }
+    }
+
+    /**
+     * Les deux matériaux que le tirage ne doit jamais oublier, tous deux nés de
+     * l'eau (doc 08) : le limon des berges, déposé par la crue, dont on fait la
+     * brique crue ; et les roseaux des marais du Delta.
+     *
+     * Ce sont aussi les deux seuls dont la ville ne peut pas se passer : presque
+     * tous les bâtiments sont en brique et en roseau, et **rien ne s'y
+     * substitue**. Un tirage qui n'en poserait aucun rendait la partie
+     * imbâtissable au deuxième bâtiment — ce qui s'est produit en jeu.
+     */
+    private const array MATERIAUX_DE_ZONE_HUMIDE = [Ressource::Argile, Ressource::Roseaux];
+
+    /**
+     * Assure au moins un gisement de ce matériau en bordure d'eau, si la région
+     * en porte. Une région qui n'en porte pas devra l'importer : le cas est
+     * signalé au plan de bataille plutôt que corrigé en douce ici.
+     *
+     * Une case pouvant porter deux gisements, la berge choisie n'a pas à être
+     * vierge : l'argile et les roseaux cohabitent volontiers sur un même marais.
+     *
+     * @param list<Zone> $grille
+     */
+    private function garantirUnGisementRiverain(
+        array $grille,
+        GeographieDeRegion $geographie,
+        Ressource $materiau,
+        int $quantite,
+    ): void {
+        if (!\in_array($materiau, $geographie->ressourcesDeZone, true)) {
+            return;
+        }
+
+        $berges = [];
+
+        foreach ($grille as $zone) {
+            if ($zone->porteLaVille() || $zone->getTerrain()->estUnPointDEau() || !$this->estRiveraine($grille, $zone)) {
+                continue;
+            }
+
+            // Un gisement déjà tiré en bordure d'eau suffit : c'est bien là
+            // qu'on le cherche.
+            if (null !== $zone->gisementDe($materiau)) {
+                return;
+            }
+
+            if ($zone->peutPorterUnGisementDePlus()) {
+                $berges[] = $zone;
+            }
+        }
+
+        if ([] === $berges) {
+            return;
+        }
+
+        $berges[$this->hasard->getInt(0, \count($berges) - 1)]
+            ->poserUnGisement($materiau, $quantite);
+    }
+
+    /**
+     * @param list<Zone> $grille
+     */
+    private function estRiveraine(array $grille, Zone $zone): bool
+    {
+        foreach ($grille as $voisine) {
+            if ($voisine->getTerrain()->estUnPointDEau() && $voisine->estAdjacenteA($zone)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function tirerLeContenu(Zone $zone, GeographieDeRegion $geographie, PoidsDeTirage $poids, int $quantite): void

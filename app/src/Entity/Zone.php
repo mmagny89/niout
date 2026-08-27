@@ -9,6 +9,8 @@ use App\Game\Culture;
 use App\Game\Ressource;
 use App\Game\TypeDeTerrain;
 use App\Repository\ZoneRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -21,6 +23,19 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\UniqueConstraint(name: 'UNIQ_ZONE_PAR_VILLE', columns: ['ville_id', 'x', 'y'])]
 class Zone
 {
+    /**
+     * Une case porte au plus deux gisements (décision de la joueuse).
+     *
+     * Deux, et non un : l'argile et les roseaux sont les deux matériaux dont
+     * rien ne tient lieu, et tous deux naissent de l'eau. À un gisement par
+     * case, ils se disputaient les rares berges d'une petite carte, au point
+     * qu'une partie pouvait se figer faute de l'un des deux.
+     *
+     * Deux, et non davantage : on ne trouve jamais tout au même endroit, sans
+     * quoi explorer cesserait d'avoir un intérêt.
+     */
+    public const int GISEMENTS_MAX = 2;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -42,23 +57,11 @@ class Zone
     #[ORM\Column(enumType: ContenuDeZone::class)]
     private ContenuDeZone $contenu = ContenuDeZone::Rien;
 
-    #[ORM\Column(nullable: true, enumType: Ressource::class)]
-    private ?Ressource $ressource = null;
-
     /**
-     * Ce qu'il reste à extraire du gisement. Les régions faciles ne s'épuisent
-     * pas (doc 02) — le compteur descend quand même, mais rien n'en dépend
-     * encore : l'épuisement viendra avec les régions difficiles.
+     * @var Collection<int, Gisement>
      */
-    #[ORM\Column]
-    private int $quantiteRestante = 0;
-
-    /**
-     * Le gisement est-il en cours d'extraction ? Une case reconnue ne rapporte
-     * rien tant que le joueur n'a pas décidé de l'exploiter.
-     */
-    #[ORM\Column]
-    private bool $exploitee = false;
+    #[ORM\OneToMany(targetEntity: Gisement::class, mappedBy: 'zone', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $gisements;
 
     /**
      * Ce qui est semé sur cette case, si un champ y est établi (doc 01, doc 02).
@@ -77,6 +80,7 @@ class Zone
 
     public function __construct(City $ville, int $x, int $y, TypeDeTerrain $terrain)
     {
+        $this->gisements = new ArrayCollection();
         $this->ville = $ville;
         $this->x = $x;
         $this->y = $y;
@@ -120,30 +124,56 @@ class Zone
         return $this->contenu;
     }
 
-    public function getRessource(): ?Ressource
+    /**
+     * @return Collection<int, Gisement>
+     */
+    public function getGisements(): Collection
     {
-        return $this->ressource;
+        return $this->gisements;
     }
 
-    public function getQuantiteRestante(): int
+    public function porteUnGisement(): bool
     {
-        return $this->quantiteRestante;
+        return !$this->gisements->isEmpty();
     }
 
+    public function gisementDe(Ressource $ressource): ?Gisement
+    {
+        foreach ($this->gisements as $gisement) {
+            if ($gisement->getRessource() === $ressource) {
+                return $gisement;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Ajoute un filon. Sans effet si la case en porte déjà autant qu'elle peut,
+     * ou si elle porte déjà ce matériau-là — on ne trouve jamais tout au même
+     * endroit, c'est ce qui fait qu'explorer garde un intérêt.
+     */
     public function poserUnGisement(Ressource $ressource, int $quantite): static
     {
+        if (null !== $this->gisementDe($ressource) || $this->gisements->count() >= self::GISEMENTS_MAX) {
+            return $this;
+        }
+
         $this->contenu = ContenuDeZone::Ressource;
-        $this->ressource = $ressource;
-        $this->quantiteRestante = $quantite;
+        $this->gisements->add(new Gisement($this, $ressource, $quantite));
 
         return $this;
+    }
+
+    public function peutPorterUnGisementDePlus(): bool
+    {
+        return $this->gisements->count() < self::GISEMENTS_MAX;
     }
 
     public function poserUnContenu(ContenuDeZone $contenu): static
     {
         $this->contenu = $contenu;
-        $this->ressource = null;
-        $this->quantiteRestante = 0;
+        $this->gisements->clear();
 
         return $this;
     }
@@ -151,35 +181,6 @@ class Zone
     public function estDecouverte(): bool
     {
         return $this->decouverte;
-    }
-
-    public function estExploitee(): bool
-    {
-        return $this->exploitee;
-    }
-
-    /**
-     * Un gisement s'exploite : il verse sa ressource au stock à chaque
-     * quinzaine, tant qu'il en reste.
-     */
-    public function exploiter(): static
-    {
-        $this->exploitee = true;
-
-        return $this;
-    }
-
-    /**
-     * Prélève sur le gisement, sans jamais descendre sous zéro. Renvoie ce qui
-     * a effectivement été extrait, qui peut être moindre que demandé sur la fin
-     * d'un filon.
-     */
-    public function extraire(int $quantite): int
-    {
-        $extrait = min($quantite, $this->quantiteRestante);
-        $this->quantiteRestante -= $extrait;
-
-        return $extrait;
     }
 
     public function getCulture(): ?Culture

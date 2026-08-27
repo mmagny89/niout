@@ -8,6 +8,7 @@ use App\Game\DotationRoyale;
 use App\Game\FamilleDeMateriau;
 use App\Game\GeographieDeRegion;
 use App\Game\Ressource;
+use App\Game\TypeDeBatiment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -50,27 +51,47 @@ final class DotationRoyaleTest extends TestCase
      * ne mènent nulle part, et le joueur ne peut pas le savoir avant d'avoir
      * semé.
      *
-     * @param array{int, int, int} $cout bois, pierre, or au niveau 1
+     * Tous trois sont en brique crue : c'est l'argile qui les paie, jamais le
+     * calcaire.
      */
     #[DataProvider('batimentsDOuverture')]
-    public function testLaDotationCouvreLesBatimentsDOuverture(string $batiment, array $cout): void
+    public function testLaDotationCouvreLesBatimentsDOuverture(TypeDeBatiment $type): void
     {
         $recu = DotationRoyale::pour(0, self::delta())->enRessources();
-        [$bois, $pierre, $or] = $cout;
+        $cout = $type->coutDeBase()->pourNiveau(1);
 
-        self::assertGreaterThanOrEqual($bois, self::total($recu, FamilleDeMateriau::Bois), $batiment);
-        self::assertGreaterThanOrEqual($pierre, self::total($recu, FamilleDeMateriau::Pierre), $batiment);
-        self::assertGreaterThanOrEqual($or, $recu[Ressource::Or->value], $batiment);
+        self::assertSame(FamilleDeMateriau::BriqueCrue, $cout->maconnerie, $type->libelle());
+        self::assertGreaterThanOrEqual($cout->bois, self::total($recu, FamilleDeMateriau::Bois), $type->libelle());
+        self::assertGreaterThanOrEqual($cout->pierre, self::total($recu, FamilleDeMateriau::BriqueCrue), $type->libelle());
+        self::assertGreaterThanOrEqual($cout->or, $recu[Ressource::Or->value], $type->libelle());
     }
 
     /**
-     * @return iterable<string, array{string, array{int, int, int}}>
+     * @return iterable<string, array{TypeDeBatiment}>
      */
     public static function batimentsDOuverture(): iterable
     {
-        // Coûts de niveau 1 du doc 01.
-        yield 'Grenier' => ['Grenier', [15, 15, 15]];
-        yield 'Entrepôt' => ['Entrepôt', [20, 10, 15]];
+        yield 'Grenier' => [TypeDeBatiment::Grenier];
+        yield 'Entrepôt' => [TypeDeBatiment::Entrepot];
+        yield 'Marché' => [TypeDeBatiment::Marche];
+    }
+
+    /**
+     * Le Marché est la seule source d'or : une partie qui ne l'atteindrait pas
+     * serait sans issue. La dotation doit donc le couvrir **en plus** du
+     * Grenier, même si le joueur a d'abord dépensé ailleurs.
+     */
+    public function testLaDotationPermetLeGrenierPuisLeMarche(): void
+    {
+        $dotation = DotationRoyale::pour(0, self::delta());
+        $grenier = TypeDeBatiment::Grenier->coutDeBase()->pourNiveau(1);
+        $marche = TypeDeBatiment::Marche->coutDeBase()->pourNiveau(1);
+
+        self::assertGreaterThanOrEqual(
+            $grenier->or + $marche->or,
+            $dotation->or,
+            'Sans Marché atteignable, l\'or ne peut plus jamais rentrer.',
+        );
     }
 
     /**
@@ -81,7 +102,7 @@ final class DotationRoyaleTest extends TestCase
     {
         $recu = DotationRoyale::pour(0, self::delta())->enRessources();
 
-        self::assertArrayHasKey(Ressource::Roseaux->value, $recu);
+        self::assertArrayHasKey(Ressource::Roseaux->value, $recu, 'Le bois du Delta, ce sont ses roseaux.');
         self::assertArrayHasKey(Ressource::Argile->value, $recu);
         self::assertArrayNotHasKey(Ressource::BoisDeCedre->value, $recu);
     }
@@ -94,7 +115,7 @@ final class DotationRoyaleTest extends TestCase
     {
         $recu = DotationRoyale::pour(6, new GeographieDeRegion(nil: true, ressourcesDeZone: [Ressource::Granite]))->enRessources();
 
-        self::assertArrayHasKey(Ressource::Granite->value, $recu, 'La pierre locale reste préférée.');
+        self::assertArrayHasKey(Ressource::Argile->value, $recu, 'La brique crue est envoyée partout.');
         self::assertArrayHasKey(Ressource::BoisDeCedre->value, $recu, 'Le bois, lui, doit venir de loin.');
     }
 

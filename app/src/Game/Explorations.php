@@ -127,10 +127,15 @@ final readonly class Explorations
     private function rapportDe(Zone $zone): string
     {
         $lieu = \sprintf('%s (%d, %d)', $zone->getTerrain()->libelle(), $zone->getX(), $zone->getY());
-        $ressource = $zone->getRessource();
 
-        if (null !== $ressource) {
-            return \sprintf('%s : gisement de %s.', $lieu, $ressource->libelle());
+        if ($zone->porteUnGisement()) {
+            $trouvailles = [];
+
+            foreach ($zone->getGisements() as $gisement) {
+                $trouvailles[] = $gisement->getRessource()->libelle();
+            }
+
+            return \sprintf('%s : gisement de %s.', $lieu, implode(' et de ', $trouvailles));
         }
 
         return match ($zone->getContenu()) {
