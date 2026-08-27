@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Building;
+use App\Entity\City;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Enum\GameMode;
 use App\Form\NouvellePartieType;
+use App\Game\CatalogueDeLaVille;
 use App\Game\LanceurDePartie;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
@@ -89,6 +92,26 @@ final class PartieController extends AbstractController
     }
 
     /**
+     * La vue de la ville : ce qui est dressé, ce qui peut l'être.
+     *
+     * Une liste, jamais un placement libre sur une grille (doc 15) — la ville
+     * se gère, elle ne se dessine pas.
+     */
+    #[Route('/{id}/ville', name: 'app_partie_ville', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function ville(GameSave $partie, CatalogueDeLaVille $catalogue): Response
+    {
+        $ville = $partie->getVille();
+
+        return $this->render('partie/ville.html.twig', [
+            'partie' => $partie,
+            'ville' => $ville,
+            'batimentsDresses' => $this->batimentsTriesParLibelle($ville),
+            'offres' => $catalogue->pour($ville),
+        ]);
+    }
+
+    /**
      * Abandon d'une partie : suppression définitive, jamais un archivage.
      */
     #[Route('/{id}/abandonner', name: 'app_partie_abandonner', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
@@ -131,6 +154,23 @@ final class PartieController extends AbstractController
             'partie' => $partie,
             'mission' => $this->missionDe($partie, $missions),
         ]);
+    }
+
+    /**
+     * Bâtiments dressés, dans un ordre stable et lisible plutôt que celui,
+     * arbitraire, de leur insertion en base.
+     *
+     * @return list<Building>
+     */
+    private function batimentsTriesParLibelle(City $ville): array
+    {
+        $batiments = array_values($ville->getBatiments()->toArray());
+        usort(
+            $batiments,
+            static fn (Building $a, Building $b): int => $a->getType()->libelle() <=> $b->getType()->libelle(),
+        );
+
+        return $batiments;
     }
 
     /**
