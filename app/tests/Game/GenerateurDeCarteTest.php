@@ -193,18 +193,14 @@ final class GenerateurDeCarteTest extends TestCase
         $this->generer($ville, $geographie);
 
         foreach ($ville->getZones() as $zone) {
-            $ressource = $zone->getRessource();
-
-            if (null === $ressource) {
-                continue;
-            }
-
             // Le poisson est la seule ressource des cases d'eau (doc 02).
             $attendues = $zone->getTerrain()->estUnPointDEau()
                 ? [Ressource::Poisson]
                 : [Ressource::Argile, Ressource::Roseaux];
 
-            self::assertContains($ressource, $attendues);
+            foreach ($zone->getGisements() as $gisement) {
+                self::assertContains($gisement->getRessource(), $attendues);
+            }
         }
     }
 
@@ -265,6 +261,138 @@ final class GenerateurDeCarteTest extends TestCase
         }
     }
 
+    /**
+     * L'invariant qui rend une ville bâtissable : presque tous les bâtiments
+     * sont en brique crue, et **rien ne se substitue à l'argile**. Un tirage
+     * qui n'en poserait aucune condamnerait la partie dès le deuxième
+     * bâtiment — c'est exactement ce qui est arrivé en jeu.
+     */
+    #[DataProvider('materiauxIndispensables')]
+    public function testUneRegionGarantitToujoursSesMateriauxVitaux(Ressource $materiau): void
+    {
+        $delta = new GeographieDeRegion(
+            nil: true,
+            mediterranee: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::Calcaire],
+        );
+
+        // Répété : le contenu est tiré au sort, un seul tirage ne prouverait rien.
+        for ($graine = 1; $graine <= 30; ++$graine) {
+            $ville = new City('Avaris', 0, 3);
+            $this->generer($ville, $delta, $graine);
+
+            self::assertNotEmpty(
+                $this->gisementsDe($ville, $materiau),
+                \sprintf('Aucun gisement de %s avec la graine %d : la ville serait imbâtissable.', $materiau->libelle(), $graine),
+            );
+        }
+    }
+
+    /**
+     * Les deux matériaux dont rien ne tient lieu : la brique crue et le roseau
+     * qui couvre les toits. Sans l'un ou l'autre, la partie se fige au deuxième
+     * bâtiment.
+     *
+     * @return iterable<string, array{Ressource}>
+     */
+    public static function materiauxIndispensables(): iterable
+    {
+        yield 'argile' => [Ressource::Argile];
+        yield 'roseaux' => [Ressource::Roseaux];
+    }
+
+    /**
+     * Le limon se dépose sur les berges à chaque crue (doc 08) : l'argile
+     * garantie doit donc être au bord de l'eau, pas au fond du désert.
+     */
+    #[DataProvider('materiauxIndispensables')]
+    public function testLesMateriauxGarantisBordentLEau(Ressource $materiau): void
+    {
+        $delta = new GeographieDeRegion(
+            nil: true,
+            mediterranee: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::Calcaire],
+        );
+
+        for ($graine = 1; $graine <= 30; ++$graine) {
+            $ville = new City('Avaris', 0, 4);
+            $this->generer($ville, $delta, $graine);
+
+            $riveraine = false;
+            foreach ($this->gisementsDe($ville, $materiau) as $gisement) {
+                foreach ($ville->getZones() as $voisine) {
+                    if ($voisine->getTerrain()->estUnPointDEau() && $voisine->estAdjacenteA($gisement)) {
+                        $riveraine = true;
+                        break 2;
+                    }
+                }
+            }
+
+            self::assertTrue($riveraine, \sprintf('%s loin de toute eau, graine %d.', $materiau->libelle(), $graine));
+        }
+    }
+
+    /**
+     * On ne trouve jamais tout au même endroit : une case porte au plus deux
+     * gisements, sans quoi explorer cesserait d'avoir un intérêt.
+     */
+    public function testUneCaseNePorteJamaisPlusDeDeuxGisements(): void
+    {
+        $riche = new GeographieDeRegion(
+            nil: true,
+            mediterranee: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::Calcaire, Ressource::Natron],
+        );
+
+        for ($graine = 1; $graine <= 30; ++$graine) {
+            $ville = new City('Avaris', 0, 4);
+            $this->generer($ville, $riche, $graine);
+
+            foreach ($ville->getZones() as $zone) {
+                self::assertLessThanOrEqual(
+                    Zone::GISEMENTS_MAX,
+                    $zone->getGisements()->count(),
+                    \sprintf('Case (%d, %d) trop riche, graine %d.', $zone->getX(), $zone->getY(), $graine),
+                );
+            }
+        }
+    }
+
+    /**
+     * Une case ne porte jamais deux fois le même matériau : ce serait un filon
+     * en double, pas une case plus riche.
+     */
+    public function testUneCaseNePorteJamaisDeuxFoisLeMemeMateriau(): void
+    {
+        for ($graine = 1; $graine <= 20; ++$graine) {
+            $ville = new City('Avaris', 0, 4);
+            $this->generer($ville, new GeographieDeRegion(
+                nil: true,
+                ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux],
+            ), $graine);
+
+            foreach ($ville->getZones() as $zone) {
+                $vues = [];
+                foreach ($zone->getGisements() as $gisement) {
+                    $vues[] = $gisement->getRessource()->value;
+                }
+
+                self::assertSame(array_unique($vues), $vues, \sprintf('Doublon en (%d, %d).', $zone->getX(), $zone->getY()));
+            }
+        }
+    }
+
+    /**
+     * @return list<Zone>
+     */
+    private function gisementsDe(City $ville, Ressource $ressource): array
+    {
+        return array_values(array_filter(
+            $ville->getZones()->toArray(),
+            static fn (Zone $z): bool => null !== $z->gisementDe($ressource),
+        ));
+    }
+
     private function generer(City $ville, GeographieDeRegion $geographie, ?int $graine = null): void
     {
         $hasard = null === $graine ? new Randomizer() : new Randomizer(new Mt19937($graine));
@@ -293,7 +421,10 @@ final class GenerateurDeCarteTest extends TestCase
                 $zone->getY(),
                 $zone->getTerrain()->value,
                 $zone->getContenu()->value,
-                $zone->getRessource()?->value ?: '-',
+                implode('+', array_map(
+                    static fn ($g): string => $g->getRessource()->value,
+                    $zone->getGisements()->toArray(),
+                )) ?: '-',
                 $zone->porteLaVille() ? 1 : 0,
             );
         }

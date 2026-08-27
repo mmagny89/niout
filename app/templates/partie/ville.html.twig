@@ -101,6 +101,50 @@
             {% endfor %}
         </ul>
 
+        {# Le Marché est la seule entrée d'or du jeu : sans lui, la dotation
+           royale s'épuise et la partie se fige. #}
+        {% if aUnMarche %}
+            <h2 class="mt-10 text-2xl text-encre-900">Marché</h2>
+            <p class="mt-2 text-sm text-encre-500">
+                Écoulez votre surplus. C'est pour l'instant la seule façon de
+                gagner de l'or — l'achat et les caravanes viendront avec le
+                commerce longue distance.
+            </p>
+
+            {% if etal is empty %}
+                <p class="mt-4 text-sm text-encre-500">Vos réserves n'ont rien à vendre pour le moment.</p>
+            {% else %}
+                <ul class="mt-4 space-y-3 list-none p-0">
+                    {% for lot in etal %}
+                        <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                            <form method="post" action="{{ path('app_partie_vendre', {id: partie.id}) }}"
+                                  class="flex flex-wrap items-baseline gap-x-4 gap-y-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token('vendre') }}">
+                                <input type="hidden" name="ressource" value="{{ lot.ressource.value }}">
+
+                                <span class="font-display text-lg text-encre-900">{{ lot.ressource.libelle }}</span>
+                                <span class="text-sm text-encre-500" data-chiffres>
+                                    {{ lot.quantite }} en réserve · {{ lot.prix }} or l'unité
+                                </span>
+
+                                <span class="ml-auto flex items-baseline gap-3">
+                                    <label for="quantite-{{ lot.ressource.value }}" class="text-sm text-encre-600">Vendre</label>
+                                    <input type="number" id="quantite-{{ lot.ressource.value }}" name="quantite"
+                                           value="1" min="1" max="{{ lot.quantite }}"
+                                           class="w-24 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
+                                           data-chiffres>
+                                    <button type="submit"
+                                            class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                        Écouler
+                                    </button>
+                                </span>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
+
         <h2 class="mt-10 text-2xl text-encre-900">À bâtir</h2>
         <p class="mt-2 text-sm text-encre-500">
             Les ressources sont payées à l'engagement du chantier ; les travaux

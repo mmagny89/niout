@@ -21,12 +21,15 @@ use App\Game\Exploitations;
 use App\Game\ExplorationImpossible;
 use App\Game\Explorations;
 use App\Game\LanceurDePartie;
+use App\Game\Marche;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\Ressource;
 use App\Game\RoleDExploration;
 use App\Game\TypeDeBatiment;
+use App\Game\VenteImpossible;
 use App\Repository\GameSaveRepository;
 use App\Security\Voter\PartieVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -111,7 +114,7 @@ final class PartieController extends AbstractController
      */
     #[Route('/{id}/ville', name: 'app_partie_ville', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function ville(GameSave $partie, CatalogueDeLaVille $catalogue): Response
+    public function ville(GameSave $partie, CatalogueDeLaVille $catalogue, Marche $marche): Response
     {
         $ville = $partie->getVille();
 
@@ -121,7 +124,43 @@ final class PartieController extends AbstractController
             'chantiers' => $ville->getChantiers(),
             'batimentsDresses' => $this->batimentsTriesParLibelle($ville),
             'offres' => $catalogue->pour($ville),
+            'aUnMarche' => $ville->possede(TypeDeBatiment::Marche),
+            'etal' => $ville->possede(TypeDeBatiment::Marche) ? $marche->etalPour($partie) : [],
         ]);
+    }
+
+    /**
+     * Vend une ressource au Marché. La seule façon de gagner de l'or à ce stade
+     * du développement.
+     */
+    #[Route('/{id}/ville/vendre', name: 'app_partie_vendre', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function vendre(Request $request, GameSave $partie, Marche $marche): Response
+    {
+        if (!$this->isCsrfTokenValid('vendre', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $ressource = Ressource::tryFrom((string) $request->request->get('ressource'));
+
+        if (null === $ressource) {
+            throw $this->createNotFoundException('Ressource inconnue.');
+        }
+
+        try {
+            $recette = $marche->vendre($partie, $ressource, $request->request->getInt('quantite'));
+            $this->addFlash('succes', \sprintf(
+                '%d %s vendu%s : %d or entrent en caisse.',
+                $request->request->getInt('quantite'),
+                $ressource->libelle(),
+                $request->request->getInt('quantite') > 1 ? 's' : '',
+                $recette,
+            ));
+        } catch (VenteImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
     }
 
     /**
@@ -166,11 +205,14 @@ final class PartieController extends AbstractController
     public function exploiter(Request $request, GameSave $partie, Exploitations $exploitations): Response
     {
         $zone = $this->zonePostee($request, $partie, 'exploiter');
+        $ressource = Ressource::tryFrom((string) $request->request->get('ressource'));
+
+        if (null === $ressource) {
+            throw $this->createNotFoundException('Ressource inconnue.');
+        }
 
         try {
-            $exploitations->exploiter($partie, $zone);
-            $ressource = $zone->getRessource();
-            \assert(null !== $ressource);
+            $exploitations->exploiter($partie, $zone, $ressource);
             $this->addFlash('succes', \sprintf(
                 'L\'extraction commence. Le gisement de %s alimentera vos réserves à chaque quinzaine.',
                 $ressource->libelle(),

@@ -131,13 +131,26 @@ Les constructeurs nommés (`GameSave::pourCampagne()`) sont préférés à un
 constructeur public quand ils rendent un invariant impossible à violer.
 
 **`bois` et `pierre` ne sont pas des ressources, ce sont des familles.** Le
-doc 01 chiffre les bâtiments dans ces deux matériaux génériques, le doc 08 ne
-connaît que des matériaux nommés (calcaire, granite, roseaux…). Un coût se paie
-donc avec n'importe quel matériau de la famille demandée — voir
+doc 01 chiffre les bâtiments dans ces matériaux génériques, le doc 08 ne connaît
+que des matériaux nommés (calcaire, granite, roseaux…). Un coût se paie donc
+avec n'importe quel matériau de la famille demandée — voir
 `Game/FamilleDeMateriau`, qui porte la démonstration, et `City::payer()`, qui
-prélève du plus abondant au plus rare. Ne jamais réintroduire une ressource
+prélève du plus abondant au plus rare. Trois familles, pas deux : la **brique
+crue** (argile seule) et la **pierre de taille** sont distinctes, le doc 01
+donnant à chaque bâtiment son « matériau dominant » — brique crue partout, pierre
+pour le seul Temple et le Port. Ne jamais réintroduire une ressource
 `Ressource::Bois` ou `Ressource::Pierre` : la première mission redeviendrait
 injouable, le Delta ne portant ni l'un ni l'autre.
+
+**Une case porte jusqu'à deux gisements** (`Zone::GISEMENTS_MAX`), jamais deux
+fois le même. À un seul, l'argile et les roseaux — les deux matériaux dont rien
+ne tient lieu, tous deux nés de l'eau — se disputaient les rares berges d'une
+grille 3×3, et une partie pouvait se figer faute de l'un des deux. La génération
+garantit un gisement de chacun en bordure d'eau quand la région en porte.
+
+**L'or n'entre que par le Marché** (`Game/Marche`), la dotation royale mise à
+part. Toute règle qui rendrait le Marché inatteignable fige la partie : c'est ce
+que vérifie `DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`.
 
 Trois pièges déjà payés, à ne pas refaire :
 

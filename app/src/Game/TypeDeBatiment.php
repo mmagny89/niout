@@ -70,14 +70,14 @@ enum TypeDeBatiment: string
             self::QuartierDHabitation => new CoutDeConstruction(bois: 25, pierre: 15, or: 20),
             self::Grenier => new CoutDeConstruction(bois: 15, pierre: 15, or: 15),
             self::Entrepot => new CoutDeConstruction(bois: 20, pierre: 10, or: 15),
-            self::Marche => new CoutDeConstruction(bois: 15, pierre: 5, or: 25),
+            self::Marche => new CoutDeConstruction(bois: 15, pierre: 5, or: 15),
             self::Forge => new CoutDeConstruction(bois: 15, pierre: 25, or: 30),
             self::Atelier => new CoutDeConstruction(bois: 20, pierre: 10, or: 20),
-            self::Temple => new CoutDeConstruction(bois: 10, pierre: 30, or: 10, lin: 5),
+            self::Temple => new CoutDeConstruction(bois: 10, pierre: 30, or: 10, lin: 5, maconnerie: FamilleDeMateriau::Pierre),
             self::MaisonDesScribes => new CoutDeConstruction(bois: 25, pierre: 15, or: 35),
             self::Caserne => new CoutDeConstruction(bois: 20, pierre: 30, or: 40),
             self::Auberge => new CoutDeConstruction(bois: 20, pierre: 10, or: 20),
-            self::Port => new CoutDeConstruction(bois: 40, pierre: 20, or: 50),
+            self::Port => new CoutDeConstruction(bois: 40, pierre: 20, or: 50, maconnerie: FamilleDeMateriau::Pierre),
         };
     }
 

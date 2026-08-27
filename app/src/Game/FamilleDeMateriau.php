@@ -19,21 +19,25 @@ namespace App\Game;
  * famille demandée, et chaque région fournit le sien — ce qui est aussi la
  * réalité historique : on bâtissait avec la pierre qu'on avait sous la main.
  *
- * L'argile relève de la maçonnerie, décision de conception : le doc 01 précise
- * que la quasi-totalité des bâtiments sont en brique crue, faite du limon du
- * fleuve. Un grenier du Delta se bâtit en brique, un temple en calcaire, et
- * tous deux paient la même ligne.
+ * La maçonnerie se scinde en deux familles, et non une seule : le doc 01 donne
+ * à chaque bâtiment son « matériau dominant », et l'écrasante majorité d'entre
+ * eux sont en **brique crue** — limon, sable et paille. Seuls le Temple et le
+ * Port sont en pierre de taille. Confondre les deux rendait un grenier
+ * tributaire d'une carrière de calcaire, ce qui n'a de sens ni historiquement
+ * ni en jeu.
  */
 enum FamilleDeMateriau: string
 {
     case Bois = 'bois';
+    case BriqueCrue = 'brique_crue';
     case Pierre = 'pierre';
 
     public function libelle(): string
     {
         return match ($this) {
             self::Bois => 'bois',
-            self::Pierre => 'pierre',
+            self::BriqueCrue => 'argile',
+            self::Pierre => 'pierre de taille',
         };
     }
 
@@ -49,8 +53,10 @@ enum FamilleDeMateriau: string
     {
         return match ($this) {
             self::Bois => [Ressource::Roseaux, Ressource::BoisDeCedre],
+            // Le limon du fleuve, moulé et séché : le matériau de presque toute
+            // la ville. Rien d'autre ne s'y substitue.
+            self::BriqueCrue => [Ressource::Argile],
             self::Pierre => [
-                Ressource::Argile,
                 Ressource::Calcaire,
                 Ressource::Gres,
                 Ressource::Grauwacke,

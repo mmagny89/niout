@@ -56,7 +56,7 @@ final class MissionCatalogue
             new Mission(
                 2, 'Haute-Nubie', 'Saï', 'Thoutmôsis Ier', TypeDeMission::Fonder, 1,
                 'Après la prise de Kerma, Thoutmôsis Ier étend le contrôle égyptien vers le sud. L\'île de Saï doit devenir une implantation durable.',
-                new GeographieDeRegion(nil: true, desert: true, desertDominant: true, ressourcesDeZone: [Ressource::Or, Ressource::Ivoire, Ressource::Ebene]),
+                new GeographieDeRegion(nil: true, desert: true, desertDominant: true, ressourcesDeZone: [Ressource::Argile, Ressource::Or, Ressource::Ivoire, Ressource::Ebene]),
             ),
             new Mission(
                 3, 'Mer Rouge', 'Mersa Gaouasis', 'Hatchepsout', TypeDeMission::Developper, 2,
@@ -71,7 +71,7 @@ final class MissionCatalogue
             new Mission(
                 5, 'Thèbes et la Vallée', 'Malkata', 'Amenhotep III', TypeDeMission::Fonder, 4,
                 'Amenhotep III fait bâtir une cité royale sur la rive ouest, avec son port artificiel. Un chantier de prestige, sous le regard de Thèbes.',
-                new GeographieDeRegion(nil: true, desert: true, ressourcesDeZone: [Ressource::Gres, Ressource::Calcaire]),
+                new GeographieDeRegion(nil: true, desert: true, ressourcesDeZone: [Ressource::Argile, Ressource::Gres, Ressource::Calcaire]),
             ),
             new Mission(
                 6, 'Moyenne-Égypte', 'Akhetaton', 'Akhenaton', TypeDeMission::Fonder, 5,
@@ -81,7 +81,7 @@ final class MissionCatalogue
             new Mission(
                 7, 'Basse-Nubie', 'Éléphantine', 'Séthi Ier', TypeDeMission::Developper, 6,
                 'Ville-frontière et poste douanier de la première cataracte, où les scribes contrôlent l\'or et l\'ivoire venus du sud.',
-                new GeographieDeRegion(nil: true, desert: true, ressourcesDeZone: [Ressource::Granite]),
+                new GeographieDeRegion(nil: true, desert: true, ressourcesDeZone: [Ressource::Argile, Ressource::Granite]),
             ),
             new Mission(
                 8, 'Fayoum', 'Shedet', 'Ramsès III', TypeDeMission::Developper, 7,

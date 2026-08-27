@@ -60,20 +60,26 @@ final readonly class Recoltes
         $epuises = [];
 
         foreach ($ville->getZones() as $zone) {
-            $ressource = $zone->getRessource();
+            foreach ($zone->getGisements() as $gisement) {
+                if (!$gisement->estExploitee()) {
+                    continue;
+                }
 
-            if (!$zone->estExploitee() || null === $ressource) {
-                continue;
-            }
+                $extrait = $gisement->extraire($rendu);
+                $valeur = $gisement->getRessource()->value;
 
-            $extrait = $zone->extraire($rendu);
+                if ($extrait > 0) {
+                    $recolte[$valeur] = ($recolte[$valeur] ?? 0) + $extrait;
+                }
 
-            if ($extrait > 0) {
-                $recolte[$ressource->value] = ($recolte[$ressource->value] ?? 0) + $extrait;
-            }
-
-            if (0 === $zone->getQuantiteRestante()) {
-                $epuises[] = \sprintf('Le gisement de %s (%d, %d) est épuisé.', $ressource->libelle(), $zone->getX(), $zone->getY());
+                if ($gisement->estEpuise()) {
+                    $epuises[] = \sprintf(
+                        'Le %s (%d, %d) est épuisé.',
+                        $gisement->libelle(),
+                        $zone->getX(),
+                        $zone->getY(),
+                    );
+                }
             }
         }
 

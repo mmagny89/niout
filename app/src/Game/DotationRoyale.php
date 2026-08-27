@@ -20,14 +20,17 @@ final readonly class DotationRoyale
     /**
      * De quoi couvrir le premier bâtiment, quelle que soit la région.
      *
-     * Calibré sur les deux bâtiments qui ouvrent réellement une partie : le
-     * Grenier (15 bois, 15 pierre, 15 or) et l'Entrepôt (20 bois, 10 pierre,
-     * 15 or) — voir doc 01. Le joueur doit pouvoir dresser l'un **ou** l'autre
-     * dès son arrivée, sans quoi le Grenier resterait hors de portée jusqu'à la
-     * première carrière, et les champs sans destination.
+     * Calibré pour couvrir **d'emblée le Grenier et le Marché** (15/15/15 et
+     * 15/5/15 au niveau 1, doc 01), qui ouvrent les deux boucles du jeu : le
+     * Grenier rend l'agriculture utile, le Marché est la seule entrée d'or.
+     *
+     * Les couvrir tous les deux n'est pas une largesse mais une condition de
+     * jouabilité : une partie qui n'atteindrait pas le Marché ne pourrait plus
+     * jamais gagner un or, et se figerait au deuxième bâtiment. La marge
+     * au-delà laisse le droit à une dépense malheureuse.
      */
-    private const int BOIS = 20;
-    private const int PIERRE = 15;
+    private const int BOIS = 35;
+    private const int ARGILE = 30;
 
     /**
      * De quoi tenir jusqu'à la première moisson.
@@ -40,12 +43,10 @@ final readonly class DotationRoyale
     private const int PROVISIONS = 40;
 
     /**
-     * Ce que la couronne envoie quand la région ne produit pas elle-même le
-     * matériau : le cèdre du Levant et le calcaire de Tourah, les deux
-     * matériaux que l'État faisait réellement circuler dans tout le pays.
+     * Ce que la couronne envoie quand la région ne produit pas elle-même de
+     * bois : le cèdre du Levant, que l'État faisait réellement venir de Byblos.
      */
     private const Ressource BOIS_DE_SECOURS = Ressource::BoisDeCedre;
-    private const Ressource PIERRE_DE_SECOURS = Ressource::Calcaire;
 
     private function __construct(
         public int $or,
@@ -81,7 +82,9 @@ final readonly class DotationRoyale
             provisions: self::PROVISIONS,
             materiaux: [
                 self::materiauLocal($geographie, FamilleDeMateriau::Bois, self::BOIS_DE_SECOURS)->value => self::BOIS,
-                self::materiauLocal($geographie, FamilleDeMateriau::Pierre, self::PIERRE_DE_SECOURS)->value => self::PIERRE,
+                // Toujours de l'argile, jamais du calcaire : les bâtiments qui
+                // ouvrent une partie sont tous en brique crue (doc 01).
+                Ressource::Argile->value => self::ARGILE,
             ],
         );
     }

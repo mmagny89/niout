@@ -91,9 +91,8 @@ final class CarteTest extends WebTestCase
         self::assertSelectorTextContains('article', 'Territoire inexploré');
         self::assertSelectorTextNotContains('article', $inconnue->getTerrain()->libelle());
 
-        $ressource = $inconnue->getRessource();
-        if (null !== $ressource) {
-            self::assertSelectorTextNotContains('article', $ressource->libelle());
+        foreach ($inconnue->getGisements() as $gisement) {
+            self::assertSelectorTextNotContains('article', $gisement->getRessource()->libelle());
         }
     }
 

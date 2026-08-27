@@ -15,13 +15,24 @@ use PHPUnit\Framework\TestCase;
 final class FamilleDeMateriauTest extends TestCase
 {
     /**
-     * L'argile relève de la maçonnerie : le doc 01 bâtit la quasi-totalité de
-     * la ville en brique crue, faite du limon du fleuve. Sans cette règle, le
-     * Delta n'aurait aucune pierre pour son premier grenier.
+     * L'argile est sa propre famille, et non une pierre parmi d'autres : le
+     * doc 01 donne à chaque bâtiment son « matériau dominant », et presque tous
+     * sont en brique crue. Un grenier ne doit pas dépendre d'une carrière de
+     * calcaire.
      */
-    public function testLArgileBatitCommeLaPierre(): void
+    public function testLArgileEstSaPropreFamille(): void
     {
-        self::assertTrue(FamilleDeMateriau::Pierre->contient(Ressource::Argile));
+        self::assertTrue(FamilleDeMateriau::BriqueCrue->contient(Ressource::Argile));
+        self::assertFalse(FamilleDeMateriau::Pierre->contient(Ressource::Argile));
+    }
+
+    /**
+     * Rien ne se substitue à l'argile : c'est ce qui rend le gisement d'argile
+     * indispensable, et donc garanti par la génération de carte.
+     */
+    public function testRienDAutreQueLArgileNeFaitDeLaBrique(): void
+    {
+        self::assertSame([Ressource::Argile], FamilleDeMateriau::BriqueCrue->ressources());
     }
 
     /**
@@ -69,20 +80,23 @@ final class FamilleDeMateriauTest extends TestCase
      * lui-même. Il porte des roseaux pour couvrir et de l'argile pour monter
      * les murs, donc de quoi bâtir sans rien importer.
      */
-    public function testLeDeltaSeSuffitAuxDeuxFamilles(): void
+    public function testLeDeltaSeSuffitAuxTroisFamilles(): void
     {
-        self::assertSame(
-            [FamilleDeMateriau::Pierre, FamilleDeMateriau::Bois],
-            self::famillesDeLaRegion(1),
-            'Sans les deux familles, la mission d\'apprentissage serait imbâtissable.',
-        );
+        $familles = self::famillesDeLaRegion(1);
+
+        foreach (FamilleDeMateriau::cases() as $famille) {
+            self::assertContains(
+                $famille,
+                $familles,
+                \sprintf('Sans %s, la mission d\'apprentissage serait imbâtissable.', $famille->libelle()),
+            );
+        }
     }
 
     /**
      * Constat à porter au game design, pas un défaut de code : **le Delta est
-     * la seule région autosuffisante**. Cinq régions ne portent que de la
-     * pierre, une seule que du bois, et trois — Haute-Nubie, mer Rouge, Sinaï —
-     * ni l'un ni l'autre.
+     * la seule région autosuffisante**. Le bois manque à peu près partout ;
+     * l'argile, elle, a été ajoutée à toutes les régions fluviales (doc 08).
      *
      * La dotation royale comble le départ (voir DotationRoyaleTest), mais elle
      * ne finance pas une mission entière : à partir de la région 2, le commerce

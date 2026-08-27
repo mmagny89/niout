@@ -625,6 +625,46 @@ cycle, donc la quinzaine franchit une étape de plus qu'annoncé — et cette
 étape-là n'apparaissait jamais. Un test parcourt maintenant chaque chantier de
 bout en bout, dans les trois saisons, et vérifie qu'aucune étape n'est escamotée.
 
+##### Déblocage : l'or, les maçonneries, les gisements multiples
+
+Une partie réelle s'est retrouvée sans issue au cycle 9. Le diagnostic, fait sur
+la base et non sur des suppositions, a trouvé trois causes distinctes.
+
+**1. L'or n'avait aucune source.** Ni gisement dans le Delta, ni commerce : la
+dotation royale en donnait 50 une fois pour toutes, et chaque bâtiment en
+consommait. Toute partie finissait donc figée. Le **Marché** est avancé de la
+Phase 5 dans sa forme minimale — la vente du surplus, sans achat, sans prix
+fluctuants, sans caravanes. C'est aussi ce qui donne enfin un sens à
+l'exploitation d'un gisement au-delà de la construction. Les prix locaux sont
+inventés (`PrixDuMarche`) : le doc 08 chiffre l'import et l'exotique, jamais le
+cours local.
+
+**2. Une seule maçonnerie pour toute la ville.** Le doc 01 donne à chaque
+bâtiment son « matériau dominant » : brique crue partout, pierre de taille pour
+le seul Temple et le Port. Confondre les deux rendait un grenier tributaire
+d'une carrière de calcaire. `FamilleDeMateriau` compte donc désormais trois
+familles — bois, brique crue, pierre de taille — et chaque coût sait dans
+laquelle il s'exprime. L'argile a été ajoutée aux régions fluviales 2, 5 et 7,
+que le doc 08 décrit pourtant comme en portant (« toutes régions proches du
+Nil »).
+
+**3. Un seul gisement par case** (décision de la joueuse). L'argile et les
+roseaux sont les deux matériaux dont rien ne tient lieu, et tous deux naissent
+de l'eau : ils se disputaient les rares berges d'une grille 3×3. Une case porte
+maintenant **jusqu'à deux gisements**, jamais deux fois le même — on ne trouve
+pas tout au même endroit, sans quoi explorer perdrait son intérêt. Chacun
+s'exploite pour lui-même. Trois colonnes de `zone` deviennent l'entité
+`Gisement`.
+
+La génération garantit désormais un gisement d'argile **et** un de roseaux en
+bordure d'eau, quand la région en porte : le limon des berges et les roseaux des
+marais, exactement là où on les trouvait. Trois invariants le verrouillent sur
+trente tirages.
+
+Dotation revue en conséquence : 35 bois, 30 argile, 50 or — de quoi dresser le
+Grenier **et** le Marché dès l'arrivée. Ce n'est pas une largesse : une partie
+qui n'atteindrait pas le Marché ne pourrait plus jamais gagner un or.
+
 ##### Deux ajustements d'ouverture de partie (décisions de la joueuse)
 
 - **La dotation royale couvre le Grenier**, pas seulement l'Entrepôt : sa part

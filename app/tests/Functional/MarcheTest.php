@@ -1,0 +1,161 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Functional;
+
+use App\Entity\Building;
+use App\Entity\GameSave;
+use App\Entity\User;
+use App\Game\LanceurDePartie;
+use App\Game\Marche;
+use App\Game\PrixDuMarche;
+use App\Game\Ressource;
+use App\Game\TypeDeBatiment;
+use App\Game\VenteImpossible;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+final class MarcheTest extends KernelTestCase
+{
+    /**
+     * L'invariant qui débloque le jeu : sans le Marché, l'or n'a **aucune**
+     * source. La dotation royale en donne une fois pour toutes, chaque bâtiment
+     * en consomme, et la partie finit par se figer.
+     */
+    public function testVendreEstLaSeuleFaconDeGagnerDeLOr(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('vente@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Calcaire->value => 10]);
+        $orAvant = $ville->getOr();
+
+        $recette = $this->marche()->vendre($partie, Ressource::Calcaire, 10);
+
+        self::assertSame(10 * PrixDuMarche::pour(Ressource::Calcaire), $recette);
+        self::assertSame($orAvant + $recette, $ville->getOr());
+        self::assertSame(0, $ville->quantite(Ressource::Calcaire));
+    }
+
+    public function testSansMarcheOnNeVendRien(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('sans-marche@example.com');
+        $partie->getVille()->crediterRessources([Ressource::Calcaire->value => 10]);
+
+        $this->expectException(VenteImpossible::class);
+        $this->expectExceptionMessageMatches('/Marché/');
+
+        $this->marche()->vendre($partie, Ressource::Calcaire, 5);
+    }
+
+    public function testOnNeVendPasCeQuOnNaPas(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('decouvert@example.com');
+        $ville = $partie->getVille();
+        $avant = $ville->quantite(Ressource::Calcaire);
+
+        try {
+            $this->marche()->vendre($partie, Ressource::Calcaire, $avant + 1);
+            self::fail('La vente aurait dû être refusée.');
+        } catch (VenteImpossible) {
+            self::assertSame($avant, $ville->quantite(Ressource::Calcaire), 'Un refus ne doit rien prélever.');
+        }
+    }
+
+    public function testLOrNeSeVendPasContreDeLOr(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('monnaie@example.com');
+
+        $this->expectException(VenteImpossible::class);
+
+        $this->marche()->vendre($partie, Ressource::Or, 1);
+    }
+
+    public function testUneQuantiteNulleOuNegativeEstRefusee(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('zero@example.com');
+        $partie->getVille()->crediterRessources([Ressource::Calcaire->value => 10]);
+
+        foreach ([0, -5] as $quantite) {
+            try {
+                $this->marche()->vendre($partie, Ressource::Calcaire, $quantite);
+                self::fail(\sprintf('Vendre %d unités aurait dû être refusé.', $quantite));
+            } catch (VenteImpossible) {
+                self::assertSame(10, $partie->getVille()->quantite(Ressource::Calcaire));
+            }
+        }
+    }
+
+    public function testLEtalNeMontreQueCeQuiSeVendEtQuOnPossede(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('etal@example.com');
+        $partie->getVille()->crediterRessources([Ressource::Granite->value => 3]);
+
+        $vendables = [];
+        foreach ($this->marche()->etalPour($partie) as $lot) {
+            self::assertGreaterThan(0, $lot['quantite']);
+            self::assertNotSame(Ressource::Or, $lot['ressource'], 'L\'or est la monnaie, pas une marchandise.');
+            $vendables[] = $lot['ressource'];
+        }
+
+        self::assertContains(Ressource::Granite, $vendables);
+    }
+
+    /**
+     * Le joueur écoule d'abord ce qui vaut cher : l'étal le lui présente dans
+     * cet ordre, plutôt que dans celui, arbitraire, de son stock.
+     */
+    public function testLEtalPresenteLePlusPrecieuxEnPremier(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('ordre@example.com');
+        $partie->getVille()->crediterRessources([
+            Ressource::Argile->value => 5,
+            Ressource::Granite->value => 5,
+            Ressource::Calcaire->value => 5,
+        ]);
+
+        $prix = array_map(
+            static fn (array $lot): int => $lot['prix'],
+            $this->marche()->etalPour($partie),
+        );
+
+        $trie = $prix;
+        rsort($trie);
+
+        self::assertSame($trie, $prix);
+    }
+
+    private function lancerAvecMarche(string $email): GameSave
+    {
+        $partie = $this->lancerPartie($email);
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Marche));
+
+        return $partie;
+    }
+
+    private function lancerPartie(string $email): GameSave
+    {
+        $user = new User();
+        $user->setEmail($email);
+        $user->setPassword('peu-importe-ici');
+
+        $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
+        $gestionnaire->persist($user);
+        $gestionnaire->flush();
+
+        return static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
+    }
+
+    private function marche(): Marche
+    {
+        return static::getContainer()->get(Marche::class);
+    }
+}
