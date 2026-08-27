@@ -228,7 +228,8 @@ vues, pas de la conception.
 - [ ] **Phase 9** — Renommée, héritage et succession familiale · `13`
 - [ ] **Phase 10** — Medjaÿ et combat automatique · `03`
 - [ ] **Phase 11** — Mode Aventure : Memphis et succession des règnes · `14`
-- [ ] **Phase 12** — Découpage et intégration des sprites · `15` · §7
+- [ ] **Phase 12** — Découpage et intégration des sprites · `15` · §7 — **hors
+      planche « tuiles »**, découpée dès la Phase 3 pour l'écran de carte
 
 Le document 15 (interface & direction artistique) est **transverse** : chaque
 phase l'utilise au fur et à mesure, la phase 12 ne concerne que l'intégration
@@ -423,7 +424,19 @@ Chémou. »*
 C'est aussi la phase qui débloque les deux bâtiments aujourd'hui hors d'atteinte :
 le **Port** (point d'eau adjacent) et le **Temple** (lin en offrande).
 
-#### 3.1 — Génération de la carte
+#### 3.1 — Généralisation du stock  *(prérequis)*
+
+Fait en premier, avant que les ressources n'arrivent : la migration coûte peu
+aujourd'hui, beaucoup plus une fois des parties en cours.
+
+- [ ] Remplacer les trois colonnes `stock_or`, `bois`, `pierre` par une table
+      `ressource → quantité`
+- [ ] Énumération des ressources du doc 08 : minérales, agricoles, importées
+- [ ] Migration des parties existantes sans perte
+- [ ] `City::crediter()` et `City::debiter()` conservent leur contrat, seule leur
+      mise en œuvre change — les chantiers ne doivent rien voir
+
+#### 3.2 — Génération de la carte
 
 - [ ] `Zone` : position sur la grille, type de terrain, contenu, état de découverte
 - [ ] Géographie cohérente avec l'Égypte réelle (doc 02) : Méditerranée en ligne
@@ -433,30 +446,42 @@ le **Port** (point d'eau adjacent) et le **Temple** (lin en offrande).
       un, sinon sur une zone fertile — jamais en plein désert
 - [ ] Tirage pondéré du contenu par difficulté (ressource / champ éligible /
       événement / vide), selon le tableau du doc 02
-- [ ] Taille de grille déjà décidée au lancement de la partie : `City::tailleGrille`
-      existe depuis le lot 2.2, la carte s'y conforme
+- [ ] **Génération à la création de la partie** (décision) : une partie sans
+      territoire n'aurait pas de sens, et ça évite un état à moitié initialisé
 - [ ] Instanciation de la première carte, le Delta du Nord en 3×3 (doc 06)
 
-#### 3.2 — Brouillard de guerre et reconnaissance
+#### 3.3 — Découpage des tuiles et écran de carte
 
-- [ ] Vue de la carte : grille, cases en brouillard, ville repérée (doc 15)
+Ce lot **remonte de la Phase 12** : la carte se dessine avec les vraies tuiles,
+décision prise pour cette phase.
+
+- [ ] Découper la planche « tuiles » du Drive : 8 tuiles isométriques en losange,
+      1408 × 768 pixels, soit des cellules de 352 × 384
+- [ ] Détourer le fond sombre pour rendre les losanges transparents — sans quoi
+      ils ne peuvent pas se juxtaposer
+- [ ] Servir les PNG via AssetMapper, comme les polices
+- [ ] Grille **isométrique** : les tuiles se posent en losange, pas en carré
+- [ ] Tuile de brouillard sur toute case non reconnue, marqueur de ville sur la
+      sienne
 - [ ] Popup au clic sur une case reconnue : type, contenu, actions et coûts
+
+#### 3.4 — Reconnaissance
+
 - [ ] **Éclaireur** : reconnaissance de toute case inconnue, coût modeste
+- [ ] Coût en **or et cycles** pour l'instant (décision) ; la part en provisions
+      s'ajoutera au lot 3.5, quand la nourriture existera
+- [ ] **Plusieurs expéditions simultanées** (décision), une par case — la
+      contrainte vient naturellement du coût, pas d'une limite arbitraire
 - [ ] L'expédition part et progresse au fil des cycles, sans bloquer le joueur —
       même mécanique que les chantiers, déjà éprouvée au lot 2.5
 - [ ] Bonus d'Akhèt sur les trajets empruntant le Nil, malus symétrique en Chémou
 
-#### 3.3 — Ressources de zone et exploitation
+#### 3.5 — Ressources de zone, champs et cycle agricole
 
 - [ ] Ressources brutes du doc 08, cohérentes avec la géologie réelle : argile et
       roseaux dans le Delta, calcaire, grès, granite, cuivre, turquoise ailleurs
-- [ ] Exploitation d'une case reconnue : la ressource alimente le stock
-- [ ] **Généralisation du stock** — voir le point à trancher ci-dessous
-- [ ] Les coûts de construction puisent dans ces ressources, pas seulement dans
-      la dotation
-
-#### 3.4 — Champs, Grenier et cycle agricole
-
+- [ ] Exploitation d'une case reconnue : la ressource alimente le stock, et les
+      chantiers y puisent
 - [ ] Champ établi sur une zone fertile ou une zone du Nil inondable (doc 02)
 - [ ] **Sans Grenier construit, un champ ne produit rien d'exploitable** (doc 01) :
       la dépendance est le cœur de la mécanique, pas un détail
@@ -465,9 +490,9 @@ le **Port** (point d'eau adjacent) et le **Temple** (lin en offrande).
 - [ ] Qualité de la crue tirée en début d'année (faible ×0,7 / normale / forte
       ×1,3), annoncée au joueur
 - [ ] Blé, orge et lin — le lin **débloque le Temple**
-- [ ] Consommation de nourriture par la population, et la pression qui va avec
+- [ ] Provisions désormais payées en nourriture par les expéditions
 
-#### 3.5 — Points d'eau, Port et pêche
+#### 3.6 — Points d'eau, Port et pêche
 
 - [ ] Le Port devient constructible dès qu'un point d'eau jouxte la ville
 - [ ] Pêche sur les cases d'eau reconnues, une fois le Port dressé
@@ -502,25 +527,36 @@ Les quatre portes qualité au vert, et une revue de sécurité sur les nouvelles
 routes — exploiter une case ou envoyer un éclaireur modifie l'état d'une partie
 et doit passer par le `PartieVoter`.
 
-#### Points à trancher avant de commencer
+#### Décisions actées pour cette phase
 
-1. **Le stock doit-il devenir générique ?** Aujourd'hui `City` porte trois
-   colonnes — or, bois, pierre. Le doc 08 en compte une quinzaine, plus les
-   objets fabriqués. Passer à une table `ressource → quantité` maintenant coûte
-   une migration ; le faire plus tard en coûtera une plus grosse.
-   *Recommandation : le faire au lot 3.3, avant que les ressources n'arrivent.*
-2. **Quand la carte est-elle générée ?** À la création de la partie, ou à la
-   première visite de la carte ? *Recommandation : à la création — une partie
-   sans territoire n'a pas de sens, et ça évite un état « à moitié initialisé ».*
-3. **Combien d'expéditions simultanées ?** Une seule, ou autant que le joueur
-   peut financer ? *Recommandation : plusieurs, une par case, comme les
-   chantiers — la contrainte vient naturellement du coût.*
-4. **L'éclaireur coûte-t-il des provisions dès maintenant ?** Le doc 04 les
-   compte en nourriture, qui n'existera qu'au lot 3.4. *Recommandation : or et
-   cycles au lot 3.2, part en provisions ajoutée au 3.4.*
-5. **Faut-il afficher la carte comme une grille dessinée**, ou comme une liste de
-   cases façon vue de la ville ? Le doc 15 décrit une grille avec brouillard —
-   à confirmer, c'est le premier écran vraiment graphique du jeu.
+| Question | Décision |
+|---|---|
+| Stock générique | **Oui, en premier** (lot 3.1), avant l'arrivée des ressources |
+| Génération de la carte | **À la création de la partie** |
+| Expéditions simultanées | **Plusieurs**, une par case ; le coût fait la contrainte |
+| Coût de l'éclaireur | **Or et cycles** au lot 3.4 ; provisions ajoutées au 3.5 |
+| Écran de carte | **Grille isométrique**, avec les tuiles du Drive |
+
+#### Le point à surveiller : les tuiles sont isométriques
+
+La planche livrée contient **huit losanges isométriques** — Nil bordé de
+papyrus, mer, désert, champs irrigués, oasis, forêt de cèdres, brouillard gravé
+de hiéroglyphes, et un marqueur de ville avec son embarcadère.
+
+C'est fidèle à la direction artistique du doc 15 (« vue isométrique légère »),
+mais **le prompt de la planche 13 demandait des tuiles vues de dessus**. Le
+générateur a suivi la direction artistique plutôt que le prompt. Deux
+conséquences concrètes :
+
+- La carte ne peut pas être une simple grille CSS : les losanges se posent en
+  quinconce, avec un décalage d'une demi-tuile une ligne sur deux.
+- Les tuiles arrivent sur **fond sombre opaque**, alors que le prompt demandait
+  un fond transparent. Il faut les détourer avant de pouvoir les juxtaposer.
+
+Ni l'un ni l'autre n'est bloquant, mais les deux sont du travail réel, chiffré
+dans le lot 3.3 plutôt que découvert en cours de route. Le doc 15 mériterait
+d'être corrigé sur ce point — son prompt de planche 13 contredit sa propre
+direction artistique.
 
 ---
 
@@ -540,9 +576,14 @@ découpage et d'intégration.
 4. Vérifier la lisibilité des planches denses (ressources brutes 15 items, icônes
    interface 16 items) — le doc 15 anticipe déjà un re-découpage en 2 si besoin
 
-Pour la Phase 1, seuls la palette et éventuellement un visuel (planche
-« Divinités » ou « Carte ») pour l'accueil sont nécessaires. Le découpage complet
-peut attendre la Phase 2.
+La planche « tuiles » est **découpée dès la Phase 3** (lot 3.3) : la carte se
+dessine avec elle. Le reste peut attendre.
+
+**Attention au format.** La planche « tuiles » livrée contient des losanges
+**isométriques** sur fond sombre opaque, alors que son prompt du doc 15 demandait
+des tuiles carrées vues de dessus et à fond transparent. C'est la direction
+artistique générale qui l'a emporté sur le prompt — cohérent, mais le prompt de
+la planche 13 mériterait d'être corrigé dans le document.
 
 ---
 
@@ -579,6 +620,9 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Parties simultanées | **Oui**, jusqu'à **5** `GameSave` actifs par compte |
 | CSS | **Tailwind CSS 4.3** via `symfonycasts/tailwind-bundle`, pas de Node.js |
 | Serveur staging/prod | **Dédié** (`--dedicated-server`), pas de Traefik partagé |
+| Stock des ressources | **Générique** (table ressource → quantité), migré dès le lot 3.1 |
+| Génération de la carte | **À la création de la partie** |
+| Écran de carte | **Grille isométrique**, avec les tuiles du Drive |
 | Abandon d'une partie | **Suppression définitive**, derrière confirmation |
 | Ordre des missions | **Imposé**, de la mission 1 à la 10 |
 | Reprise de partie | **Récapitulatif d'état** avant de rendre la main |
