@@ -115,6 +115,21 @@ une assertion de structure sur la présence de l'attribut — voir
 Les identifiants de jeton absents de `stateless_token_ids` restent classiques et
 fonctionnent sans JavaScript (par exemple `renvoyer-verification`).
 
+## Où mettre le code du jeu
+
+- `src/Entity/` — **état** d'une partie, persisté : `GameSave`, `Family`, `City`.
+- `src/Game/` — **règles et contenu**, jamais persistés : `MissionCatalogue`,
+  `DotationRoyale`, `LanceurDePartie`. Une valeur qui vient des documents de
+  conception (coût, formule, seuil, texte de mission) va ici, pas en base.
+
+`Family` et `City` appartiennent à leur `GameSave` (cascade `remove`). Toute
+nouvelle entité rattachée à une partie doit suivre le même principe, **et** être
+prise en compte par `app:users:purge-unverified` si elle référence `User`
+directement.
+
+Les constructeurs nommés (`GameSave::pourCampagne()`) sont préférés à un
+constructeur public quand ils rendent un invariant impossible à violer.
+
 ## Conception du jeu
 
 Les 16 documents de game design (systèmes, économie, lore, direction artistique) vivent
