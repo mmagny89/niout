@@ -30,6 +30,15 @@ Le stack se lance sans `-f` : `COMPOSE_FILE` dans le `.env` racine chaîne déj�
 - Migrations : `docker compose exec php php bin/console doctrine:migrations:migrate`
 - Observabilité (Ember) : `curl http://127.0.0.1:9191/metrics`
 
+Portes qualité — les quatre doivent passer avant un merge (mêmes commandes qu'en CI) :
+
+- Style : `docker compose exec php vendor/bin/php-cs-fixer fix` (`--dry-run --diff` pour vérifier)
+- Analyse statique : `docker compose exec php vendor/bin/phpstan analyse` — **niveau 8, zéro erreur attendue**
+- Audit des dépendances : `docker compose exec php composer audit`
+- Tests : `docker compose exec php php bin/phpunit`
+
+PHPStan a besoin du container compilé : lancer `cache:warmup` avant l'analyse si le cache est vide.
+
 Le site répond sur `https://localhost` (certificat auto-signé Caddy en dev).
 
 ## Conventions
