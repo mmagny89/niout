@@ -14,7 +14,10 @@ use App\Form\NouvellePartieType;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
+use App\Game\Culture;
 use App\Game\DateDeJeu;
+use App\Game\ExploitationImpossible;
+use App\Game\Exploitations;
 use App\Game\ExplorationImpossible;
 use App\Game\Explorations;
 use App\Game\LanceurDePartie;
@@ -142,9 +145,88 @@ final class PartieController extends AbstractController
             'zoneDetaillee' => $detaillee,
             'expeditionEnCours' => null !== $detaillee ? $ville->aUneExpeditionVers($detaillee) : false,
             'coutDeReconnaissance' => RoleDExploration::Eclaireur->cout(),
+            'provisionsDeReconnaissance' => RoleDExploration::Eclaireur->provisions(),
             'dureeDeReconnaissance' => null !== $detaillee && !$detaillee->estDecouverte()
                 ? $explorations->dureeVers($partie, $detaillee)
                 : null,
+            'cultures' => Culture::cases(),
+            'aUnGrenier' => $ville->possede(TypeDeBatiment::Grenier),
+        ]);
+    }
+
+    /**
+     * Ouvre une carrière sur une case reconnue qui porte un gisement.
+     */
+    #[Route('/{id}/carte/exploiter', name: 'app_partie_exploiter', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function exploiter(Request $request, GameSave $partie, Exploitations $exploitations): Response
+    {
+        $zone = $this->zonePostee($request, $partie, 'exploiter');
+
+        try {
+            $exploitations->exploiter($partie, $zone);
+            $ressource = $zone->getRessource();
+            \assert(null !== $ressource);
+            $this->addFlash('succes', \sprintf(
+                'L\'extraction commence. Le gisement de %s alimentera vos réserves à chaque quinzaine.',
+                $ressource->libelle(),
+            ));
+        } catch (ExploitationImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->retourALaCarte($partie, $zone);
+    }
+
+    /**
+     * Établit un champ sur une case cultivable et y sème.
+     */
+    #[Route('/{id}/carte/semer', name: 'app_partie_semer', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function semer(Request $request, GameSave $partie, Exploitations $exploitations): Response
+    {
+        $zone = $this->zonePostee($request, $partie, 'semer');
+        $culture = Culture::tryFrom((string) $request->request->get('culture'));
+
+        if (null === $culture) {
+            throw $this->createNotFoundException('Culture inconnue.');
+        }
+
+        try {
+            $exploitations->semer($partie, $zone, $culture);
+            $this->addFlash('succes', $partie->getVille()->possede(TypeDeBatiment::Grenier)
+                ? \sprintf('Le champ est établi. On y sème %s.', $culture->libelle())
+                : \sprintf(
+                    'Le champ est établi et semé de %s. Sans Grenier, rien de ce qu\'il donnera ne se conservera.',
+                    $culture->libelle(),
+                ));
+        } catch (ExploitationImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->retourALaCarte($partie, $zone);
+    }
+
+    /**
+     * La case visée par un formulaire de la carte, jeton vérifié.
+     */
+    private function zonePostee(Request $request, GameSave $partie, string $jeton): Zone
+    {
+        if (!$this->isCsrfTokenValid($jeton, (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $zones = $this->zonesTrieesPourLIsometrie($partie->getVille());
+
+        return $this->zoneDemandee($zones, $request->request->get('zone'))
+            ?? throw $this->createNotFoundException('Case inconnue.');
+    }
+
+    private function retourALaCarte(GameSave $partie, Zone $zone): Response
+    {
+        return $this->redirectToRoute('app_partie_carte', [
+            'id' => $partie->getId(),
+            'zone' => $zone->getX().'-'.$zone->getY(),
         ]);
     }
 

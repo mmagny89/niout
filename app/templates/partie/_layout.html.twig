@@ -18,6 +18,7 @@
                         { libelle: 'Or', valeur: partie.ville.or },
                         { libelle: 'Bois', valeur: partie.ville.bois },
                         { libelle: 'Pierre', valeur: partie.ville.pierre },
+                        { libelle: 'Vivres', valeur: partie.ville.nourriture },
                     ] %}
                     {% for compteur in compteurs %}
                         <div class="flex items-baseline gap-1.5">
@@ -32,6 +33,9 @@
                 <p class="text-sm text-encre-600">
                     {{ partie.dateDeJeu.libelle }}
                     <span class="text-encre-500" data-chiffres>· cycle {{ partie.cycle }}</span>
+                    {# La crue de l'année conditionne la moisson de Chémou : le
+                       joueur doit l'avoir sous les yeux quand il décide de semer. #}
+                    <span class="text-encre-500" title="{{ partie.crue.presage }}">· crue {{ partie.crue.libelle }}</span>
                 </p>
 
                 {% block actionDeCycle %}

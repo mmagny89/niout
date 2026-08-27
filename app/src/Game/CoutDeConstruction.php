@@ -47,34 +47,22 @@ final readonly class CoutDeConstruction
     }
 
     /**
-     * Le coût exprimé en ressources, prêt à être débité d'un stock. Les lignes
-     * nulles sont exclues : inutile de vérifier ce qu'on ne réclame pas.
+     * Détail affichable, libellés en toutes lettres. Les lignes nulles sont
+     * exclues : inutile de montrer ce qu'on ne réclame pas.
      *
-     * @return array<string, int> valeur de Ressource => quantité
-     */
-    public function enRessources(): array
-    {
-        return array_filter([
-            Ressource::Bois->value => $this->bois,
-            Ressource::Pierre->value => $this->pierre,
-            Ressource::Or->value => $this->or,
-            Ressource::Lin->value => $this->lin,
-        ]);
-    }
-
-    /**
-     * Détail affichable, libellés en toutes lettres.
+     * Le bois et la pierre s'y affichent sous leur nom de famille, car c'est
+     * bien ce qui est exigé : n'importe quelle pierre fait l'affaire (voir
+     * FamilleDeMateriau). C'est le stock, lui, qui nomme le calcaire.
      *
      * @return array<string, int> libellé => quantité
      */
     public function detail(): array
     {
-        $detail = [];
-
-        foreach ($this->enRessources() as $valeur => $quantite) {
-            $detail[Ressource::from($valeur)->libelle()] = $quantite;
-        }
-
-        return $detail;
+        return array_filter([
+            FamilleDeMateriau::Bois->libelle() => $this->bois,
+            FamilleDeMateriau::Pierre->libelle() => $this->pierre,
+            Ressource::Or->libelle() => $this->or,
+            Ressource::Lin->libelle() => $this->lin,
+        ]);
     }
 }

@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Enum\GameMode;
 use App\Game\DateDeJeu;
+use App\Game\QualiteDeCrue;
 use App\Repository\GameSaveRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -58,6 +59,13 @@ class GameSave
      */
     #[ORM\Column]
     private int $cycle = 1;
+
+    /**
+     * La crue de l'année en cours (doc 05), retirée à chaque nouvelle année.
+     * Elle module la moisson de Chémou, bien après être survenue.
+     */
+    #[ORM\Column(enumType: QualiteDeCrue::class)]
+    private QualiteDeCrue $crue = QualiteDeCrue::Normale;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
@@ -123,6 +131,18 @@ class GameSave
     public function getCycle(): int
     {
         return $this->cycle;
+    }
+
+    public function getCrue(): QualiteDeCrue
+    {
+        return $this->crue;
+    }
+
+    public function annoncerLaCrue(QualiteDeCrue $crue): static
+    {
+        $this->crue = $crue;
+
+        return $this;
     }
 
     public function getFamille(): Family

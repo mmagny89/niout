@@ -12,18 +12,13 @@ namespace App\Game;
  * distinction ne change rien au stock lui-même : n'importe laquelle peut être
  * achetée ou vendue (principe de commerce universel).
  *
- * `Bois` et `Pierre` sont les matériaux génériques que le doc 01 emploie dans
- * les coûts de construction. Le doc 08, lui, nomme des pierres précises —
- * calcaire, grès, granite. Le lien entre les deux n'est tranché nulle part :
- * question à régler au lot 3.5, quand les ressources de zone arriveront
- * réellement. D'ici là, les deux cohabitent sans se recouvrir.
+ * Il n'existe volontairement pas de ressource « bois » ni « pierre » : les
+ * matériaux génériques du doc 01 sont des **familles**, pas des lignes de
+ * stock. Voir FamilleDeMateriau, qui porte la démonstration.
  */
 enum Ressource: string
 {
-    // Matériaux de construction génériques (doc 01).
     case Or = 'or';
-    case Bois = 'bois';
-    case Pierre = 'pierre';
 
     // Ressources de zone, minérales (doc 08).
     case Argile = 'argile';
@@ -61,8 +56,6 @@ enum Ressource: string
     {
         return match ($this) {
             self::Or => 'or',
-            self::Bois => 'bois',
-            self::Pierre => 'pierre',
             self::Argile => 'argile',
             self::Roseaux => 'roseaux',
             self::Calcaire => 'calcaire',
@@ -107,12 +100,28 @@ enum Ressource: string
     }
 
     /**
-     * Matériaux dans lesquels s'expriment les coûts de construction (doc 01).
+     * Ressources qui nourrissent : elles paient les provisions d'une expédition
+     * (doc 04) et se rangent au Grenier.
      *
-     * @return list<self>
+     * Le lin en est exclu bien qu'agricole — c'est un textile, jamais un vivre.
      */
-    public static function materiauxDeConstruction(): array
+    public function estNourriture(): bool
     {
-        return [self::Or, self::Bois, self::Pierre, self::Lin];
+        return \in_array($this, [self::Ble, self::Orge, self::Dattes, self::Poisson], true);
+    }
+
+    /**
+     * La famille de matériaux à laquelle cette ressource appartient, si elle
+     * bâtit. L'or n'en a pas : il se paie tel quel.
+     */
+    public function familleDeMateriau(): ?FamilleDeMateriau
+    {
+        foreach (FamilleDeMateriau::cases() as $famille) {
+            if ($famille->contient($this)) {
+                return $famille;
+            }
+        }
+
+        return null;
     }
 }

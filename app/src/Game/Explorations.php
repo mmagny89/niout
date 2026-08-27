@@ -42,9 +42,17 @@ final readonly class Explorations
             throw new ExplorationImpossible('Une expédition est déjà en route vers cette case.');
         }
 
+        if ($ville->getNourriture() < $role->provisions()) {
+            throw new ExplorationImpossible(\sprintf('Il vous faut %d de vivres pour envoyer un %s. Vos réserves n\'en comptent que %d.', $role->provisions(), mb_strtolower($role->libelle()), $ville->getNourriture()));
+        }
+
         if (!$ville->debiterRessources([Ressource::Or->value => $role->cout()])) {
             throw new ExplorationImpossible(\sprintf('Il vous faut %d or pour envoyer un %s.', $role->cout(), mb_strtolower($role->libelle())));
         }
+
+        // L'or est déjà retiré ; les vivres sont garantis par le contrôle
+        // ci-dessus, donc ce débit ne peut plus échouer.
+        $ville->debiterNourriture($role->provisions());
 
         $expedition = new Expedition($ville, $destination, $role, $this->dureeVers($partie, $destination));
         $ville->ajouterExpedition($expedition);

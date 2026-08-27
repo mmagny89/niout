@@ -23,6 +23,12 @@ final readonly class DateDeJeu
     public const int CYCLES_PAR_ANNEE = self::CYCLES_PAR_MOIS * self::MOIS_PAR_ANNEE + 1;
 
     /**
+     * Chaque saison couvre quatre mois, donc huit quinzaines (doc 05). C'est
+     * l'échelle sur laquelle les cultures de Perèt mûrissent.
+     */
+    public const int CYCLES_PAR_SAISON = 8;
+
+    /**
      * @var list<string> Les douze mois, dans l'ordre
      */
     private const array MOIS = [
@@ -38,11 +44,15 @@ final readonly class DateDeJeu
 
     private function __construct(
         public int $annee,
+        /** Rang de la quinzaine dans l'année, de 1 à 25. */
+        public int $rangDansLAnnee,
         /** Numéro du mois, de 1 à 12. Null pendant les jours épagomènes. */
         public ?int $numeroDeMois,
         public string $nomDeMois,
         /** Null pendant les jours épagomènes, qui n'appartiennent à aucune saison. */
         public ?Saison $saison,
+        /** Rang de la quinzaine dans sa saison, de 1 à 8. Null hors saison. */
+        public ?int $rangDansLaSaison,
     ) {
     }
 
@@ -53,22 +63,33 @@ final readonly class DateDeJeu
 
         // Le 25e cycle de l'année est la respiration des jours épagomènes.
         if ($rangDansLAnnee > self::CYCLES_PAR_MOIS * self::MOIS_PAR_ANNEE) {
-            return new self($annee, null, self::MOIS_EPAGOMENE, null);
+            return new self($annee, $rangDansLAnnee, null, self::MOIS_EPAGOMENE, null, null);
         }
 
         $numeroDeMois = intdiv($rangDansLAnnee - 1, self::CYCLES_PAR_MOIS) + 1;
 
         return new self(
             $annee,
+            $rangDansLAnnee,
             $numeroDeMois,
             self::MOIS[$numeroDeMois - 1],
             self::saisonDuMois($numeroDeMois),
+            ($rangDansLAnnee - 1) % self::CYCLES_PAR_SAISON + 1,
         );
     }
 
     public function estJoursEpagomenes(): bool
     {
         return null === $this->saison;
+    }
+
+    /**
+     * Vrai à la toute première quinzaine d'une année — le moment où la crue de
+     * l'année se joue (doc 05).
+     */
+    public function ouvreUneAnnee(): bool
+    {
+        return 1 === $this->rangDansLAnnee;
     }
 
     /**

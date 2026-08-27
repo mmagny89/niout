@@ -126,8 +126,8 @@ final class ChantiersTest extends KernelTestCase
         // On s'offre les moyens, l'équilibrage n'est pas le sujet ici.
         $ville->crediterRessources([
             Ressource::Or->value => 500,
-            Ressource::Bois->value => 500,
-            Ressource::Pierre->value => 500,
+            Ressource::Roseaux->value => 500,
+            Ressource::Calcaire->value => 500,
         ]);
         $chantier = $this->chantiers()->lancer($partie, TypeDeBatiment::Entrepot);
         $this->acheverLesTravaux($partie, $chantier->getDureeEnCycles());

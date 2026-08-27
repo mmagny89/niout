@@ -69,7 +69,7 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `User` | ✅ | Compte joueur — email, mot de passe, statut de vérification, rôles | — |
 | `GameSave` | ✅ | Une run : mode, mission en cours, cycle. Jusqu'à 5 actifs par `User`, supprimés avec lui | 00, 14 |
 | `Family` | ✅ | Nom choisi au lancement (1 par `GameSave`) et renommée. Héritage et contacts commerciaux en Phase 9 | 13 |
-| `City` | ✅ | Nom, difficulté régionale, taille de grille, stock (or, bois, pierre) | 01, 02, 11 |
+| `City` | ✅ | Nom, difficulté régionale, taille de grille, stock, carte, chantiers | 01, 02, 11 |
 | `Building` | ✅ | Un bâtiment dressé : son type et son niveau | 01 |
 | `Chantier` | ✅ | Travaux en cours : niveau visé, durée, avancement | 01, 05 |
 | … (Phase 3+) | — | Carte, Medjaÿ, faveur divine, énigmes | 02–12 |
@@ -410,7 +410,7 @@ Deux conséquences à retenir :
 
 ---
 
-### 6.2 Phase 3 — Carte, exploration et ressources  *(4 lots sur 6)*
+### 6.2 Phase 3 — Carte, exploration et ressources  *(5 lots sur 6)*
 
 **Intention.** Faire basculer la ville de la dépense à la production. Aujourd'hui
 elle consomme une dotation qui ne se renouvelle pas ; à la fin de cette phase,
@@ -539,19 +539,72 @@ gisement, ce qu'un test verrouille.
 
 #### 3.5 — Ressources de zone, champs et cycle agricole
 
-- [ ] Ressources brutes du doc 08, cohérentes avec la géologie réelle : argile et
+- [x] Ressources brutes du doc 08, cohérentes avec la géologie réelle : argile et
       roseaux dans le Delta, calcaire, grès, granite, cuivre, turquoise ailleurs
-- [ ] Exploitation d'une case reconnue : la ressource alimente le stock, et les
+- [x] Exploitation d'une case reconnue : la ressource alimente le stock, et les
       chantiers y puisent
-- [ ] Champ établi sur une zone fertile ou une zone du Nil inondable (doc 02)
-- [ ] **Sans Grenier construit, un champ ne produit rien d'exploitable** (doc 01) :
+- [x] Champ établi sur une zone fertile ou une zone du Nil inondable (doc 02)
+- [x] **Sans Grenier construit, un champ ne produit rien d'exploitable** (doc 01) :
       la dépendance est le cœur de la mécanique, pas un détail
-- [ ] Rendement suivant les saisons (doc 05) : nul en Akhèt, champs sous l'eau ;
+- [x] Rendement suivant les saisons (doc 05) : nul en Akhèt, champs sous l'eau ;
       croissant en Perèt ; pic de moisson en Chémou
-- [ ] Qualité de la crue tirée en début d'année (faible ×0,7 / normale / forte
+- [x] Qualité de la crue tirée en début d'année (faible ×0,7 / normale / forte
       ×1,3), annoncée au joueur
-- [ ] Blé, orge et lin — le lin **débloque le Temple**
-- [ ] Provisions désormais payées en nourriture par les expéditions
+- [x] Blé, orge et lin — le lin **débloque le Temple**
+- [x] Provisions désormais payées en nourriture par les expéditions
+
+##### Bois et pierre : des familles, pas des ressources
+
+La question laissée ouverte depuis le lot 3.1 est tranchée. Le doc 01 chiffre
+tous ses bâtiments en `bois` et `pierre` ; le doc 08 ne connaît ni l'un ni
+l'autre, seulement des matériaux nommés. Prise au pied de la lettre, la
+contradiction rendait la **première mission injouable** : le Delta ne porte
+qu'argile, roseaux et calcaire, donc ni « bois » ni « pierre ».
+
+Décision : **un coût se paie avec n'importe quel matériau de la famille
+demandée**. Chaque région fournit le sien, ce qui est aussi la réalité
+historique — on bâtissait avec la pierre qu'on avait sous la main. Les coûts du
+doc 01 restent intacts, et les pierres nommées du doc 08 cessent d'être
+décoratives. Deux rattachements en découlent, tous deux appuyés sur le doc 01 :
+
+- **L'argile relève de la maçonnerie** (décision de la joueuse) : le doc 01
+  précise que la quasi-totalité des bâtiments sont en brique crue, faite du
+  limon du fleuve. Un grenier du Delta se bâtit en brique, un temple en
+  calcaire, et tous deux paient la même ligne.
+- **Les roseaux tiennent lieu de bois** : hors Levant, aucune région d'Égypte
+  n'a de bois d'œuvre, et le doc 01 décrit lui-même les toitures en troncs de
+  palmier et en **nattes** — donc en roseau.
+
+Un prélèvement puise **du plus abondant au plus rare**, sans quoi un grenier de
+brique crue pourrait engloutir le granite réservé au temple.
+
+##### À porter au game design : seul le Delta est autosuffisant
+
+Constat établi en écrivant ce lot, et verrouillé par un test qui échouera si une
+région change : sur les dix régions, **seul le Delta porte les deux familles**.
+Cinq n'ont que de la pierre, le Levant que du bois, et trois — Haute-Nubie, mer
+Rouge, Sinaï — ni l'une ni l'autre.
+
+La dotation royale comble le départ, en envoyant du cèdre et du calcaire là où
+la région ne produit rien. Mais elle ne finance pas une mission entière : **à
+partir de la région 2, le commerce de la Phase 5 devient une condition de
+jouabilité, pas un confort.** À trancher avant de livrer la mission 2 — soit en
+avançant la Phase 5, soit en dotant ces régions d'un matériau local.
+
+##### Valeurs inventées, à calibrer en playtest
+
+Aucun document ne les chiffre. Elles sont signalées comme telles dans le code :
+
+| Valeur | Retenue | Où |
+|---|---|---|
+| Récolte d'un champ par quinzaine, au pic | 10 | `RendementDesChamps` |
+| Extraction d'un gisement par quinzaine | 5, avant rareté régionale | `Recoltes` |
+| Provisions d'un éclaireur | 5 vivres | `RoleDExploration` |
+| Provisions de la dotation royale | 40 blé | `DotationRoyale` |
+
+Les provisions de départ ne sont pas un confort : sans elles, le joueur ne
+pourrait pas envoyer son premier éclaireur, donc jamais trouver la terre où
+semer. La boucle se refermait sur elle-même.
 
 #### 3.6 — Points d'eau, Port et pêche
 
