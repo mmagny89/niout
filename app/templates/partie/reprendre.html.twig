@@ -40,16 +40,11 @@
             </p>
         </div>
 
-        <div class="mt-8 rounded-sm border border-dashed border-ocre-500/40 p-6">
-            <h2 class="text-lg text-encre-900">La ville</h2>
-            <p class="mt-2 text-sm text-encre-600">
-                Les bâtiments, les chantiers et le passage des cycles arrivent aux
-                prochains lots du développement. Votre partie est enregistrée : vous
-                la retrouverez telle quelle.
-            </p>
-        </div>
-
         <div class="mt-8 flex flex-wrap items-center gap-5">
+            <a href="{{ path('app_partie_ville', {id: partie.id}) }}"
+               class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                Entrer dans la ville
+            </a>
             <a href="{{ path('app_compte') }}" class="text-lapis-500">Retour à mes parties</a>
             <a href="{{ path('app_partie_abandonner', {id: partie.id}) }}"
                class="text-sm text-encre-500 hover:text-terre-600">

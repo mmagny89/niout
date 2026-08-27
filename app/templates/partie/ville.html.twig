@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ ville.nom }} — Niout{% endblock %}
+
+{% block body %}
+    <section class="mx-auto w-full max-w-3xl px-5 py-14">
+        <div class="flex flex-wrap items-baseline justify-between gap-4">
+            <h1 class="text-4xl text-encre-900">{{ ville.nom }}</h1>
+            <a href="{{ path('app_partie_reprendre', {id: partie.id}) }}" class="text-sm text-lapis-500">
+                Récapitulatif
+            </a>
+        </div>
+
+        {# Compteurs permanents : le joueur doit toujours savoir de quoi il
+           dispose avant d'engager un chantier (doc 15). #}
+        <dl class="mt-6 flex flex-wrap gap-x-8 gap-y-2 rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-4"
+            data-chiffres>
+            {% set compteurs = [
+                { libelle: 'Or', valeur: ville.or },
+                { libelle: 'Bois', valeur: ville.bois },
+                { libelle: 'Pierre', valeur: ville.pierre },
+                { libelle: 'Cycle', valeur: partie.cycle },
+            ] %}
+            {% for compteur in compteurs %}
+                <div class="flex items-baseline gap-2">
+                    <dt class="text-xs uppercase tracking-wide text-encre-500">{{ compteur.libelle }}</dt>
+                    <dd class="font-display text-xl text-terre-600">{{ compteur.valeur }}</dd>
+                </div>
+            {% endfor %}
+        </dl>
+
+        <h2 class="mt-10 text-2xl text-encre-900">Bâtiments dressés</h2>
+        <ul class="mt-4 space-y-3 list-none p-0">
+            {% for batiment in batimentsDresses %}
+                <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                    <div class="flex flex-wrap items-baseline justify-between gap-3">
+                        <h3 class="font-display text-lg text-encre-900">{{ batiment.type.libelle }}</h3>
+                        <span class="text-sm text-encre-500" data-chiffres>
+                            Niveau {{ batiment.niveau }} sur {{ batiment.niveauMaxAtteignable }}
+                        </span>
+                    </div>
+                    <p class="mt-2 text-sm text-encre-600">{{ batiment.type.fonction }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <h2 class="mt-10 text-2xl text-encre-900">À bâtir</h2>
+        <p class="mt-2 text-sm text-encre-500">
+            Un chantier prend du temps : il n'avancera qu'au fil des cycles que vous
+            déclencherez. Le passage des cycles arrive au prochain lot.
+        </p>
+
+        <ul class="mt-5 space-y-3 list-none p-0">
+            {% for offre in offres %}
+                <li class="rounded-sm border p-5
+                           {{ offre.estRealisable
+                               ? 'border-ocre-500/30 bg-sable-50'
+                               : 'border-ocre-500/20 bg-sable-50/40' }}">
+                    <div class="flex flex-wrap items-baseline justify-between gap-3">
+                        <h3 class="font-display text-lg {{ offre.estRealisable ? 'text-encre-900' : 'text-encre-500' }}">
+                            {{ offre.type.libelle }}
+                            {% if offre.estDejaDressé %}
+                                <span class="font-sans text-sm text-encre-500" data-chiffres>
+                                    · niveau {{ offre.existant.niveau }}
+                                </span>
+                            {% endif %}
+                        </h3>
+                        <span class="text-xs uppercase tracking-wide text-encre-500">
+                            {{ offre.libelleDeLAction }}
+                        </span>
+                    </div>
+
+                    <p class="mt-2 text-sm text-encre-600">{{ offre.type.fonction }}</p>
+
+                    {% if offre.cout %}
+                        <dl class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm" data-chiffres>
+                            {% for ressource, quantite in offre.cout.detail %}
+                                <div class="flex gap-1.5">
+                                    <dt class="text-encre-500">{{ ressource }}</dt>
+                                    <dd class="text-encre-900">{{ quantite }}</dd>
+                                </div>
+                            {% endfor %}
+                            <div class="flex gap-1.5">
+                                <dt class="text-encre-500">chantier</dt>
+                                <dd class="text-encre-900">
+                                    {{ offre.type.dureeDeBase + (offre.existant ? offre.existant.niveau + 1 : 1) }} cycles
+                                </dd>
+                            </div>
+                        </dl>
+                    {% endif %}
+
+                    {% if offre.empechement %}
+                        <p class="mt-3 text-sm text-terre-600">{{ offre.empechement }}</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+
+        <p class="mt-10 text-sm">
+            <a href="{{ path('app_compte') }}" class="text-lapis-500">Retour à mes parties</a>
+        </p>
+    </section>
+{% endblock %}

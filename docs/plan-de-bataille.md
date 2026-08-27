@@ -241,7 +241,7 @@ les boucles de jeu et n'a de sens qu'une fois les zones dangereuses posées.
 
 ---
 
-### 6.1 Phase 2 — Lancer une partie et bâtir  *(3 lots sur 6)*
+### 6.1 Phase 2 — Lancer une partie et bâtir  *(4 lots sur 6)*
 
 **Intention.** Livrer la plus petite tranche réellement *jouable* plutôt que
 tout le document 01 sans écoulement du temps : créer une partie, voir sa ville,
@@ -289,16 +289,24 @@ quinzaines, le grenier est debout. »*
 - [x] Refus de création au-delà de **5 parties**, avec un message qui invite à en
       abandonner une
 
-#### 2.4 — Vue de la ville et bâtiments
+#### 2.4 — Vue de la ville et bâtiments  ✅
 
-- [ ] Vue en **liste/vignettes**, jamais de placement libre sur une grille (doc 15)
-- [ ] Les 12 bâtiments du doc 01, avec leur condition de disponibilité
+- [x] Vue en **liste/vignettes**, jamais de placement libre sur une grille (doc 15)
+- [x] Les 12 bâtiments du doc 01, avec leur condition de disponibilité
       (le Port exige un point d'eau adjacent — donc indisponible tant que la carte
       n'existe pas, ce qui est cohérent avec la Phase 3)
-- [ ] Coûts de construction et de montée de niveau :
+- [x] Coûts de construction et de montée de niveau :
       `coutBase × (1 + (N-1) × 0,4)`
-- [ ] Plafonds de niveau : `min(niveauMaxBatiment, 5 + difficulté)`
-- [ ] Fiche de bâtiment : niveau, effet courant, coût du niveau suivant
+- [x] Plafonds de niveau : `min(niveauMaxBatiment, 5 + difficulté)`
+- [x] Fiche de bâtiment : niveau, effet courant, coût du niveau suivant
+- [x] La Résidence familiale est présente d'emblée, offerte avec la ville (doc 01)
+- [x] Chaque empêchement porte son motif, plutôt qu'un bâtiment grisé sans
+      explication
+
+**Deux bâtiments restent inaccessibles**, pour des dépendances assumées : le
+**Port** exige un point d'eau adjacent, qui n'existera qu'avec la carte (Phase 3),
+et le **Temple** réclame 5 lin en offrande, ressource agricole de la même phase.
+L'interface le dit explicitement au lieu de les masquer.
 
 #### 2.5 — Cycles et chantiers
 

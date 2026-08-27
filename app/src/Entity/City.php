@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Game\TypeDeBatiment;
 use App\Repository\CityRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * La ville confiée au joueur pour une partie (doc 09).
  *
  * « Niout » (niwt) signifie « la ville » en égyptien ancien : c'est l'objet
- * central du jeu, pas un simple décor. Le stock de ressources et les bâtiments
- * viendront s'y rattacher aux lots suivants.
+ * central du jeu, pas un simple décor. Elle porte son stock et ses bâtiments ;
+ * la carte d'exploration s'y rattachera en Phase 3.
  */
 #[ORM\Entity(repositoryClass: CityRepository::class)]
 class City
@@ -57,11 +60,18 @@ class City
     #[ORM\Column]
     private int $pierre = 0;
 
+    /**
+     * @var Collection<int, Building>
+     */
+    #[ORM\OneToMany(targetEntity: Building::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $batiments;
+
     public function __construct(string $nom, int $difficulte, int $tailleGrille)
     {
         $this->nom = $nom;
         $this->difficulte = $difficulte;
         $this->tailleGrille = $tailleGrille;
+        $this->batiments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -120,5 +130,43 @@ class City
         $this->pierre += $pierre;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Building>
+     */
+    public function getBatiments(): Collection
+    {
+        return $this->batiments;
+    }
+
+    public function ajouterBatiment(Building $batiment): static
+    {
+        if (!$this->batiments->contains($batiment)) {
+            $this->batiments->add($batiment);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Le bâtiment de ce type s'il est dressé, null sinon. Un type ne peut
+     * exister qu'une fois par ville — c'est une contrainte d'unicité en base,
+     * pas seulement une convention.
+     */
+    public function batimentDeType(TypeDeBatiment $type): ?Building
+    {
+        foreach ($this->batiments as $batiment) {
+            if ($batiment->getType() === $type) {
+                return $batiment;
+            }
+        }
+
+        return null;
+    }
+
+    public function possede(TypeDeBatiment $type): bool
+    {
+        return null !== $this->batimentDeType($type);
     }
 }

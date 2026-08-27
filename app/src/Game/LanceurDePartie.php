@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Game;
 
+use App\Entity\Building;
 use App\Entity\City;
 use App\Entity\Family;
 use App\Entity\GameSave;
@@ -67,6 +68,10 @@ final readonly class LanceurDePartie
         $ville = $partie->getVille();
         $dotation = DotationRoyale::pourDifficulte($ville->getDifficulte());
         $ville->crediter($dotation->or, $dotation->bois, $dotation->pierre);
+
+        // La Résidence familiale est le foyer de la lignée : elle est là dès
+        // l'arrivée, jamais construite ni payée (doc 01).
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::ResidenceFamiliale));
 
         $this->entityManager->persist($partie);
         $this->entityManager->flush();
