@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\User;
+use App\Repository\GameSaveRepository;
 use App\Repository\ResetPasswordRequestRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,6 +27,7 @@ final class PurgeUnverifiedUsersCommand
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly ResetPasswordRequestRepository $resetPasswordRequestRepository,
+        private readonly GameSaveRepository $gameSaveRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -62,9 +64,16 @@ final class PurgeUnverifiedUsersCommand
         }
 
         foreach ($comptes as $user) {
-            // Les demandes de réinitialisation référencent l'utilisateur par une
-            // clé étrangère : sans ce retrait préalable, la suppression échoue.
+            // Tout ce qui référence l'utilisateur par une clé étrangère doit
+            // partir d'abord, sinon la suppression échoue.
             $this->resetPasswordRequestRepository->removeRequests($user);
+
+            // Les parties emportent avec elles leur famille et leur ville, par
+            // cascade déclarée sur GameSave.
+            foreach ($this->gameSaveRepository->findPourJoueur($user) as $partie) {
+                $this->entityManager->remove($partie);
+            }
+
             $this->entityManager->remove($user);
         }
 

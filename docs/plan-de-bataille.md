@@ -247,15 +247,16 @@ la fondation de tout le reste.
 pharaon me dote, je lance la construction d'un grenier, j'avance de deux
 quinzaines, le grenier est debout. »*
 
-#### 2.1 — Modèle de partie
+#### 2.1 — Modèle de partie  ✅
 
-- [ ] `GameSave` : mode (campagne/aventure), mission ou règne courant, numéro de
+- [x] `GameSave` : mode (campagne/aventure), mission ou règne courant, numéro de
       cycle, date de création et de dernière ouverture
-- [ ] `Family` : nom choisi par le joueur (défaut proposé : **Nakht**), renommée,
-      trésorerie
-- [ ] `City` : nom de la ville, difficulté de la région
-- [ ] Un compte porte **plusieurs `GameSave` actifs, plafonnés à 5** (décision §9)
-- [ ] **Étendre `app:users:purge-unverified`** pour supprimer les parties d'un
+- [x] `Family` : nom choisi par le joueur (défaut proposé : **Nakht**) et renommée,
+      avec ses cinq paliers (doc 13). **La trésorerie n'y est pas** : l'or est un
+      objectif de mission, donc lié à la ville — il rejoint le stock au lot 2.6
+- [x] `City` : nom de la ville, difficulté de la région
+- [x] Un compte porte **plusieurs `GameSave` actifs, plafonnés à 5** (décision §9)
+- [x] **Étendre `app:users:purge-unverified`** pour supprimer les parties d'un
       compte purgé — dette identifiée en Phase 1, la clé étrangère bloquerait
       sinon la suppression
 
