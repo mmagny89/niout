@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use App\Repository\CityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -47,18 +48,10 @@ class City
     private int $tailleGrille;
 
     /**
-     * Colonne nommée explicitement : « or » est un mot réservé du SQL. La
-     * création de table passait (Doctrine l'échappe), mais les SELECT générés
-     * ensuite ne l'échappaient pas et provoquaient une erreur de syntaxe.
+     * @var Collection<int, StockDeRessource>
      */
-    #[ORM\Column(name: 'stock_or')]
-    private int $or = 0;
-
-    #[ORM\Column]
-    private int $bois = 0;
-
-    #[ORM\Column]
-    private int $pierre = 0;
+    #[ORM\OneToMany(targetEntity: StockDeRessource::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true, indexBy: 'ressource')]
+    private Collection $stock;
 
     /**
      * @var Collection<int, Building>
@@ -77,6 +70,7 @@ class City
         $this->nom = $nom;
         $this->difficulte = $difficulte;
         $this->tailleGrille = $tailleGrille;
+        $this->stock = new ArrayCollection();
         $this->batiments = new ArrayCollection();
         $this->chantiers = new ArrayCollection();
     }
@@ -111,32 +105,96 @@ class City
         return $this->tailleGrille;
     }
 
+    /**
+     * @return Collection<int, StockDeRessource>
+     */
+    public function getStock(): Collection
+    {
+        return $this->stock;
+    }
+
+    public function quantite(Ressource $ressource): int
+    {
+        foreach ($this->stock as $ligne) {
+            if ($ligne->getRessource() === $ressource) {
+                return $ligne->getQuantite();
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Raccourcis vers les trois matériaux affichés en permanence dans la barre
+     * de jeu. Ils évitent aux gabarits d'appeler quantite() avec une énumération.
+     */
     public function getOr(): int
     {
-        return $this->or;
+        return $this->quantite(Ressource::Or);
     }
 
     public function getBois(): int
     {
-        return $this->bois;
+        return $this->quantite(Ressource::Bois);
     }
 
     public function getPierre(): int
     {
-        return $this->pierre;
+        return $this->quantite(Ressource::Pierre);
     }
 
     /**
      * Crédite le stock. Sert à la dotation royale du départ (doc 13), puis aux
-     * récoltes et aux achats.
+     * récoltes, à la pêche et aux achats.
+     *
+     * @param array<string, int> $ressources valeur de Ressource => quantité
      */
-    public function crediter(int $or = 0, int $bois = 0, int $pierre = 0): static
+    public function crediterRessources(array $ressources): static
     {
-        $this->or += $or;
-        $this->bois += $bois;
-        $this->pierre += $pierre;
+        foreach ($ressources as $valeur => $quantite) {
+            if ($quantite <= 0) {
+                continue;
+            }
+
+            $this->ligneDe(Ressource::from($valeur))->ajouter($quantite);
+        }
 
         return $this;
+    }
+
+    /**
+     * Débite le stock. Renvoie false **sans rien modifier** si les moyens ne
+     * suffisent pas : un chantier ne doit jamais démarrer à découvert.
+     *
+     * @param array<string, int> $ressources valeur de Ressource => quantité
+     */
+    public function debiterRessources(array $ressources): bool
+    {
+        foreach ($ressources as $valeur => $quantite) {
+            if ($this->quantite(Ressource::from($valeur)) < $quantite) {
+                return false;
+            }
+        }
+
+        foreach ($ressources as $valeur => $quantite) {
+            $this->ligneDe(Ressource::from($valeur))->retirer($quantite);
+        }
+
+        return true;
+    }
+
+    private function ligneDe(Ressource $ressource): StockDeRessource
+    {
+        foreach ($this->stock as $ligne) {
+            if ($ligne->getRessource() === $ressource) {
+                return $ligne;
+            }
+        }
+
+        $ligne = new StockDeRessource($this, $ressource);
+        $this->stock->add($ligne);
+
+        return $ligne;
     }
 
     /**
@@ -213,22 +271,5 @@ class City
         }
 
         return false;
-    }
-
-    /**
-     * Débite le stock. Renvoie false sans rien modifier si les moyens ne
-     * suffisent pas — un chantier ne doit jamais démarrer à découvert.
-     */
-    public function debiter(int $or = 0, int $bois = 0, int $pierre = 0): bool
-    {
-        if ($or > $this->or || $bois > $this->bois || $pierre > $this->pierre) {
-            return false;
-        }
-
-        $this->or -= $or;
-        $this->bois -= $bois;
-        $this->pierre -= $pierre;
-
-        return true;
     }
 }

@@ -67,7 +67,7 @@ final readonly class LanceurDePartie
     {
         $ville = $partie->getVille();
         $dotation = DotationRoyale::pourDifficulte($ville->getDifficulte());
-        $ville->crediter($dotation->or, $dotation->bois, $dotation->pierre);
+        $ville->crediterRessources($dotation->enRessources());
 
         // La Résidence familiale est le foyer de la lignée : elle est là dès
         // l'arrivée, jamais construite ni payée (doc 01).

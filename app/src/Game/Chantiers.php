@@ -46,7 +46,7 @@ final readonly class Chantiers
         $cout = $offre->cout;
         \assert(null !== $cout);
 
-        if (!$ville->debiter(or: $cout->or, bois: $cout->bois, pierre: $cout->pierre)) {
+        if (!$ville->debiterRessources($cout->enRessources())) {
             throw new ChantierImpossible('Vos réserves ne suffisent plus.');
         }
 

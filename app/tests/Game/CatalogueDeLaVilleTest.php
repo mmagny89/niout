@@ -8,6 +8,7 @@ use App\Entity\Building;
 use App\Entity\City;
 use App\Game\CatalogueDeLaVille;
 use App\Game\OffreDeConstruction;
+use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -101,11 +102,19 @@ final class CatalogueDeLaVilleTest extends TestCase
      */
     private function villeDotee(): City
     {
-        return (new City('Avaris', 0, 3))->crediter(or: 50, bois: 20, pierre: 10);
+        return (new City('Avaris', 0, 3))->crediterRessources([
+            Ressource::Or->value => 50,
+            Ressource::Bois->value => 20,
+            Ressource::Pierre->value => 10,
+        ]);
     }
 
     private function villeRiche(): City
     {
-        return (new City('Avaris', 0, 3))->crediter(or: 9999, bois: 9999, pierre: 9999);
+        return (new City('Avaris', 0, 3))->crediterRessources([
+            Ressource::Or->value => 9999,
+            Ressource::Bois->value => 9999,
+            Ressource::Pierre->value => 9999,
+        ]);
     }
 }
