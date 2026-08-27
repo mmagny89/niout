@@ -75,7 +75,7 @@ Pour la Phase 1, seul `User` est nécessaire (avec son statut de vérification).
 
 ---
 
-## 4. Phase 0 — Fondations techniques
+## 4. Phase 0 — Fondations techniques  ✅
 
 - [x] Dépôt git initialisé (branche `main`)
 - [x] Plan de bataille sauvegardé dans le projet (`docs/plan-de-bataille.md`)
@@ -122,38 +122,40 @@ route n'est déclarée.
 
 ---
 
-## 5. Phase 1 — Périmètre immédiat
+## 5. Phase 1 — Comptes et page d'accueil  ✅
 
 Trois pages, un compte fonctionnel.
 
 ### Page de présentation (accueil)
 
-- Pitch du jeu (doc 00 : gestion/aventure/RPG léger, Nouvel Empire, sans attente réelle)
-- Mise en avant des deux modes (Campagne 10 missions / Aventure — Memphis)
-- Aperçu visuel à partir des planches déjà générées (dossier `Sprites/`)
-- Appels à l'action : « Créer un compte » / « Se connecter »
-- Route publique, aucune authentification requise
+- [x] Pitch du jeu (doc 00 : gestion/aventure/RPG léger, Nouvel Empire, sans attente réelle)
+- [x] Mise en avant des deux modes (Campagne 10 missions / Aventure — Memphis)
+- [ ] Aperçu visuel à partir des planches déjà générées (dossier `Sprites/`) —
+      **non fait** : la page reste typographique. Reporté au découpage des sprites
+      (§7), pour ne pas servir un JPEG de 2 Mo en attendant
+- [x] Appels à l'action : « Créer un compte » / « Se connecter »
+- [x] Route publique, aucune authentification requise
 
 ### Inscription
 
-- Formulaire Symfony Form : email, mot de passe (+ confirmation), CSRF activé
-- Validation serveur (email unique, robustesse du mot de passe)
-- Hash argon2 via le hasher natif Symfony
-- Connexion automatique après inscription — **le compte est utilisable tout de suite, sans blocage**
-- Email de vérification envoyé à l'inscription (lien signé, `symfony/mailer`)
-- Délai de grâce de **7 jours** pour valider ; passé ce délai, une commande
+- [x] Formulaire Symfony Form : email, mot de passe (+ confirmation), CSRF activé
+- [x] Validation serveur (email unique, robustesse du mot de passe)
+- [x] Hash argon2 via le hasher natif Symfony
+- [x] Connexion automatique après inscription — **le compte est utilisable tout de suite, sans blocage**
+- [x] Email de vérification envoyé à l'inscription (lien signé, `symfony/mailer`)
+- [x] Délai de grâce de **7 jours** pour valider ; passé ce délai, une commande
   planifiée (`app:users:purge-unverified`, cron) **supprime définitivement** les
   comptes non vérifiés
-- Bandeau de rappel discret tant que le compte n'est pas vérifié, avec lien pour
+- [x] Bandeau de rappel discret tant que le compte n'est pas vérifié, avec lien pour
   renvoyer l'email
 
 ### Connexion & compte
 
-- Formulaire de connexion Symfony Security (email + mot de passe)
-- Gestion de session, déconnexion
-- **Mot de passe oublié** (inclus en Phase 1) : demande par email, lien de
+- [x] Formulaire de connexion Symfony Security (email + mot de passe)
+- [x] Gestion de session, déconnexion
+- [x] **Mot de passe oublié** (inclus en Phase 1) : demande par email, lien de
   réinitialisation signé et à expiration, formulaire de nouveau mot de passe
-- Page compte minimale (email, statut de vérification, déconnexion) — prête à
+- [x] Page compte minimale (email, statut de vérification, déconnexion) — prête à
   lister les parties en cours une fois la Phase 2 posée
 
 ### État : livrée
@@ -200,28 +202,140 @@ passe oublié), formulaires accessibles (labels, focus clavier), revue sécurit�
 
 ---
 
-## 6. Feuille de route (phases suivantes)
+## 6. Feuille de route
 
 Chaque phase correspond à un ou plusieurs documents déjà entièrement spécifiés —
 le travail y est surtout de la traduction en entités Doctrine, contrôleurs et
 vues, pas de la conception.
 
-| # | Phase | Documents source |
-|---|---|---|
-| 2 | Ville & bâtiments — vue de la ville, construction/amélioration, chefs/travailleurs, chantiers non instantanés | `01_batiments` |
-| 3 | Carte & première région — génération de scénario, grille, brouillard de guerre, Delta du Nord | `02_carte_generation_scenario`, `06_premiere_carte` |
-| 4 | Cycles & calendrier — bouton « cycle suivant », saisons, crue du Nil | `05_cycles` |
-| 5 | Exploration — éclaireur, action complémentaire, coûts et risques | `04_exploration` |
-| 6 | Recrutement & combat — offres d'emploi, Medjaÿ, combat automatique | `03_recrutement_combat` |
-| 7 | Ressources, artisanat & commerce — Marché, Entrepôt, recettes, rivaux | `08_ressources` |
-| 8 | Faveur divine — panthéon, offrandes, épidémies | `07_faveur_divine` |
-| 9 | Campagne, lore & énigmes — 10 missions, fil rouge en 3 actes, déchiffrage | `09_lore_campagne`, `10_enigmes_enquetes` |
-| 10 | Régions & routes commerciales — 9 régions restantes, imports/exports, héritage | `11_regions_campagne`, `12_routes_commerciales` |
-| 11 | Renommée & héritage familial — jauge, dotation royale, succession | `13_renommee_heritage` |
-| 12 | Mode Aventure — Memphis, succession des règnes, paramètres | `14_mode_aventure` |
+- [x] **Phase 0** — Fondations techniques · §4
+- [x] **Phase 1** — Comptes et page d'accueil · §5
+- [ ] **Phase 2** — Lancer une partie et bâtir · §6.1 · `01`, `05`, `13`
+- [ ] **Phase 3** — Carte, exploration et ressources · `02`, `04`, `06`, `08`
+- [ ] **Phase 4** — Population : recrutement, chefs et travailleurs · `01`, `03`
+- [ ] **Phase 5** — Artisanat et commerce · `08`, `12`
+- [ ] **Phase 6** — Faveur divine et événements · `07`
+- [ ] **Phase 7** — Énigmes, enquêtes et fil rouge · `10`
+- [ ] **Phase 8** — Campagne : les 10 missions et leurs objectifs · `09`, `11`
+- [ ] **Phase 9** — Renommée, héritage et succession familiale · `13`
+- [ ] **Phase 10** — Medjaÿ et combat automatique · `03`
+- [ ] **Phase 11** — Mode Aventure : Memphis et succession des règnes · `14`
+- [ ] **Phase 12** — Découpage et intégration des sprites · `15` · §7
 
 Le document 15 (interface & direction artistique) est **transverse** : chaque
-phase l'utilise au fur et à mesure.
+phase l'utilise au fur et à mesure, la phase 12 ne concerne que l'intégration
+des images elles-mêmes.
+
+**Réordonnancement par rapport à la première version.** Les cycles (doc 05)
+remontent en Phase 2 : ils ne sont pas un système parmi d'autres mais le
+battement du jeu, et un chantier qui ne progresse pas n'est pas démontrable.
+Symétriquement, le combat (doc 03) redescend en Phase 10 : il est optionnel dans
+les boucles de jeu et n'a de sens qu'une fois les zones dangereuses posées.
+
+---
+
+### 6.1 Phase 2 — Lancer une partie et bâtir  *(proposition détaillée)*
+
+**Intention.** Livrer la plus petite tranche réellement *jouable* plutôt que
+tout le document 01 sans écoulement du temps : créer une partie, voir sa ville,
+lancer un chantier, déclencher un cycle, voir le chantier avancer puis s'achever.
+C'est ce qui valide l'architecture d'état par partie et la résolution de cycle —
+la fondation de tout le reste.
+
+À la fin de la phase, on doit pouvoir raconter : *« je crée une famille, le
+pharaon me dote, je lance la construction d'un grenier, j'avance de deux
+quinzaines, le grenier est debout. »*
+
+#### 2.1 — Modèle de partie
+
+- [ ] `GameSave` : mode (campagne/aventure), mission ou règne courant, numéro de
+      cycle, date de création et de dernière ouverture
+- [ ] `Family` : nom choisi par le joueur (défaut proposé : **Nakht**), renommée,
+      trésorerie
+- [ ] `City` : nom de la ville, difficulté de la région
+- [ ] Un compte porte **plusieurs `GameSave` actifs** (décision §9)
+- [ ] **Étendre `app:users:purge-unverified`** pour supprimer les parties d'un
+      compte purgé — dette identifiée en Phase 1, la clé étrangère bloquerait
+      sinon la suppression
+
+#### 2.2 — Parcours « nouvelle partie »
+
+- [ ] Choix du mode : Campagne (démarre à la mission 1, Avaris) ou Aventure (Memphis)
+- [ ] Saisie du nom de famille, avec **Nakht** proposé par défaut (doc 09)
+- [ ] En mode Aventure uniquement : choix de la difficulté (0 à 9) et de la taille
+      de grille (doc 14)
+- [ ] Texte d'introduction citant le pharaon commanditaire et le contexte
+      historique (doc 09 — format texte simple, pas de cinématique)
+- [ ] **Dotation royale** créditée au départ : `50 + 10 × difficulté` en or, plus
+      de quoi couvrir un premier bâtiment (doc 13)
+
+#### 2.3 — Liste et gestion des parties
+
+- [ ] La page de compte liste les parties en cours (ville, mode, cycle atteint)
+- [ ] Reprendre une partie
+- [ ] Abandonner une partie, avec confirmation — action destructive
+
+#### 2.4 — Vue de la ville et bâtiments
+
+- [ ] Vue en **liste/vignettes**, jamais de placement libre sur une grille (doc 15)
+- [ ] Les 12 bâtiments du doc 01, avec leur condition de disponibilité
+      (le Port exige un point d'eau adjacent — donc indisponible tant que la carte
+      n'existe pas, ce qui est cohérent avec la Phase 3)
+- [ ] Coûts de construction et de montée de niveau :
+      `coutBase × (1 + (N-1) × 0,4)`
+- [ ] Plafonds de niveau : `min(niveauMaxBatiment, 5 + difficulté)`
+- [ ] Fiche de bâtiment : niveau, effet courant, coût du niveau suivant
+
+#### 2.5 — Cycles et chantiers
+
+- [ ] Bouton « Cycle suivant » — **la seule chose qui fait avancer le temps**
+- [ ] Calendrier pharaonique : nom du mois affiché, saison courante (doc 05)
+- [ ] Durée de chantier : `dureeBase + niveau`, `dureeBase` propre au bâtiment
+- [ ] **Étapes de chantier nommées** avec leur info-bulle pédagogique — séchage
+      des briques, élévation des murs… (doc 01)
+- [ ] Accélération ×1,5 pendant Akhèt (main-d'œuvre libérée par la crue)
+- [ ] Le joueur reste libre d'agir entre deux cycles : aucun blocage
+
+#### 2.6 — Ressources minimales
+
+Strictement ce qu'exige la construction, le reste attend la Phase 3 :
+
+- [ ] Stock de la ville : or, bois, pierre
+- [ ] Débit à la mise en chantier, refus si le stock est insuffisant
+- [ ] Affichage permanent des compteurs (barre supérieure, doc 15)
+
+#### Hors périmètre, explicitement
+
+Carte et exploration, production de ressources, recrutement de chefs et de
+travailleurs, effets fonctionnels des bâtiments (un grenier construit ne stocke
+encore rien), craft, commerce, faveur divine, énigmes, objectifs de mission.
+
+Conséquence assumée : en fin de Phase 2, on **construit** sans encore
+**produire**. La dotation royale finance les premiers bâtiments, ce qui suffit à
+valider la boucle. La production arrive en Phase 3 avec la carte, qui en est la
+source.
+
+#### Définition de « fini »
+
+Parcours complet couvert de bout en bout par des tests fonctionnels : créer une
+partie → dotation créditée → lancer un chantier → déclencher les cycles → le
+bâtiment est opérationnel. Plus des tests unitaires sur les formules (coût,
+durée, plafonds, bonus d'Akhèt), qui sont le cœur calculatoire et l'endroit où
+une régression passerait le plus facilement inaperçue.
+
+Les quatre portes qualité au vert, revue de sécurité sur les nouvelles routes
+(une partie ne doit être lisible et modifiable que par son propriétaire — un
+**Voter** plutôt qu'un simple contrôle de rôle).
+
+#### Points à trancher avant de commencer
+
+1. **Abandonner une partie** : suppression définitive, ou archivage consultable ?
+2. **Nombre de parties simultanées** : illimité, ou plafonné pour éviter qu'un
+   compte n'en accumule des centaines ?
+3. **Mode Campagne** : la mission 1 est-elle imposée, ou le joueur choisit-il sa
+   région parmi celles déjà débloquées ?
+4. **Reprise de partie** : faut-il un récapitulatif de ce qui s'est passé depuis
+   la dernière session, ou retour direct à la ville ?
 
 ---
 
