@@ -99,5 +99,9 @@ jobs:
       - uses: ramsey/composer-install@v3
         with:
           working-directory: app
+      # En environnement de test, doctrine.yaml ajoute le suffixe défini par
+      # dbname_suffix : la base visée est app_test, pas app. Le service
+      # PostgreSQL ne crée que POSTGRES_DB, il faut donc créer l'autre.
+      - run: php bin/console doctrine:database:create --if-not-exists --env=test
       - run: php bin/console doctrine:migrations:migrate --no-interaction --env=test
       - run: php bin/phpunit
