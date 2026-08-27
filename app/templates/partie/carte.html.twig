@@ -121,13 +121,24 @@
                             Votre ville se dresse ici.
                         {% elseif not zoneDetaillee.estDecouverte %}
                             Nul ne sait ce qui s'y trouve. Une reconnaissance le dira.
+                        {% elseif zoneDetaillee.porteUnChamp %}
+                            Un champ y est établi, semé de <strong>{{ zoneDetaillee.culture.libelle }}</strong>.
+                            {{ zoneDetaillee.culture.usage }}
                         {% elseif zoneDetaillee.ressource %}
                             Gisement de <strong>{{ zoneDetaillee.ressource.libelle }}</strong>,
                             <span data-chiffres>{{ zoneDetaillee.quantiteRestante }}</span> unités.
+                            {% if zoneDetaillee.estExploitee %} L'extraction est en cours.{% endif %}
                         {% else %}
                             {{ zoneDetaillee.contenu.libelle }}.
                         {% endif %}
                     </p>
+
+                    {% if zoneDetaillee.porteUnChamp and not aUnGrenier %}
+                        <p class="mt-3 text-sm text-terre-600">
+                            Sans Grenier, ce champ travaille pour rien : la récolte n'a nulle part
+                            où se conserver.
+                        </p>
+                    {% endif %}
 
                     {% if not zoneDetaillee.estDecouverte %}
                         {% if expeditionEnCours %}
@@ -143,14 +154,40 @@
                                     Envoyer un éclaireur
                                 </button>
                                 <span class="ml-3 text-sm text-encre-500" data-chiffres>
-                                    {{ coutDeReconnaissance }} or · {{ dureeDeReconnaissance }} cycle{{ dureeDeReconnaissance > 1 ? 's' : '' }}
+                                    {{ coutDeReconnaissance }} or · {{ provisionsDeReconnaissance }} vivres · {{ dureeDeReconnaissance }} cycle{{ dureeDeReconnaissance > 1 ? 's' : '' }}
                                 </span>
                             </form>
                         {% endif %}
-                    {% elseif not zoneDetaillee.porteLaVille %}
+                    {% elseif zoneDetaillee.ressource and zoneDetaillee.ressource.value == 'poisson' %}
+                        {# On ne creuse pas la mer : la pêche attend le Port. #}
                         <p class="mt-4 text-sm text-encre-500">
-                            L'exploitation des gisements arrive au prochain lot du développement.
+                            Ces eaux sont poissonneuses. Il faudra un Port pour en tirer quelque chose.
                         </p>
+                    {% elseif zoneDetaillee.ressource and not zoneDetaillee.estExploitee and zoneDetaillee.quantiteRestante > 0 %}
+                        <form method="post" action="{{ path('app_partie_exploiter', {id: partie.id}) }}" class="mt-5">
+                            <input type="hidden" name="_token" value="{{ csrf_token('exploiter') }}">
+                            <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                            <button type="submit"
+                                    class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                Ouvrir une carrière
+                            </button>
+                        </form>
+                    {% elseif zoneDetaillee.accepteUnChamp and not zoneDetaillee.porteUnChamp %}
+                        <form method="post" action="{{ path('app_partie_semer', {id: partie.id}) }}" class="mt-5 flex flex-wrap items-center gap-3">
+                            <input type="hidden" name="_token" value="{{ csrf_token('semer') }}">
+                            <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                            <label for="culture" class="text-sm text-encre-600">Semer</label>
+                            <select id="culture" name="culture"
+                                    class="rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900">
+                                {% for culture in cultures %}
+                                    <option value="{{ culture.value }}">{{ culture.libelle }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit"
+                                    class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                Établir un champ
+                            </button>
+                        </form>
                     {% endif %}
                 </article>
             {% else %}

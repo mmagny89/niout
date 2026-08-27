@@ -130,6 +130,15 @@ directement.
 Les constructeurs nommés (`GameSave::pourCampagne()`) sont préférés à un
 constructeur public quand ils rendent un invariant impossible à violer.
 
+**`bois` et `pierre` ne sont pas des ressources, ce sont des familles.** Le
+doc 01 chiffre les bâtiments dans ces deux matériaux génériques, le doc 08 ne
+connaît que des matériaux nommés (calcaire, granite, roseaux…). Un coût se paie
+donc avec n'importe quel matériau de la famille demandée — voir
+`Game/FamilleDeMateriau`, qui porte la démonstration, et `City::payer()`, qui
+prélève du plus abondant au plus rare. Ne jamais réintroduire une ressource
+`Ressource::Bois` ou `Ressource::Pierre` : la première mission redeviendrait
+injouable, le Delta ne portant ni l'un ni l'autre.
+
 Trois pièges déjà payés, à ne pas refaire :
 
 - **`or` est un mot réservé du SQL.** Doctrine échappe les noms à la création de

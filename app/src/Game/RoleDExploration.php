@@ -53,6 +53,22 @@ enum RoleDExploration: string
     }
 
     /**
+     * Vivres emportés pour la route (doc 04). On ne part pas explorer le désert
+     * les mains vides ; c'est ce qui donne à la nourriture un usage avant même
+     * qu'une population soit à nourrir.
+     *
+     * N'importe quelle nourriture fait l'affaire — blé, orge, dattes, poisson.
+     */
+    public function provisions(): int
+    {
+        return match ($this) {
+            self::Eclaireur => 5,
+            self::Emissaire => 10,
+            self::ChefDExpedition => 20,
+        };
+    }
+
+    /**
      * Rôles réellement jouables à ce stade du développement.
      *
      * @return list<self>

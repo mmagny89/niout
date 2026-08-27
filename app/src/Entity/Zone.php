@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Game\ContenuDeZone;
+use App\Game\Culture;
 use App\Game\Ressource;
 use App\Game\TypeDeTerrain;
 use App\Repository\ZoneRepository;
@@ -51,6 +52,19 @@ class Zone
      */
     #[ORM\Column]
     private int $quantiteRestante = 0;
+
+    /**
+     * Le gisement est-il en cours d'extraction ? Une case reconnue ne rapporte
+     * rien tant que le joueur n'a pas décidé de l'exploiter.
+     */
+    #[ORM\Column]
+    private bool $exploitee = false;
+
+    /**
+     * Ce qui est semé sur cette case, si un champ y est établi (doc 01, doc 02).
+     */
+    #[ORM\Column(nullable: true, enumType: Culture::class)]
+    private ?Culture $culture = null;
 
     #[ORM\Column]
     private bool $decouverte = false;
@@ -137,6 +151,63 @@ class Zone
     public function estDecouverte(): bool
     {
         return $this->decouverte;
+    }
+
+    public function estExploitee(): bool
+    {
+        return $this->exploitee;
+    }
+
+    /**
+     * Un gisement s'exploite : il verse sa ressource au stock à chaque
+     * quinzaine, tant qu'il en reste.
+     */
+    public function exploiter(): static
+    {
+        $this->exploitee = true;
+
+        return $this;
+    }
+
+    /**
+     * Prélève sur le gisement, sans jamais descendre sous zéro. Renvoie ce qui
+     * a effectivement été extrait, qui peut être moindre que demandé sur la fin
+     * d'un filon.
+     */
+    public function extraire(int $quantite): int
+    {
+        $extrait = min($quantite, $this->quantiteRestante);
+        $this->quantiteRestante -= $extrait;
+
+        return $extrait;
+    }
+
+    public function getCulture(): ?Culture
+    {
+        return $this->culture;
+    }
+
+    public function porteUnChamp(): bool
+    {
+        return null !== $this->culture;
+    }
+
+    /**
+     * Un champ ne s'établit que sur une terre qui l'accepte — terre fertile,
+     * oasis, ou berge du Nil que la crue limone (doc 02) — et seulement là où
+     * la génération a vu une terre cultivable.
+     */
+    public function accepteUnChamp(): bool
+    {
+        return $this->terrain->accepteUnChamp()
+            && ContenuDeZone::ChampEligible === $this->contenu;
+    }
+
+    public function semer(Culture $culture): static
+    {
+        $this->culture = $culture;
+
+        return $this;
     }
 
     public function decouvrir(): static

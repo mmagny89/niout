@@ -47,12 +47,15 @@ final readonly class CatalogueDeLaVille
             return $this->verifierLesMoyens($ville, $type, $existant, $cout);
         }
 
-        // Le Port dépend de la géographie de la ville, qui n'existera qu'avec
-        // la carte (Phase 3).
+        // Le Port n'a de sens qu'au bord de l'eau (doc 01). La carte sait déjà
+        // répondre, mais la pêche qui justifie le bâtiment arrive au lot 3.6 :
+        // le laisser bâtir maintenant donnerait un quai sans usage.
         if ($type->exigeUnPointDEau()) {
             return OffreDeConstruction::empechee(
                 $type, null, $type->coutDeBase(),
-                'Exige un point d\'eau adjacent à la ville. La carte arrive en Phase 3.',
+                $ville->jouxteUnPointDEau()
+                    ? 'Votre ville borde bien l\'eau. La pêche et le commerce naval arrivent au prochain lot.'
+                    : 'Exige un point d\'eau adjacent à la ville.',
             );
         }
 
@@ -65,23 +68,7 @@ final readonly class CatalogueDeLaVille
         ?Building $existant,
         CoutDeConstruction $cout,
     ): OffreDeConstruction {
-        // Le lin est une ressource agricole : il n'existera qu'avec les champs.
-        if ($cout->lin > 0) {
-            return OffreDeConstruction::empechee(
-                $type, $existant, $cout,
-                'Réclame du lin en offrande. L\'agriculture arrive en Phase 3.',
-            );
-        }
-
-        $manques = [];
-        foreach ($cout->enRessources() as $valeur => $exige) {
-            $ressource = Ressource::from($valeur);
-            $possede = $ville->quantite($ressource);
-
-            if ($exige > $possede) {
-                $manques[] = \sprintf('%d %s', $exige - $possede, $ressource->libelle());
-            }
-        }
+        $manques = $ville->manquesPour($cout);
 
         if ([] !== $manques) {
             return OffreDeConstruction::empechee(

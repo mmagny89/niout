@@ -30,6 +30,39 @@ final class ExplorationTest extends KernelTestCase
         self::assertCount(1, $partie->getVille()->getExpeditions());
     }
 
+    /**
+     * On ne part pas explorer les mains vides (doc 04) : c'est ce qui donne à
+     * la nourriture un usage avant même qu'il y ait une population à nourrir.
+     */
+    public function testEnvoyerUnEclaireurEntameLesVivres(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('vivres@example.com');
+        $avant = $partie->getVille()->getNourriture();
+
+        $this->explorations()->envoyer($partie, $this->caseInconnue($partie), RoleDExploration::Eclaireur);
+
+        self::assertSame($avant - RoleDExploration::Eclaireur->provisions(), $partie->getVille()->getNourriture());
+    }
+
+    public function testSansVivresAucunEclaireurNePartEtLOrResteIntact(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('famine@example.com');
+        $ville = $partie->getVille();
+        $ville->debiterNourriture($ville->getNourriture());
+        $orAvant = $ville->getOr();
+
+        try {
+            $this->explorations()->envoyer($partie, $this->caseInconnue($partie), RoleDExploration::Eclaireur);
+            self::fail('L\'expédition aurait dû être refusée faute de vivres.');
+        } catch (ExplorationImpossible $impossible) {
+            self::assertStringContainsString('vivres', $impossible->getMessage());
+            self::assertSame($orAvant, $ville->getOr(), 'L\'or ne doit pas être prélevé pour rien.');
+            self::assertCount(0, $ville->getExpeditions());
+        }
+    }
+
     public function testLaCaseResteSousBrouillardTantQueLEclaireurEstEnRoute(): void
     {
         self::bootKernel();

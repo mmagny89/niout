@@ -32,6 +32,7 @@ final readonly class LanceurDePartie
         private MissionCatalogue $missions,
         private GameSaveRepository $parties,
         private GenerateurDeCarte $carte,
+        private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -85,8 +86,12 @@ final readonly class LanceurDePartie
         // pas de sens, et l'engendrer plus tard laisserait un état à moitié
         // initialisé.
         $this->carte->peupler($ville, $geographie);
-        $dotation = DotationRoyale::pourDifficulte($ville->getDifficulte());
+        $dotation = DotationRoyale::pour($ville->getDifficulte(), $geographie);
         $ville->crediterRessources($dotation->enRessources());
+
+        // La crue de la première année est déjà jouée quand le joueur arrive :
+        // elle conditionne la moisson qu'il prépare dès maintenant.
+        $partie->annoncerLaCrue($this->crues->tirer());
 
         // La Résidence familiale est le foyer de la lignée : elle est là dès
         // l'arrivée, jamais construite ni payée (doc 01).

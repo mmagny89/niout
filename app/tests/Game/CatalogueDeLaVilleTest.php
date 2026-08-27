@@ -104,8 +104,8 @@ final class CatalogueDeLaVilleTest extends TestCase
     {
         return (new City('Avaris', 0, 3))->crediterRessources([
             Ressource::Or->value => 50,
-            Ressource::Bois->value => 20,
-            Ressource::Pierre->value => 10,
+            Ressource::Roseaux->value => 20,
+            Ressource::Calcaire->value => 10,
         ]);
     }
 
@@ -113,8 +113,8 @@ final class CatalogueDeLaVilleTest extends TestCase
     {
         return (new City('Avaris', 0, 3))->crediterRessources([
             Ressource::Or->value => 9999,
-            Ressource::Bois->value => 9999,
-            Ressource::Pierre->value => 9999,
+            Ressource::Roseaux->value => 9999,
+            Ressource::Calcaire->value => 9999,
         ]);
     }
 }

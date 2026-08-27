@@ -19,6 +19,8 @@ final readonly class PassageDeCycle
     public function __construct(
         private Chantiers $chantiers,
         private Explorations $explorations,
+        private Recoltes $recoltes,
+        private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -29,15 +31,25 @@ final readonly class PassageDeCycle
     public function passer(GameSave $partie): array
     {
         // La saison du cycle qu'on vient de vivre, pas celle du suivant : les
-        // travaux et les trajets ont eu lieu pendant l'ancien.
+        // travaux, les trajets et les récoltes ont eu lieu pendant l'ancien.
         $saison = $partie->dateDeJeu()->saison;
 
         $evenements = [
             ...$this->explorations->avancerDUnCycle($partie),
             ...$this->chantiers->avancerDUnCycle($partie, $saison),
+            ...$this->recoltes->avancerDUnCycle($partie),
         ];
 
         $partie->avancerDUnCycle();
+
+        // L'année qui s'ouvre apporte sa crue, annoncée avant qu'on ait à
+        // semer : c'est un aléa qu'on subit, pas une surprise de moisson.
+        if ($partie->dateDeJeu()->ouvreUneAnnee()) {
+            $crue = $this->crues->tirer();
+            $partie->annoncerLaCrue($crue);
+            $evenements[] = \sprintf('La crue de cette année est %s. %s', $crue->libelle(), $crue->presage());
+        }
+
         $this->entityManager->flush();
 
         return $evenements;

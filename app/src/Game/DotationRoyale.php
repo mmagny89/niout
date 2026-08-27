@@ -23,10 +23,29 @@ final readonly class DotationRoyale
     private const int BOIS = 20;
     private const int PIERRE = 10;
 
-    public function __construct(
+    /**
+     * De quoi tenir jusqu'à la première moisson.
+     *
+     * Valeur inventée, mais la dotation ne peut pas s'en passer : une expédition
+     * se paie en partie en vivres (doc 04), et les champs ne donnent rien avant
+     * Chémou. Sans ce grain de départ, le joueur ne pourrait pas envoyer son
+     * premier éclaireur — donc jamais trouver la terre où semer.
+     */
+    private const int PROVISIONS = 40;
+
+    /**
+     * Ce que la couronne envoie quand la région ne produit pas elle-même le
+     * matériau : le cèdre du Levant et le calcaire de Tourah, les deux
+     * matériaux que l'État faisait réellement circuler dans tout le pays.
+     */
+    private const Ressource BOIS_DE_SECOURS = Ressource::BoisDeCedre;
+    private const Ressource PIERRE_DE_SECOURS = Ressource::Calcaire;
+
+    private function __construct(
         public int $or,
-        public int $bois,
-        public int $pierre,
+        public int $provisions,
+        /** @var array<string, int> valeur de Ressource => quantité */
+        private array $materiaux,
     ) {
     }
 
@@ -39,17 +58,39 @@ final readonly class DotationRoyale
     {
         return [
             Ressource::Or->value => $this->or,
-            Ressource::Bois->value => $this->bois,
-            Ressource::Pierre->value => $this->pierre,
+            Ressource::Ble->value => $this->provisions,
+            ...$this->materiaux,
         ];
     }
 
-    public static function pourDifficulte(int $difficulte): self
+    /**
+     * Le pharaon envoie de préférence ce que la région travaille elle-même —
+     * les roseaux du Delta plutôt qu'un cèdre venu de Byblos. Il complète
+     * seulement là où la région ne produit rien de la famille voulue.
+     */
+    public static function pour(int $difficulte, GeographieDeRegion $geographie): self
     {
         return new self(
             or: self::OR_DE_BASE + self::OR_PAR_NIVEAU_DE_DIFFICULTE * $difficulte,
-            bois: self::BOIS,
-            pierre: self::PIERRE,
+            provisions: self::PROVISIONS,
+            materiaux: [
+                self::materiauLocal($geographie, FamilleDeMateriau::Bois, self::BOIS_DE_SECOURS)->value => self::BOIS,
+                self::materiauLocal($geographie, FamilleDeMateriau::Pierre, self::PIERRE_DE_SECOURS)->value => self::PIERRE,
+            ],
         );
+    }
+
+    private static function materiauLocal(
+        GeographieDeRegion $geographie,
+        FamilleDeMateriau $famille,
+        Ressource $defaut,
+    ): Ressource {
+        foreach ($geographie->ressourcesDeZone as $ressource) {
+            if ($famille->contient($ressource)) {
+                return $ressource;
+            }
+        }
+
+        return $defaut;
     }
 }

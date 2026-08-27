@@ -53,29 +53,29 @@ final class StockDeLaVilleTest extends TestCase
     public function testDebiterRetireLesQuantites(): void
     {
         $ville = $this->ville();
-        $ville->crediterRessources([Ressource::Bois->value => 20, Ressource::Pierre->value => 10]);
+        $ville->crediterRessources([Ressource::Roseaux->value => 20, Ressource::Calcaire->value => 10]);
 
-        $succes = $ville->debiterRessources([Ressource::Bois->value => 15]);
+        $succes = $ville->debiterRessources([Ressource::Roseaux->value => 15]);
 
         self::assertTrue($succes);
-        self::assertSame(5, $ville->quantite(Ressource::Bois));
-        self::assertSame(10, $ville->quantite(Ressource::Pierre));
+        self::assertSame(5, $ville->quantite(Ressource::Roseaux));
+        self::assertSame(10, $ville->quantite(Ressource::Calcaire));
     }
 
     public function testUnDebitHorsDeMoyensNeRetireRien(): void
     {
         $ville = $this->ville();
-        $ville->crediterRessources([Ressource::Bois->value => 20, Ressource::Pierre->value => 10]);
+        $ville->crediterRessources([Ressource::Roseaux->value => 20, Ressource::Calcaire->value => 10]);
 
-        // Le bois suffit, la pierre non : rien ne doit bouger, même le bois.
+        // Les roseaux suffisent, le calcaire non : rien ne doit bouger, même les roseaux.
         $succes = $ville->debiterRessources([
-            Ressource::Bois->value => 20,
-            Ressource::Pierre->value => 30,
+            Ressource::Roseaux->value => 20,
+            Ressource::Calcaire->value => 30,
         ]);
 
         self::assertFalse($succes);
-        self::assertSame(20, $ville->quantite(Ressource::Bois), 'Un débit partiel serait pire qu\'un refus.');
-        self::assertSame(10, $ville->quantite(Ressource::Pierre));
+        self::assertSame(20, $ville->quantite(Ressource::Roseaux), 'Un débit partiel serait pire qu\'un refus.');
+        self::assertSame(10, $ville->quantite(Ressource::Calcaire));
     }
 
     public function testDebiterUneRessourceJamaisDetenueEchoue(): void
@@ -92,8 +92,8 @@ final class StockDeLaVilleTest extends TestCase
 
         $ville->crediterRessources([
             Ressource::Or->value => 50,
-            Ressource::Bois->value => 20,
-            Ressource::Pierre->value => 10,
+            Ressource::Roseaux->value => 20,
+            Ressource::Calcaire->value => 10,
         ]);
 
         self::assertSame(50, $ville->getOr());
