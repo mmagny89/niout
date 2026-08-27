@@ -30,6 +30,20 @@ final readonly class DotationRoyale
     ) {
     }
 
+    /**
+     * La dotation exprimée en ressources, prête à créditer un stock.
+     *
+     * @return array<string, int> valeur de Ressource => quantité
+     */
+    public function enRessources(): array
+    {
+        return [
+            Ressource::Or->value => $this->or,
+            Ressource::Bois->value => $this->bois,
+            Ressource::Pierre->value => $this->pierre,
+        ];
+    }
+
     public static function pourDifficulte(int $difficulte): self
     {
         return new self(

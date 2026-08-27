@@ -47,15 +47,34 @@ final readonly class CoutDeConstruction
     }
 
     /**
-     * @return array<string, int> ressource => quantité, les nulles exclues
+     * Le coût exprimé en ressources, prêt à être débité d'un stock. Les lignes
+     * nulles sont exclues : inutile de vérifier ce qu'on ne réclame pas.
+     *
+     * @return array<string, int> valeur de Ressource => quantité
+     */
+    public function enRessources(): array
+    {
+        return array_filter([
+            Ressource::Bois->value => $this->bois,
+            Ressource::Pierre->value => $this->pierre,
+            Ressource::Or->value => $this->or,
+            Ressource::Lin->value => $this->lin,
+        ]);
+    }
+
+    /**
+     * Détail affichable, libellés en toutes lettres.
+     *
+     * @return array<string, int> libellé => quantité
      */
     public function detail(): array
     {
-        return array_filter([
-            'bois' => $this->bois,
-            'pierre' => $this->pierre,
-            'or' => $this->or,
-            'lin' => $this->lin,
-        ]);
+        $detail = [];
+
+        foreach ($this->enRessources() as $valeur => $quantite) {
+            $detail[Ressource::from($valeur)->libelle()] = $quantite;
+        }
+
+        return $detail;
     }
 }

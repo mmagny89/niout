@@ -74,14 +74,13 @@ final readonly class CatalogueDeLaVille
         }
 
         $manques = [];
-        if ($cout->bois > $ville->getBois()) {
-            $manques[] = \sprintf('%d bois', $cout->bois - $ville->getBois());
-        }
-        if ($cout->pierre > $ville->getPierre()) {
-            $manques[] = \sprintf('%d pierre', $cout->pierre - $ville->getPierre());
-        }
-        if ($cout->or > $ville->getOr()) {
-            $manques[] = \sprintf('%d or', $cout->or - $ville->getOr());
+        foreach ($cout->enRessources() as $valeur => $exige) {
+            $ressource = Ressource::from($valeur);
+            $possede = $ville->quantite($ressource);
+
+            if ($exige > $possede) {
+                $manques[] = \sprintf('%d %s', $exige - $possede, $ressource->libelle());
+            }
         }
 
         if ([] !== $manques) {

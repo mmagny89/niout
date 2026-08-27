@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
 use App\Game\LanceurDePartie;
+use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -122,7 +123,11 @@ final class ChantiersTest extends KernelTestCase
         $ville = $partie->getVille();
 
         // On s'offre les moyens, l'équilibrage n'est pas le sujet ici.
-        $ville->crediter(or: 500, bois: 500, pierre: 500);
+        $ville->crediterRessources([
+            Ressource::Or->value => 500,
+            Ressource::Bois->value => 500,
+            Ressource::Pierre->value => 500,
+        ]);
         $chantier = $this->chantiers()->lancer($partie, TypeDeBatiment::Entrepot);
         $this->acheverLesTravaux($partie, $chantier->getDureeEnCycles());
 

@@ -410,7 +410,7 @@ Deux conséquences à retenir :
 
 ---
 
-### 6.2 Phase 3 — Carte, exploration et ressources  *(proposition détaillée)*
+### 6.2 Phase 3 — Carte, exploration et ressources  *(1 lot sur 6)*
 
 **Intention.** Faire basculer la ville de la dépense à la production. Aujourd'hui
 elle consomme une dotation qui ne se renouvelle pas ; à la fin de cette phase,
@@ -424,17 +424,21 @@ Chémou. »*
 C'est aussi la phase qui débloque les deux bâtiments aujourd'hui hors d'atteinte :
 le **Port** (point d'eau adjacent) et le **Temple** (lin en offrande).
 
-#### 3.1 — Généralisation du stock  *(prérequis)*
+#### 3.1 — Généralisation du stock  *(prérequis)*  ✅
 
 Fait en premier, avant que les ressources n'arrivent : la migration coûte peu
 aujourd'hui, beaucoup plus une fois des parties en cours.
 
-- [ ] Remplacer les trois colonnes `stock_or`, `bois`, `pierre` par une table
+- [x] Remplacer les trois colonnes `stock_or`, `bois`, `pierre` par une table
       `ressource → quantité`
-- [ ] Énumération des ressources du doc 08 : minérales, agricoles, importées
-- [ ] Migration des parties existantes sans perte
-- [ ] `City::crediter()` et `City::debiter()` conservent leur contrat, seule leur
-      mise en œuvre change — les chantiers ne doivent rien voir
+- [x] Énumération des ressources du doc 08 : minérales, agricoles, importées
+- [x] Migration des parties existantes sans perte
+- [x] `crediterRessources()` / `debiterRessources()` prennent une carte
+      ressource → quantité. **Leur signature a dû changer**, contrairement à ce
+      que ce plan annonçait : un contrat nommant `or`, `bois` et `pierre` ne
+      peut pas rester générique. Les appelants ont suivi, les chantiers n'ont
+      pas changé de comportement
+- [x] Un débit hors de moyens ne retire **rien**, pas même ce qui suffisait
 
 #### 3.2 — Génération de la carte
 
