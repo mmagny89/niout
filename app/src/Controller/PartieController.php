@@ -144,7 +144,11 @@ final class PartieController extends AbstractController
             'zones' => $zones,
             'zoneDetaillee' => $detaillee,
             'expeditionEnCours' => null !== $detaillee ? $ville->aUneExpeditionVers($detaillee) : false,
-            'coutDeReconnaissance' => RoleDExploration::Eclaireur->cout(),
+            // Le prix dépend de la case : reconnaître ses propres abords ne
+            // coûte pas d'or. L'écran doit donc annoncer celui de cette case-là.
+            'coutDeReconnaissance' => null !== $detaillee
+                ? $explorations->coutVers($partie, $detaillee, RoleDExploration::Eclaireur)
+                : null,
             'provisionsDeReconnaissance' => RoleDExploration::Eclaireur->provisions(),
             'dureeDeReconnaissance' => null !== $detaillee && !$detaillee->estDecouverte()
                 ? $explorations->dureeVers($partie, $detaillee)

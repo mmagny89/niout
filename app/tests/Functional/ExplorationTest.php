@@ -18,16 +18,61 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 final class ExplorationTest extends KernelTestCase
 {
-    public function testEnvoyerUnEclaireurDebiteSonSolde(): void
+    public function testEnvoyerUnEclaireurAuLoinDebiteSonSolde(): void
     {
         self::bootKernel();
         $partie = $this->lancerPartie('solde@example.com');
         $orAvant = $partie->getVille()->getOr();
 
-        $this->explorations()->envoyer($partie, $this->caseInconnue($partie), RoleDExploration::Eclaireur);
+        $this->explorations()->envoyer($partie, $this->caseEloignee($partie), RoleDExploration::Eclaireur);
 
         self::assertSame($orAvant - RoleDExploration::Eclaireur->cout(), $partie->getVille()->getOr());
         self::assertCount(1, $partie->getVille()->getExpeditions());
+    }
+
+    /**
+     * On voit ses propres abords depuis les murs : les huit cases qui touchent
+     * la ville se reconnaissent sans bourse délier, en orthogonal comme en
+     * diagonale. Faire payer le premier pas d'une partie neuve reviendrait à
+     * taxer le joueur pour découvrir où il vient d'être envoyé.
+     */
+    public function testReconnaitreLesAbordsDeLaVilleNeCoutePasDOr(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('abords@example.com');
+        $orAvant = $partie->getVille()->getOr();
+
+        $this->explorations()->envoyer($partie, $this->caseAdjacente($partie), RoleDExploration::Eclaireur);
+
+        self::assertSame($orAvant, $partie->getVille()->getOr());
+        self::assertCount(1, $partie->getVille()->getExpeditions(), 'L\'expédition part bel et bien.');
+    }
+
+    public function testLesAbordsCoutentQuandMemeDesVivres(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('abords-vivres@example.com');
+        $avant = $partie->getVille()->getNourriture();
+
+        $this->explorations()->envoyer($partie, $this->caseAdjacente($partie), RoleDExploration::Eclaireur);
+
+        self::assertSame(
+            $avant - RoleDExploration::Eclaireur->provisions(),
+            $partie->getVille()->getNourriture(),
+            'L\'éclaireur mange, même à une heure de marche.',
+        );
+    }
+
+    public function testSansUnSeulOrOnPeutEncoreReconnaitreSesAbords(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('ruine@example.com');
+        $ville = $partie->getVille();
+        $ville->debiterRessources([Ressource::Or->value => $ville->getOr()]);
+
+        $this->explorations()->envoyer($partie, $this->caseAdjacente($partie), RoleDExploration::Eclaireur);
+
+        self::assertCount(1, $ville->getExpeditions(), 'Une partie ne doit jamais se retrouver bloquée sans issue.');
     }
 
     /**
@@ -177,6 +222,36 @@ final class ExplorationTest extends KernelTestCase
     private function caseInconnue(GameSave $partie): Zone
     {
         return $this->casesInconnues($partie)[0];
+    }
+
+    /**
+     * Une case inconnue qui touche la ville — reconnaissance gratuite.
+     */
+    private function caseAdjacente(GameSave $partie): Zone
+    {
+        return $this->caseInconnueADistance($partie, static fn (int $distance): bool => 1 === $distance);
+    }
+
+    /**
+     * Une case inconnue au-delà des abords — reconnaissance payante.
+     */
+    private function caseEloignee(GameSave $partie): Zone
+    {
+        return $this->caseInconnueADistance($partie, static fn (int $distance): bool => $distance > 1);
+    }
+
+    private function caseInconnueADistance(GameSave $partie, callable $critere): Zone
+    {
+        $centre = $partie->getVille()->zoneDeLaVille();
+        self::assertInstanceOf(Zone::class, $centre);
+
+        foreach ($this->casesInconnues($partie) as $zone) {
+            if ($critere($zone->distanceDepuis($centre))) {
+                return $zone;
+            }
+        }
+
+        self::fail('Aucune case inconnue ne répond à ce critère de distance.');
     }
 
     /**

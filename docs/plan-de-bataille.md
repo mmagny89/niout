@@ -606,6 +606,19 @@ Les provisions de départ ne sont pas un confort : sans elles, le joueur ne
 pourrait pas envoyer son premier éclaireur, donc jamais trouver la terre où
 semer. La boucle se refermait sur elle-même.
 
+##### Deux ajustements d'ouverture de partie (décisions de la joueuse)
+
+- **La dotation royale couvre le Grenier**, pas seulement l'Entrepôt : sa part
+  de pierre passe de 10 à 15. Le Grenier coûte 15 bois, 15 pierre, 15 or au
+  niveau 1 (doc 01) et conditionne toute l'agriculture ; le laisser hors de
+  portée jusqu'à la première carrière rendait les champs sans destination.
+- **Reconnaître les abords immédiats de la ville ne coûte pas d'or** : les huit
+  cases adjacentes, en orthogonal comme en diagonale, se reconnaissent sans
+  bourse délier — on voit ses propres abords depuis les murs. Les vivres restent
+  dus, l'éclaireur mangeant même à une heure de marche. Effet de bord voulu :
+  une partie ne peut plus se retrouver bloquée sans issue faute d'or, ce qu'un
+  test verrouille.
+
 #### 3.6 — Points d'eau, Port et pêche
 
 - [ ] Le Port devient constructible dès qu'un point d'eau jouxte la ville

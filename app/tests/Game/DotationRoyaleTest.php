@@ -44,17 +44,33 @@ final class DotationRoyaleTest extends TestCase
         self::assertSame($clemente, $rude);
     }
 
-    public function testLaDotationCouvreUnPremierBatiment(): void
+    /**
+     * La dotation doit couvrir les deux bâtiments qui ouvrent réellement une
+     * partie (doc 01) — et surtout le Grenier : sans lui, les champs du lot 3.5
+     * ne mènent nulle part, et le joueur ne peut pas le savoir avant d'avoir
+     * semé.
+     *
+     * @param array{int, int, int} $cout bois, pierre, or au niveau 1
+     */
+    #[DataProvider('batimentsDOuverture')]
+    public function testLaDotationCouvreLesBatimentsDOuverture(string $batiment, array $cout): void
     {
-        $dotation = DotationRoyale::pour(0, self::delta());
-        $recu = $dotation->enRessources();
+        $recu = DotationRoyale::pour(0, self::delta())->enRessources();
+        [$bois, $pierre, $or] = $cout;
 
-        // L'Entrepôt coûte 20 bois, 10 pierre et 15 or au niveau 1 (doc 01) :
-        // c'est exactement la dotation en matériaux proposée par le doc 13, qui
-        // est donc calibrée sur ce bâtiment précis.
-        self::assertGreaterThanOrEqual(15, $recu[Ressource::Or->value]);
-        self::assertGreaterThanOrEqual(20, self::total($recu, FamilleDeMateriau::Bois));
-        self::assertGreaterThanOrEqual(10, self::total($recu, FamilleDeMateriau::Pierre));
+        self::assertGreaterThanOrEqual($bois, self::total($recu, FamilleDeMateriau::Bois), $batiment);
+        self::assertGreaterThanOrEqual($pierre, self::total($recu, FamilleDeMateriau::Pierre), $batiment);
+        self::assertGreaterThanOrEqual($or, $recu[Ressource::Or->value], $batiment);
+    }
+
+    /**
+     * @return iterable<string, array{string, array{int, int, int}}>
+     */
+    public static function batimentsDOuverture(): iterable
+    {
+        // Coûts de niveau 1 du doc 01.
+        yield 'Grenier' => ['Grenier', [15, 15, 15]];
+        yield 'Entrepôt' => ['Entrepôt', [20, 10, 15]];
     }
 
     /**
