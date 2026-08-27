@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
 use App\Game\LanceurDePartie;
+use App\Game\PassageDeCycle;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,7 +54,7 @@ final class ChantiersTest extends KernelTestCase
         $duree = $chantier->getDureeEnCycles();
 
         for ($i = 0; $i < $duree; ++$i) {
-            $this->chantiers()->passerUnCycle($partie);
+            $this->cycle()->passer($partie);
         }
 
         self::assertTrue($partie->getVille()->possede(TypeDeBatiment::Entrepot));
@@ -68,7 +69,7 @@ final class ChantiersTest extends KernelTestCase
 
         $evenements = [];
         for ($i = 0; $i < $chantier->getDureeEnCycles(); ++$i) {
-            $evenements = array_merge($evenements, $this->chantiers()->passerUnCycle($partie));
+            $evenements = array_merge($evenements, $this->cycle()->passer($partie));
         }
 
         self::assertNotEmpty($evenements);
@@ -81,7 +82,7 @@ final class ChantiersTest extends KernelTestCase
         $partie = $this->lancerPartie('temps@example.com');
         self::assertSame(1, $partie->getCycle());
 
-        $this->chantiers()->passerUnCycle($partie);
+        $this->cycle()->passer($partie);
 
         self::assertSame(2, $partie->getCycle());
     }
@@ -145,7 +146,7 @@ final class ChantiersTest extends KernelTestCase
     private function acheverLesTravaux(GameSave $partie, int $cycles): void
     {
         for ($i = 0; $i < $cycles; ++$i) {
-            $this->chantiers()->passerUnCycle($partie);
+            $this->cycle()->passer($partie);
         }
     }
 
@@ -165,5 +166,10 @@ final class ChantiersTest extends KernelTestCase
     private function chantiers(): Chantiers
     {
         return static::getContainer()->get(Chantiers::class);
+    }
+
+    private function cycle(): PassageDeCycle
+    {
+        return static::getContainer()->get(PassageDeCycle::class);
     }
 }

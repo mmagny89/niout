@@ -74,6 +74,11 @@ class Zone
         return $this->id;
     }
 
+    public function getVille(): City
+    {
+        return $this->ville;
+    }
+
     public function getX(): int
     {
         return $this->x;

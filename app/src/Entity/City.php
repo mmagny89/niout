@@ -48,6 +48,12 @@ class City
     private int $tailleGrille;
 
     /**
+     * @var Collection<int, Expedition>
+     */
+    #[ORM\OneToMany(targetEntity: Expedition::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $expeditions;
+
+    /**
      * @var Collection<int, Zone>
      */
     #[ORM\OneToMany(targetEntity: Zone::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -77,6 +83,7 @@ class City
         $this->difficulte = $difficulte;
         $this->tailleGrille = $tailleGrille;
         $this->zones = new ArrayCollection();
+        $this->expeditions = new ArrayCollection();
         $this->stock = new ArrayCollection();
         $this->batiments = new ArrayCollection();
         $this->chantiers = new ArrayCollection();
@@ -249,6 +256,45 @@ class City
         }
 
         return null;
+    }
+
+    /**
+     * @return Collection<int, Expedition>
+     */
+    public function getExpeditions(): Collection
+    {
+        return $this->expeditions;
+    }
+
+    public function ajouterExpedition(Expedition $expedition): static
+    {
+        if (!$this->expeditions->contains($expedition)) {
+            $this->expeditions->add($expedition);
+        }
+
+        return $this;
+    }
+
+    public function retirerExpedition(Expedition $expedition): static
+    {
+        $this->expeditions->removeElement($expedition);
+
+        return $this;
+    }
+
+    /**
+     * Une case ne peut être la destination que d'une expédition à la fois — en
+     * envoyer deux au même endroit serait payer deux fois le même trajet.
+     */
+    public function aUneExpeditionVers(Zone $zone): bool
+    {
+        foreach ($this->expeditions as $expedition) {
+            if ($expedition->getDestination() === $zone) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

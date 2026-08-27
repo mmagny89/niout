@@ -15,10 +15,14 @@ use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
 use App\Game\DateDeJeu;
+use App\Game\ExplorationImpossible;
+use App\Game\Explorations;
 use App\Game\LanceurDePartie;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
+use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\RoleDExploration;
 use App\Game\TypeDeBatiment;
 use App\Repository\GameSaveRepository;
 use App\Security\Voter\PartieVoter;
@@ -125,16 +129,57 @@ final class PartieController extends AbstractController
      */
     #[Route('/{id}/carte', name: 'app_partie_carte', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function carte(Request $request, GameSave $partie): Response
+    public function carte(Request $request, GameSave $partie, Explorations $explorations): Response
     {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
+        $detaillee = $this->zoneDemandee($zones, $request->query->get('zone'));
 
         return $this->render('partie/carte.html.twig', [
             'partie' => $partie,
             'ville' => $ville,
             'zones' => $zones,
-            'zoneDetaillee' => $this->zoneDemandee($zones, $request->query->get('zone')),
+            'zoneDetaillee' => $detaillee,
+            'expeditionEnCours' => null !== $detaillee ? $ville->aUneExpeditionVers($detaillee) : false,
+            'coutDeReconnaissance' => RoleDExploration::Eclaireur->cout(),
+            'dureeDeReconnaissance' => null !== $detaillee && !$detaillee->estDecouverte()
+                ? $explorations->dureeVers($partie, $detaillee)
+                : null,
+        ]);
+    }
+
+    /**
+     * Envoie un éclaireur reconnaître une case.
+     */
+    #[Route('/{id}/carte/explorer', name: 'app_partie_explorer', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function explorer(Request $request, GameSave $partie, Explorations $explorations): Response
+    {
+        if (!$this->isCsrfTokenValid('explorer', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $zones = $this->zonesTrieesPourLIsometrie($partie->getVille());
+        $destination = $this->zoneDemandee($zones, $request->request->get('zone'));
+
+        if (null === $destination) {
+            throw $this->createNotFoundException('Case inconnue.');
+        }
+
+        try {
+            $expedition = $explorations->envoyer($partie, $destination, RoleDExploration::Eclaireur);
+            $this->addFlash('succes', \sprintf(
+                'Un éclaireur part en reconnaissance. Il sera sur place dans %d cycle%s.',
+                $expedition->getDureeEnCycles(),
+                $expedition->getDureeEnCycles() > 1 ? 's' : '',
+            ));
+        } catch (ExplorationImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_carte', [
+            'id' => $partie->getId(),
+            'zone' => $destination->getX().'-'.$destination->getY(),
         ]);
     }
 
@@ -175,13 +220,13 @@ final class PartieController extends AbstractController
      */
     #[Route('/{id}/cycle', name: 'app_partie_cycle', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function passerUnCycle(Request $request, GameSave $partie, Chantiers $chantiers): Response
+    public function passerUnCycle(Request $request, GameSave $partie, PassageDeCycle $cycle): Response
     {
         if (!$this->isCsrfTokenValid('cycle', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton invalide.');
         }
 
-        $evenements = $chantiers->passerUnCycle($partie);
+        $evenements = $cycle->passer($partie);
 
         $this->addFlash('succes', \sprintf(
             'Une quinzaine passe. Nous voici en %s.',
@@ -291,7 +336,7 @@ final class PartieController extends AbstractController
 
         foreach ($zones as $zone) {
             if ($zone->getX() === (int) $trouve[1] && $zone->getY() === (int) $trouve[2]) {
-                return $zone->estDecouverte() ? $zone : null;
+                return $zone;
             }
         }
 

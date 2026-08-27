@@ -69,14 +69,18 @@ final class CarteTest extends WebTestCase
         self::assertSelectorTextContains('article', 'Votre ville se dresse ici');
     }
 
-    public function testUneCaseSousBrouillardRefuseDeSeDetailler(): void
+    /**
+     * Une case sous brouillard s'ouvre — il faut bien pouvoir y envoyer un
+     * éclaireur — mais elle ne doit rien livrer de ce qu'il ira chercher.
+     */
+    public function testUneCaseSousBrouillardNeLivreNiTerrainNiContenu(): void
     {
         $client = static::createClient();
         $joueur = $this->connecter($client, 'secret@example.com');
         $partie = $this->lancer($joueur);
         $inconnue = $this->premiereZoneNonDecouverte($partie);
 
-        $crawler = $client->request('GET', \sprintf(
+        $client->request('GET', \sprintf(
             '/partie/%d/carte?zone=%d-%d',
             $partie->getId(),
             $inconnue->getX(),
@@ -84,7 +88,13 @@ final class CarteTest extends WebTestCase
         ));
 
         self::assertResponseIsSuccessful();
-        self::assertCount(0, $crawler->filter('article'), 'Le brouillard ne livre rien.');
+        self::assertSelectorTextContains('article', 'Territoire inexploré');
+        self::assertSelectorTextNotContains('article', $inconnue->getTerrain()->libelle());
+
+        $ressource = $inconnue->getRessource();
+        if (null !== $ressource) {
+            self::assertSelectorTextNotContains('article', $ressource->libelle());
+        }
     }
 
     public function testDesCoordonneesFantaisistesNeCassentPasLaPage(): void
