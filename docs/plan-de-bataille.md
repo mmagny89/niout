@@ -77,16 +77,30 @@ Pour la Phase 1, seul `User` est nécessaire (avec son statut de vérification).
 
 ## 4. Phase 0 — Fondations techniques
 
-- [x] Dépôt git initialisé
+- [x] Dépôt git initialisé (branche `main`)
 - [x] Plan de bataille sauvegardé dans le projet (`docs/plan-de-bataille.md`)
-- [ ] Stack Docker + squelette Symfony 8.1 via `.claude/scripts/setup-symfony.sh --dedicated-server --run`
-      (produit le socle, les 3 environnements, installe le pack `webapp` et `symfonycasts/tailwind-bundle`)
-- [ ] `CLAUDE.md` du projet (conventions, commandes, structure)
+- [x] Stack Docker + squelette Symfony via `.claude/scripts/setup-symfony.sh --dedicated-server --run`
+- [x] `CLAUDE.md` du projet (conventions, commandes, pièges d'infrastructure)
 - [ ] Thème Tailwind : palette et typographies de la direction artistique (doc 15) — ocre/sable/terre cuite, accents lapis-lazuli/or
 - [ ] Gabarit Twig de base (`base.html.twig`)
 - [ ] Configuration `symfony/mailer` (transport de dev) — nécessaire dès la Phase 1
 - [ ] Pipeline CI minimal : lint, PHPStan, PHPUnit
 - [ ] `symfony/security-bundle` + entité `User`
+
+### Versions effectivement installées (vérifiées le 2026-08-27)
+
+| Composant | Version |
+|---|---|
+| Symfony | 8.1.5 |
+| PHP | 8.4 |
+| FrankenPHP | 1.12.7 |
+| Tailwind CSS (CLI standalone) | 4.3.3 (`symfonycasts/tailwind-bundle` v1.0.0) |
+| PostgreSQL | 18 |
+| Ember (observabilité) | 1.6.0 |
+
+Le stack répond sur `https://localhost` (certificat auto-signé Caddy).
+Un `404 Welcome to Symfony` sur `/` est le comportement attendu tant qu'aucune
+route n'est déclarée.
 
 ---
 
