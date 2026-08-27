@@ -19,9 +19,15 @@ final readonly class DotationRoyale
 
     /**
      * De quoi couvrir le premier bâtiment, quelle que soit la région.
+     *
+     * Calibré sur les deux bâtiments qui ouvrent réellement une partie : le
+     * Grenier (15 bois, 15 pierre, 15 or) et l'Entrepôt (20 bois, 10 pierre,
+     * 15 or) — voir doc 01. Le joueur doit pouvoir dresser l'un **ou** l'autre
+     * dès son arrivée, sans quoi le Grenier resterait hors de portée jusqu'à la
+     * première carrière, et les champs sans destination.
      */
     private const int BOIS = 20;
-    private const int PIERRE = 10;
+    private const int PIERRE = 15;
 
     /**
      * De quoi tenir jusqu'à la première moisson.

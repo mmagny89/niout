@@ -42,12 +42,14 @@ final readonly class Explorations
             throw new ExplorationImpossible('Une expédition est déjà en route vers cette case.');
         }
 
+        $cout = $this->coutVers($partie, $destination, $role);
+
         if ($ville->getNourriture() < $role->provisions()) {
             throw new ExplorationImpossible(\sprintf('Il vous faut %d de vivres pour envoyer un %s. Vos réserves n\'en comptent que %d.', $role->provisions(), mb_strtolower($role->libelle()), $ville->getNourriture()));
         }
 
-        if (!$ville->debiterRessources([Ressource::Or->value => $role->cout()])) {
-            throw new ExplorationImpossible(\sprintf('Il vous faut %d or pour envoyer un %s.', $role->cout(), mb_strtolower($role->libelle())));
+        if (!$ville->debiterRessources([Ressource::Or->value => $cout])) {
+            throw new ExplorationImpossible(\sprintf('Il vous faut %d or pour envoyer un %s.', $cout, mb_strtolower($role->libelle())));
         }
 
         // L'or est déjà retiré ; les vivres sont garantis par le contrôle
@@ -96,14 +98,27 @@ final readonly class Explorations
      */
     public function dureeVers(GameSave $partie, Zone $destination): int
     {
-        $centre = $partie->getVille()->zoneDeLaVille();
-        $distance = null === $centre ? 1 : $destination->distanceDepuis($centre);
-
         return Expedition::dureeDuTrajet(
-            $distance,
+            $this->distanceVers($partie, $destination),
             $destination->getTerrain(),
             $partie->dateDeJeu()->saison,
         );
+    }
+
+    /**
+     * Solde dû pour reconnaître cette case — nul sur les abords immédiats de la
+     * ville. Exposé pour que l'écran annonce le vrai prix avant l'envoi.
+     */
+    public function coutVers(GameSave $partie, Zone $destination, RoleDExploration $role): int
+    {
+        return $role->coutPourUneDistance($this->distanceVers($partie, $destination));
+    }
+
+    private function distanceVers(GameSave $partie, Zone $destination): int
+    {
+        $centre = $partie->getVille()->zoneDeLaVille();
+
+        return null === $centre ? 1 : $destination->distanceDepuis($centre);
     }
 
     /**

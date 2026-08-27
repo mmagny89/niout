@@ -53,6 +53,20 @@ enum RoleDExploration: string
     }
 
     /**
+     * Solde réellement dû pour une case à cette distance de la ville.
+     *
+     * **Les huit cases qui touchent la ville se reconnaissent gratuitement**,
+     * en orthogonal comme en diagonale : on voit ses propres abords depuis les
+     * murs, et faire payer le premier pas d'une partie neuve reviendrait à
+     * taxer le joueur pour découvrir où il vient d'être envoyé. Les vivres,
+     * eux, restent dus — l'éclaireur mange, même à une heure de marche.
+     */
+    public function coutPourUneDistance(int $distance): int
+    {
+        return $distance <= 1 ? 0 : $this->cout();
+    }
+
+    /**
      * Vivres emportés pour la route (doc 04). On ne part pas explorer le désert
      * les mains vides ; c'est ce qui donne à la nourriture un usage avant même
      * qu'une population soit à nourrir.
