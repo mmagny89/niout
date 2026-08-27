@@ -1,0 +1,81 @@
+# Socle commun a tous les environnements (conventions, section 1). Genere
+# par .claude/scripts/setup-symfony.sh.
+name: niout
+
+services:
+  php:
+    container_name: niout-php
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: ${TARGET}
+      args:
+        PHP_VERSION: ${PHP_VERSION}
+        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION}
+        PHP_EXTENSION_INSTALLER_VERSION: ${PHP_EXTENSION_INSTALLER_VERSION}
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+    image: niout-php:${TARGET}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?serverVersion=${POSTGRES_VERSION}&charset=utf8
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS}
+    volumes:
+      - niout-caddy-data:/data
+      - niout-caddy-config:/config
+      - niout-caddy-admin:/run/caddy
+    networks:
+      - niout
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    container_name: niout-database
+    image: postgres:${POSTGRES_VERSION}-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      # PostgreSQL 18+ : monter le repertoire parent, pas .../data
+      # (conventions, section 16 — verifier a chaque montee de version
+      # majeure, ce chemin n'est pas garanti stable).
+      - niout-database-data:/var/lib/postgresql
+    networks:
+      - niout
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Sans profil ici (conventions, section 9) : les overrides staging/prod
+  # lui en ajoutent un, jamais l'inverse.
+  ember:
+    container_name: niout-ember
+    image: ghcr.io/alexandre-daubois/ember:${EMBER_VERSION}
+    restart: unless-stopped
+    environment:
+      EMBER_ADDR: unix//run/caddy/admin.sock
+    volumes:
+      - niout-caddy-admin:/run/caddy
+    networks:
+      - niout
+    depends_on:
+      - php
+
+networks:
+  niout:
+    name: niout
+
+volumes:
+  niout-caddy-data:
+    name: niout-caddy-data
+  niout-caddy-config:
+    name: niout-caddy-config
+  niout-caddy-admin:
+    name: niout-caddy-admin
+  niout-database-data:
+    name: niout-database-data

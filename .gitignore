@@ -1,0 +1,24 @@
+# Outillage de l'agence (agents, regles, bibliotheque de ressources,
+# scripts) : jamais committe dans le depot du projet. Exclusion cruciale,
+# pas seulement une preference — certains fichiers qui y transitent portent
+# des secrets reels (ex. .env.install.local d'un stack Drupal, jamais un
+# modele .dist), qui ne doivent jamais entrer dans l'historique git.
+.claude/
+
+# Secrets reels — jamais committes (conventions, section 3). Les .dist
+# restent committes.
+.env.staging.local
+.env.prod.local
+.env.*.local
+
+# Surcharges locales de l'application.
+app/.env.local*
+
+# Etat local de l'application PHP.
+app/var/
+app/vendor/
+# macOS
+.DS_Store
+
+# Fichiers de projet des IDE JetBrains (PhpStorm).
+.idea/
