@@ -9,9 +9,12 @@ use App\Entity\User;
 use App\Enum\GameMode;
 use App\Form\NouvellePartieType;
 use App\Game\LanceurDePartie;
+use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\PlafondDePartiesAtteint;
 use App\Repository\GameSaveRepository;
+use App\Security\Voter\PartieVoter;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -65,18 +68,80 @@ final class PartieController extends AbstractController
     }
 
     /**
+     * Reprise d'une partie : un récapitulatif de l'état où elle a été laissée.
+     *
+     * Ce n'est volontairement pas un journal d'événements. Le jeu n'a aucun
+     * temps réel : rien ne se produit pendant l'absence du joueur, un « depuis
+     * votre dernière visite » serait toujours vide. Ce qu'il faut lui rendre,
+     * c'est le contexte : où en est le cycle, ce qu'il reste en stock.
+     */
+    #[Route('/{id}', name: 'app_partie_reprendre', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function reprendre(GameSave $partie, MissionCatalogue $missions, EntityManagerInterface $entityManager): Response
+    {
+        $partie->marquerOuverte();
+        $entityManager->flush();
+
+        return $this->render('partie/reprendre.html.twig', [
+            'partie' => $partie,
+            'mission' => $this->missionDe($partie, $missions),
+        ]);
+    }
+
+    /**
+     * Abandon d'une partie : suppression définitive, jamais un archivage.
+     */
+    #[Route('/{id}/abandonner', name: 'app_partie_abandonner', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    #[IsGranted(PartieVoter::SUPPRIMER, subject: 'partie')]
+    public function abandonner(
+        Request $request,
+        GameSave $partie,
+        MissionCatalogue $missions,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('abandonner-partie', (string) $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Jeton de confirmation invalide.');
+            }
+
+            $nomDeVille = $partie->getVille()->getNom();
+            $entityManager->remove($partie);
+            $entityManager->flush();
+
+            $this->addFlash('succes', \sprintf('La partie de %s est abandonnée.', $nomDeVille));
+
+            return $this->redirectToRoute('app_compte');
+        }
+
+        return $this->render('partie/abandonner.html.twig', [
+            'partie' => $partie,
+            'mission' => $this->missionDe($partie, $missions),
+        ]);
+    }
+
+    /**
      * La commande du pharaon : mise en scène du lancement, affichée une fois la
      * partie créée (doc 09). Texte simple, pas de cinématique.
      */
     #[Route('/{id}/commande', name: 'app_partie_commande', requirements: ['id' => '\d+'], methods: ['GET'])]
-    #[IsGranted('PARTIE_VOIR', subject: 'partie')]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
     public function commande(GameSave $partie, MissionCatalogue $missions): Response
     {
         return $this->render('partie/commande.html.twig', [
             'partie' => $partie,
-            'mission' => $partie->estCampagne() && null !== $partie->getMission()
-                ? $missions->get($partie->getMission())
-                : null,
+            'mission' => $this->missionDe($partie, $missions),
         ]);
+    }
+
+    /**
+     * La mission en cours, ou null en mode Aventure — qui suit des règnes.
+     */
+    private function missionDe(GameSave $partie, MissionCatalogue $missions): ?Mission
+    {
+        if (!$partie->estCampagne() || null === $partie->getMission()) {
+            return null;
+        }
+
+        return $missions->get($partie->getMission());
     }
 }

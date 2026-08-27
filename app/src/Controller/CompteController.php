@@ -6,6 +6,8 @@ namespace App\Controller;
 
 use App\Entity\GameSave;
 use App\Entity\User;
+use App\Game\MissionCatalogue;
+use App\Repository\GameSaveRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,13 +17,21 @@ final class CompteController extends AbstractController
 {
     #[Route('/compte', name: 'app_compte', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function index(): Response
+    public function index(GameSaveRepository $parties, MissionCatalogue $missions): Response
     {
         /** @var User $user */
         $user = $this->getUser();
 
+        $sesParties = $parties->findPourJoueur($user);
+
         return $this->render('compte/index.html.twig', [
             'user' => $user,
+            'parties' => $sesParties,
+            // Le libellé de la mission est résolu ici plutôt que dans le
+            // gabarit : le catalogue est une donnée de référence, pas quelque
+            // chose qu'une vue devrait aller interroger.
+            'missionsParPartie' => $this->libellesDeMission($sesParties, $missions),
+            'plafondAtteint' => $parties->plafondAtteintPour($user),
             'maxParties' => GameSave::MAX_PAR_COMPTE,
             // Date limite de vérification, affichée tant que l'adresse ne l'est
             // pas — le compte reste utilisable jusque-là (voir User).
@@ -29,5 +39,29 @@ final class CompteController extends AbstractController
                 ? null
                 : $user->getCreatedAt()->modify(\sprintf('+%d days', User::DELAI_VERIFICATION_JOURS)),
         ]);
+    }
+
+    /**
+     * @param GameSave[] $parties
+     *
+     * @return array<int, string>
+     */
+    private function libellesDeMission(array $parties, MissionCatalogue $missions): array
+    {
+        $libelles = [];
+
+        foreach ($parties as $partie) {
+            $numero = $partie->getMission();
+            $id = $partie->getId();
+
+            if (null === $id || null === $numero) {
+                continue;
+            }
+
+            $mission = $missions->get($numero);
+            $libelles[$id] = \sprintf('Mission %d sur %d — %s', $numero, GameSave::DERNIERE_MISSION, $mission->region);
+        }
+
+        return $libelles;
     }
 }

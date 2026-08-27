@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Abandonner {{ partie.ville.nom }} — Niout{% endblock %}
+
+{% block body %}
+    <section class="mx-auto w-full max-w-xl px-5 py-14">
+        <h1 class="text-3xl text-encre-900">Abandonner cette partie ?</h1>
+
+        <div class="mt-6 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+            <p class="font-display text-xl text-encre-900">{{ partie.ville.nom }}</p>
+            <p class="mt-1 text-sm text-encre-500">
+                {% if mission %}
+                    Mission {{ mission.numero }} sur 10 · {{ mission.region }}
+                {% else %}
+                    Mode Aventure
+                {% endif %}
+                · famille {{ partie.famille.nom }} · cycle {{ partie.cycle }}
+            </p>
+        </div>
+
+        <p class="mt-6 rounded-sm border-l-4 border-terre-500 bg-terre-500/10 px-4 py-3 text-sm text-terre-700">
+            La suppression est <strong>définitive</strong>. La ville, la famille et
+            tout ce qui a été bâti disparaissent. Il n'y a pas d'archive à consulter
+            ensuite, ni de retour en arrière.
+        </p>
+
+        <div class="mt-7 flex flex-wrap items-center gap-5">
+            <form method="post" action="{{ path('app_partie_abandonner', {id: partie.id}) }}">
+                {# Jeton classique : « abandonner-partie » ne figure pas dans les
+                   stateless_token_ids, il ne dépend donc d'aucun script. #}
+                <input type="hidden" name="_token" value="{{ csrf_token('abandonner-partie') }}">
+                <button type="submit"
+                        class="rounded-sm bg-terre-600 px-5 py-2.5 font-medium text-sable-50 hover:bg-terre-700">
+                    Oui, abandonner définitivement
+                </button>
+            </form>
+
+            <a href="{{ path('app_partie_reprendre', {id: partie.id}) }}" class="text-lapis-500">
+                Non, revenir à la partie
+            </a>
+        </div>
+    </section>
+{% endblock %}

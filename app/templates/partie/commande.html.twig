@@ -66,9 +66,12 @@
             </div>
         </dl>
 
-        <p class="mt-10 text-sm text-encre-500">
-            La ville et ses chantiers arrivent au prochain lot du développement.
-            <a href="{{ path('app_compte') }}" class="text-lapis-500">Retour à mon compte</a>.
-        </p>
+        <div class="mt-10 flex flex-wrap items-center gap-5">
+            <a href="{{ path('app_partie_reprendre', {id: partie.id}) }}"
+               class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                Prendre mes fonctions
+            </a>
+            <a href="{{ path('app_compte') }}" class="text-lapis-500">Retour à mes parties</a>
+        </div>
     </section>
 {% endblock %}
