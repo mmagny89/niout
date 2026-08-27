@@ -110,7 +110,6 @@ final class PartieController extends AbstractController
         return $this->render('partie/ville.html.twig', [
             'partie' => $partie,
             'ville' => $ville,
-            'date' => DateDeJeu::pourCycle($partie->getCycle()),
             'chantiers' => $ville->getChantiers(),
             'batimentsDresses' => $this->batimentsTriesParLibelle($ville),
             'offres' => $catalogue->pour($ville),

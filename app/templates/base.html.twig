@@ -41,6 +41,10 @@
             </div>
         </header>
 
+        {# Barre de jeu : les partie/* la remplissent via partie/_layout.
+           Les compteurs doivent rester visibles en permanence (doc 15). #}
+        {% block barreDeJeu %}{% endblock %}
+
         {% block flashes %}
             {% set typesDeFlash = { 'succes': 'good', 'erreur': 'bad' } %}
             {% for type, style in typesDeFlash %}

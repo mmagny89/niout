@@ -73,6 +73,46 @@ final class VilleTest extends WebTestCase
         self::assertNotEmpty($realisables, 'La dotation doit permettre au moins un chantier.');
     }
 
+    /**
+     * Le document 15 veut les compteurs visibles en permanence, pas seulement
+     * sur l'écran de la ville : le joueur doit toujours savoir de quoi il
+     * dispose sans changer de page.
+     */
+    public function testLesCompteursSuiventLeJoueurSurTousLesEcransDePartie(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'barre@example.com');
+        $partie = $this->lancer($joueur);
+        $id = $partie->getId();
+
+        foreach ([\sprintf('/partie/%d', $id), \sprintf('/partie/%d/ville', $id), \sprintf('/partie/%d/commande', $id)] as $url) {
+            $crawler = $client->request('GET', $url);
+
+            self::assertResponseIsSuccessful();
+            self::assertSelectorTextContains('body', 'Tekhi, an 1 — Akhèt', \sprintf('Date absente sur %s.', $url));
+            self::assertGreaterThan(
+                0,
+                $crawler->filter(\sprintf('form[action="/partie/%d/cycle"]', $id))->count(),
+                \sprintf('Le passage de cycle doit rester à portée sur %s.', $url),
+            );
+        }
+    }
+
+    public function testLEcranDAbandonNePropoSePasDAvancerLeTemps(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'renoncement@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/abandonner', $partie->getId()));
+
+        self::assertCount(
+            0,
+            $crawler->filter(\sprintf('form[action="/partie/%d/cycle"]', $partie->getId())),
+            'Avancer le temps n\'a pas de sens sur un écran de renoncement.',
+        );
+    }
+
     public function testUnJoueurNeVoitPasLaVilleDUnAutre(): void
     {
         $client = static::createClient();
