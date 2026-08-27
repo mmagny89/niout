@@ -62,6 +62,13 @@ Le lire avant de toucher à `compose*.yml`, `docker/` ou aux `.env`.
 Points à ne pas redécouvrir :
 - Trois niveaux de `.env` distincts. Le `.env` racine est lu **par Docker Compose seul** ;
   `app/.env` est lu par Symfony. Une variable appartient à un seul niveau.
+- **Jamais de secret réel dans un fichier committé.** Sont committés — et le restent
+  sans valeur sensible : `.env` (racine, valeurs de dev), les deux `.dist` (valeurs
+  vides), `app/.env*`. Les vrais secrets vont **exclusivement** dans
+  `.env.staging.local` / `.env.prod.local`, ignorés par git et par Docker.
+  Ajouter un mot de passe de production au `.env` racine l'enverrait dans l'historique.
+  Staging et prod échouent au démarrage si un secret manque : c'est voulu, ne jamais
+  « réparer » ça en donnant une valeur par défaut à un `${VAR:?}`.
 - `DATABASE_URL` est injectée par `compose.yml`. Elle est volontairement commentée dans
   `app/.env` (par `neutralize-app-env`) — ne pas la réactiver : la valeur y serait
   masquée en conteneur et fausse hors conteneur.
