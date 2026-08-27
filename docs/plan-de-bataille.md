@@ -219,7 +219,7 @@ vues, pas de la conception.
 - [x] **Phase 0** — Fondations techniques · §4
 - [x] **Phase 1** — Comptes et page d'accueil · §5
 - [x] **Phase 2** — Lancer une partie et bâtir · §6.1 · `01`, `05`, `13`
-- [ ] **Phase 3** — Carte, exploration et ressources · `02`, `04`, `06`, `08`
+- [ ] **Phase 3** — Carte, exploration et ressources · §6.2 · `02`, `04`, `06`, `08`
 - [ ] **Phase 4** — Population : recrutement, chefs et travailleurs · `01`, `03`
 - [ ] **Phase 5** — Artisanat et commerce · `08`, `12`
 - [ ] **Phase 6** — Faveur divine et événements · `07`
@@ -406,6 +406,121 @@ Deux conséquences à retenir :
   **l'état où la partie a été laissée** — cycle et saison en cours, chantiers
   engagés avec les cycles restants, stock, et ce qui s'est résolu au dernier
   cycle déclenché. C'est une reprise de contexte, pas une notification.
+
+---
+
+### 6.2 Phase 3 — Carte, exploration et ressources  *(proposition détaillée)*
+
+**Intention.** Faire basculer la ville de la dépense à la production. Aujourd'hui
+elle consomme une dotation qui ne se renouvelle pas ; à la fin de cette phase,
+elle tire ses matériaux de son territoire et sa nourriture de ses champs.
+
+À la fin de la phase, on doit pouvoir raconter : *« j'envoie un éclaireur sur une
+case voisine, il y trouve de l'argile, je l'exploite, et cette argile alimente
+mes chantiers ; j'établis un champ, je bâtis le grenier, et la moisson tombe en
+Chémou. »*
+
+C'est aussi la phase qui débloque les deux bâtiments aujourd'hui hors d'atteinte :
+le **Port** (point d'eau adjacent) et le **Temple** (lin en offrande).
+
+#### 3.1 — Génération de la carte
+
+- [ ] `Zone` : position sur la grille, type de terrain, contenu, état de découverte
+- [ ] Géographie cohérente avec l'Égypte réelle (doc 02) : Méditerranée en ligne
+      du haut, mer Rouge en colonne de droite, Nil en colonne sur un bord libre,
+      désert sur un bord libre ou dispersé, oasis à l'intérieur du désert
+- [ ] Placement contraint de la ville : adjacente à un point d'eau s'il en existe
+      un, sinon sur une zone fertile — jamais en plein désert
+- [ ] Tirage pondéré du contenu par difficulté (ressource / champ éligible /
+      événement / vide), selon le tableau du doc 02
+- [ ] Taille de grille déjà décidée au lancement de la partie : `City::tailleGrille`
+      existe depuis le lot 2.2, la carte s'y conforme
+- [ ] Instanciation de la première carte, le Delta du Nord en 3×3 (doc 06)
+
+#### 3.2 — Brouillard de guerre et reconnaissance
+
+- [ ] Vue de la carte : grille, cases en brouillard, ville repérée (doc 15)
+- [ ] Popup au clic sur une case reconnue : type, contenu, actions et coûts
+- [ ] **Éclaireur** : reconnaissance de toute case inconnue, coût modeste
+- [ ] L'expédition part et progresse au fil des cycles, sans bloquer le joueur —
+      même mécanique que les chantiers, déjà éprouvée au lot 2.5
+- [ ] Bonus d'Akhèt sur les trajets empruntant le Nil, malus symétrique en Chémou
+
+#### 3.3 — Ressources de zone et exploitation
+
+- [ ] Ressources brutes du doc 08, cohérentes avec la géologie réelle : argile et
+      roseaux dans le Delta, calcaire, grès, granite, cuivre, turquoise ailleurs
+- [ ] Exploitation d'une case reconnue : la ressource alimente le stock
+- [ ] **Généralisation du stock** — voir le point à trancher ci-dessous
+- [ ] Les coûts de construction puisent dans ces ressources, pas seulement dans
+      la dotation
+
+#### 3.4 — Champs, Grenier et cycle agricole
+
+- [ ] Champ établi sur une zone fertile ou une zone du Nil inondable (doc 02)
+- [ ] **Sans Grenier construit, un champ ne produit rien d'exploitable** (doc 01) :
+      la dépendance est le cœur de la mécanique, pas un détail
+- [ ] Rendement suivant les saisons (doc 05) : nul en Akhèt, champs sous l'eau ;
+      croissant en Perèt ; pic de moisson en Chémou
+- [ ] Qualité de la crue tirée en début d'année (faible ×0,7 / normale / forte
+      ×1,3), annoncée au joueur
+- [ ] Blé, orge et lin — le lin **débloque le Temple**
+- [ ] Consommation de nourriture par la population, et la pression qui va avec
+
+#### 3.5 — Points d'eau, Port et pêche
+
+- [ ] Le Port devient constructible dès qu'un point d'eau jouxte la ville
+- [ ] Pêche sur les cases d'eau reconnues, une fois le Port dressé
+- [ ] Les cases d'eau cessent d'être un décor : elles portent du contenu comme
+      les autres (doc 02)
+
+#### Hors périmètre, explicitement
+
+**Les rôles d'exploration autres que l'éclaireur.** L'émissaire suppose des PNJ,
+le chef d'expédition des zones lourdes, l'escorte des Medjaÿ — qui n'arrivent
+qu'en Phase 10. La première mission se joue en difficulté 0, **sans aucune zone
+à bandits** : l'éclaireur seul y suffit, et c'est ce que la phase livre.
+
+Également hors périmètre : l'épuisement des gisements et la re-exploration, qui
+ne concernent que les régions de difficulté 4 et plus ; le commerce et le craft
+(Phase 5) ; les événements de zone et les énigmes (Phase 7).
+
+#### Définition de « fini »
+
+Parcours couvert de bout en bout : carte générée à la création de la partie →
+éclaireur envoyé → cycles déclenchés → case révélée → ressource exploitée →
+chantier financé par cette ressource. Plus un champ établi, un grenier bâti, et
+une moisson qui tombe en Chémou et pas en Akhèt.
+
+Tests unitaires sur les points où une régression passerait inaperçue : les règles
+de placement géographique, le tirage pondéré, le rendement saisonnier. La
+génération étant semi-aléatoire, ses tests doivent porter sur des **invariants**
+(la ville touche toujours l'eau si l'eau existe, la grille fait toujours la
+bonne taille) plutôt que sur une carte attendue.
+
+Les quatre portes qualité au vert, et une revue de sécurité sur les nouvelles
+routes — exploiter une case ou envoyer un éclaireur modifie l'état d'une partie
+et doit passer par le `PartieVoter`.
+
+#### Points à trancher avant de commencer
+
+1. **Le stock doit-il devenir générique ?** Aujourd'hui `City` porte trois
+   colonnes — or, bois, pierre. Le doc 08 en compte une quinzaine, plus les
+   objets fabriqués. Passer à une table `ressource → quantité` maintenant coûte
+   une migration ; le faire plus tard en coûtera une plus grosse.
+   *Recommandation : le faire au lot 3.3, avant que les ressources n'arrivent.*
+2. **Quand la carte est-elle générée ?** À la création de la partie, ou à la
+   première visite de la carte ? *Recommandation : à la création — une partie
+   sans territoire n'a pas de sens, et ça évite un état « à moitié initialisé ».*
+3. **Combien d'expéditions simultanées ?** Une seule, ou autant que le joueur
+   peut financer ? *Recommandation : plusieurs, une par case, comme les
+   chantiers — la contrainte vient naturellement du coût.*
+4. **L'éclaireur coûte-t-il des provisions dès maintenant ?** Le doc 04 les
+   compte en nourriture, qui n'existera qu'au lot 3.4. *Recommandation : or et
+   cycles au lot 3.2, part en provisions ajoutée au 3.4.*
+5. **Faut-il afficher la carte comme une grille dessinée**, ou comme une liste de
+   cases façon vue de la ville ? Le doc 15 décrit une grille avec brouillard —
+   à confirmer, c'est le premier écran vraiment graphique du jeu.
 
 ---
 
