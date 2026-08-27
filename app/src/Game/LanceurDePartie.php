@@ -31,6 +31,7 @@ final readonly class LanceurDePartie
     public function __construct(
         private MissionCatalogue $missions,
         private GameSaveRepository $parties,
+        private GenerateurDeCarte $carte,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -47,7 +48,7 @@ final readonly class LanceurDePartie
 
         $partie = GameSave::pourCampagne($joueur, new Family($nomDeFamille), $ville);
 
-        return $this->doterEtEnregistrer($partie);
+        return $this->doterEtEnregistrer($partie, $mission->geographie);
     }
 
     /**
@@ -60,12 +61,30 @@ final readonly class LanceurDePartie
         $ville = new City(self::VILLE_DU_MODE_AVENTURE, $difficulte, $tailleGrille);
         $partie = GameSave::pourAventure($joueur, new Family($nomDeFamille), $ville);
 
-        return $this->doterEtEnregistrer($partie);
+        return $this->doterEtEnregistrer($partie, self::geographieDeMemphis());
     }
 
-    private function doterEtEnregistrer(GameSave $partie): GameSave
+    /**
+     * Memphis borde le Nil et jouxte le plateau de Saqqara, immense nécropole
+     * d'où vient son natron. Trop au sud pour la Méditerranée (doc 14).
+     */
+    private static function geographieDeMemphis(): GeographieDeRegion
+    {
+        return new GeographieDeRegion(
+            nil: true,
+            desert: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::Calcaire, Ressource::Natron],
+        );
+    }
+
+    private function doterEtEnregistrer(GameSave $partie, GeographieDeRegion $geographie): GameSave
     {
         $ville = $partie->getVille();
+
+        // La carte naît avec la partie : une ville sans territoire n'aurait
+        // pas de sens, et l'engendrer plus tard laisserait un état à moitié
+        // initialisé.
+        $this->carte->peupler($ville, $geographie);
         $dotation = DotationRoyale::pourDifficulte($ville->getDifficulte());
         $ville->crediterRessources($dotation->enRessources());
 

@@ -22,6 +22,7 @@ final readonly class Mission
         public int $difficulte,
         /** Ancrage historique, affiché à la commande du pharaon. */
         public string $contexte,
+        public GeographieDeRegion $geographie,
     ) {
     }
 

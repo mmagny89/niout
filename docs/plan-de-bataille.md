@@ -410,7 +410,7 @@ Deux conséquences à retenir :
 
 ---
 
-### 6.2 Phase 3 — Carte, exploration et ressources  *(1 lot sur 6)*
+### 6.2 Phase 3 — Carte, exploration et ressources  *(2 lots sur 6)*
 
 **Intention.** Faire basculer la ville de la dépense à la production. Aujourd'hui
 elle consomme une dotation qui ne se renouvelle pas ; à la fin de cette phase,
@@ -440,19 +440,33 @@ aujourd'hui, beaucoup plus une fois des parties en cours.
       pas changé de comportement
 - [x] Un débit hors de moyens ne retire **rien**, pas même ce qui suffisait
 
-#### 3.2 — Génération de la carte
+#### 3.2 — Génération de la carte  ✅
 
-- [ ] `Zone` : position sur la grille, type de terrain, contenu, état de découverte
-- [ ] Géographie cohérente avec l'Égypte réelle (doc 02) : Méditerranée en ligne
+- [x] `Zone` : position sur la grille, type de terrain, contenu, état de découverte
+- [x] Géographie cohérente avec l'Égypte réelle (doc 02) : Méditerranée en ligne
       du haut, mer Rouge en colonne de droite, Nil en colonne sur un bord libre,
       désert sur un bord libre ou dispersé, oasis à l'intérieur du désert
-- [ ] Placement contraint de la ville : adjacente à un point d'eau s'il en existe
+- [x] Placement contraint de la ville : adjacente à un point d'eau s'il en existe
       un, sinon sur une zone fertile — jamais en plein désert
-- [ ] Tirage pondéré du contenu par difficulté (ressource / champ éligible /
+- [x] Tirage pondéré du contenu par difficulté (ressource / champ éligible /
       événement / vide), selon le tableau du doc 02
-- [ ] **Génération à la création de la partie** (décision) : une partie sans
+- [x] **Génération à la création de la partie** (décision) : une partie sans
       territoire n'aurait pas de sens, et ça évite un état à moitié initialisé
-- [ ] Instanciation de la première carte, le Delta du Nord en 3×3 (doc 06)
+- [x] Instanciation de la première carte, le Delta du Nord en 3×3 (doc 06)
+- [x] Géographie des dix régions renseignée d'après les docs 02, 08 et 11
+
+**Un écart aux documents, tranché.** Le doc 02 ne pose le désert que sur **un
+bord**. Appliqué tel quel au Ouadi Hammamat ou au Sinaï, il produisait des cartes
+majoritairement fertiles — un camp minier entouré de champs, contraire à la
+description « désert dominant » du doc 11. Un attribut `desertDominant` ensable
+donc tout ce qui ne borde pas l'eau, pour les régions 2, 9 et 10. Une bande
+fertile survit le long du fleuve ou de la mer, sans quoi la ville n'aurait nulle
+part où s'installer.
+
+**Un invariant renforcé.** Le doc 02 exige que la ville touche l'eau et
+n'apparaisse « jamais en plein désert ». Les deux conditions se contredisaient
+sur une case de sable bordant le Nil : elle est désormais écartée. C'est un test
+d'invariant, rejoué sur vingt graines, qui l'a révélé.
 
 #### 3.3 — Découpage des tuiles et écran de carte
 

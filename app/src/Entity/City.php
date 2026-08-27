@@ -48,6 +48,12 @@ class City
     private int $tailleGrille;
 
     /**
+     * @var Collection<int, Zone>
+     */
+    #[ORM\OneToMany(targetEntity: Zone::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $zones;
+
+    /**
      * @var Collection<int, StockDeRessource>
      */
     #[ORM\OneToMany(targetEntity: StockDeRessource::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true, indexBy: 'ressource')]
@@ -70,6 +76,7 @@ class City
         $this->nom = $nom;
         $this->difficulte = $difficulte;
         $this->tailleGrille = $tailleGrille;
+        $this->zones = new ArrayCollection();
         $this->stock = new ArrayCollection();
         $this->batiments = new ArrayCollection();
         $this->chantiers = new ArrayCollection();
@@ -195,6 +202,57 @@ class City
         $this->stock->add($ligne);
 
         return $ligne;
+    }
+
+    /**
+     * @return Collection<int, Zone>
+     */
+    public function getZones(): Collection
+    {
+        return $this->zones;
+    }
+
+    public function ajouterZone(Zone $zone): static
+    {
+        if (!$this->zones->contains($zone)) {
+            $this->zones->add($zone);
+        }
+
+        return $this;
+    }
+
+    /**
+     * La case où se dresse la ville. Toute carte en possède une.
+     */
+    public function zoneDeLaVille(): ?Zone
+    {
+        foreach ($this->zones as $zone) {
+            if ($zone->porteLaVille()) {
+                return $zone;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Vrai si la ville jouxte un point d'eau — condition du Port (doc 01).
+     */
+    public function jouxteUnPointDEau(): bool
+    {
+        $centre = $this->zoneDeLaVille();
+
+        if (null === $centre) {
+            return false;
+        }
+
+        foreach ($this->zones as $zone) {
+            if ($zone->getTerrain()->estUnPointDEau() && $zone->estAdjacenteA($centre)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
