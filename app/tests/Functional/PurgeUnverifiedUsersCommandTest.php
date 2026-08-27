@@ -67,7 +67,7 @@ final class PurgeUnverifiedUsersCommandTest extends KernelTestCase
         $user = $this->depotUtilisateurs()->findOneBy(['email' => 'joueur-perime@example.com']);
         self::assertInstanceOf(User::class, $user);
 
-        $partie = GameSave::pourCampagne($user, new Family(Family::NOM_PAR_DEFAUT), new City('Avaris', 0));
+        $partie = GameSave::pourCampagne($user, new Family(Family::NOM_PAR_DEFAUT), new City('Avaris', 0, 3));
         $gestionnaire->persist($partie);
         $gestionnaire->flush();
         $idPartie = $partie->getId();

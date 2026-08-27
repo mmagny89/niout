@@ -1,0 +1,86 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Game;
+
+use App\Entity\City;
+use App\Entity\Family;
+use App\Entity\GameSave;
+use App\Entity\User;
+use App\Repository\GameSaveRepository;
+use Doctrine\ORM\EntityManagerInterface;
+
+/**
+ * Crée une partie, dans l'un ou l'autre mode, et la dote.
+ *
+ * Concentre ici les règles de lancement — plafond de parties, ville imposée,
+ * dotation royale — pour que le contrôleur n'ait qu'à transmettre le choix du
+ * joueur.
+ */
+final readonly class LanceurDePartie
+{
+    /**
+     * Le mode Aventure se joue toujours à Memphis : capitale historique
+     * traversant la quasi-totalité du Nouvel Empire, et absente de la campagne
+     * (doc 14).
+     */
+    public const string VILLE_DU_MODE_AVENTURE = 'Memphis';
+
+    public function __construct(
+        private MissionCatalogue $missions,
+        private GameSaveRepository $parties,
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
+
+    /**
+     * @throws PlafondDePartiesAtteint
+     */
+    public function lancerCampagne(User $joueur, string $nomDeFamille): GameSave
+    {
+        $this->refuserSiPlafondAtteint($joueur);
+
+        $mission = $this->missions->get(GameSave::PREMIERE_MISSION);
+        $ville = new City($mission->ville, $mission->difficulte, $mission->tailleDeGrille());
+
+        $partie = GameSave::pourCampagne($joueur, new Family($nomDeFamille), $ville);
+
+        return $this->doterEtEnregistrer($partie);
+    }
+
+    /**
+     * @throws PlafondDePartiesAtteint
+     */
+    public function lancerAventure(User $joueur, string $nomDeFamille, int $difficulte, int $tailleGrille): GameSave
+    {
+        $this->refuserSiPlafondAtteint($joueur);
+
+        $ville = new City(self::VILLE_DU_MODE_AVENTURE, $difficulte, $tailleGrille);
+        $partie = GameSave::pourAventure($joueur, new Family($nomDeFamille), $ville);
+
+        return $this->doterEtEnregistrer($partie);
+    }
+
+    private function doterEtEnregistrer(GameSave $partie): GameSave
+    {
+        $ville = $partie->getVille();
+        $dotation = DotationRoyale::pourDifficulte($ville->getDifficulte());
+        $ville->crediter($dotation->or, $dotation->bois, $dotation->pierre);
+
+        $this->entityManager->persist($partie);
+        $this->entityManager->flush();
+
+        return $partie;
+    }
+
+    /**
+     * @throws PlafondDePartiesAtteint
+     */
+    private function refuserSiPlafondAtteint(User $joueur): void
+    {
+        if ($this->parties->plafondAtteintPour($joueur)) {
+            throw new PlafondDePartiesAtteint();
+        }
+    }
+}

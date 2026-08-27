@@ -260,16 +260,16 @@ quinzaines, le grenier est debout. »*
       compte purgé — dette identifiée en Phase 1, la clé étrangère bloquerait
       sinon la suppression
 
-#### 2.2 — Parcours « nouvelle partie »
+#### 2.2 — Parcours « nouvelle partie »  ✅
 
-- [ ] Choix du mode : Campagne (démarre toujours à la mission 1, Avaris — l'ordre
+- [x] Choix du mode : Campagne (démarre toujours à la mission 1, Avaris — l'ordre
       des missions est imposé) ou Aventure (Memphis)
-- [ ] Saisie du nom de famille, avec **Nakht** proposé par défaut (doc 09)
-- [ ] En mode Aventure uniquement : choix de la difficulté (0 à 9) et de la taille
+- [x] Saisie du nom de famille, avec **Nakht** proposé par défaut (doc 09)
+- [x] En mode Aventure uniquement : choix de la difficulté (0 à 9) et de la taille
       de grille (doc 14)
-- [ ] Texte d'introduction citant le pharaon commanditaire et le contexte
+- [x] Texte d'introduction citant le pharaon commanditaire et le contexte
       historique (doc 09 — format texte simple, pas de cinématique)
-- [ ] **Dotation royale** créditée au départ : `50 + 10 × difficulté` en or, plus
+- [x] **Dotation royale** créditée au départ : `50 + 10 × difficulté` en or, plus
       de quoi couvrir un premier bâtiment (doc 13)
 
 #### 2.3 — Liste et gestion des parties
@@ -307,7 +307,9 @@ quinzaines, le grenier est debout. »*
 
 Strictement ce qu'exige la construction, le reste attend la Phase 3 :
 
-- [ ] Stock de la ville : or, bois, pierre
+- [x] Stock de la ville : or, bois, pierre — **remonté au lot 2.2** : la dotation
+      royale n'avait nulle part où atterrir sans lui. Colonne `stock_or` et non
+      `or`, mot réservé du SQL
 - [ ] Débit à la mise en chantier, refus si le stock est insuffisant
 - [ ] Affichage permanent des compteurs (barre supérieure, doc 15)
 

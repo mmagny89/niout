@@ -85,7 +85,7 @@ final class GameSaveRepositoryTest extends KernelTestCase
         $partie = GameSave::pourCampagne(
             $joueur,
             new Family(Family::NOM_PAR_DEFAUT),
-            new City($nomDeVille, 0),
+            new City($nomDeVille, 0, 3),
         );
 
         $gestionnaire = $this->gestionnaire();

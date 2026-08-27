@@ -35,10 +35,33 @@ class City
     #[ORM\Column]
     private int $difficulte;
 
-    public function __construct(string $nom, int $difficulte)
+    /**
+     * Côté de la grille d'exploration. Dérivé de la difficulté en campagne,
+     * choisi par le joueur en mode Aventure (doc 11, doc 14). La carte
+     * elle-même viendra en Phase 3 ; seule sa dimension est fixée ici.
+     */
+    #[ORM\Column]
+    private int $tailleGrille;
+
+    /**
+     * Colonne nommée explicitement : « or » est un mot réservé du SQL. La
+     * création de table passait (Doctrine l'échappe), mais les SELECT générés
+     * ensuite ne l'échappaient pas et provoquaient une erreur de syntaxe.
+     */
+    #[ORM\Column(name: 'stock_or')]
+    private int $or = 0;
+
+    #[ORM\Column]
+    private int $bois = 0;
+
+    #[ORM\Column]
+    private int $pierre = 0;
+
+    public function __construct(string $nom, int $difficulte, int $tailleGrille)
     {
         $this->nom = $nom;
         $this->difficulte = $difficulte;
+        $this->tailleGrille = $tailleGrille;
     }
 
     public function getId(): ?int
@@ -64,5 +87,38 @@ class City
     public function niveauMaxRegional(): int
     {
         return 5 + $this->difficulte;
+    }
+
+    public function getTailleGrille(): int
+    {
+        return $this->tailleGrille;
+    }
+
+    public function getOr(): int
+    {
+        return $this->or;
+    }
+
+    public function getBois(): int
+    {
+        return $this->bois;
+    }
+
+    public function getPierre(): int
+    {
+        return $this->pierre;
+    }
+
+    /**
+     * Crédite le stock. Sert à la dotation royale du départ (doc 13), puis aux
+     * récoltes et aux achats.
+     */
+    public function crediter(int $or = 0, int $bois = 0, int $pierre = 0): static
+    {
+        $this->or += $or;
+        $this->bois += $bois;
+        $this->pierre += $pierre;
+
+        return $this;
     }
 }
