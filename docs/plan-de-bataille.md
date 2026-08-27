@@ -81,11 +81,29 @@ Pour la Phase 1, seul `User` est nécessaire (avec son statut de vérification).
 - [x] Plan de bataille sauvegardé dans le projet (`docs/plan-de-bataille.md`)
 - [x] Stack Docker + squelette Symfony via `.claude/scripts/setup-symfony.sh --dedicated-server --run`
 - [x] `CLAUDE.md` du projet (conventions, commandes, pièges d'infrastructure)
-- [ ] Thème Tailwind : palette et typographies de la direction artistique (doc 15) — ocre/sable/terre cuite, accents lapis-lazuli/or
-- [ ] Gabarit Twig de base (`base.html.twig`)
-- [ ] Configuration `symfony/mailer` (transport de dev) — nécessaire dès la Phase 1
-- [ ] Pipeline CI minimal : lint, PHPStan, PHPUnit
-- [ ] `symfony/security-bundle` + entité `User`
+- [x] Thème Tailwind : palette et typographies de la direction artistique (doc 15) — ocre/sable/terre cuite, accents lapis-lazuli/or
+- [x] Gabarit Twig de base (`base.html.twig`)
+- [x] Configuration `symfony/mailer` — `null://null` en dev, emails lisibles dans le profiler
+- [x] Pipeline CI GitHub Actions : style, analyse statique, audit dépendances, tests
+- [x] `symfony/security-bundle` + entité `User`
+
+**Phase 0 terminée.**
+
+### Outillage qualité en place
+
+| Outil | Configuration | Commande |
+|---|---|---|
+| php-cs-fixer | `@Symfony` + `declare_strict_types` | `vendor/bin/php-cs-fixer fix` |
+| PHPStan | **niveau 8** (cible Symfony), extensions Symfony + Doctrine | `vendor/bin/phpstan analyse` |
+| PHPUnit | 5 tests sur `User` (vérification, purge, rôles) | `php bin/phpunit` |
+| composer audit | Aucun avis de sécurité | `composer audit` |
+
+### Polices — décision
+
+Les polices (**Marcellus** en titrage, **Alegreya Sans** en texte) sont
+**self-hébergées** dans `app/assets/fonts/`, sous-ensembles latin et latin-ext
+uniquement. Pas d'appel runtime à Google Fonts : le jeu vise un public français,
+et un tel appel transmettrait l'IP du visiteur à un tiers.
 
 ### Versions effectivement installées (vérifiées le 2026-08-27)
 
