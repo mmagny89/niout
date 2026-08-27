@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{# Gabarit commun aux écrans de partie. Il porte la barre de jeu, que le
+   document 15 veut visible en permanence : le joueur doit toujours savoir de
+   quoi il dispose et à quelle date il se trouve, sans changer de page. #}
+
+{% block barreDeJeu %}
+    <div class="border-b border-ocre-500/25 bg-sable-50">
+        <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-8 gap-y-3 px-5 py-3">
+            <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1">
+                <a href="{{ path('app_partie_ville', {id: partie.id}) }}"
+                   class="font-display text-lg text-terre-600 no-underline">
+                    {{ partie.ville.nom }}
+                </a>
+
+                <dl class="flex flex-wrap gap-x-5 gap-y-1 text-sm" data-chiffres>
+                    {% set compteurs = [
+                        { libelle: 'Or', valeur: partie.ville.or },
+                        { libelle: 'Bois', valeur: partie.ville.bois },
+                        { libelle: 'Pierre', valeur: partie.ville.pierre },
+                    ] %}
+                    {% for compteur in compteurs %}
+                        <div class="flex items-baseline gap-1.5">
+                            <dt class="text-encre-500">{{ compteur.libelle }}</dt>
+                            <dd class="text-encre-900">{{ compteur.valeur }}</dd>
+                        </div>
+                    {% endfor %}
+                </dl>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4">
+                <p class="text-sm text-encre-600">
+                    {{ partie.dateDeJeu.libelle }}
+                    <span class="text-encre-500" data-chiffres>· cycle {{ partie.cycle }}</span>
+                </p>
+
+                {% block actionDeCycle %}
+                    <form method="post" action="{{ path('app_partie_cycle', {id: partie.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('cycle') }}">
+                        <button type="submit"
+                                class="rounded-sm bg-lapis-500 px-4 py-1.5 text-sm font-medium text-sable-50 hover:bg-lapis-600">
+                            Quinzaine suivante
+                        </button>
+                    </form>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -23,9 +23,16 @@ suite, mais supprimé après 7 jours sans validation.
 Sinaï) ou Aventure (Memphis, réglages libres), avec la commande du pharaon et sa
 dotation royale. Jusqu'à cinq parties de front, reprenables et abandonnables.
 
-Le cœur du jeu — ville, bâtiments, cycles, carte, exploration — reste à
-construire. Feuille de route détaillée dans
-[`docs/plan-de-bataille.md`](docs/plan-de-bataille.md).
+**Ville et chantiers** — les douze bâtiments du jeu, avec leurs coûts, leurs
+plafonds de niveau et leurs durées de travaux. Engager un chantier débite les
+ressources ; les travaux n'avancent ensuite qu'aux quinzaines que le joueur
+déclenche, plus vite pendant la crue d'Akhèt. Le calendrier pharaonique tourne,
+mois par mois et saison par saison.
+
+La boucle de jeu tient donc debout de bout en bout : fonder, doter, bâtir,
+laisser le temps passer. Restent la carte, l'exploration, les ressources
+produites, le commerce, les Medjaÿ, la faveur divine et les énigmes — feuille de
+route détaillée dans [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md).
 
 ## Stack
 

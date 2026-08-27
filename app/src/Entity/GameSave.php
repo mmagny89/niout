@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\GameMode;
+use App\Game\DateDeJeu;
 use App\Repository\GameSaveRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -153,6 +154,17 @@ class GameSave
         $this->lastOpenedAt = new \DateTimeImmutable();
 
         return $this;
+    }
+
+    /**
+     * Date du calendrier pharaonique correspondant au cycle courant.
+     *
+     * Dérivée, jamais persistée : le cycle suffit à la reconstituer. Exposée
+     * ici pour que les gabarits n'aient pas à la recevoir de chaque contrôleur.
+     */
+    public function dateDeJeu(): DateDeJeu
+    {
+        return DateDeJeu::pourCycle($this->cycle);
     }
 
     /**

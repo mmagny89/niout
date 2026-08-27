@@ -130,6 +130,22 @@ directement.
 Les constructeurs nommés (`GameSave::pourCampagne()`) sont préférés à un
 constructeur public quand ils rendent un invariant impossible à violer.
 
+Trois pièges déjà payés, à ne pas refaire :
+
+- **`or` est un mot réservé du SQL.** Doctrine échappe les noms à la création de
+  table, jamais dans les `SELECT` qu'il génère ensuite : la colonne s'appelle
+  donc `stock_or`. Vérifier tout nom de colonne qui serait un mot-clé.
+- **Les Voters ont changé de signature en Symfony 8** : `voteOnAttribute()` prend
+  un quatrième paramètre `?Vote $vote = null`. L'oublier produit une erreur
+  fatale au chargement, qui fait échouer jusqu'à `make:migration`.
+- **Aucune valeur de jeu ne se compare en flottants.** L'avancement des chantiers
+  se compte en dixièmes de cycle, parce que le facteur ×1,5 de la crue finirait
+  par laisser un chantier bloqué à un cheveu de son terme.
+
+Les écrans de partie héritent de `templates/partie/_layout.html.twig`, qui porte
+la barre de jeu — compteurs, date pharaonique, passage de cycle. Un nouvel écran
+de partie doit en hériter plutôt que de `base.html.twig`.
+
 ## Conception du jeu
 
 Les 16 documents de game design (systèmes, économie, lore, direction artistique) vivent

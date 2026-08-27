@@ -1,4 +1,7 @@
-{% extends 'base.html.twig' %}
+{% extends 'partie/_layout.html.twig' %}
+
+{# Avancer le temps n'a pas de sens sur un écran de renoncement. #}
+{% block actionDeCycle %}{% endblock %}
 
 {% block title %}Abandonner {{ partie.ville.nom }} — Niout{% endblock %}
 

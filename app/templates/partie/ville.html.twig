@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'partie/_layout.html.twig' %}
 
 {% block title %}{{ ville.nom }} — Niout{% endblock %}
 
@@ -11,46 +11,18 @@
             </a>
         </div>
 
-        {# Compteurs permanents : le joueur doit toujours savoir de quoi il
-           dispose avant d'engager un chantier (doc 15). #}
-        <div class="mt-6 rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-4">
-            <dl class="flex flex-wrap gap-x-8 gap-y-2" data-chiffres>
-                {% set compteurs = [
-                    { libelle: 'Or', valeur: ville.or },
-                    { libelle: 'Bois', valeur: ville.bois },
-                    { libelle: 'Pierre', valeur: ville.pierre },
-                    { libelle: 'Cycle', valeur: partie.cycle },
-                ] %}
-                {% for compteur in compteurs %}
-                    <div class="flex items-baseline gap-2">
-                        <dt class="text-xs uppercase tracking-wide text-encre-500">{{ compteur.libelle }}</dt>
-                        <dd class="font-display text-xl text-terre-600">{{ compteur.valeur }}</dd>
-                    </div>
-                {% endfor %}
-            </dl>
-
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-ocre-500/25 pt-4">
-                <div>
-                    <p class="font-display text-lg text-encre-900">{{ date.libelle }}</p>
-                    <p class="text-sm text-encre-500">
-                        {% if date.saison %}
-                            {{ date.saison.description }}
-                        {% else %}
-                            Les cinq jours « au-dessus de l'année », hors mois et hors saison.
-                        {% endif %}
-                    </p>
-                </div>
-
-                {# Le seul geste qui fasse avancer le temps (doc 05). #}
-                <form method="post" action="{{ path('app_partie_cycle', {id: partie.id}) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('cycle') }}">
-                    <button type="submit"
-                            class="rounded-sm bg-lapis-500 px-5 py-2.5 font-medium text-sable-50 hover:bg-lapis-600">
-                        Quinzaine suivante
-                    </button>
-                </form>
-            </div>
-        </div>
+        {# Les compteurs et la date vivent dans la barre de jeu. Reste ici ce
+           qu'elle ne dit pas : ce que la saison change concrètement. #}
+        <p class="mt-6 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-3 text-sm text-encre-600">
+            {% if partie.dateDeJeu.saison %}
+                <strong class="text-encre-900">{{ partie.dateDeJeu.saison.libelle }}</strong>,
+                {{ partie.dateDeJeu.saison.sens }} — {{ partie.dateDeJeu.saison.description }}
+            {% else %}
+                <strong class="text-encre-900">Hériou-renpèt</strong> — les cinq jours
+                « au-dessus de l'année », hors mois et hors saison. Une respiration
+                avant la crue suivante.
+            {% endif %}
+        </p>
 
         {% if chantiers|length > 0 %}
             <h2 class="mt-10 text-2xl text-encre-900">Chantiers en cours</h2>

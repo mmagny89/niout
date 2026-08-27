@@ -70,7 +70,8 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `GameSave` | ✅ | Une run : mode, mission en cours, cycle. Jusqu'à 5 actifs par `User`, supprimés avec lui | 00, 14 |
 | `Family` | ✅ | Nom choisi au lancement (1 par `GameSave`) et renommée. Héritage et contacts commerciaux en Phase 9 | 13 |
 | `City` | ✅ | Nom, difficulté régionale, taille de grille, stock (or, bois, pierre) | 01, 02, 11 |
-| `Building` | — | Bâtiments de la ville et leurs chantiers | 01 |
+| `Building` | ✅ | Un bâtiment dressé : son type et son niveau | 01 |
+| `Chantier` | ✅ | Travaux en cours : niveau visé, durée, avancement | 01, 05 |
 | … (Phase 3+) | — | Carte, Medjaÿ, faveur divine, énigmes | 02–12 |
 
 `Family` et `City` sont détenues par leur `GameSave` : l'abandon d'une partie,
@@ -217,7 +218,7 @@ vues, pas de la conception.
 
 - [x] **Phase 0** — Fondations techniques · §4
 - [x] **Phase 1** — Comptes et page d'accueil · §5
-- [ ] **Phase 2** — Lancer une partie et bâtir · §6.1 · `01`, `05`, `13`
+- [x] **Phase 2** — Lancer une partie et bâtir · §6.1 · `01`, `05`, `13`
 - [ ] **Phase 3** — Carte, exploration et ressources · `02`, `04`, `06`, `08`
 - [ ] **Phase 4** — Population : recrutement, chefs et travailleurs · `01`, `03`
 - [ ] **Phase 5** — Artisanat et commerce · `08`, `12`
@@ -241,7 +242,7 @@ les boucles de jeu et n'a de sens qu'une fois les zones dangereuses posées.
 
 ---
 
-### 6.1 Phase 2 — Lancer une partie et bâtir  *(5 lots sur 6)*
+### 6.1 Phase 2 — Lancer une partie et bâtir  ✅
 
 **Intention.** Livrer la plus petite tranche réellement *jouable* plutôt que
 tout le document 01 sans écoulement du temps : créer une partie, voir sa ville,
@@ -318,15 +319,18 @@ L'interface le dit explicitement au lieu de les masquer.
 - [x] Accélération ×1,5 pendant Akhèt (main-d'œuvre libérée par la crue)
 - [x] Le joueur reste libre d'agir entre deux cycles : aucun blocage
 
-#### 2.6 — Ressources minimales
+#### 2.6 — Ressources minimales  ✅
 
 Strictement ce qu'exige la construction, le reste attend la Phase 3 :
 
 - [x] Stock de la ville : or, bois, pierre — **remonté au lot 2.2** : la dotation
       royale n'avait nulle part où atterrir sans lui. Colonne `stock_or` et non
       `or`, mot réservé du SQL
-- [ ] Débit à la mise en chantier, refus si le stock est insuffisant
-- [ ] Affichage permanent des compteurs (barre supérieure, doc 15)
+- [x] Débit à la mise en chantier, refus si le stock est insuffisant — rien
+      n'est débité sur un refus
+- [x] Affichage permanent des compteurs (barre supérieure, doc 15) : or, bois,
+      pierre, date pharaonique et passage de cycle, sur **tous** les écrans de
+      partie — sauf l'écran d'abandon, où avancer le temps n'a pas de sens
 
 #### Hors périmètre, explicitement
 
@@ -350,6 +354,37 @@ une régression passerait le plus facilement inaperçue.
 Les quatre portes qualité au vert, revue de sécurité sur les nouvelles routes
 (une partie ne doit être lisible et modifiable que par son propriétaire — un
 **Voter** plutôt qu'un simple contrôle de rôle).
+
+#### Phase 2 — bilan
+
+**Livrée.** La boucle annoncée en intention est démontrable : créer une famille,
+recevoir la dotation, engager un chantier, déclencher des quinzaines, voir le
+bâtiment se dresser. Vérifiée en HTTP réel, pas seulement en tests.
+
+Écarts assumés par rapport au découpage initial :
+
+- Le **stock** est remonté du lot 2.6 au 2.2 : la dotation royale n'avait nulle
+  part où atterrir sans lui.
+- Le lot 2.4 livre le **catalogue** des bâtiments sans l'action de construire,
+  qui appartient au 2.5 avec les chantiers. Un bouton qui n'aurait rien fait
+  aurait été pire qu'une page sans bouton.
+- Le **récapitulatif de reprise** ne porte que le cycle et le stock. La saison
+  et les chantiers l'ont rejoint au lot 2.5.
+
+Trois pièges rencontrés, corrigés et documentés :
+
+- `or` est un **mot réservé du SQL**. Le `CREATE TABLE` passait, les `SELECT`
+  générés ensuite non. Colonne `stock_or`.
+- La signature des **Voters a changé en Symfony 8** : un paramètre `Vote` a été
+  ajouté à `voteOnAttribute()`, avec une erreur fatale opaque à la clé.
+- L'avancement des chantiers se compte en **dixièmes de cycle**, pas en
+  flottants : le facteur ×1,5 d'Akhèt aurait fini par laisser un chantier bloqué
+  à un cheveu de son terme.
+
+Deux bâtiments restent hors d'atteinte, en attendant la Phase 3 : le **Port**
+(point d'eau) et le **Temple** (lin). L'interface le dit au lieu de les masquer.
+
+---
 
 #### Points tranchés
 
