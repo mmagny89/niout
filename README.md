@@ -84,10 +84,15 @@ Les quatre vérifications ci-dessous tournent aussi en intégration continue
 docker compose exec php vendor/bin/php-cs-fixer fix --dry-run --diff
 docker compose exec php vendor/bin/phpstan analyse
 docker compose exec php composer audit
+docker compose exec php bin/console tailwind:build   # requis avant les tests
 docker compose exec php vendor/bin/phpunit
 ```
 
 PHPStan est réglé au **niveau 8**, sans erreur tolérée.
+
+Les tests fonctionnels rendent de vraies pages : sans CSS compilée, ils échouent
+tous d'un coup, avec un message qui ne mentionne pas Tailwind clairement. D'où le
+`tailwind:build` ci-dessus.
 
 ## Secrets
 

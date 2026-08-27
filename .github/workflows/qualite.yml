@@ -104,4 +104,8 @@ jobs:
       # PostgreSQL ne crée que POSTGRES_DB, il faut donc créer l'autre.
       - run: php bin/console doctrine:database:create --if-not-exists --env=test
       - run: php bin/console doctrine:migrations:migrate --no-interaction --env=test
+      # La CSS compilée vit dans app/var/, ignoré par git : sans cette étape,
+      # AssetMapper cherche « tailwindcss » comme un fichier réel, base.html.twig
+      # lève une exception, et tout test qui rend une page échoue.
+      - run: php bin/console tailwind:build
       - run: php bin/phpunit

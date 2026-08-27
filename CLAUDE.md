@@ -37,7 +37,13 @@ Portes qualité — les quatre doivent passer avant un merge (mêmes commandes q
 - Audit des dépendances : `docker compose exec php composer audit`
 - Tests : `docker compose exec php php bin/phpunit`
 
-PHPStan a besoin du container compilé : lancer `cache:warmup` avant l'analyse si le cache est vide.
+Deux prérequis faciles à oublier, tous deux dus à des artefacts vivant dans `app/var/`, ignoré par git :
+
+- PHPStan a besoin du container compilé : lancer `cache:warmup` avant l'analyse si le cache est vide.
+- Les tests fonctionnels ont besoin de la CSS compilée : lancer `tailwind:build` d'abord.
+  Sans elle, AssetMapper cherche `tailwindcss` comme un fichier réel, `base.html.twig` lève
+  une exception, et **tout test qui rend une page échoue** — sans que le message ne mentionne
+  Tailwind de façon évidente.
 
 Le site répond sur `https://localhost` (certificat auto-signé Caddy en dev).
 
