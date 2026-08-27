@@ -1,0 +1,27 @@
+# Override staging. Serveur dedie durablement a ce projet. Lancement toujours explicite :
+#   docker compose -f compose.yml -f compose.staging.yml --env-file .env.staging.local up -d --wait
+# --env-file REMPLACE le .env racine (conventions, section 3).
+services:
+  php:
+    build:
+      target: staging
+    image: niout-php:staging
+    environment:
+      APP_SECRET: ${APP_SECRET:?APP_SECRET est requis en staging (secret applicatif Symfony) — fournir via --env-file .env.staging.local}
+      SERVER_NAME: ${SERVER_NAME:?SERVER_NAME est requis en staging (domaine servi par Caddy) — fournir via --env-file .env.staging.local}
+      CADDY_GLOBAL_OPTIONS: "email ${ACME_EMAIL:?ACME_EMAIL est requis en staging (contact Let's Encrypt) — fournir via --env-file .env.staging.local}"
+    # Defense en profondeur : le binaire frankenphp recoit
+    # cap_net_bind_service au build (stage prod) ; ce sysctl autorise le
+    # bind sur les ports <1024 par l'utilisateur non root independamment
+    # de la capability (symfony-docker.md, "Pieges connus").
+    sysctls:
+      - net.ipv4.ip_unprivileged_port_start=0
+    ports:
+      - "${HTTP_PORT}:80"
+      - "${HTTPS_PORT}:443"
+      - "${HTTP3_PORT}:443/udp"
+
+  ember:
+    profiles: [observability]
+    ports:
+      - "127.0.0.1:${EMBER_PORT}:9191"
