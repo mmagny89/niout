@@ -61,14 +61,14 @@ final readonly class LanceurDePartie
         $ville = new City(self::VILLE_DU_MODE_AVENTURE, $difficulte, $tailleGrille);
         $partie = GameSave::pourAventure($joueur, new Family($nomDeFamille), $ville);
 
-        return $this->doterEtEnregistrer($partie, self::geographieDeMemphis());
+        return $this->doterEtEnregistrer($partie, self::geographieDuModeAventure());
     }
 
     /**
      * Memphis borde le Nil et jouxte le plateau de Saqqara, immense nécropole
      * d'où vient son natron. Trop au sud pour la Méditerranée (doc 14).
      */
-    private static function geographieDeMemphis(): GeographieDeRegion
+    public static function geographieDuModeAventure(): GeographieDeRegion
     {
         return new GeographieDeRegion(
             nil: true,

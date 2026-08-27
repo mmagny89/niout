@@ -8,6 +8,7 @@ use App\Entity\Building;
 use App\Entity\City;
 use App\Entity\GameSave;
 use App\Entity\User;
+use App\Entity\Zone;
 use App\Enum\GameMode;
 use App\Form\NouvellePartieType;
 use App\Game\CatalogueDeLaVille;
@@ -117,6 +118,27 @@ final class PartieController extends AbstractController
     }
 
     /**
+     * La carte d'exploration : une grille isométrique, brouillard compris.
+     *
+     * La case détaillée est choisie côté serveur plutôt qu'en JavaScript — le
+     * jeu se joue sans, et un lien reste partageable.
+     */
+    #[Route('/{id}/carte', name: 'app_partie_carte', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function carte(Request $request, GameSave $partie): Response
+    {
+        $ville = $partie->getVille();
+        $zones = $this->zonesTrieesPourLIsometrie($ville);
+
+        return $this->render('partie/carte.html.twig', [
+            'partie' => $partie,
+            'ville' => $ville,
+            'zones' => $zones,
+            'zoneDetaillee' => $this->zoneDemandee($zones, $request->query->get('zone')),
+        ]);
+    }
+
+    /**
      * Engage un chantier. Les ressources sont payées ici, les travaux
      * avanceront au fil des cycles.
      */
@@ -216,6 +238,49 @@ final class PartieController extends AbstractController
             'partie' => $partie,
             'mission' => $this->missionDe($partie, $missions),
         ]);
+    }
+
+    /**
+     * Zones ordonnées de l'arrière-plan vers le premier plan.
+     *
+     * En vue isométrique, une tuile en recouvre partiellement d'autres : elles
+     * doivent être peintes par somme x+y croissante, sinon les roseaux d'une
+     * case se retrouvent derrière la case qu'ils devraient masquer.
+     *
+     * @return list<Zone>
+     */
+    private function zonesTrieesPourLIsometrie(City $ville): array
+    {
+        $zones = array_values($ville->getZones()->toArray());
+
+        usort($zones, static function (Zone $a, Zone $b): int {
+            $profondeur = ($a->getX() + $a->getY()) <=> ($b->getX() + $b->getY());
+
+            return 0 !== $profondeur ? $profondeur : $a->getX() <=> $b->getX();
+        });
+
+        return $zones;
+    }
+
+    /**
+     * La zone désignée par « x-y » dans l'URL, si elle existe et a été
+     * reconnue. Le brouillard ne se détaille pas.
+     *
+     * @param list<Zone> $zones
+     */
+    private function zoneDemandee(array $zones, mixed $coordonnees): ?Zone
+    {
+        if (!\is_string($coordonnees) || 1 !== preg_match('/^(\d+)-(\d+)$/', $coordonnees, $trouve)) {
+            return null;
+        }
+
+        foreach ($zones as $zone) {
+            if ($zone->getX() === (int) $trouve[1] && $zone->getY() === (int) $trouve[2]) {
+                return $zone->estDecouverte() ? $zone : null;
+            }
+        }
+
+        return null;
     }
 
     /**

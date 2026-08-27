@@ -410,7 +410,7 @@ Deux conséquences à retenir :
 
 ---
 
-### 6.2 Phase 3 — Carte, exploration et ressources  *(2 lots sur 6)*
+### 6.2 Phase 3 — Carte, exploration et ressources  *(3 lots sur 6)*
 
 **Intention.** Faire basculer la ville de la dépense à la production. Aujourd'hui
 elle consomme une dotation qui ne se renouvelle pas ; à la fin de cette phase,
@@ -468,20 +468,36 @@ n'apparaisse « jamais en plein désert ». Les deux conditions se contredisaien
 sur une case de sable bordant le Nil : elle est désormais écartée. C'est un test
 d'invariant, rejoué sur vingt graines, qui l'a révélé.
 
-#### 3.3 — Découpage des tuiles et écran de carte
+#### 3.3 — Découpage des tuiles et écran de carte  ✅
 
 Ce lot **remonte de la Phase 12** : la carte se dessine avec les vraies tuiles,
 décision prise pour cette phase.
 
-- [ ] Découper la planche « tuiles » du Drive : 8 tuiles isométriques en losange,
+- [x] Découper la planche « tuiles » du Drive : 8 tuiles isométriques en losange,
       1408 × 768 pixels, soit des cellules de 352 × 384
-- [ ] Détourer le fond sombre pour rendre les losanges transparents — sans quoi
+- [x] Détourer le fond sombre pour rendre les losanges transparents — sans quoi
       ils ne peuvent pas se juxtaposer
-- [ ] Servir les PNG via AssetMapper, comme les polices
-- [ ] Grille **isométrique** : les tuiles se posent en losange, pas en carré
-- [ ] Tuile de brouillard sur toute case non reconnue, marqueur de ville sur la
+- [x] Servir les PNG via AssetMapper, comme les polices
+- [x] Grille **isométrique** : les tuiles se posent en losange, pas en carré
+- [x] Tuile de brouillard sur toute case non reconnue, marqueur de ville sur la
       sienne
-- [ ] Popup au clic sur une case reconnue : type, contenu, actions et coûts
+- [x] Détail au clic sur une case reconnue — rendu **côté serveur** plutôt qu'en
+      JavaScript : le jeu se joue sans, et le lien reste partageable
+- [x] Commande `app:parties:generer-cartes-manquantes` : les parties lancées
+      avant le lot 3.2 n'avaient pas de territoire et seraient restées vides
+
+**Trois obstacles rencontrés au découpage.** La tuile de brouillard, presque
+aussi sombre que le fond de la planche, se faisait dévorer par le détourage : son
+masque est repris de la tuile de désert, prisme de même forme. Les cellules sont
+conservées **entières** plutôt que recadrées, sans quoi les roseaux et les
+palmiers qui dépassent du losange décalaient la grille. Et la planche pèse un
+mégaoctet en pleine résolution : les tuiles sont ramenées à 176 px de losange,
+soit 344 Ko pour les huit.
+
+**Géométrie retenue** : losange de 176 × 158 dans une cellule de 189 × 206, posé
+tous les 90 px en x et 79 px en y. Les cases sont peintes par somme x+y
+croissante, sinon les roseaux d'une case passent derrière celle qu'ils devraient
+masquer.
 
 #### 3.4 — Reconnaissance
 
