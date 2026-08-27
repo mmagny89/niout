@@ -606,6 +606,25 @@ Les provisions de départ ne sont pas un confort : sans elles, le joueur ne
 pourrait pas envoyer son premier éclaireur, donc jamais trouver la terre où
 semer. La boucle se refermait sur elle-même.
 
+##### Les quatre étapes d'un chantier sont toutes affichées
+
+Défaut relevé à l'usage : un Grenier de niveau 1 dure deux quinzaines pour
+quatre étapes, et l'écran n'en montrait qu'une à la fois — déduite du
+pourcentage d'avancement. Le joueur ne voyait donc jamais que les étapes 1 et 3.
+Le séchage des briques, qui porte l'explication de pourquoi aucun chantier ne
+dure moins d'une quinzaine, passait à la trappe.
+
+Les quatre étapes sont désormais rendues en permanence, marquées *terminée*, *en
+cours* ou *à venir*. Celles que la quinzaine va traverser portent leur
+explication ; les autres, leur seul intitulé. C'est ce que le doc 01 décrit par
+« les cycles sont répartis proportionnellement entre ces étapes ».
+
+Subtilité découverte en vérifiant en navigateur : la fenêtre « en cours » doit
+suivre la **vitesse réelle** du cycle. En Akhèt, la corvée fait avancer d'1,5
+cycle, donc la quinzaine franchit une étape de plus qu'annoncé — et cette
+étape-là n'apparaissait jamais. Un test parcourt maintenant chaque chantier de
+bout en bout, dans les trois saisons, et vérifie qu'aucune étape n'est escamotée.
+
 ##### Deux ajustements d'ouverture de partie (décisions de la joueuse)
 
 - **La dotation royale couvre le Grenier**, pas seulement l'Entrepôt : sa part

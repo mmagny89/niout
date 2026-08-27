@@ -21,7 +21,7 @@ final class ExplorationTest extends KernelTestCase
     public function testEnvoyerUnEclaireurAuLoinDebiteSonSolde(): void
     {
         self::bootKernel();
-        $partie = $this->lancerPartie('solde@example.com');
+        $partie = $this->lancerSurUneGrandeCarte('solde@example.com');
         $orAvant = $partie->getVille()->getOr();
 
         $this->explorations()->envoyer($partie, $this->caseEloignee($partie), RoleDExploration::Eclaireur);
@@ -176,15 +176,15 @@ final class ExplorationTest extends KernelTestCase
         $this->explorations()->envoyer($partie, $centre, RoleDExploration::Eclaireur);
     }
 
-    public function testSansOrAucunEclaireurNePartEtRienNEstDebite(): void
+    public function testSansOrAucunEclaireurNePartAuLoinEtRienNEstDebite(): void
     {
         self::bootKernel();
-        $partie = $this->lancerPartie('sans-le-sou@example.com');
+        $partie = $this->lancerSurUneGrandeCarte('sans-le-sou@example.com');
         $ville = $partie->getVille();
         $ville->debiterRessources([Ressource::Or->value => $ville->getOr()]);
 
         try {
-            $this->explorations()->envoyer($partie, $this->caseInconnue($partie), RoleDExploration::Eclaireur);
+            $this->explorations()->envoyer($partie, $this->caseEloignee($partie), RoleDExploration::Eclaireur);
             self::fail('L\'expédition aurait dû être refusée.');
         } catch (ExplorationImpossible) {
             self::assertSame(0, $ville->getOr());
@@ -283,6 +283,26 @@ final class ExplorationTest extends KernelTestCase
         $gestionnaire->flush();
 
         return static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
+    }
+
+    /**
+     * Le Delta se joue en 3×3 : si la ville tombe au centre, **toute** la carte
+     * lui est adjacente et rien n'y coûte d'or. Les cas qui portent sur une
+     * case éloignée réclament donc une grille assez large pour en garantir une,
+     * sans quoi ils dépendraient du tirage de la carte.
+     */
+    private function lancerSurUneGrandeCarte(string $email): GameSave
+    {
+        $user = new User();
+        $user->setEmail($email);
+        $user->setPassword('peu-importe-ici');
+
+        $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
+        $gestionnaire->persist($user);
+        $gestionnaire->flush();
+
+        return static::getContainer()->get(LanceurDePartie::class)
+            ->lancerAventure($user, 'Nakht', difficulte: 0, tailleGrille: 7);
     }
 
     private function explorations(): Explorations

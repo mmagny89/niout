@@ -49,14 +49,38 @@
                             <div class="h-full bg-terre-500" style="width: {{ chantier.pourcentageDAvancement }}%"></div>
                         </div>
 
-                        {# Étape nommée et son explication : le chantier apprend
-                           quelque chose au joueur plutôt que d'être une barre
-                           qui se remplit (doc 01). #}
-                        <p class="mt-3 text-sm text-encre-700">
-                            <span data-chiffres>Étape {{ chantier.numeroDEtape }} sur {{ chantier.nombreDEtapes }}</span>
-                            — {{ chantier.etapeEnCours.nom }}
-                        </p>
-                        <p class="mt-1 text-sm text-encre-500">{{ chantier.etapeEnCours.explication }}</p>
+                        {# Les quatre étapes du doc 01, toutes affichées : un
+                           chantier court en traverse deux par quinzaine, et
+                           n'en montrer qu'une escamoterait la moitié du contenu
+                           pédagogique. Celles de la quinzaine en cours portent
+                           leur explication, les autres leur seul intitulé. #}
+                        <ol class="mt-4 space-y-2 list-none p-0">
+                            {% for rang in chantier.etapes(partie.dateDeJeu.saison) %}
+                                <li class="flex gap-3 {{ rang.etat.value == 'a_venir' ? 'opacity-50' : '' }}">
+                                    <span aria-hidden="true"
+                                          class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-xs
+                                                 {{ rang.etat.value == 'terminee' ? 'bg-terre-500 text-sable-50'
+                                                    : (rang.etat.value == 'en_cours' ? 'border-2 border-terre-500 text-terre-600'
+                                                    : 'border border-ocre-500/50 text-encre-500') }}"
+                                          data-chiffres>{{ rang.etat.value == 'terminee' ? '✓' : rang.numero }}</span>
+                                    <div>
+                                        <p class="text-sm {{ rang.etat.value == 'en_cours' ? 'font-medium text-encre-900' : 'text-encre-600' }}">
+                                            {{ rang.etape.nom }}
+                                            {% if rang.etat.value == 'terminee' %}
+                                                <span class="sr-only">— étape terminée</span>
+                                            {% elseif rang.etat.value == 'en_cours' %}
+                                                <span class="sr-only">— étape en cours</span>
+                                            {% else %}
+                                                <span class="sr-only">— étape à venir</span>
+                                            {% endif %}
+                                        </p>
+                                        {% if rang.etat.value == 'en_cours' %}
+                                            <p class="mt-1 text-sm text-encre-500">{{ rang.etape.explication }}</p>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ol>
                     </li>
                 {% endfor %}
             </ul>
