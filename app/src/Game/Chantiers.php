@@ -60,15 +60,14 @@ final readonly class Chantiers
     }
 
     /**
-     * Fait passer un cycle : le temps n'avance que par là.
+     * Fait avancer les chantiers d'un cycle. N'incrémente pas le compteur de
+     * cycles et ne persiste rien : PassageDeCycle s'en charge, pour que tout
+     * ce qui se résout dans une même quinzaine le fasse d'un bloc.
      *
      * @return list<string> Ce qui s'est produit, à rapporter au joueur
      */
-    public function passerUnCycle(GameSave $partie): array
+    public function avancerDUnCycle(GameSave $partie, ?Saison $saison): array
     {
-        // La saison du cycle qu'on vient de vivre, pas celle du suivant : les
-        // travaux ont eu lieu pendant l'ancien.
-        $saison = DateDeJeu::pourCycle($partie->getCycle())->saison;
         $evenements = [];
 
         foreach ($partie->getVille()->getChantiers() as $chantier) {
@@ -78,9 +77,6 @@ final readonly class Chantiers
                 $evenements[] = $this->achever($chantier);
             }
         }
-
-        $partie->avancerDUnCycle();
-        $this->entityManager->flush();
 
         return $evenements;
     }

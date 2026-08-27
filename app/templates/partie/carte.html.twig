@@ -68,12 +68,42 @@
             </div>
         </div>
 
+        {% if ville.expeditions|length > 0 %}
+            <section class="mt-8">
+                <h2 class="text-xl text-encre-900">Expéditions en route</h2>
+                <ul class="mt-3 space-y-2 list-none p-0">
+                    {% for expedition in ville.expeditions %}
+                        <li class="rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-5 py-3">
+                            <div class="flex flex-wrap items-baseline justify-between gap-3 text-sm">
+                                <span class="text-encre-900">
+                                    {{ expedition.role.libelle }} vers la case
+                                    <span data-chiffres>{{ expedition.destination.x }}, {{ expedition.destination.y }}</span>
+                                </span>
+                                <span class="text-encre-500" data-chiffres>
+                                    encore {{ expedition.cyclesRestants }} cycle{{ expedition.cyclesRestants > 1 ? 's' : '' }}
+                                </span>
+                            </div>
+                            <div class="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                                <div class="h-full bg-lapis-500" style="width: {{ expedition.pourcentageDAvancement }}%"></div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
         <div id="case" class="mt-8">
             {% if zoneDetaillee %}
                 <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
                     <div class="flex flex-wrap items-baseline justify-between gap-3">
                         <h2 class="font-display text-xl text-encre-900">
-                            {{ zoneDetaillee.porteLaVille ? ville.nom : zoneDetaillee.terrain.libelle }}
+                            {% if zoneDetaillee.porteLaVille %}
+                                {{ ville.nom }}
+                            {% elseif zoneDetaillee.estDecouverte %}
+                                {{ zoneDetaillee.terrain.libelle }}
+                            {% else %}
+                                Territoire inexploré
+                            {% endif %}
                         </h2>
                         <span class="text-sm text-encre-500" data-chiffres>
                             case {{ zoneDetaillee.x }}, {{ zoneDetaillee.y }}
@@ -83,9 +113,14 @@
                         </span>
                     </div>
 
+                    {# Une case sous brouillard ne dit rien de son terrain ni de
+                       son contenu : c'est justement ce que l'éclaireur va
+                       chercher. #}
                     <p class="mt-3 text-sm text-encre-600">
                         {% if zoneDetaillee.porteLaVille %}
                             Votre ville se dresse ici.
+                        {% elseif not zoneDetaillee.estDecouverte %}
+                            Nul ne sait ce qui s'y trouve. Une reconnaissance le dira.
                         {% elseif zoneDetaillee.ressource %}
                             Gisement de <strong>{{ zoneDetaillee.ressource.libelle }}</strong>,
                             <span data-chiffres>{{ zoneDetaillee.quantiteRestante }}</span> unités.
@@ -94,13 +129,33 @@
                         {% endif %}
                     </p>
 
-                    <p class="mt-4 text-sm text-encre-500">
-                        L'exploitation des gisements arrive au prochain lot du développement.
-                    </p>
+                    {% if not zoneDetaillee.estDecouverte %}
+                        {% if expeditionEnCours %}
+                            <p class="mt-4 text-sm text-encre-500">
+                                Un éclaireur est déjà en chemin.
+                            </p>
+                        {% else %}
+                            <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}" class="mt-5">
+                                <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
+                                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                                <button type="submit"
+                                        class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                    Envoyer un éclaireur
+                                </button>
+                                <span class="ml-3 text-sm text-encre-500" data-chiffres>
+                                    {{ coutDeReconnaissance }} or · {{ dureeDeReconnaissance }} cycle{{ dureeDeReconnaissance > 1 ? 's' : '' }}
+                                </span>
+                            </form>
+                        {% endif %}
+                    {% elseif not zoneDetaillee.porteLaVille %}
+                        <p class="mt-4 text-sm text-encre-500">
+                            L'exploitation des gisements arrive au prochain lot du développement.
+                        </p>
+                    {% endif %}
                 </article>
             {% else %}
                 <p class="text-sm text-encre-500">
-                    Cliquez une case reconnue pour en voir le détail.
+                    Cliquez une case pour en voir le détail, ou y envoyer un éclaireur.
                 </p>
             {% endif %}
         </div>

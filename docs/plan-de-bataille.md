@@ -410,7 +410,7 @@ Deux conséquences à retenir :
 
 ---
 
-### 6.2 Phase 3 — Carte, exploration et ressources  *(3 lots sur 6)*
+### 6.2 Phase 3 — Carte, exploration et ressources  *(4 lots sur 6)*
 
 **Intention.** Faire basculer la ville de la dépense à la production. Aujourd'hui
 elle consomme une dotation qui ne se renouvelle pas ; à la fin de cette phase,
@@ -515,14 +515,27 @@ devenir un nom de route arbitraire.
 
 #### 3.4 — Reconnaissance
 
-- [ ] **Éclaireur** : reconnaissance de toute case inconnue, coût modeste
-- [ ] Coût en **or et cycles** pour l'instant (décision) ; la part en provisions
+- [x] **Éclaireur** : reconnaissance de toute case inconnue, coût modeste
+- [x] Coût en **or et cycles** pour l'instant (décision) ; la part en provisions
       s'ajoutera au lot 3.5, quand la nourriture existera
-- [ ] **Plusieurs expéditions simultanées** (décision), une par case — la
+- [x] **Plusieurs expéditions simultanées** (décision), une par case — la
       contrainte vient naturellement du coût, pas d'une limite arbitraire
-- [ ] L'expédition part et progresse au fil des cycles, sans bloquer le joueur —
+- [x] L'expédition part et progresse au fil des cycles, sans bloquer le joueur —
       même mécanique que les chantiers, déjà éprouvée au lot 2.5
-- [ ] Bonus d'Akhèt sur les trajets empruntant le Nil, malus symétrique en Chémou
+- [x] Bonus d'Akhèt sur les trajets empruntant le Nil, malus symétrique en Chémou
+
+Le passage d'une quinzaine était jusqu'ici piloté par `Chantiers`. Les
+expéditions avançant au même rythme, la responsabilité est remontée dans
+`PassageDeCycle` : chaque service fait progresser ce qui le concerne sans rien
+persister, et tout ce qui se dénoue dans la même quinzaine tient en une seule
+écriture.
+
+Le doc 04 accorde le bonus de crue aux trajets « empruntant le Nil » sans dire à
+quoi on les reconnaît. Interprétation retenue, à rediscuter si elle déçoit à
+l'usage : **une expédition emprunte le Nil quand sa destination est une case du
+fleuve**. Une case sous brouillard s'ouvre désormais au clic — il faut bien
+pouvoir y envoyer un éclaireur — mais son panneau ne livre ni terrain ni
+gisement, ce qu'un test verrouille.
 
 #### 3.5 — Ressources de zone, champs et cycle agricole
 
