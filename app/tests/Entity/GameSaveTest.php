@@ -61,7 +61,7 @@ final class GameSaveTest extends TestCase
         $joueur = new User();
         $joueur->setEmail('joueur@example.com');
         $famille = new Family(Family::NOM_PAR_DEFAUT);
-        $ville = new City('Avaris', 0);
+        $ville = new City('Avaris', 0, 3);
 
         return GameMode::Campagne === $mode
             ? GameSave::pourCampagne($joueur, $famille, $ville)

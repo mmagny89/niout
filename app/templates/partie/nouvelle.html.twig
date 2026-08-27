@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvelle partie — Niout{% endblock %}
+
+{% block body %}
+    <section class="mx-auto w-full max-w-2xl px-5 py-14">
+        <h1 class="text-3xl text-encre-900">Commencer une partie</h1>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+            <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                <h2 class="text-base text-terre-600">Campagne</h2>
+                <p class="mt-2 text-sm text-encre-600">
+                    Dix missions dans l'ordre, à la difficulté croissante. Vous commencez
+                    à <strong>{{ premiereMission.ville }}</strong>, sur ordre de
+                    {{ premiereMission.pharaon }}.
+                </p>
+            </article>
+            <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                <h2 class="text-base text-terre-600">Aventure</h2>
+                <p class="mt-2 text-sm text-encre-600">
+                    <strong>{{ villeAventure }}</strong>, sur la longue durée, à travers
+                    plusieurs règnes. Vous réglez vous-même la difficulté et la taille
+                    de la carte.
+                </p>
+            </article>
+        </div>
+
+        <div class="mt-9" {{ stimulus_controller('nouvelle-partie') }}>
+            {{ form_start(form) }}
+                {{ form_errors(form) }}
+
+                <div {{ stimulus_target('nouvelle-partie', 'mode') }}>
+                    {{ form_row(form.mode) }}
+                </div>
+
+                {{ form_row(form.nomDeFamille) }}
+
+                {# Réglages propres au mode Aventure. Sans JavaScript ils restent
+                   visibles : le serveur les ignore simplement en campagne. #}
+                <fieldset class="mt-2 rounded-sm border border-ocre-500/30 bg-sable-50 p-5"
+                          {{ stimulus_target('nouvelle-partie', 'reglagesAventure') }}>
+                    <legend class="px-2 text-sm text-encre-500">Réglages du mode Aventure</legend>
+                    {{ form_row(form.difficulte) }}
+                    {{ form_row(form.tailleGrille) }}
+                </fieldset>
+
+                <button type="submit"
+                        class="mt-6 w-full rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+                    Lancer la partie
+                </button>
+            {{ form_end(form) }}
+        </div>
+
+        <p class="mt-6 text-sm text-encre-500">
+            <a href="{{ path('app_compte') }}" class="text-lapis-500">Retour à mon compte</a>
+        </p>
+    </section>
+{% endblock %}

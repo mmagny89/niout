@@ -50,9 +50,13 @@
         <div class="mt-10 rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
             <h2 class="text-lg text-encre-900">Vos parties</h2>
             <p class="mt-2 text-sm text-encre-600">
-                Aucune partie pour l'instant. La campagne et le mode aventure arrivent
-                dans une prochaine étape du développement.
+                Vous pouvez mener jusqu'à {{ maxParties }} parties de front.
+                La liste et la reprise arrivent au prochain lot.
             </p>
+            <a href="{{ path('app_partie_nouvelle') }}"
+               class="mt-4 inline-block rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                Commencer une partie
+            </a>
         </div>
     </section>
 {% endblock %}

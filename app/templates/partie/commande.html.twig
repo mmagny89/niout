@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ partie.ville.nom }} — Niout{% endblock %}
+
+{% block body %}
+    <section class="mx-auto w-full max-w-2xl px-5 py-14">
+        {% if mission %}
+            <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+                Mission {{ mission.numero }} sur 10 · {{ mission.region }}
+            </p>
+            <h1 class="mt-4 text-4xl leading-tight text-encre-900">
+                {{ mission.type.libelle }} {{ mission.ville }}
+            </h1>
+            <p class="mt-5 text-lg text-encre-600">
+                {{ mission.pharaon }} vous confie cette tâche, {{ partie.famille.nom }}.
+            </p>
+            <p class="mt-4 text-encre-600">{{ mission.contexte }}</p>
+        {% else %}
+            <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+                Mode Aventure
+            </p>
+            <h1 class="mt-4 text-4xl leading-tight text-encre-900">
+                {{ partie.ville.nom }}
+            </h1>
+            <p class="mt-5 text-lg text-encre-600">
+                La capitale vous est ouverte, {{ partie.famille.nom }}. Aucun souverain ne
+                vous fixe de terme : les règnes se succéderont, la ville restera.
+            </p>
+        {% endif %}
+
+        <div class="mt-10 rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
+            <h2 class="text-lg text-encre-900">Dotation royale</h2>
+            <p class="mt-2 text-sm text-encre-600">
+                De quoi engager les premiers travaux. Elle vous est accordée quel que soit
+                votre passé.
+            </p>
+            <dl class="mt-4 grid grid-cols-3 gap-4 text-center" data-chiffres>
+                {% set stock = [
+                    { libelle: 'Or', valeur: partie.ville.or },
+                    { libelle: 'Bois', valeur: partie.ville.bois },
+                    { libelle: 'Pierre', valeur: partie.ville.pierre },
+                ] %}
+                {% for ressource in stock %}
+                    <div>
+                        <dt class="text-xs uppercase tracking-wide text-encre-500">{{ ressource.libelle }}</dt>
+                        <dd class="font-display text-2xl text-terre-600">{{ ressource.valeur }}</dd>
+                    </div>
+                {% endfor %}
+            </dl>
+        </div>
+
+        <dl class="mt-8 divide-y divide-ocre-500/25 border-y border-ocre-500/25">
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-sm text-encre-500">Difficulté</dt>
+                <dd class="text-sm text-encre-900" data-chiffres>{{ partie.ville.difficulte }} sur 9</dd>
+            </div>
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-sm text-encre-500">Carte</dt>
+                <dd class="text-sm text-encre-900" data-chiffres>
+                    {{ partie.ville.tailleGrille }} × {{ partie.ville.tailleGrille }}
+                </dd>
+            </div>
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-sm text-encre-500">Cycle</dt>
+                <dd class="text-sm text-encre-900" data-chiffres>{{ partie.cycle }}</dd>
+            </div>
+        </dl>
+
+        <p class="mt-10 text-sm text-encre-500">
+            La ville et ses chantiers arrivent au prochain lot du développement.
+            <a href="{{ path('app_compte') }}" class="text-lapis-500">Retour à mon compte</a>.
+        </p>
+    </section>
+{% endblock %}

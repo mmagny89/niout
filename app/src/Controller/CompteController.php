@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\GameSave;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,6 +22,7 @@ final class CompteController extends AbstractController
 
         return $this->render('compte/index.html.twig', [
             'user' => $user,
+            'maxParties' => GameSave::MAX_PAR_COMPTE,
             // Date limite de vérification, affichée tant que l'adresse ne l'est
             // pas — le compte reste utilisable jusque-là (voir User).
             'dateLimiteVerification' => $user->isVerified()
