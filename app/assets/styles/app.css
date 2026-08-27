@@ -1,3 +1,78 @@
-body {
-    background-color: skyblue;
+@import "tailwindcss";
+@import "./fonts.css";
+
+/*
+ * Direction artistique — voir document 15 du dossier de conception :
+ * « palette chaude (ocre, sable, terre cuite) avec accents lapis-lazuli et or
+ * pour les éléments religieux/prestige ».
+ *
+ * Les polices sont self-hébergées (app/assets/fonts/), jamais chargées depuis
+ * un CDN tiers : le jeu est destiné à un public français, et un appel runtime
+ * vers Google Fonts transmet l'IP du visiteur à un tiers.
+ */
+@theme {
+    --font-display: 'Marcellus', Georgia, 'Times New Roman', serif;
+    --font-sans: 'Alegreya Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    /* Sable — fonds et surfaces. */
+    --color-sable-50: #fbf6ec;
+    --color-sable-100: #f5eddf;
+    --color-sable-200: #eadcc4;
+    --color-sable-300: #dcc7a4;
+    --color-sable-400: #c9ac7e;
+
+    /* Ocre — bordures, éléments de structure. */
+    --color-ocre-300: #e0b768;
+    --color-ocre-400: #d9a441;
+    --color-ocre-500: #c8933a;
+    --color-ocre-600: #a9762c;
+
+    /* Terre cuite — accent principal, actions. */
+    --color-terre-400: #c26b2c;
+    --color-terre-500: #a8571f;
+    --color-terre-600: #8c4718;
+    --color-terre-700: #6f3712;
+
+    /* Lapis-lazuli — accent secondaire, liens et informations. */
+    --color-lapis-400: #2f6c97;
+    --color-lapis-500: #1c4a6b;
+    --color-lapis-600: #143852;
+
+    /* Or — prestige, religieux, renommée. */
+    --color-or-300: #ddbb4a;
+    --color-or-400: #c9a227;
+    --color-or-500: #a6851d;
+
+    /* Encre — textes, dérivée du brun plutôt que d'un gris neutre. */
+    --color-encre-500: #7a6849;
+    --color-encre-600: #5c4d3a;
+    --color-encre-700: #4a3a28;
+    --color-encre-900: #2b2016;
+}
+
+@layer base {
+    body {
+        background-color: var(--color-sable-100);
+        color: var(--color-encre-900);
+        font-family: var(--font-sans);
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-display);
+        text-wrap: balance;
+    }
+
+    /* Les compteurs du jeu (or, ressources, population, cycles) alignent
+       beaucoup de chiffres en colonne. */
+    table,
+    [data-chiffres] {
+        font-variant-numeric: tabular-nums;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-lapis-500);
+        outline-offset: 2px;
+    }
 }

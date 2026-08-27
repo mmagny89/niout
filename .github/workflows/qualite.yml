@@ -1,0 +1,98 @@
+name: Qualité
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Le code applicatif vit dans app/ ; la racine ne porte que l'infrastructure
+# Docker (voir .claude/rules/stack-conventions.md).
+defaults:
+  run:
+    working-directory: app
+
+env:
+  # Alignée sur PHP_VERSION du .env racine, elle-même la version de l'image
+  # de production. Ne jamais tester sur une version plus récente que la prod.
+  PHP_VERSION: '8.4'
+
+jobs:
+  lint:
+    name: Style de code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+      - uses: ramsey/composer-install@v3
+        with:
+          working-directory: app
+      - run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+  analyse-statique:
+    name: Analyse statique
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+      - uses: ramsey/composer-install@v3
+        with:
+          working-directory: app
+      # PHPStan lit le container compilé pour résoudre les services : il doit
+      # exister avant l'analyse, sinon l'extension Symfony reste aveugle.
+      - run: php bin/console cache:warmup --env=dev
+      - run: vendor/bin/phpstan analyse --no-progress --error-format=github
+
+  audit-securite:
+    name: Audit des dépendances
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+      - uses: ramsey/composer-install@v3
+        with:
+          working-directory: app
+      - run: composer audit
+
+  tests:
+    name: Tests unitaires et d'intégration
+    needs: analyse-statique
+    runs-on: ubuntu-latest
+    services:
+      database:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: app
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app?serverVersion=18&charset=utf8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+      - uses: ramsey/composer-install@v3
+        with:
+          working-directory: app
+      - run: php bin/console doctrine:migrations:migrate --no-interaction --env=test
+      - run: php bin/phpunit

@@ -1,0 +1,16 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    doctrine:
+        objectManagerLoader: tests/object-manager.php
+    ignoreErrors:
+        # getAllowedEnvs() fait partie du contrat de MicroKernelTrait : elle est
+        # appelée par le framework, jamais depuis notre code. La supprimer
+        # rétablirait le comportement par défaut (tous les APP_ENV acceptés).
+        -
+            message: '#Method App\\Kernel::getAllowedEnvs\(\) is unused\.#'
+            path: src/Kernel.php
