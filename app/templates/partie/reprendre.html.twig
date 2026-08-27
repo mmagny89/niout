@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ partie.ville.nom }} — Niout{% endblock %}
+
+{% block body %}
+    <section class="mx-auto w-full max-w-2xl px-5 py-14">
+        <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+            {% if mission %}
+                Mission {{ mission.numero }} sur 10 · {{ mission.region }}
+            {% else %}
+                Mode Aventure
+            {% endif %}
+        </p>
+        <h1 class="mt-4 text-4xl leading-tight text-encre-900">{{ partie.ville.nom }}</h1>
+        <p class="mt-3 text-encre-600">
+            Famille {{ partie.famille.nom }} · renommée {{ partie.famille.palierDeRenommee|lower }}
+        </p>
+
+        <div class="mt-9 rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
+            <h2 class="text-lg text-encre-900">Où vous en êtes</h2>
+
+            <dl class="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-4" data-chiffres>
+                {% set indicateurs = [
+                    { libelle: 'Cycle', valeur: partie.cycle },
+                    { libelle: 'Or', valeur: partie.ville.or },
+                    { libelle: 'Bois', valeur: partie.ville.bois },
+                    { libelle: 'Pierre', valeur: partie.ville.pierre },
+                ] %}
+                {% for indicateur in indicateurs %}
+                    <div>
+                        <dt class="text-xs uppercase tracking-wide text-encre-500">{{ indicateur.libelle }}</dt>
+                        <dd class="font-display text-2xl text-terre-600">{{ indicateur.valeur }}</dd>
+                    </div>
+                {% endfor %}
+            </dl>
+
+            <p class="mt-5 text-sm text-encre-500">
+                Rien ne s'est produit en votre absence : dans Niout, le temps n'avance
+                que lorsque vous déclenchez un cycle.
+            </p>
+        </div>
+
+        <div class="mt-8 rounded-sm border border-dashed border-ocre-500/40 p-6">
+            <h2 class="text-lg text-encre-900">La ville</h2>
+            <p class="mt-2 text-sm text-encre-600">
+                Les bâtiments, les chantiers et le passage des cycles arrivent aux
+                prochains lots du développement. Votre partie est enregistrée : vous
+                la retrouverez telle quelle.
+            </p>
+        </div>
+
+        <div class="mt-8 flex flex-wrap items-center gap-5">
+            <a href="{{ path('app_compte') }}" class="text-lapis-500">Retour à mes parties</a>
+            <a href="{{ path('app_partie_abandonner', {id: partie.id}) }}"
+               class="text-sm text-encre-500 hover:text-terre-600">
+                Abandonner cette partie
+            </a>
+        </div>
+    </section>
+{% endblock %}

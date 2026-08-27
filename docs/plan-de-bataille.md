@@ -272,14 +272,15 @@ quinzaines, le grenier est debout. »*
 - [x] **Dotation royale** créditée au départ : `50 + 10 × difficulté` en or, plus
       de quoi couvrir un premier bâtiment (doc 13)
 
-#### 2.3 — Liste et gestion des parties
+#### 2.3 — Liste et gestion des parties  ✅
 
-- [ ] La page de compte liste les parties en cours (ville, mode, cycle atteint)
-- [ ] Reprendre une partie, via un **récapitulatif d'état** (cycle et saison,
-      chantiers en cours, stock) avant de rendre la main sur la ville
-- [ ] Abandonner une partie : **suppression définitive**, derrière une confirmation
+- [x] La page de compte liste les parties en cours (ville, mode, cycle atteint)
+- [x] Reprendre une partie, via un **récapitulatif d'état** avant de rendre la
+      main sur la ville. Il porte pour l'instant le cycle et le stock ; la saison
+      et les chantiers s'y ajouteront aux lots 2.4 et 2.5, quand ils existeront
+- [x] Abandonner une partie : **suppression définitive**, derrière une confirmation
       explicite — action irréversible
-- [ ] Refus de création au-delà de **5 parties**, avec un message qui invite à en
+- [x] Refus de création au-delà de **5 parties**, avec un message qui invite à en
       abandonner une
 
 #### 2.4 — Vue de la ville et bâtiments

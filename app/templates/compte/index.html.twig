@@ -47,16 +47,77 @@
             </div>
         </dl>
 
-        <div class="mt-10 rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
-            <h2 class="text-lg text-encre-900">Vos parties</h2>
-            <p class="mt-2 text-sm text-encre-600">
-                Vous pouvez mener jusqu'à {{ maxParties }} parties de front.
-                La liste et la reprise arrivent au prochain lot.
-            </p>
-            <a href="{{ path('app_partie_nouvelle') }}"
-               class="mt-4 inline-block rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
-                Commencer une partie
-            </a>
-        </div>
+        <section class="mt-10">
+            <div class="flex flex-wrap items-baseline justify-between gap-3">
+                <h2 class="text-2xl text-encre-900">Vos parties</h2>
+                <p class="text-sm text-encre-500" data-chiffres>
+                    {{ parties|length }} sur {{ maxParties }}
+                </p>
+            </div>
+
+            {% if parties is empty %}
+                <p class="mt-3 text-sm text-encre-600">
+                    Aucune partie en cours. Le pharaon attend.
+                </p>
+            {% else %}
+                <ul class="mt-4 space-y-3 list-none p-0">
+                    {% for partie in parties %}
+                        <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                            <div class="flex flex-wrap items-baseline justify-between gap-3">
+                                <h3 class="font-display text-xl text-encre-900">
+                                    {{ partie.ville.nom }}
+                                </h3>
+                                <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-xs text-lapis-600">
+                                    {{ partie.mode.libelle }}
+                                </span>
+                            </div>
+
+                            <p class="mt-1 text-sm text-encre-500">
+                                {{ missionsParPartie[partie.id] ?? 'Succession des règnes' }}
+                                · famille {{ partie.famille.nom }}
+                            </p>
+
+                            <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-encre-600" data-chiffres>
+                                <div class="flex gap-1.5">
+                                    <dt class="text-encre-500">Cycle</dt>
+                                    <dd>{{ partie.cycle }}</dd>
+                                </div>
+                                <div class="flex gap-1.5">
+                                    <dt class="text-encre-500">Or</dt>
+                                    <dd>{{ partie.ville.or }}</dd>
+                                </div>
+                                <div class="flex gap-1.5">
+                                    <dt class="text-encre-500">Renommée</dt>
+                                    <dd>{{ partie.famille.palierDeRenommee }}</dd>
+                                </div>
+                            </dl>
+
+                            <div class="mt-4 flex flex-wrap items-center gap-4">
+                                <a href="{{ path('app_partie_reprendre', {id: partie.id}) }}"
+                                   class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 no-underline hover:bg-terre-600">
+                                    Reprendre
+                                </a>
+                                <a href="{{ path('app_partie_abandonner', {id: partie.id}) }}"
+                                   class="text-sm text-encre-500 hover:text-terre-600">
+                                    Abandonner
+                                </a>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% if plafondAtteint %}
+                <p class="mt-4 rounded-sm border border-ocre-500/40 bg-ocre-300/15 px-4 py-3 text-sm text-encre-700">
+                    Vous menez déjà {{ maxParties }} parties. Abandonnez-en une pour
+                    en commencer une nouvelle.
+                </p>
+            {% else %}
+                <a href="{{ path('app_partie_nouvelle') }}"
+                   class="mt-5 inline-block rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                    Commencer une partie
+                </a>
+            {% endif %}
+        </section>
     </section>
 {% endblock %}
