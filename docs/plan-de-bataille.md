@@ -156,6 +156,39 @@ Trois pages, un compte fonctionnel.
 - Page compte minimale (email, statut de vérification, déconnexion) — prête à
   lister les parties en cours une fois la Phase 2 posée
 
+### État : livrée
+
+Les trois pages fonctionnent, couvertes par 21 tests (5 unitaires, 16 fonctionnels).
+
+Écarts assumés par rapport au plan initial :
+
+- **Tests fonctionnels en `WebTestCase` plutôt qu'en Behat.** Pour de la
+  plomberie d'authentification, l'outil natif Symfony couvre les mêmes parcours
+  sans machinerie supplémentaire. Behat garde son intérêt pour les scénarios de
+  jeu, où la lisibilité Gherkin profite à la relecture fonctionnelle.
+- **URL en français** (`/inscription`, `/connexion`, `/mot-de-passe-oublie`),
+  décidées tant qu'elles n'étaient pas publiques. Les *noms* de routes restent en
+  anglais (`app_register`…), car `security.yaml` les référence.
+- **Emails envoyés en synchrone.** La recette Symfony les route vers Messenger en
+  asynchrone, mais le stack ne fait tourner aucun worker : les messages
+  seraient restés en file sans qu'aucune erreur ne le signale. À rebasculer le
+  jour où un service worker est ajouté.
+- **Mot de passe durci à l'inscription** : le maker acceptait 6 caractères sans
+  contrôle de robustesse, alors que la réinitialisation en exigeait 12 avec
+  `PasswordStrength` et `NotCompromisedPassword`. Les deux sont désormais alignés.
+- **Case « conditions d'utilisation » retirée** du formulaire : elle renvoyait
+  vers des CGU inexistantes.
+
+Point de sécurité laissé ouvert : le formulaire d'inscription révèle qu'une
+adresse possède déjà un compte (énumération). Comportement par défaut de Symfony
+et de la plupart des sites ; le masquer dégraderait l'inscription. Le flux de
+réinitialisation, lui, ne fuit rien.
+
+Dette identifiée pour la Phase 2 : la commande de purge retire les demandes de
+réinitialisation liées à un compte avant de le supprimer. **Quand `GameSave`
+arrivera, il faudra étendre ce nettoyage**, sinon la purge échouera sur les
+comptes ayant lancé une partie.
+
 ### Définition de « fini »
 
 Un visiteur découvre le jeu sur l'accueil, crée un compte (utilisable

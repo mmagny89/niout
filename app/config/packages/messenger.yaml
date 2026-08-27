@@ -18,7 +18,12 @@ framework:
             messenger.bus.default: []
 
         routing:
-            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+            # Les emails partent en synchrone, volontairement : le stack ne
+            # fait tourner aucun worker Messenger, et une file que personne ne
+            # consomme signifie des emails de vérification jamais reçus, sans
+            # la moindre erreur visible.
+            # À rebasculer sur « async » le jour où un service worker est
+            # ajouté au compose (et MESSENGER_TRANSPORT_DSN doté d'auto_setup).
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
 

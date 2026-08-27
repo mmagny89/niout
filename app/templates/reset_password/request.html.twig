@@ -1,0 +1,28 @@
+{% extends 'auth/_layout.html.twig' %}
+
+{% block title %}Mot de passe oublié — Niout{% endblock %}
+{% block titre_page %}Mot de passe oublié{% endblock %}
+
+{% block intro %}
+    <p class="mt-3 text-sm text-encre-600">
+        Indiquez l'adresse de votre compte. Si elle nous est connue, vous recevrez
+        un lien pour choisir un nouveau mot de passe.
+    </p>
+{% endblock %}
+
+{% block formulaire %}
+    {{ form_start(requestForm) }}
+        {{ form_row(requestForm.email) }}
+
+        <button type="submit"
+                class="w-full rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+            Envoyer le lien
+        </button>
+    {{ form_end(requestForm) }}
+{% endblock %}
+
+{% block dessous %}
+    <p class="mt-6 text-sm text-encre-600">
+        <a href="{{ path('app_login') }}" class="text-lapis-500">Retour à la connexion</a>
+    </p>
+{% endblock %}

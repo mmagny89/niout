@@ -19,7 +19,51 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
-    <body class="min-h-screen bg-sable-100 text-encre-900 antialiased">
-        {% block body %}{% endblock %}
+    <body class="min-h-screen flex flex-col bg-sable-100 text-encre-900 antialiased">
+        <header class="border-b border-ocre-500/25 bg-sable-50">
+            <div class="mx-auto flex max-w-5xl items-baseline justify-between gap-4 px-5 py-4">
+                <a href="{{ path('app_accueil') }}"
+                   class="font-display text-2xl tracking-wide text-terre-600 no-underline">
+                    Niout
+                </a>
+                <nav class="flex items-baseline gap-5 text-sm">
+                    {% if app.user %}
+                        <a href="{{ path('app_compte') }}" class="text-encre-700 hover:text-terre-600">Mon compte</a>
+                        <a href="{{ path('app_logout') }}" class="text-encre-600 hover:text-terre-600">Déconnexion</a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="text-encre-700 hover:text-terre-600">Connexion</a>
+                        <a href="{{ path('app_register') }}"
+                           class="rounded-sm bg-terre-500 px-3 py-1.5 font-medium text-sable-50 hover:bg-terre-600">
+                            Créer un compte
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </header>
+
+        {% block flashes %}
+            {% set typesDeFlash = { 'succes': 'good', 'erreur': 'bad' } %}
+            {% for type, style in typesDeFlash %}
+                {% for message in app.flashes(type) %}
+                    <div role="{{ style == 'bad' ? 'alert' : 'status' }}"
+                         class="mx-auto mt-4 max-w-5xl rounded-sm border-l-4 px-4 py-3 text-sm
+                                {{ style == 'bad'
+                                    ? 'border-terre-500 bg-terre-500/10 text-terre-700'
+                                    : 'border-lapis-500 bg-lapis-500/10 text-lapis-600' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        {% endblock %}
+
+        <main class="flex-1">
+            {% block body %}{% endblock %}
+        </main>
+
+        <footer class="mt-16 border-t border-ocre-500/25 py-6">
+            <p class="mx-auto max-w-5xl px-5 text-xs text-encre-500">
+                Niout — jeu de gestion situé dans l'Égypte du Nouvel Empire.
+            </p>
+        </footer>
     </body>
 </html>

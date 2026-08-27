@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{# Gabarit partagé des pages de compte : connexion, inscription, mot de passe. #}
+
+{% block body %}
+    <section class="mx-auto w-full max-w-md px-5 py-14">
+        <h1 class="text-3xl text-encre-900">{% block titre_page %}{% endblock %}</h1>
+
+        {% block intro %}{% endblock %}
+
+        <div class="mt-7">
+            {% block formulaire %}{% endblock %}
+        </div>
+
+        {% block dessous %}{% endblock %}
+    </section>
+{% endblock %}

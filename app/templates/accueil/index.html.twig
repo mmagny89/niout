@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Niout — bâtir une ville dans l'Égypte du Nouvel Empire{% endblock %}
+
+{% block body %}
+    <section class="mx-auto max-w-5xl px-5 pt-16 pb-14">
+        <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+            Jeu de gestion · Égypte, ~1550-1070 av. J.-C.
+        </p>
+        <h1 class="mt-4 max-w-3xl text-5xl leading-tight text-encre-900">
+            Le pharaon vous confie une ville. À vous de la faire vivre.
+        </h1>
+        <p class="mt-5 max-w-2xl text-lg text-encre-600">
+            Vous incarnez une famille chargée de fonder, restaurer ou sécuriser une cité réelle
+            de l'Égypte antique. Commerce, artisanat, exploration, enquêtes et faveur des dieux
+            s'entremêlent, dans un cadre historique tenu au plus près des sources.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a href="{{ path('app_register') }}"
+               class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                Créer un compte
+            </a>
+            <a href="{{ path('app_login') }}" class="text-encre-700 hover:text-terre-600">
+                J'ai déjà un compte
+            </a>
+        </div>
+    </section>
+
+    <section class="border-y border-ocre-500/25 bg-sable-50">
+        <div class="mx-auto max-w-5xl px-5 py-12">
+            <h2 class="text-2xl text-encre-900">Aucune minuterie. Jamais.</h2>
+            <p class="mt-4 max-w-2xl text-encre-600">
+                Un chantier, une caravane ou une expédition prennent du temps — mais ce temps ne
+                s'écoule que lorsque vous déclenchez un cycle. Rien ne tourne pendant que vous
+                êtes ailleurs, rien ne vous rappelle à l'écran. Vous jouez quand vous voulez,
+                aussi longtemps que vous voulez.
+            </p>
+            <p class="mt-3 max-w-2xl text-sm text-encre-500">
+                Un cycle représente une quinzaine. Les saisons suivent le vrai calendrier
+                pharaonique : la crue d'Akhèt accélère les chantiers et noie les champs,
+                la moisson tombe en Chémou.
+            </p>
+        </div>
+    </section>
+
+    <section class="mx-auto max-w-5xl px-5 py-14">
+        <h2 class="text-2xl text-encre-900">Deux façons de jouer</h2>
+        <div class="mt-6 grid gap-5 md:grid-cols-2">
+            <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
+                <h3 class="text-lg text-terre-600">Campagne</h3>
+                <p class="mt-2 text-sm text-encre-600">
+                    Dix missions, dix villes attestées — d'Avaris reprise aux Hyksôs jusqu'aux mines
+                    de turquoise du Sinaï. Chacune est commanditée par un pharaon réel, avec ses
+                    objectifs et son mystère local à élucider.
+                </p>
+                <p class="mt-3 text-sm text-encre-500">
+                    Difficulté croissante : ressources plus rares, routes plus dangereuses,
+                    commerce plus cher.
+                </p>
+            </article>
+            <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
+                <h3 class="text-lg text-terre-600">Aventure</h3>
+                <p class="mt-2 text-sm text-encre-600">
+                    Une seule ville, Memphis, développée sur la longue durée à travers une
+                    succession de règnes. Pas d'objectif de fin imposé : vous vous arrêtez
+                    quand vous le décidez.
+                </p>
+                <p class="mt-3 text-sm text-encre-500">
+                    Taille de carte et difficulté réglables avant de commencer.
+                </p>
+            </article>
+        </div>
+    </section>
+
+    <section class="mx-auto max-w-5xl px-5 pb-16">
+        <h2 class="text-2xl text-encre-900">Ce que vous y ferez</h2>
+        <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {% set activites = [
+                { titre: 'Bâtir', texte: 'Douze bâtiments, du grenier au temple. Chacun ouvre une fonction et monte en niveau, avec des chantiers en brique crue qui prennent le temps de sécher.' },
+                { titre: 'Explorer', texte: 'Un éclaireur reconnaît chaque case, puis vous décidez : escorte de Medjaÿ, émissaire ou expédition lourde selon ce qu\'il a trouvé.' },
+                { titre: 'Commercer', texte: 'Marché local pour l\'immédiat, caravanes et navires pour le lointain — sur les routes historiques du Chemin d\'Horus au pays de Pount.' },
+                { titre: 'Enquêter', texte: 'Déchiffrez des inscriptions à la Maison des scribes, recoupez témoignages et indices pour lever l\'obstacle qui pèse sur votre ville.' },
+            ] %}
+            {% for activite in activites %}
+                <article>
+                    <h3 class="text-base text-lapis-500">{{ activite.titre }}</h3>
+                    <p class="mt-2 text-sm text-encre-600">{{ activite.texte }}</p>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="border-t border-ocre-500/25 bg-sable-50">
+        <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-5 px-5 py-10">
+            <p class="text-encre-600">
+                <span class="font-display text-xl text-encre-900">Niout</span> — « la ville », en égyptien ancien.
+            </p>
+            <a href="{{ path('app_register') }}"
+               class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                Commencer
+            </a>
+        </div>
+    </section>
+{% endblock %}

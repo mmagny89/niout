@@ -1,0 +1,32 @@
+{% extends 'auth/_layout.html.twig' %}
+
+{% block title %}Créer un compte — Niout{% endblock %}
+{% block titre_page %}Créer un compte{% endblock %}
+
+{% block intro %}
+    <p class="mt-3 text-sm text-encre-600">
+        Votre compte est utilisable immédiatement. Un message de vérification vous sera envoyé :
+        sans validation sous {{ delaiVerification }} jours, le compte est supprimé.
+    </p>
+{% endblock %}
+
+{% block formulaire %}
+    {{ form_start(registrationForm) }}
+        {{ form_errors(registrationForm) }}
+        {{ form_row(registrationForm.email) }}
+        {{ form_row(registrationForm.plainPassword.first) }}
+        {{ form_row(registrationForm.plainPassword.second) }}
+
+        <button type="submit"
+                class="w-full rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+            Créer mon compte
+        </button>
+    {{ form_end(registrationForm) }}
+{% endblock %}
+
+{% block dessous %}
+    <p class="mt-6 text-sm text-encre-600">
+        Déjà inscrit ?
+        <a href="{{ path('app_login') }}" class="text-lapis-500">Se connecter</a>
+    </p>
+{% endblock %}

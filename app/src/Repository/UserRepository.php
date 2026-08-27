@@ -35,28 +35,23 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    //    /**
-    //     * @return User[] Returns an array of User objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('u.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * Comptes dont le délai de grâce de vérification est écoulé, donc
+     * supprimables (voir User::isPurgeable() pour la règle).
+     *
+     * @return User[]
+     */
+    public function findPurgeable(\DateTimeImmutable $maintenant): array
+    {
+        $limite = $maintenant->modify(\sprintf('-%d days', User::DELAI_VERIFICATION_JOURS));
 
-    //    public function findOneBySomeField($value): ?User
-    //    {
-    //        return $this->createQueryBuilder('u')
-    //            ->andWhere('u.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.verified = false')
+            ->andWhere('u.createdAt <= :limite')
+            ->setParameter('limite', $limite)
+            ->orderBy('u.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

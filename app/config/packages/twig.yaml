@@ -1,5 +1,12 @@
 twig:
     file_name_pattern: '*.twig'
+    form_themes:
+        # Thème Tailwind fourni par Symfony. Nommé « 2 » d'après la version de
+        # Tailwind de l'époque, il reste compatible v4 : il n'utilise que des
+        # classes utilitaires stables. Surchargé par templates/form/theme.html.twig
+        # pour la palette du projet.
+        - 'tailwind_2_layout.html.twig'
+        - 'form/theme.html.twig'
 
 when@test:
     twig:

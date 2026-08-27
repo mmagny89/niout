@@ -1,0 +1,21 @@
+{% extends 'auth/_layout.html.twig' %}
+
+{% block title %}Message envoyé — Niout{% endblock %}
+{% block titre_page %}Vérifiez votre boîte mail{% endblock %}
+
+{% block formulaire %}
+    <p class="text-sm text-encre-600">
+        Si un compte correspond à cette adresse, un lien de réinitialisation vient de partir.
+        Il expire dans {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.
+    </p>
+    <p class="mt-4 text-sm text-encre-500">
+        Sans message d'ici quelques minutes, vérifiez vos indésirables, ou
+        <a href="{{ path('app_forgot_password_request') }}" class="text-lapis-500">recommencez la demande</a>.
+    </p>
+{% endblock %}
+
+{% block dessous %}
+    <p class="mt-6 text-sm text-encre-600">
+        <a href="{{ path('app_login') }}" class="text-lapis-500">Retour à la connexion</a>
+    </p>
+{% endblock %}
