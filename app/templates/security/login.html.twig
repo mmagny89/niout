@@ -1,0 +1,52 @@
+{% extends 'auth/_layout.html.twig' %}
+
+{% block title %}Connexion — Niout{% endblock %}
+{% block titre_page %}Connexion{% endblock %}
+
+{% block formulaire %}
+    {% if error %}
+        <div role="alert" class="mb-5 rounded-sm border-l-4 border-terre-500 bg-terre-500/10 px-4 py-3 text-sm text-terre-700">
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
+
+    {% if app.user %}
+        <p class="mb-5 text-sm text-encre-600">
+            Vous êtes déjà connecté en tant que {{ app.user.userIdentifier }}.
+            <a href="{{ path('app_compte') }}" class="text-lapis-500">Aller à mon compte</a>.
+        </p>
+    {% endif %}
+
+    <form method="post">
+        <div class="mb-5">
+            <label for="email" class="block text-sm font-medium text-encre-700">Adresse email</label>
+            <input type="email" value="{{ last_username }}" name="_username" id="email"
+                   class="mt-1 block w-full rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-encre-900 focus:border-lapis-500 focus:outline-none focus:ring-1 focus:ring-lapis-500"
+                   autocomplete="email" required autofocus>
+        </div>
+
+        <div class="mb-5">
+            <label for="password" class="block text-sm font-medium text-encre-700">Mot de passe</label>
+            <input type="password" name="_password" id="password"
+                   class="mt-1 block w-full rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-encre-900 focus:border-lapis-500 focus:outline-none focus:ring-1 focus:ring-lapis-500"
+                   autocomplete="current-password" required>
+        </div>
+
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+        <button type="submit"
+                class="w-full rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+            Se connecter
+        </button>
+    </form>
+{% endblock %}
+
+{% block dessous %}
+    <p class="mt-6 text-sm text-encre-600">
+        <a href="{{ path('app_forgot_password_request') }}" class="text-lapis-500">Mot de passe oublié ?</a>
+    </p>
+    <p class="mt-2 text-sm text-encre-600">
+        Pas encore de compte ?
+        <a href="{{ path('app_register') }}" class="text-lapis-500">Créer un compte</a>
+    </p>
+{% endblock %}

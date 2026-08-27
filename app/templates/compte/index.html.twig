@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon compte — Niout{% endblock %}
+
+{% block body %}
+    <section class="mx-auto w-full max-w-2xl px-5 py-14">
+        <h1 class="text-3xl text-encre-900">Mon compte</h1>
+
+        {% if not user.verified %}
+            <div role="status"
+                 class="mt-6 rounded-sm border border-ocre-500/40 bg-ocre-300/15 px-4 py-4 text-sm">
+                <p class="text-encre-700">
+                    Votre adresse n'est pas encore vérifiée. Votre compte fonctionne normalement,
+                    mais il sera supprimé le
+                    <strong>{{ dateLimiteVerification|date('d/m/Y') }}</strong>
+                    si vous ne validez pas le lien reçu par email.
+                </p>
+                <form method="post" action="{{ path('app_resend_verification') }}" class="mt-3">
+                    <input type="hidden" name="_token" value="{{ csrf_token('renvoyer-verification') }}">
+                    <button type="submit" class="text-lapis-500 underline hover:text-lapis-600">
+                        Renvoyer le message de vérification
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+
+        <dl class="mt-8 divide-y divide-ocre-500/25 border-y border-ocre-500/25">
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-sm text-encre-500">Adresse email</dt>
+                <dd class="text-sm text-encre-900">{{ user.email }}</dd>
+            </div>
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-sm text-encre-500">Adresse vérifiée</dt>
+                <dd class="text-sm">
+                    {% if user.verified %}
+                        <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-lapis-600">Oui</span>
+                    {% else %}
+                        <span class="rounded-sm bg-ocre-400/20 px-2 py-0.5 text-ocre-600">En attente</span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="flex justify-between gap-4 py-3">
+                <dt class="text-sm text-encre-500">Inscrit le</dt>
+                <dd class="text-sm text-encre-900">
+                    {{ user.createdAt|date('d/m/Y') }}
+                </dd>
+            </div>
+        </dl>
+
+        <div class="mt-10 rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
+            <h2 class="text-lg text-encre-900">Vos parties</h2>
+            <p class="mt-2 text-sm text-encre-600">
+                Aucune partie pour l'instant. La campagne et le mode aventure arrivent
+                dans une prochaine étape du développement.
+            </p>
+        </div>
+    </section>
+{% endblock %}
