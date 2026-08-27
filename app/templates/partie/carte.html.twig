@@ -1,0 +1,87 @@
+{% extends 'partie/_layout.html.twig' %}
+
+{% block title %}Carte de {{ ville.nom }} — Niout{% endblock %}
+
+{% block body %}
+    {# Géométrie de la planche « tuiles » du Drive. Le losange mesure 176 px de
+       large sur 158 de haut dans une cellule de 189 × 206 : les tuiles se posent
+       donc en quinconce, d'un demi-losange à chaque pas. #}
+    {% set cellule = { largeur: 189, hauteur: 206 } %}
+    {% set pas = { x: 90, y: 79 } %}
+    {% set cote = ville.tailleGrille %}
+    {% set origineX = (cote - 1) * pas.x %}
+
+    <section class="mx-auto w-full max-w-5xl px-5 py-10">
+        <div class="flex flex-wrap items-baseline justify-between gap-4">
+            <h1 class="text-3xl text-encre-900">Le territoire de {{ ville.nom }}</h1>
+            <a href="{{ path('app_partie_ville', {id: partie.id}) }}" class="text-sm text-lapis-500">
+                Retour à la ville
+            </a>
+        </div>
+
+        <p class="mt-2 text-sm text-encre-500">
+            {{ cote }} × {{ cote }} cases. Tout ce qui reste gravé de hiéroglyphes
+            n'a pas encore été reconnu — il faudra y envoyer un éclaireur.
+        </p>
+
+        {# La carte déborde en largeur sur les grandes régions : elle défile
+           dans son propre conteneur, jamais la page entière. #}
+        <div class="mt-6 overflow-x-auto">
+            <div class="relative mx-auto"
+                 style="width: {{ 2 * (cote - 1) * pas.x + cellule.largeur }}px;
+                        height: {{ 2 * (cote - 1) * pas.y + cellule.hauteur }}px;">
+                {% for zone in zones %}
+                    {% set estSelectionnee = zoneDetaillee and zoneDetaillee.x == zone.x and zoneDetaillee.y == zone.y %}
+                    <a href="{{ path('app_partie_carte', {id: partie.id, zone: zone.x ~ '-' ~ zone.y}) }}#case"
+                       class="absolute block transition-transform {{ zone.estDecouverte ? 'hover:-translate-y-1' : '' }}"
+                       style="left: {{ origineX + (zone.x - zone.y) * pas.x }}px;
+                              top: {{ (zone.x + zone.y) * pas.y }}px;
+                              width: {{ cellule.largeur }}px;
+                              height: {{ cellule.hauteur }}px;"
+                       aria-label="Case {{ zone.x }}, {{ zone.y }} — {{ zone.estDecouverte ? zone.terrain.libelle : 'inexplorée' }}">
+                        <img src="{{ asset('images/tuiles/' ~ (zone.porteLaVille ? 'ville' : (zone.estDecouverte ? zone.terrain.tuile : 'brouillard')) ~ '.png') }}"
+                             alt=""
+                             class="block w-full {{ estSelectionnee ? 'brightness-110 drop-shadow-lg' : '' }}">
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="case" class="mt-8">
+            {% if zoneDetaillee %}
+                <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
+                    <div class="flex flex-wrap items-baseline justify-between gap-3">
+                        <h2 class="font-display text-xl text-encre-900">
+                            {{ zoneDetaillee.porteLaVille ? ville.nom : zoneDetaillee.terrain.libelle }}
+                        </h2>
+                        <span class="text-sm text-encre-500" data-chiffres>
+                            case {{ zoneDetaillee.x }}, {{ zoneDetaillee.y }}
+                            {% if not zoneDetaillee.porteLaVille %}
+                                · à {{ zoneDetaillee.distanceDepuis(ville.zoneDeLaVille) }} de la ville
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <p class="mt-3 text-sm text-encre-600">
+                        {% if zoneDetaillee.porteLaVille %}
+                            Votre ville se dresse ici.
+                        {% elseif zoneDetaillee.ressource %}
+                            Gisement de <strong>{{ zoneDetaillee.ressource.libelle }}</strong>,
+                            <span data-chiffres>{{ zoneDetaillee.quantiteRestante }}</span> unités.
+                        {% else %}
+                            {{ zoneDetaillee.contenu.libelle }}.
+                        {% endif %}
+                    </p>
+
+                    <p class="mt-4 text-sm text-encre-500">
+                        L'exploitation des gisements arrive au prochain lot du développement.
+                    </p>
+                </article>
+            {% else %}
+                <p class="text-sm text-encre-500">
+                    Cliquez une case reconnue pour en voir le détail.
+                </p>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}
