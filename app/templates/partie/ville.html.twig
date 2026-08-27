@@ -13,21 +13,80 @@
 
         {# Compteurs permanents : le joueur doit toujours savoir de quoi il
            dispose avant d'engager un chantier (doc 15). #}
-        <dl class="mt-6 flex flex-wrap gap-x-8 gap-y-2 rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-4"
-            data-chiffres>
-            {% set compteurs = [
-                { libelle: 'Or', valeur: ville.or },
-                { libelle: 'Bois', valeur: ville.bois },
-                { libelle: 'Pierre', valeur: ville.pierre },
-                { libelle: 'Cycle', valeur: partie.cycle },
-            ] %}
-            {% for compteur in compteurs %}
-                <div class="flex items-baseline gap-2">
-                    <dt class="text-xs uppercase tracking-wide text-encre-500">{{ compteur.libelle }}</dt>
-                    <dd class="font-display text-xl text-terre-600">{{ compteur.valeur }}</dd>
+        <div class="mt-6 rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-4">
+            <dl class="flex flex-wrap gap-x-8 gap-y-2" data-chiffres>
+                {% set compteurs = [
+                    { libelle: 'Or', valeur: ville.or },
+                    { libelle: 'Bois', valeur: ville.bois },
+                    { libelle: 'Pierre', valeur: ville.pierre },
+                    { libelle: 'Cycle', valeur: partie.cycle },
+                ] %}
+                {% for compteur in compteurs %}
+                    <div class="flex items-baseline gap-2">
+                        <dt class="text-xs uppercase tracking-wide text-encre-500">{{ compteur.libelle }}</dt>
+                        <dd class="font-display text-xl text-terre-600">{{ compteur.valeur }}</dd>
+                    </div>
+                {% endfor %}
+            </dl>
+
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-ocre-500/25 pt-4">
+                <div>
+                    <p class="font-display text-lg text-encre-900">{{ date.libelle }}</p>
+                    <p class="text-sm text-encre-500">
+                        {% if date.saison %}
+                            {{ date.saison.description }}
+                        {% else %}
+                            Les cinq jours « au-dessus de l'année », hors mois et hors saison.
+                        {% endif %}
+                    </p>
                 </div>
-            {% endfor %}
-        </dl>
+
+                {# Le seul geste qui fasse avancer le temps (doc 05). #}
+                <form method="post" action="{{ path('app_partie_cycle', {id: partie.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cycle') }}">
+                    <button type="submit"
+                            class="rounded-sm bg-lapis-500 px-5 py-2.5 font-medium text-sable-50 hover:bg-lapis-600">
+                        Quinzaine suivante
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if chantiers|length > 0 %}
+            <h2 class="mt-10 text-2xl text-encre-900">Chantiers en cours</h2>
+            <ul class="mt-4 space-y-3 list-none p-0">
+                {% for chantier in chantiers %}
+                    <li class="rounded-sm border border-ocre-500/40 bg-ocre-300/10 p-5">
+                        <div class="flex flex-wrap items-baseline justify-between gap-3">
+                            <h3 class="font-display text-lg text-encre-900">
+                                {{ chantier.type.libelle }}
+                                {% if chantier.estUneAmelioration %}
+                                    <span class="font-sans text-sm text-encre-500" data-chiffres>
+                                        · vers le niveau {{ chantier.niveauVise }}
+                                    </span>
+                                {% endif %}
+                            </h3>
+                            <span class="text-sm text-encre-500" data-chiffres>
+                                encore {{ chantier.cyclesRestants }} cycle{{ chantier.cyclesRestants > 1 ? 's' : '' }}
+                            </span>
+                        </div>
+
+                        <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                            <div class="h-full bg-terre-500" style="width: {{ chantier.pourcentageDAvancement }}%"></div>
+                        </div>
+
+                        {# Étape nommée et son explication : le chantier apprend
+                           quelque chose au joueur plutôt que d'être une barre
+                           qui se remplit (doc 01). #}
+                        <p class="mt-3 text-sm text-encre-700">
+                            <span data-chiffres>Étape {{ chantier.numeroDEtape }} sur {{ chantier.nombreDEtapes }}</span>
+                            — {{ chantier.etapeEnCours.nom }}
+                        </p>
+                        <p class="mt-1 text-sm text-encre-500">{{ chantier.etapeEnCours.explication }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
 
         <h2 class="mt-10 text-2xl text-encre-900">Bâtiments dressés</h2>
         <ul class="mt-4 space-y-3 list-none p-0">
@@ -46,8 +105,9 @@
 
         <h2 class="mt-10 text-2xl text-encre-900">À bâtir</h2>
         <p class="mt-2 text-sm text-encre-500">
-            Un chantier prend du temps : il n'avancera qu'au fil des cycles que vous
-            déclencherez. Le passage des cycles arrive au prochain lot.
+            Les ressources sont payées à l'engagement du chantier ; les travaux
+            n'avancent ensuite qu'aux quinzaines que vous déclenchez. Pendant la crue
+            d'Akhèt, la main-d'œuvre libérée les fait progresser de moitié plus vite.
         </p>
 
         <ul class="mt-5 space-y-3 list-none p-0">
@@ -91,6 +151,17 @@
 
                     {% if offre.empechement %}
                         <p class="mt-3 text-sm text-terre-600">{{ offre.empechement }}</p>
+                    {% elseif ville.aUnChantierPour(offre.type) %}
+                        <p class="mt-3 text-sm text-encre-500">Travaux déjà en cours.</p>
+                    {% else %}
+                        <form method="post" action="{{ path('app_partie_batir', {id: partie.id}) }}" class="mt-4">
+                            <input type="hidden" name="_token" value="{{ csrf_token('batir') }}">
+                            <input type="hidden" name="type" value="{{ offre.type.value }}">
+                            <button type="submit"
+                                    class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                {{ offre.libelleDeLAction }}
+                            </button>
+                        </form>
                     {% endif %}
                 </li>
             {% endfor %}

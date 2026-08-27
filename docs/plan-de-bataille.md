@@ -241,7 +241,7 @@ les boucles de jeu et n'a de sens qu'une fois les zones dangereuses posées.
 
 ---
 
-### 6.1 Phase 2 — Lancer une partie et bâtir  *(4 lots sur 6)*
+### 6.1 Phase 2 — Lancer une partie et bâtir  *(5 lots sur 6)*
 
 **Intention.** Livrer la plus petite tranche réellement *jouable* plutôt que
 tout le document 01 sans écoulement du temps : créer une partie, voir sa ville,
@@ -308,15 +308,15 @@ quinzaines, le grenier est debout. »*
 et le **Temple** réclame 5 lin en offrande, ressource agricole de la même phase.
 L'interface le dit explicitement au lieu de les masquer.
 
-#### 2.5 — Cycles et chantiers
+#### 2.5 — Cycles et chantiers  ✅
 
-- [ ] Bouton « Cycle suivant » — **la seule chose qui fait avancer le temps**
-- [ ] Calendrier pharaonique : nom du mois affiché, saison courante (doc 05)
-- [ ] Durée de chantier : `dureeBase + niveau`, `dureeBase` propre au bâtiment
-- [ ] **Étapes de chantier nommées** avec leur info-bulle pédagogique — séchage
+- [x] Bouton « Cycle suivant » — **la seule chose qui fait avancer le temps**
+- [x] Calendrier pharaonique : nom du mois affiché, saison courante (doc 05)
+- [x] Durée de chantier : `dureeBase + niveau`, `dureeBase` propre au bâtiment
+- [x] **Étapes de chantier nommées** avec leur info-bulle pédagogique — séchage
       des briques, élévation des murs… (doc 01)
-- [ ] Accélération ×1,5 pendant Akhèt (main-d'œuvre libérée par la crue)
-- [ ] Le joueur reste libre d'agir entre deux cycles : aucun blocage
+- [x] Accélération ×1,5 pendant Akhèt (main-d'œuvre libérée par la crue)
+- [x] Le joueur reste libre d'agir entre deux cycles : aucun blocage
 
 #### 2.6 — Ressources minimales
 

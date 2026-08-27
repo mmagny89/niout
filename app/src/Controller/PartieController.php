@@ -11,10 +11,14 @@ use App\Entity\User;
 use App\Enum\GameMode;
 use App\Form\NouvellePartieType;
 use App\Game\CatalogueDeLaVille;
+use App\Game\ChantierImpossible;
+use App\Game\Chantiers;
+use App\Game\DateDeJeu;
 use App\Game\LanceurDePartie;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\TypeDeBatiment;
 use App\Repository\GameSaveRepository;
 use App\Security\Voter\PartieVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -106,9 +110,68 @@ final class PartieController extends AbstractController
         return $this->render('partie/ville.html.twig', [
             'partie' => $partie,
             'ville' => $ville,
+            'date' => DateDeJeu::pourCycle($partie->getCycle()),
+            'chantiers' => $ville->getChantiers(),
             'batimentsDresses' => $this->batimentsTriesParLibelle($ville),
             'offres' => $catalogue->pour($ville),
         ]);
+    }
+
+    /**
+     * Engage un chantier. Les ressources sont payées ici, les travaux
+     * avanceront au fil des cycles.
+     */
+    #[Route('/{id}/ville/batir', name: 'app_partie_batir', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function batir(Request $request, GameSave $partie, Chantiers $chantiers): Response
+    {
+        if (!$this->isCsrfTokenValid('batir', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $type = TypeDeBatiment::tryFrom((string) $request->request->get('type'));
+
+        if (null === $type) {
+            throw $this->createNotFoundException('Bâtiment inconnu.');
+        }
+
+        try {
+            $chantier = $chantiers->lancer($partie, $type);
+            $this->addFlash('succes', \sprintf(
+                'Chantier engagé : le %s sera prêt dans %d cycles.',
+                $type->libelle(),
+                $chantier->getDureeEnCycles(),
+            ));
+        } catch (ChantierImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Fait passer une quinzaine. Le seul geste qui fasse avancer le temps.
+     */
+    #[Route('/{id}/cycle', name: 'app_partie_cycle', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function passerUnCycle(Request $request, GameSave $partie, Chantiers $chantiers): Response
+    {
+        if (!$this->isCsrfTokenValid('cycle', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $evenements = $chantiers->passerUnCycle($partie);
+
+        $this->addFlash('succes', \sprintf(
+            'Une quinzaine passe. Nous voici en %s.',
+            DateDeJeu::pourCycle($partie->getCycle())->libelle(),
+        ));
+
+        foreach ($evenements as $evenement) {
+            $this->addFlash('succes', $evenement);
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
     }
 
     /**

@@ -66,12 +66,19 @@ class City
     #[ORM\OneToMany(targetEntity: Building::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $batiments;
 
+    /**
+     * @var Collection<int, Chantier>
+     */
+    #[ORM\OneToMany(targetEntity: Chantier::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $chantiers;
+
     public function __construct(string $nom, int $difficulte, int $tailleGrille)
     {
         $this->nom = $nom;
         $this->difficulte = $difficulte;
         $this->tailleGrille = $tailleGrille;
         $this->batiments = new ArrayCollection();
+        $this->chantiers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -168,5 +175,60 @@ class City
     public function possede(TypeDeBatiment $type): bool
     {
         return null !== $this->batimentDeType($type);
+    }
+
+    /**
+     * @return Collection<int, Chantier>
+     */
+    public function getChantiers(): Collection
+    {
+        return $this->chantiers;
+    }
+
+    public function ajouterChantier(Chantier $chantier): static
+    {
+        if (!$this->chantiers->contains($chantier)) {
+            $this->chantiers->add($chantier);
+        }
+
+        return $this;
+    }
+
+    public function retirerChantier(Chantier $chantier): static
+    {
+        $this->chantiers->removeElement($chantier);
+
+        return $this;
+    }
+
+    /**
+     * Un même bâtiment ne peut faire l'objet que d'un chantier à la fois.
+     */
+    public function aUnChantierPour(TypeDeBatiment $type): bool
+    {
+        foreach ($this->chantiers as $chantier) {
+            if ($chantier->getType() === $type) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Débite le stock. Renvoie false sans rien modifier si les moyens ne
+     * suffisent pas — un chantier ne doit jamais démarrer à découvert.
+     */
+    public function debiter(int $or = 0, int $bois = 0, int $pierre = 0): bool
+    {
+        if ($or > $this->or || $bois > $this->bois || $pierre > $this->pierre) {
+            return false;
+        }
+
+        $this->or -= $or;
+        $this->bois -= $bois;
+        $this->pierre -= $pierre;
+
+        return true;
     }
 }
