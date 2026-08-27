@@ -95,6 +95,26 @@ Points à ne pas redécouvrir :
   fichier issu de `.claude/resources/` se corrige **dans la ressource**, pas seulement
   dans la copie du projet.
 
+## Protection CSRF — stateless
+
+Le projet utilise la protection CSRF **sans état** de Symfony (double-submit
+cookie, voir `config/packages/csrf.yaml`). Le serveur ne rend pas un vrai jeton
+mais son identifiant ; c'est un script du navigateur qui produit le jeton et
+pose le cookie correspondant.
+
+Conséquence sur **tout formulaire écrit à la main** : son champ caché doit
+porter `data-controller="csrf-protection"`. Sans lui, Stimulus ne charge jamais
+ce script et la soumission échoue sur « Invalid CSRF token ». Les formulaires
+construits avec Symfony Form reçoivent l'attribut d'office.
+
+Le client de test n'exécutant pas de JavaScript, **aucun test fonctionnel ne
+peut reproduire cette panne** : elle ne se voit qu'en navigateur. La parade est
+une assertion de structure sur la présence de l'attribut — voir
+`ConnexionTest::testLeChampCsrfDeConnexionActiveLeScriptQuiPoseLeCookie()`.
+
+Les identifiants de jeton absents de `stateless_token_ids` restent classiques et
+fonctionnent sans JavaScript (par exemple `renvoyer-verification`).
+
 ## Conception du jeu
 
 Les 16 documents de game design (systèmes, économie, lore, direction artistique) vivent

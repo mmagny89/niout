@@ -32,7 +32,14 @@
                    autocomplete="current-password" required>
         </div>
 
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+        {# data-controller est indispensable, pas décoratif : la protection CSRF
+           est « stateless » (double-submit cookie), et Stimulus ne charge le
+           contrôleur qui pose ce cookie que si un élément le réclame. Les
+           formulaires Symfony reçoivent cet attribut d'office ; celui-ci, écrit
+           à la main, ne l'aurait pas eu — et toute connexion échouait sur
+           « Invalid CSRF token ». #}
+        <input type="hidden" name="_csrf_token" data-controller="csrf-protection"
+               value="{{ csrf_token('authenticate') }}">
 
         <button type="submit"
                 class="w-full rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
