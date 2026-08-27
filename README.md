@@ -15,13 +15,17 @@ déclenche un cycle. Rien ne tourne pendant qu'il est ailleurs.
 
 En cours de développement. Ce qui fonctionne aujourd'hui :
 
-- Page de présentation publique
-- Inscription, connexion, déconnexion, mot de passe oublié
-- Vérification d'adresse email non bloquante, avec suppression du compte après
-  7 jours sans validation
+**Comptes** — page de présentation publique, inscription, connexion, mot de passe
+oublié. Vérification d'adresse non bloquante : le compte est utilisable tout de
+suite, mais supprimé après 7 jours sans validation.
 
-Le jeu lui-même (ville, carte, cycles, exploration) reste à construire — voir la
-feuille de route dans [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md).
+**Parties** — création en mode Campagne (dix missions dans l'ordre, d'Avaris au
+Sinaï) ou Aventure (Memphis, réglages libres), avec la commande du pharaon et sa
+dotation royale. Jusqu'à cinq parties de front, reprenables et abandonnables.
+
+Le cœur du jeu — ville, bâtiments, cycles, carte, exploration — reste à
+construire. Feuille de route détaillée dans
+[`docs/plan-de-bataille.md`](docs/plan-de-bataille.md).
 
 ## Stack
 
@@ -70,10 +74,17 @@ répertoire de travail est `/app`.
 ```
 .
 ├── app/          application Symfony
+│   └── src/
+│       ├── Entity/   état persisté d'une partie
+│       └── Game/     règles et contenu du jeu, jamais persistés
 ├── docker/       image PHP, configuration Caddy, scripts d'entrée
 ├── docs/         plan de bataille et documents de projet
 └── compose*.yml  socle et surcharges dev / staging / prod
 ```
+
+La distinction `Entity` / `Game` compte : le catalogue des missions ou la formule
+de la dotation royale décrivent le **contenu** du jeu, ils n'ont rien à faire en
+base. Seul l'état d'une partie y est stocké.
 
 ## Qualité
 

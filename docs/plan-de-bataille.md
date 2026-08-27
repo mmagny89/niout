@@ -64,14 +64,22 @@ complète, pas une sauvegarde infinie »).
 **Tranché** : le nom de famille se choisit **au lancement d'une partie**, pas à
 l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément**.
 
-| Entité (esquisse) | Rôle | Doc source |
-|---|---|---|
-| `User` | Compte joueur — email, mot de passe, statut de vérification, rôles | — |
-| `GameSave` | Une run : mode (Campagne/Aventure), mission ou règne en cours, cycle courant. Jusqu'à 5 `GameSave` actifs par `User` | 00, 14 |
-| `Family` | Nom de famille choisi au lancement (1 par `GameSave`), renommée, héritage, contacts commerciaux | 13 |
-| … (Phase 2+) | Ville, bâtiments, ressources, carte, Medjaÿ, faveur divine, énigmes | 01–12 |
+| Entité | État | Rôle | Doc source |
+|---|---|---|---|
+| `User` | ✅ | Compte joueur — email, mot de passe, statut de vérification, rôles | — |
+| `GameSave` | ✅ | Une run : mode, mission en cours, cycle. Jusqu'à 5 actifs par `User`, supprimés avec lui | 00, 14 |
+| `Family` | ✅ | Nom choisi au lancement (1 par `GameSave`) et renommée. Héritage et contacts commerciaux en Phase 9 | 13 |
+| `City` | ✅ | Nom, difficulté régionale, taille de grille, stock (or, bois, pierre) | 01, 02, 11 |
+| `Building` | — | Bâtiments de la ville et leurs chantiers | 01 |
+| … (Phase 3+) | — | Carte, Medjaÿ, faveur divine, énigmes | 02–12 |
 
-Pour la Phase 1, seul `User` est nécessaire (avec son statut de vérification).
+`Family` et `City` sont détenues par leur `GameSave` : l'abandon d'une partie,
+comme la purge d'un compte, les emporte en cascade.
+
+**Couche de domaine.** Ce qui relève des règles du jeu plutôt que de la
+persistance vit dans `src/Game/` : catalogue des missions, dotation royale,
+lancement de partie. Ces classes ne sont jamais persistées — elles décrivent le
+contenu et les règles, pas l'état d'une partie.
 
 ---
 
@@ -95,7 +103,7 @@ Pour la Phase 1, seul `User` est nécessaire (avec son statut de vérification).
 |---|---|---|
 | php-cs-fixer | `@Symfony` + `declare_strict_types` | `vendor/bin/php-cs-fixer fix` |
 | PHPStan | **niveau 8** (cible Symfony), extensions Symfony + Doctrine | `vendor/bin/phpstan analyse` |
-| PHPUnit | 5 tests sur `User` (vérification, purge, rôles) | `php bin/phpunit` |
+| PHPUnit | Tests unitaires, d'intégration et fonctionnels | `php bin/phpunit` |
 | composer audit | Aucun avis de sécurité | `composer audit` |
 
 ### Polices — décision
@@ -117,8 +125,6 @@ et un tel appel transmettrait l'IP du visiteur à un tiers.
 | Ember (observabilité) | 1.6.0 |
 
 Le stack répond sur `https://localhost` (certificat auto-signé Caddy).
-Un `404 Welcome to Symfony` sur `/` est le comportement attendu tant qu'aucune
-route n'est déclarée.
 
 ---
 
@@ -235,7 +241,7 @@ les boucles de jeu et n'a de sens qu'une fois les zones dangereuses posées.
 
 ---
 
-### 6.1 Phase 2 — Lancer une partie et bâtir  *(proposition détaillée)*
+### 6.1 Phase 2 — Lancer une partie et bâtir  *(3 lots sur 6)*
 
 **Intention.** Livrer la plus petite tranche réellement *jouable* plutôt que
 tout le document 01 sans écoulement du temps : créer une partie, voir sa ville,
