@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Game\EtapeDeChantier;
+use App\Game\EtatDEtape;
 use App\Game\Saison;
 use App\Game\TypeDeBatiment;
 use App\Repository\ChantierRepository;
@@ -130,22 +131,69 @@ class Chantier
     }
 
     /**
-     * L'étape en cours : les cycles du chantier se répartissent entre les
-     * quatre étapes du matériau (doc 01).
+     * Les quatre étapes du matériau (doc 01), chacune avec son état.
+     *
+     * Les cycles du chantier se répartissent proportionnellement entre les
+     * étapes : un chantier de deux quinzaines en traverse donc deux par
+     * quinzaine. Elles sont **toutes** rendues, et non la seule étape courante —
+     * sinon la moitié d'entre elles défilerait sans jamais s'afficher, dont
+     * celle du séchage des briques, qui porte l'explication du rythme même du
+     * jeu.
+     *
+     * « En cours » désigne ce que la quinzaine qui vient va réellement
+     * traverser, **à la vitesse de sa saison**. Sans cette précision, la corvée
+     * d'Akhèt fait franchir une étape de plus que ce qui avait été annoncé, et
+     * cette étape-là n'apparaît jamais.
+     *
+     * @return list<array{etape: EtapeDeChantier, etat: EtatDEtape, numero: int}>
      */
-    public function etapeEnCours(): EtapeDeChantier
+    public function etapes(?Saison $saison = null): array
     {
         $etapes = $this->type->etapesDeChantier();
-        $rang = (int) floor($this->pourcentageDAvancement() / 100 * \count($etapes));
+        $total = $this->dureeEnCycles * self::DIXIEMES_PAR_CYCLE;
+        $parEtape = $total / \count($etapes);
 
-        return $etapes[min($rang, \count($etapes) - 1)];
+        $facteur = $saison?->facteurDAvancementDesChantiers() ?? 1.0;
+        $debutDeLaQuinzaine = $this->avancementEnDixiemes;
+        $finDeLaQuinzaine = $debutDeLaQuinzaine + (int) round(self::DIXIEMES_PAR_CYCLE * $facteur);
+
+        $rendu = [];
+
+        foreach ($etapes as $rang => $etape) {
+            $debut = $rang * $parEtape;
+            $fin = ($rang + 1) * $parEtape;
+
+            $rendu[] = [
+                'etape' => $etape,
+                'numero' => $rang + 1,
+                'etat' => match (true) {
+                    $fin <= $debutDeLaQuinzaine => EtatDEtape::Terminee,
+                    $debut < $finDeLaQuinzaine => EtatDEtape::EnCours,
+                    default => EtatDEtape::AVenir,
+                },
+            ];
+        }
+
+        return $rendu;
     }
 
-    public function numeroDEtape(): int
+    /**
+     * Les étapes que la quinzaine qui vient va traverser. Jamais vide : un
+     * chantier non achevé travaille forcément à quelque chose.
+     *
+     * @return list<EtapeDeChantier>
+     */
+    public function etapesEnCours(?Saison $saison = null): array
     {
-        $etapes = $this->type->etapesDeChantier();
+        $enCours = [];
 
-        return min((int) floor($this->pourcentageDAvancement() / 100 * \count($etapes)) + 1, \count($etapes));
+        foreach ($this->etapes($saison) as ['etape' => $etape, 'etat' => $etat]) {
+            if (EtatDEtape::EnCours === $etat) {
+                $enCours[] = $etape;
+            }
+        }
+
+        return $enCours;
     }
 
     public function nombreDEtapes(): int

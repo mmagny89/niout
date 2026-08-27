@@ -6,9 +6,11 @@ namespace App\Tests\Entity;
 
 use App\Entity\Chantier;
 use App\Entity\City;
+use App\Game\EtatDEtape;
 use App\Game\Saison;
 use App\Game\TypeDeBatiment;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Chantier::class)]
@@ -94,25 +96,110 @@ final class ChantierTest extends TestCase
         self::assertSame(0, $chantier->cyclesRestants());
     }
 
-    public function testLeChantierTraverseSesQuatreEtapesNommees(): void
+    public function testUnChantierMontreSesQuatreEtapesDesLePremierJour(): void
     {
         $chantier = new Chantier($this->ville(), TypeDeBatiment::Grenier, niveauVise: 1);
 
         self::assertSame(4, $chantier->nombreDEtapes());
-        self::assertSame(1, $chantier->numeroDEtape());
-        self::assertSame('Préparation du terrain', $chantier->etapeEnCours()->nom);
+        self::assertCount(4, $chantier->etapes(), 'Les quatre étapes sont visibles en permanence.');
+        self::assertSame('Préparation du terrain', $chantier->etapes()[0]['etape']->nom);
+    }
+
+    /**
+     * Un Grenier de niveau 1 dure deux quinzaines pour quatre étapes : chacune
+     * en traverse donc deux. C'est ce que le doc 01 décrit par « les cycles sont
+     * répartis proportionnellement entre ces étapes ».
+     */
+    public function testUnChantierCourtTraverseDeuxEtapesParQuinzaine(): void
+    {
+        $chantier = new Chantier($this->ville(), TypeDeBatiment::Grenier, niveauVise: 1);
+
+        self::assertSame(
+            ['Préparation du terrain', 'Fabrication et séchage des briques'],
+            array_map(static fn ($etape): string => $etape->nom, $chantier->etapesEnCours()),
+        );
 
         $chantier->avancerDUnCycle(Saison::Peret);
 
-        self::assertSame(3, $chantier->numeroDEtape());
-        self::assertNotSame('', $chantier->etapeEnCours()->explication);
+        self::assertSame(
+            ['Élévation des murs', 'Finitions'],
+            array_map(static fn ($etape): string => $etape->nom, $chantier->etapesEnCours()),
+        );
+    }
+
+    /**
+     * L'invariant qui compte, et qui manquait : **aucune étape ne doit défiler
+     * sans jamais s'afficher**. L'ancien affichage n'en montrait qu'une par
+     * quinzaine, escamotant le séchage des briques — l'étape qui porte
+     * justement l'explication du rythme du jeu.
+     */
+    #[DataProvider('chantiersDeToutesLongueurs')]
+    public function testAucuneEtapeNEstJamaisEscamotee(TypeDeBatiment $type, int $niveauVise, Saison $saison): void
+    {
+        $chantier = new Chantier($this->ville(), $type, $niveauVise);
+        $vues = [];
+
+        while (!$chantier->estAcheve()) {
+            foreach ($chantier->etapesEnCours($saison) as $etape) {
+                $vues[$etape->nom] = true;
+            }
+
+            $chantier->avancerDUnCycle($saison);
+        }
+
+        self::assertCount(
+            $chantier->nombreDEtapes(),
+            $vues,
+            \sprintf('Étapes réellement affichées : %s.', implode(', ', array_keys($vues))),
+        );
+    }
+
+    /**
+     * Akhèt est le cas piège : la corvée fait avancer d'1,5 cycle, donc une
+     * quinzaine franchit une étape de plus que la vitesse nominale ne le
+     * laisserait croire.
+     *
+     * @return iterable<string, array{TypeDeBatiment, int, Saison}>
+     */
+    public static function chantiersDeToutesLongueurs(): iterable
+    {
+        foreach ([Saison::Akhet, Saison::Peret, Saison::Chemou] as $saison) {
+            // Le chantier court est l'autre piège : 2 quinzaines pour 4 étapes.
+            yield \sprintf('Grenier niveau 1, %s', $saison->libelle()) => [TypeDeBatiment::Grenier, 1, $saison];
+            yield \sprintf('Grenier niveau 5, %s', $saison->libelle()) => [TypeDeBatiment::Grenier, 5, $saison];
+            yield \sprintf('Temple niveau 1, %s', $saison->libelle()) => [TypeDeBatiment::Temple, 1, $saison];
+            yield \sprintf('Marché niveau 3, %s', $saison->libelle()) => [TypeDeBatiment::Marche, 3, $saison];
+        }
+    }
+
+    public function testUnChantierEnCoursNaJamaisZeroEtapeAMontrer(): void
+    {
+        $chantier = new Chantier($this->ville(), TypeDeBatiment::Grenier, niveauVise: 5);
+
+        while (!$chantier->estAcheve()) {
+            self::assertNotEmpty($chantier->etapesEnCours(), 'Un chantier travaille forcément à quelque chose.');
+            $chantier->avancerDUnCycle(Saison::Peret);
+        }
     }
 
     public function testUnChantierDePierreASesProprresEtapes(): void
     {
         $chantier = new Chantier($this->ville(), TypeDeBatiment::Temple, niveauVise: 1);
 
-        self::assertSame('Extraction et transport de la pierre', $chantier->etapeEnCours()->nom);
+        self::assertSame('Extraction et transport de la pierre', $chantier->etapes()[0]['etape']->nom);
+    }
+
+    public function testUneEtapeFranchieEstMarqueeTerminee(): void
+    {
+        $chantier = new Chantier($this->ville(), TypeDeBatiment::Grenier, niveauVise: 1);
+        $chantier->avancerDUnCycle(Saison::Peret);
+
+        $etats = array_map(static fn (array $rang): EtatDEtape => $rang['etat'], $chantier->etapes());
+
+        self::assertSame(
+            [EtatDEtape::Terminee, EtatDEtape::Terminee, EtatDEtape::EnCours, EtatDEtape::EnCours],
+            $etats,
+        );
     }
 
     public function testUnNiveauVisePlusGrandQueUnEstUneAmelioration(): void
