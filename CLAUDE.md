@@ -66,6 +66,11 @@ Points à ne pas redécouvrir :
   sans valeur sensible : `.env` (racine, valeurs de dev), les deux `.dist` (valeurs
   vides), `app/.env*`. Les vrais secrets vont **exclusivement** dans
   `.env.staging.local` / `.env.prod.local`, ignorés par git et par Docker.
+- `app/.env.dev` ne porte **aucun** `APP_SECRET` : la recette Flex en génère un par
+  défaut, ce qui l'envoie dans l'historique d'un dépôt public (incident réel du
+  2026-08-27, valeur révoquée). Sur un clone frais, générer le sien :
+  `docker compose exec php sh -c 'echo "APP_SECRET=$(openssl rand -hex 16)" >> .env.local'`.
+  Vérifier ce point après tout `composer require` qui rejoue une recette Flex.
   Ajouter un mot de passe de production au `.env` racine l'enverrait dans l'historique.
   Staging et prod échouent au démarrage si un secret manque : c'est voulu, ne jamais
   « réparer » ça en donnant une valeur par défaut à un `${VAR:?}`.
