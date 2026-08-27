@@ -124,6 +124,30 @@ enum TypeDeBatiment: string
     }
 
     /**
+     * Durée totale d'un chantier, en cycles : `dureeBase + niveau` (doc 01).
+     */
+    public function dureeDeChantier(int $niveauVise): int
+    {
+        return $this->dureeDeBase() + $niveauVise;
+    }
+
+    /**
+     * Les quatre étapes du chantier, selon le matériau dominant.
+     *
+     * Le document ne détaille que deux familles : la brique crue pour la
+     * majorité, la pierre pour le Temple. Le Port n'y figure pas ; sa lourdeur
+     * étant déjà portée par sa durée de base, il suit la brique par défaut.
+     *
+     * @return list<EtapeDeChantier>
+     */
+    public function etapesDeChantier(): array
+    {
+        return self::Temple === $this
+            ? EtapeDeChantier::enPierre()
+            : EtapeDeChantier::enBriqueCrue();
+    }
+
+    /**
      * Le Port est le seul bâtiment conditionné par la géographie (doc 01).
      */
     public function exigeUnPointDEau(): bool

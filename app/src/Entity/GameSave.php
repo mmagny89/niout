@@ -155,6 +155,17 @@ class GameSave
         return $this;
     }
 
+    /**
+     * Fait avancer le temps d'une quinzaine. C'est la seule façon dont il
+     * avance : aucune horloge réelle ne tourne hors du jeu (doc 05).
+     */
+    public function avancerDUnCycle(): static
+    {
+        ++$this->cycle;
+
+        return $this;
+    }
+
     public function estCampagne(): bool
     {
         return GameMode::Campagne === $this->mode;
