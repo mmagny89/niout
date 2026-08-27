@@ -41,9 +41,9 @@
         </div>
 
         <div class="mt-8 flex flex-wrap items-center gap-5">
-            <a href="{{ path('app_partie_ville', {id: partie.id}) }}"
+            <a href="{{ path('app_partie_carte', {id: partie.id}) }}"
                class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
-                Entrer dans la ville
+                Reprendre la partie
             </a>
             <a href="{{ path('app_compte') }}" class="text-lapis-500">Retour à mes parties</a>
             <a href="{{ path('app_partie_abandonner', {id: partie.id}) }}"

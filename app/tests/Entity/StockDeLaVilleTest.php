@@ -112,6 +112,20 @@ final class StockDeLaVilleTest extends TestCase
         self::assertCount(\count(Ressource::cases()), $ville->getStock());
     }
 
+    public function testLaPrepositionSElideDevantUneVoyelle(): void
+    {
+        self::assertSame("d'Avaris", (new City('Avaris', 0, 3))->avecPreposition());
+        self::assertSame("d'Éléphantine", (new City('Éléphantine', 6, 6))->avecPreposition());
+        self::assertSame("d'Ouadi Hammamat", (new City('Ouadi Hammamat', 8, 7))->avecPreposition());
+    }
+
+    public function testLaPrepositionResteEntiereDevantUneConsonne(): void
+    {
+        self::assertSame('de Memphis', (new City('Memphis', 0, 8))->avecPreposition());
+        self::assertSame('de Megiddo', (new City('Megiddo', 3, 4))->avecPreposition());
+        self::assertSame('de Saï', (new City('Saï', 1, 3))->avecPreposition());
+    }
+
     private function ville(): City
     {
         return new City('Avaris', 0, 3);
