@@ -494,10 +494,17 @@ palmiers qui dépassent du losange décalaient la grille. Et la planche pèse un
 mégaoctet en pleine résolution : les tuiles sont ramenées à 176 px de losange,
 soit 344 Ko pour les huit.
 
-**Géométrie retenue** : losange de 176 × 158 dans une cellule de 189 × 206, posé
-tous les 90 px en x et 79 px en y. Les cases sont peintes par somme x+y
-croissante, sinon les roseaux d'une case passent derrière celle qu'ils devraient
-masquer.
+**Géométrie retenue** : losange de 174 × 140 dans une cellule de 189 × 206, posé
+tous les 87 px en x et 70 px en y — la moitié de chaque dimension du losange. Les
+cases sont peintes par somme x+y croissante, sinon les roseaux d'une case passent
+derrière celle qu'ils devraient masquer.
+
+**Deux couches, pas une.** Les tuiles se recouvrent : si chacune portait son
+propre lien, celles du premier plan captureraient les clics des cases situées
+derrière, ne laissant cliquable que le sommet de chaque losange. Les images
+forment donc une couche inerte, et une seconde couche de liens découpés en
+losange (`clip-path`) reçoit les clics. Les losanges pavant le plan sans se
+chevaucher, chaque point de la carte appartient à une seule case.
 
 **La carte devient l'écran principal d'une partie** (décision prise en cours de
 lot). On y arrive en reprenant une partie, la barre de jeu y ramène, et c'est en

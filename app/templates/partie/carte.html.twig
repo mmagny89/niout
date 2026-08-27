@@ -3,11 +3,12 @@
 {% block title %}Territoire {{ ville.avecPreposition }} — Niout{% endblock %}
 
 {% block body %}
-    {# Géométrie de la planche « tuiles » du Drive. Le losange mesure 176 px de
-       large sur 158 de haut dans une cellule de 189 × 206 : les tuiles se posent
-       donc en quinconce, d'un demi-losange à chaque pas. #}
+    {# Géométrie mesurée sur la planche « tuiles » du Drive. Le losange occupe
+       174 × 140 px dans une cellule de 189 × 206 : le pas vaut donc la moitié
+       de chaque dimension. Un pas plus grand écarterait les tuiles, et
+       l'épaisseur du prisme masquerait mal les marches ainsi créées. #}
     {% set cellule = { largeur: 189, hauteur: 206 } %}
-    {% set pas = { x: 90, y: 79 } %}
+    {% set pas = { x: 87, y: 70 } %}
     {% set cote = ville.tailleGrille %}
     {% set origineX = (cote - 1) * pas.x %}
 
@@ -30,26 +31,39 @@
             <div class="relative mx-auto"
                  style="width: {{ 2 * (cote - 1) * pas.x + cellule.largeur }}px;
                         height: {{ 2 * (cote - 1) * pas.y + cellule.hauteur }}px;">
+
+                {# Couche visible. Les tuiles se recouvrent : elles ne captent
+                   aucun clic, sinon celles du premier plan voleraient ceux des
+                   cases situées derrière. #}
+                {% for zone in zones %}
+                    <img src="{{ asset('images/tuiles/' ~ (zone.porteLaVille ? 'ville' : (zone.estDecouverte ? zone.terrain.tuile : 'brouillard')) ~ '.png') }}"
+                         alt=""
+                         class="pointer-events-none absolute select-none"
+                         style="left: {{ origineX + (zone.x - zone.y) * pas.x }}px;
+                                top: {{ (zone.x + zone.y) * pas.y }}px;
+                                width: {{ cellule.largeur }}px;">
+                {% endfor %}
+
+                {# Couche cliquable, découpée à la forme exacte du losange. Les
+                   losanges pavent le plan sans se chevaucher : chaque point de
+                   la carte appartient donc à une seule case, et le clic tombe
+                   toujours juste. #}
                 {% for zone in zones %}
                     {% set estSelectionnee = zoneDetaillee and zoneDetaillee.x == zone.x and zoneDetaillee.y == zone.y %}
-                    {# Cliquer la ville ouvre ses bâtiments ; cliquer une autre
-                       case en révèle le détail sous la carte. #}
                     <a href="{{ zone.porteLaVille
-                        ? path('app_partie_ville', {id: partie.id})
-                        : path('app_partie_carte', {id: partie.id, zone: zone.x ~ '-' ~ zone.y}) ~ '#case' }}"
-                       class="absolute block transition-transform {{ zone.estDecouverte ? 'hover:-translate-y-1' : '' }}"
-                       {{ zone.porteLaVille ? 'title="Entrer dans la ville"' : '' }}
+                           ? path('app_partie_ville', {id: partie.id})
+                           : path('app_partie_carte', {id: partie.id, zone: zone.x ~ '-' ~ zone.y}) ~ '#case' }}"
+                       class="absolute block transition-colors
+                              {{ estSelectionnee ? 'bg-or-300/45' : 'hover:bg-sable-50/35' }}"
                        style="left: {{ origineX + (zone.x - zone.y) * pas.x }}px;
                               top: {{ (zone.x + zone.y) * pas.y }}px;
                               width: {{ cellule.largeur }}px;
-                              height: {{ cellule.hauteur }}px;"
+                              height: {{ cellule.hauteur }}px;
+                              clip-path: polygon(48.68% 17.96%, 94.71% 51.94%, 48.68% 85.92%, 2.65% 51.94%);"
+                       {{ zone.porteLaVille ? 'title="Entrer dans la ville"' : '' }}
                        aria-label="{{ zone.porteLaVille
                            ? 'Entrer dans ' ~ ville.nom
-                           : 'Case ' ~ zone.x ~ ', ' ~ zone.y ~ ' — ' ~ (zone.estDecouverte ? zone.terrain.libelle : 'inexplorée') }}">
-                        <img src="{{ asset('images/tuiles/' ~ (zone.porteLaVille ? 'ville' : (zone.estDecouverte ? zone.terrain.tuile : 'brouillard')) ~ '.png') }}"
-                             alt=""
-                             class="block w-full {{ estSelectionnee ? 'brightness-110 drop-shadow-lg' : '' }}">
-                    </a>
+                           : 'Case ' ~ zone.x ~ ', ' ~ zone.y ~ ' — ' ~ (zone.estDecouverte ? zone.terrain.libelle : 'inexplorée') }}"></a>
                 {% endfor %}
             </div>
         </div>
