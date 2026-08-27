@@ -100,6 +100,79 @@ final class CarteTest extends WebTestCase
         }
     }
 
+    /**
+     * La carte est l'écran principal d'une partie : c'est la tuile de la ville
+     * qui mène à ses bâtiments, et non l'inverse.
+     */
+    public function testCliquerLaVilleOuvreSesBatiments(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'entrer@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+        $lien = $crawler->filter(\sprintf('a[href="/partie/%d/ville"]', $partie->getId()));
+
+        self::assertGreaterThan(0, $lien->count());
+
+        $client->click($lien->first()->link());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'Bâtiments dressés');
+    }
+
+    public function testLaRepriseMeneAuTerritoire(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'reprise-carte@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d', $partie->getId()));
+
+        self::assertGreaterThan(
+            0,
+            $crawler->filter(\sprintf('a[href="/partie/%d/carte"]', $partie->getId()))->count(),
+        );
+    }
+
+    public function testAvancerLeTempsDepuisLaVilleYRamene(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'retour-ville@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $client->submit($crawler->selectButton('Quinzaine suivante')->form());
+
+        self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
+    }
+
+    public function testAvancerLeTempsDepuisLaCarteYRamene(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'retour-carte@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+        $client->submit($crawler->selectButton('Quinzaine suivante')->form());
+
+        self::assertResponseRedirects(\sprintf('/partie/%d/carte', $partie->getId()));
+    }
+
+    public function testUnRetourFantaisisteRetombeSurLaCarte(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'retour-force@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+        $formulaire = $crawler->selectButton('Quinzaine suivante')->form();
+        $formulaire['retour'] = 'app_partie_abandonner';
+
+        $client->submit($formulaire);
+
+        self::assertResponseRedirects(\sprintf('/partie/%d/carte', $partie->getId()));
+    }
+
     public function testUnJoueurNeVoitPasLaCarteDUnAutre(): void
     {
         $client = static::createClient();

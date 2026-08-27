@@ -499,6 +499,13 @@ tous les 90 px en x et 79 px en y. Les cases sont peintes par somme x+y
 croissante, sinon les roseaux d'une case passent derrière celle qu'ils devraient
 masquer.
 
+**La carte devient l'écran principal d'une partie** (décision prise en cours de
+lot). On y arrive en reprenant une partie, la barre de jeu y ramène, et c'est en
+**cliquant la tuile de la ville** qu'on ouvre la liste de ses bâtiments — non
+l'inverse. Avancer le temps renvoie le joueur là où il se trouvait, la route de
+retour étant validée contre une liste blanche : une valeur soumise ne doit pas
+devenir un nom de route arbitraire.
+
 #### 3.4 — Reconnaissance
 
 - [ ] **Éclaireur** : reconnaissance de toute case inconnue, coût modeste

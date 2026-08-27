@@ -192,7 +192,22 @@ final class PartieController extends AbstractController
             $this->addFlash('succes', $evenement);
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->redirectToRoute($this->routeDeRetour($request), ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Où renvoyer le joueur après une action déclenchée depuis la barre de jeu.
+     *
+     * La liste blanche n'est pas une précaution de style : sans elle, une valeur
+     * soumise deviendrait un nom de route arbitraire.
+     */
+    private function routeDeRetour(Request $request): string
+    {
+        $demande = $request->request->get('retour');
+
+        return \in_array($demande, ['app_partie_carte', 'app_partie_ville'], true)
+            ? $demande
+            : 'app_partie_carte';
     }
 
     /**
@@ -211,11 +226,11 @@ final class PartieController extends AbstractController
                 throw $this->createAccessDeniedException('Jeton de confirmation invalide.');
             }
 
-            $nomDeVille = $partie->getVille()->getNom();
+            $designation = $partie->getVille()->avecPreposition();
             $entityManager->remove($partie);
             $entityManager->flush();
 
-            $this->addFlash('succes', \sprintf('La partie de %s est abandonnée.', $nomDeVille));
+            $this->addFlash('succes', \sprintf('La partie %s est abandonnée.', $designation));
 
             return $this->redirectToRoute('app_compte');
         }

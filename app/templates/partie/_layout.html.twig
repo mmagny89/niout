@@ -8,7 +8,7 @@
     <div class="border-b border-ocre-500/25 bg-sable-50">
         <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-8 gap-y-3 px-5 py-3">
             <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1">
-                <a href="{{ path('app_partie_ville', {id: partie.id}) }}"
+                <a href="{{ path('app_partie_carte', {id: partie.id}) }}"
                    class="font-display text-lg text-terre-600 no-underline">
                     {{ partie.ville.nom }}
                 </a>
@@ -37,6 +37,9 @@
                 {% block actionDeCycle %}
                     <form method="post" action="{{ path('app_partie_cycle', {id: partie.id}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('cycle') }}">
+                        {# Le joueur revient où il était : avancer le temps
+                           depuis la ville ne doit pas l'éjecter sur la carte. #}
+                        <input type="hidden" name="retour" value="{{ app.request.attributes.get('_route') }}">
                         <button type="submit"
                                 class="rounded-sm bg-lapis-500 px-4 py-1.5 text-sm font-medium text-sable-50 hover:bg-lapis-600">
                             Quinzaine suivante

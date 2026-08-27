@@ -8,10 +8,7 @@
             <h1 class="text-4xl text-encre-900">{{ ville.nom }}</h1>
             <div class="flex flex-wrap items-baseline gap-4">
                 <a href="{{ path('app_partie_carte', {id: partie.id}) }}" class="text-sm text-lapis-500">
-                    Voir le territoire
-                </a>
-                <a href="{{ path('app_partie_reprendre', {id: partie.id}) }}" class="text-sm text-lapis-500">
-                    Récapitulatif
+                    ← Retour au territoire
                 </a>
             </div>
         </div>
@@ -145,7 +142,7 @@
         </ul>
 
         <p class="mt-10 text-sm">
-            <a href="{{ path('app_compte') }}" class="text-lapis-500">Retour à mes parties</a>
+            <a href="{{ path('app_partie_carte', {id: partie.id}) }}" class="text-lapis-500">Retour au territoire</a>
         </p>
     </section>
 {% endblock %}

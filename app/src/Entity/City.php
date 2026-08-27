@@ -92,6 +92,22 @@ class City
         return $this->nom;
     }
 
+    /**
+     * Le nom précédé de sa préposition élidée : « d'Avaris », « de Memphis ».
+     *
+     * Quatre des onze villes du jeu commencent par une voyelle — Avaris,
+     * Akhetaton, Éléphantine, Ouadi Hammamat. Écrire « de Avaris » partout
+     * serait une faute visible à chaque écran.
+     */
+    public function avecPreposition(): string
+    {
+        $premiere = mb_strtolower(mb_substr($this->nom, 0, 1));
+
+        return \in_array($premiere, ['a', 'e', 'é', 'è', 'i', 'o', 'u', 'y', 'h'], true)
+            ? "d'".$this->nom
+            : 'de '.$this->nom;
+    }
+
     public function getDifficulte(): int
     {
         return $this->difficulte;
