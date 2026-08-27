@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
+use App\Entity\City;
+use App\Entity\Family;
+use App\Entity\GameSave;
 use App\Entity\User;
+use App\Repository\GameSaveRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -52,6 +56,34 @@ final class PurgeUnverifiedUsersCommandTest extends KernelTestCase
 
         self::assertNotNull($this->depotUtilisateurs()->findOneBy(['email' => 'simulation@example.com']));
         self::assertStringContainsString('Aucune suppression effectuée', $testeur->getDisplay());
+    }
+
+    public function testLaPurgeEmporteLesPartiesDuCompte(): void
+    {
+        self::bootKernel();
+        $this->creerUtilisateur('joueur-perime@example.com', verifie: false, ancienneteEnJours: User::DELAI_VERIFICATION_JOURS + 1);
+
+        $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
+        $user = $this->depotUtilisateurs()->findOneBy(['email' => 'joueur-perime@example.com']);
+        self::assertInstanceOf(User::class, $user);
+
+        $partie = GameSave::pourCampagne($user, new Family(Family::NOM_PAR_DEFAUT), new City('Avaris', 0));
+        $gestionnaire->persist($partie);
+        $gestionnaire->flush();
+        $idPartie = $partie->getId();
+        $idFamille = $partie->getFamille()->getId();
+
+        $this->lancerPurge();
+
+        self::assertNull($this->depotUtilisateurs()->findOneBy(['email' => 'joueur-perime@example.com']));
+        self::assertNull(
+            static::getContainer()->get(GameSaveRepository::class)->find($idPartie),
+            'La partie doit disparaître avec son propriétaire.',
+        );
+        self::assertNull(
+            $gestionnaire->getRepository(Family::class)->find($idFamille),
+            'La famille doit partir en cascade avec la partie.',
+        );
     }
 
     /**

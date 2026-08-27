@@ -55,6 +55,10 @@ Standards de code : voir skills `symfony-coding-standards`, `phpstan-analysis`,
 
 Écarts et précisions propres à ce projet :
 - Messages de commit et documentation **en français**.
+- **Nommage** : noms de classes en anglais quand un terme clair existe (`User`,
+  `GameSave`, `City`) ; propriétés, méthodes et commentaires en français
+  (`$joueur`, `marquerOuverte()`). Le vocabulaire de l'univers reste tel quel,
+  jamais traduit ni anglicisé — Medjaÿ, Akhèt, quinzaine, Niout.
 - L'interface de jeu est en français ; le vocabulaire égyptien du game design
   (Medjaÿ, Akhèt, Perèt, Chémou, quinzaine, Niout) est normatif — ne pas le traduire
   ni l'inventer, il vient des documents de conception.
