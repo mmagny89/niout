@@ -506,6 +506,14 @@ corriger avant de bâtir dessus, tranchés avec la joueuse :
   est la somme de ce qui est réellement employé — famille fondatrice, chefs,
   travailleurs, et les Medjaÿ quand la Phase 10 les amènera. En début de
   partie, la ville ne compte donc que sa famille fondatrice.
+- **L'unité de population est le foyer, pas la personne.** Le doc 02 est
+  explicite : `2 unités de nourriture par habitant (famille/chef/travailleur/
+  unité Medjaÿ)` — ce qu'on compte, c'est une **famille**, un **chef**, un
+  **travailleur**, une **unité Medjaÿ**, chacun pour un. C'est la même unité
+  que `nbFamillesDisponibles` (20 au Delta) et que la capacité du Quartier
+  (`20 × niveau` familles). La famille fondatrice vaut donc **1**, pas 5 comme
+  posé au lot 3.7 : cette erreur d'unité multipliait par cinq la consommation
+  de départ, et se serait propagée à tout l'équilibrage de la phase.
 - **`nbFamillesDisponibles = 20 - 1,5 × difficulté`** (doc 02) rejoint les
   paramètres de région, à côté de la géographie : c'est le vivier de
   main-d'œuvre où les chefs puisent, et il se raréfie avec la difficulté.
@@ -622,40 +630,79 @@ donne au joueur une action claire à prendre plutôt qu'une spirale subie. Si
 l'effet paraît pervers à l'usage, le levier est de ramener l'impayé à moitié
 lui aussi.
 
-##### Avertissement d'équilibrage : les salaires du doc 03 dépassent l'économie actuelle
+##### Recalibrage de l'économie : le vrai travail du lot 4.4
 
-Constat établi en chiffrant, avant d'écrire une ligne de code — le même genre
-d'impasse que « l'or n'avait aucune source » au lot 3.5, trouvée cette fois
-avant de la subir en jeu.
+**Principe posé par la joueuse** : les chiffres des documents de conception
+sont eux-mêmes inventés et se rectifient au fil de la conception. Le critère
+n'est pas la fidélité au document mais **l'équilibre, et le fait de pousser le
+joueur à se servir des mécaniques du jeu**. Un système qu'on n'utilise jamais
+est un échec au même titre qu'un système qui bloque.
+
+**Le déséquilibre constaté**, en chiffrant avant d'écrire une ligne de code :
 
 | | Par quinzaine |
 |---|---|
-| Salaire d'un chef (doc 03 : `5 + compétence × 0,3`) | **11 à 35 or**, ~23 en moyenne |
-| Ce qu'une ville du Delta bien exploitée peut vendre au Marché | **~15 à 35 or bruts**, matériaux de construction compris |
+| Salaire d'un chef (doc 03 : `5 + compétence × 0,3`) | 11 à 35 or, ~23 en moyenne |
+| Ce qu'une ville du Delta bien exploitée peut vendre | ~15 à 35 or bruts |
 
-**Un seul chef coûte donc à peu près tout ce que la ville gagne**, alors que la
-dotation royale n'est que de 50 or. Trois ou quatre chefs — le minimum pour
-tenir Grenier, Marché et Port au complet — mèneraient à la faillite en une
-quinzaine.
+Un seul chef coûte à peu près tout ce que la ville gagne, pour une dotation
+royale de 50 or. Le garde-fou du bâtiment à moitié (lot 4.3) évite le blocage
+— on peut ne pas embaucher — mais expose l'échec symétrique : **une embauche
+jamais rentable, donc jamais utilisée**.
 
-Deux garde-fous existent déjà, et ils ne suffisent probablement pas :
+###### Calibrage de travail proposé
 
-- le bâtiment sans chef tourne à moitié (lot 4.3), donc **ne pas embaucher
-  reste jouable** — la partie ne se fige pas ;
-- mais doubler un rendement de 15-20 or pour 23 or de salaire n'est jamais
-  rentable, et le système entier risque de **n'être jamais utilisé** : l'échec
-  symétrique, moins visible qu'un blocage mais tout aussi réel.
+Première proposition cohérente, à vérifier en playtest — au même titre que les
+valeurs des documents. Elle touche autant à mes inventions du lot 3.5 qu'aux
+chiffres du doc 03.
 
-**À trancher avant le lot 4.4**, entre trois leviers — les deux premiers
-portent sur des valeurs que j'ai inventées, pas sur la conception :
+| Valeur | Aujourd'hui | Proposé | Pourquoi |
+|---|---|---|---|
+| Extraction d'un gisement, et pêche | 5 | **10** | Invention du lot 3.5. C'est le levier le plus propre : il gonfle l'assiette sans toucher aux prix, déjà calibrés les uns par rapport aux autres |
+| Récolte d'un champ | 10 | **25** | Idem. Un champ du Nil ne donne que pendant Chémou : ramené à l'année, 25 par quinzaine de moisson vaut ~8 par quinzaine, à peine plus qu'une pêcherie qui produit sans interruption |
+| Salaire d'un chef | `5 + comp × 0,3` (11-35) | **`2 + comp × 0,12`** (4-14) | Écart assumé au doc 03. L'écart entre un mauvais et un excellent chef reste d'environ ×3, ce qui préserve l'arbitrage ; seule l'échelle change |
+| Salaire d'un travailleur | — | **1 or** | Valeur à inventer, le doc 03 ne chiffrant que les candidats recrutés par offre |
+| Famille fondatrice | 5 | **1** | Correction d'unité, voir lot 4.0 |
+| Ration | 1 | **2** | Doc 02 |
 
-1. **Monter la production** — `Recoltes::EXTRACTION_DE_REFERENCE` (5) et les
-   prix de `PrixDuMarche` sont des inventions du lot 3.5, explicitement
-   signalées « à revoir au premier playtest »
-2. **Baisser les salaires** — écart au doc 03, qui reconnaît lui-même que ses
-   valeurs sont « une première proposition cohérente, pas un résultat testé »
-3. **Rendre le gain d'un chef proportionnel à autre chose** que le seul
-   doublement de production — la compétence, les spécialités du lot 4.6
+###### Ce que ce calibrage donne, vérifié à la main
+
+Ville d'exemple : Grenier, Marché, Port et Quartier de niveau 1, tous pourvus ;
+trois gisements et une pêcherie exploités, deux champs du Nil semés.
+
+- **Effectif** : 1 famille + 4 chefs + 8 travailleurs = **13 foyers**, soit
+  26 vivres par quinzaine
+- **Vivres produits** : pêcherie 10 + deux champs du Nil (400 par an, ~16 par
+  quinzaine en moyenne annuelle) = **26** — le Grenier existe précisément pour
+  reporter la moisson de Chémou sur le reste de l'année
+- **Or brut** : trois gisements × 10 unités × ~1,7 or en moyenne + poisson
+  vendu = **~70 or**
+- **Masse salariale** : 4 chefs (~9 en moyenne) + 8 travailleurs = **~44 or**,
+  laissant ~26 or par quinzaine pour construire
+
+Et l'embauche redevient un choix qui se défend :
+
+| Chef | Ce qu'il rapporte | Ce qu'il coûte (salaires + bouches) |
+|---|---|---|
+| **Marché** | Double les prix de vente : **+35 or** | 11 or, 6 vivres |
+| **Grenier** | Double la moisson conservée : **+8 vivres** | 10 or, 4 vivres |
+| **Port** | Double la pêche : **+10 vivres** ou +20 or | 12 or, **8 vivres** |
+
+**Le Port est le point faible de ce calibrage** : ses trois travailleurs de
+base en font l'équipage le plus nombreux du jeu, et ils mangent presque tout
+ce que la pêche supplémentaire rapporte. À surveiller au premier playtest —
+les leviers seraient d'abaisser son `travailleursBase`, ou de faire porter le
+gain par la spécialité « Pêcheur » du lot 4.6 plutôt que par le seul effectif.
+
+###### Ce que ce calibrage ne règle pas
+
+L'extraction des gisements **ne dépend d'aucun bâtiment** : elle rapporte
+autant à une ville sans personnel qu'à une ville pourvue. Seuls le Grenier, le
+Port et le Marché passent par un chef. Tant que c'est le cas, la moitié de
+l'économie échappe au système d'emploi — ce qui est cohérent (on ne salarie
+pas une carrière qu'on exploite soi-même) mais limite l'incitation. La Phase 5,
+en donnant à l'Atelier et à la Forge une vraie production, corrigera ce
+déséquilibre bien mieux qu'un ajustement de chiffres.
 
 #### 4.5 — Départ naturel, mécontentement et famine à deux paliers
 
@@ -721,9 +768,11 @@ joueuse ; le détail de chacune vit dans le lot qui la porte.
 | Les travailleurs coûtent-ils de l'or ? | **Oui**, un forfait par tête, nettement moins qu'un chef | 4.4 |
 | Les PNJ ont-ils un nom ? | **Non pour l'instant** — désignés par leur poste, la question se reposera plus tard | 4.1 |
 
-Reste un seul point ouvert, et c'est le plus lourd : **l'écart entre les
-salaires du doc 03 et ce que l'économie actuelle peut payer**, chiffré au
-lot 4.4. À trancher avant d'écrire ce lot-là.
+L'écart entre les salaires du doc 03 et ce que l'économie peut payer est
+traité au lot 4.4, qui porte un **calibrage de travail chiffré** — validé dans
+son principe par la joueuse : les valeurs des documents sont provisoires et se
+rectifient au fil de la conception, le critère étant l'équilibre et le fait de
+pousser le joueur à se servir des mécaniques.
 
 #### Définition de « fini »
 
@@ -829,3 +878,5 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Salaires impayés | Le bâtiment **s'arrête**, puis mécontentement et départs — même mécanisme que la famine |
 | Salaire des travailleurs | **Dû**, en forfait par tête, nettement inférieur à celui d'un chef |
 | Noms des PNJ | **Aucun pour l'instant** : un employé se désigne par son poste, comme dans les documents |
+| Chiffres de conception | **Provisoires par nature**, dans les documents comme dans le code. Ils se rectifient au fil de la conception ; le critère est l'équilibre et le fait de **pousser le joueur à se servir des mécaniques**, pas la fidélité au document |
+| Unité de population | Le **foyer** — une famille, un chef, un travailleur ou une unité Medjaÿ comptent chacun pour un (doc 02). La famille fondatrice vaut 1, pas 5 |
