@@ -24,9 +24,16 @@ final class PartieVoter extends Voter
     public const string VOIR = 'PARTIE_VOIR';
     public const string SUPPRIMER = 'PARTIE_SUPPRIMER';
 
+    /**
+     * Modifier l'état d'une partie — chantier, cycle, exploration, vente…
+     * Une partie échouée (`Subsistance`) reste consultable mais ne se joue
+     * plus : ses écrans de jeu se ferment, comme celui d'abandon.
+     */
+    public const string JOUER = 'PARTIE_JOUER';
+
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return \in_array($attribute, [self::VOIR, self::SUPPRIMER], true)
+        return \in_array($attribute, [self::VOIR, self::SUPPRIMER, self::JOUER], true)
             && $subject instanceof GameSave;
     }
 
@@ -40,7 +47,12 @@ final class PartieVoter extends Voter
             return false;
         }
 
-        // Voir et supprimer supposent la même chose : être le propriétaire.
-        return $subject->getJoueur()->getId() === $utilisateur->getId();
+        // Les trois actions supposent d'abord d'être le propriétaire.
+        if ($subject->getJoueur()->getId() !== $utilisateur->getId()) {
+            return false;
+        }
+
+        // Jouer suppose en plus que la partie ne soit pas déjà terminée.
+        return self::JOUER !== $attribute || $subject->estEnCours();
     }
 }

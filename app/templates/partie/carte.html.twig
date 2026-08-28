@@ -142,7 +142,9 @@
                     {% endif %}
 
                     {% if not zoneDetaillee.estDecouverte %}
-                        {% if expeditionEnCours %}
+                        {% if not partie.estEnCours %}
+                            <p class="mt-4 text-sm text-encre-500">La partie a échoué : plus aucun éclaireur ne part.</p>
+                        {% elseif expeditionEnCours %}
                             <p class="mt-4 text-sm text-encre-500">
                                 Un éclaireur est déjà en chemin.
                             </p>
@@ -174,7 +176,9 @@
                                         <span class="text-encre-500" data-chiffres>· {{ gisement.quantiteRestante }} unités</span>
                                     </span>
 
-                                    {% if gisement.ressource.value == 'poisson' %}
+                                    {% if not partie.estEnCours %}
+                                        <span class="text-sm text-encre-500">Partie échouée.</span>
+                                    {% elseif gisement.ressource.value == 'poisson' %}
                                         <span class="text-sm text-encre-500">Il faudra un Port pour pêcher ici.</span>
                                     {% elseif gisement.estEpuise %}
                                         <span class="text-sm text-encre-500">Filon épuisé.</span>
@@ -194,7 +198,7 @@
                                 </li>
                             {% endfor %}
                         </ul>
-                    {% elseif zoneDetaillee.accepteUnChamp and not zoneDetaillee.porteUnChamp %}
+                    {% elseif zoneDetaillee.accepteUnChamp and not zoneDetaillee.porteUnChamp and partie.estEnCours %}
                         <form method="post" action="{{ path('app_partie_semer', {id: partie.id}) }}" class="mt-5 flex flex-wrap items-center gap-3">
                             <input type="hidden" name="_token" value="{{ csrf_token('semer') }}">
                             <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">

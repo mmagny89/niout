@@ -134,7 +134,7 @@ final class PartieController extends AbstractController
      * du développement.
      */
     #[Route('/{id}/ville/vendre', name: 'app_partie_vendre', requirements: ['id' => '\d+'], methods: ['POST'])]
-    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
     public function vendre(Request $request, GameSave $partie, Marche $marche): Response
     {
         if (!$this->isCsrfTokenValid('vendre', (string) $request->request->get('_token'))) {
@@ -201,7 +201,7 @@ final class PartieController extends AbstractController
      * Ouvre une carrière sur une case reconnue qui porte un gisement.
      */
     #[Route('/{id}/carte/exploiter', name: 'app_partie_exploiter', requirements: ['id' => '\d+'], methods: ['POST'])]
-    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
     public function exploiter(Request $request, GameSave $partie, Exploitations $exploitations): Response
     {
         $zone = $this->zonePostee($request, $partie, 'exploiter');
@@ -228,7 +228,7 @@ final class PartieController extends AbstractController
      * Établit un champ sur une case cultivable et y sème.
      */
     #[Route('/{id}/carte/semer', name: 'app_partie_semer', requirements: ['id' => '\d+'], methods: ['POST'])]
-    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
     public function semer(Request $request, GameSave $partie, Exploitations $exploitations): Response
     {
         $zone = $this->zonePostee($request, $partie, 'semer');
@@ -280,7 +280,7 @@ final class PartieController extends AbstractController
      * Envoie un éclaireur reconnaître une case.
      */
     #[Route('/{id}/carte/explorer', name: 'app_partie_explorer', requirements: ['id' => '\d+'], methods: ['POST'])]
-    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
     public function explorer(Request $request, GameSave $partie, Explorations $explorations): Response
     {
         if (!$this->isCsrfTokenValid('explorer', (string) $request->request->get('_token'))) {
@@ -316,7 +316,7 @@ final class PartieController extends AbstractController
      * avanceront au fil des cycles.
      */
     #[Route('/{id}/ville/batir', name: 'app_partie_batir', requirements: ['id' => '\d+'], methods: ['POST'])]
-    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
     public function batir(Request $request, GameSave $partie, Chantiers $chantiers): Response
     {
         if (!$this->isCsrfTokenValid('batir', (string) $request->request->get('_token'))) {
@@ -347,7 +347,7 @@ final class PartieController extends AbstractController
      * Fait passer une quinzaine. Le seul geste qui fasse avancer le temps.
      */
     #[Route('/{id}/cycle', name: 'app_partie_cycle', requirements: ['id' => '\d+'], methods: ['POST'])]
-    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
     public function passerUnCycle(Request $request, GameSave $partie, PassageDeCycle $cycle): Response
     {
         if (!$this->isCsrfTokenValid('cycle', (string) $request->request->get('_token'))) {

@@ -125,6 +125,35 @@ final class VilleTest extends WebTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
+    /**
+     * Une partie échouée reste consultable, mais aucune de ses actions ne
+     * modifie plus rien — le cycle en est l'exemple le plus visible.
+     */
+    public function testUnePartieEchoueeNAcceptePlusDeCycle(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'echouee@example.com');
+        $partie = $this->lancer($joueur);
+
+        // Le jeton est lié à la session, pas à l'état de la partie : on le
+        // récupère pendant que le cycle est encore jouable, sur le vrai
+        // formulaire — l'écran d'une partie échouée ne le rend plus.
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $token = $crawler->filter(\sprintf('form[action="/partie/%d/cycle"] input[name="_token"]', $partie->getId()))->attr('value');
+        self::assertIsString($token);
+
+        $partie->echouer();
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'échouée');
+
+        $client->request('POST', \sprintf('/partie/%d/cycle', $partie->getId()), ['_token' => $token]);
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
     private function lancer(User $joueur): \App\Entity\GameSave
     {
         return static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($joueur, 'Nakht');
