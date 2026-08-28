@@ -55,15 +55,16 @@ enum RoleDExploration: string
     /**
      * Solde réellement dû pour une case à cette distance de la ville.
      *
-     * **Les huit cases qui touchent la ville se reconnaissent gratuitement**,
-     * en orthogonal comme en diagonale : on voit ses propres abords depuis les
-     * murs, et faire payer le premier pas d'une partie neuve reviendrait à
-     * taxer le joueur pour découvrir où il vient d'être envoyé. Les vivres,
-     * eux, restent dus — l'éclaireur mange, même à une heure de marche.
+     * **Les cases à moins de trois cases de la ville se reconnaissent
+     * gratuitement**, en orthogonal comme en diagonale : assez proche pour
+     * qu'un éclaireur y aille sans qu'on lui compte sa peine. Faire payer le
+     * premier pas d'une partie neuve reviendrait à taxer le joueur pour
+     * découvrir où il vient d'être envoyé. Les vivres, eux, restent dus —
+     * l'éclaireur mange, même à une heure de marche.
      */
     public function coutPourUneDistance(int $distance): int
     {
-        return $distance <= 1 ? 0 : $this->cout();
+        return $distance < 3 ? 0 : $this->cout();
     }
 
     /**

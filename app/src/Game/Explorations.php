@@ -106,7 +106,7 @@ final readonly class Explorations
     }
 
     /**
-     * Solde dû pour reconnaître cette case — nul sur les abords immédiats de la
+     * Solde dû pour reconnaître cette case — nul à moins de trois cases de la
      * ville. Exposé pour que l'écran annonce le vrai prix avant l'envoi.
      */
     public function coutVers(GameSave $partie, Zone $destination, RoleDExploration $role): int
