@@ -78,8 +78,8 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `Chantier` | ✅ | Travaux en cours : niveau visé, durée, avancement | 01, 05 |
 | `Zone`, `Gisement` | ✅ | Une case de la carte d'exploration, ses filons | 02, 08 |
 | `Expedition` | ✅ | Un éclaireur en route vers une case | 04 |
-| `StockDeRessource` | ✅ | Une ligne du stock de la ville (ressource → quantité) | 08 |
-| Employés et offres (Phase 4) | — | Un chef en poste, ses travailleurs, les candidatures en cours | 01, 03 |
+| `StockDeRessource` | ✅ | Une ligne du stock de la ville (ressource → quantité), deben compris | 08 |
+| Foyers, employés et offres (Phase 4) | — | Un foyer installé et sa taille, le poste qu'il occupe, les candidatures en cours | 01, 02, 03 |
 | … (Phase 5+) | — | Medjaÿ, faveur divine, énigmes | 03, 07, 10 |
 
 `Family`, `City` et tout ce qui s'y rattache (`Zone`, `Building`, `Chantier`,
@@ -480,74 +480,112 @@ part.
 consommation, mécontentement), `05` (délai de recrutement, départ naturel).
 
 **Intention.** Faire cesser la fiction d'une ville que le joueur actionne
-seul. Jusqu'ici les bâtiments fonctionnent parce qu'ils existent ; à la fin de
-cette phase, ils fonctionnent parce que quelqu'un y travaille — et ce
-quelqu'un a une compétence, un salaire, et peut partir.
+seul. Jusqu'ici les bâtiments fonctionnent parce qu'ils existent, les carrières
+s'exploitent toutes seules et les champs se moissonnent sans personne ; à la
+fin de cette phase, tout cela réclame des bras — et ces bras ont une famille à
+nourrir et un salaire à toucher.
 
 À la fin de la phase, on doit pouvoir raconter : *« je poste une offre pour
 diriger mon Grenier, trois candidats se présentent, je prends le plus
-compétent malgré son salaire, il arrive à la quinzaine suivante et embauche
-ses ouvriers parmi les familles de la région. Ma ville compte désormais
-dix-huit bouches à nourrir et une masse salariale à payer chaque quinzaine. »*
+compétent malgré son salaire. Il s'installe avec les siens à la quinzaine
+suivante et embauche ses ouvriers parmi les familles de la région. Ma ville
+compte désormais soixante-quinze bouches à nourrir et une masse salariale en
+deben à verser chaque quinzaine. »*
 
-**Le principe qui structure toute la phase** (doc 03) : **chiffré en interne,
-qualitatif à l'affichage**. Le moteur manipule des compétences de 20 à 100 ; le
-joueur ne voit jamais que des étoiles et des libellés. Seul le salaire
-s'affiche en clair, étant déjà qualitatif par nature.
+**Deux principes structurent la phase.** Le premier vient du doc 03 :
+**chiffré en interne, qualitatif à l'affichage** — le moteur manipule des
+compétences de 20 à 100, le joueur ne voit que des étoiles et des libellés.
+Seul le salaire s'affiche en clair, étant déjà qualitatif par nature.
 
-#### 4.0 — Réalignement du modèle de population  *(prérequis)*
+Le second est posé par la joueuse et vaut pour tout le projet : **les chiffres
+des documents de conception sont provisoires** et se rectifient au fil de la
+conception. Le critère n'est pas la fidélité au document mais l'équilibre, et
+le fait de **pousser le joueur à se servir des mécaniques du jeu**. Un système
+qu'on n'utilise jamais est un échec au même titre qu'un système qui bloque.
 
-Le lot 3.7 a posé la population sans consulter les documents. Trois écarts à
-corriger avant de bâtir dessus, tranchés avec la joueuse :
+#### 4.0 — Le deben : introduire la monnaie  *(prérequis)*
 
-- **La population devient un effectif réel**, pas une formule. Le Quartier
-  d'habitation cesse d'engendrer des habitants pour redevenir ce que le doc 01
-  en dit : un **plafond** de capacité (`20 × niveau` familles). La population
-  est la somme de ce qui est réellement employé — famille fondatrice, chefs,
-  travailleurs, et les Medjaÿ quand la Phase 10 les amènera. En début de
-  partie, la ville ne compte donc que sa famille fondatrice.
-- **L'unité de population est le foyer, pas la personne.** Le doc 02 est
-  explicite : `2 unités de nourriture par habitant (famille/chef/travailleur/
-  unité Medjaÿ)` — ce qu'on compte, c'est une **famille**, un **chef**, un
-  **travailleur**, une **unité Medjaÿ**, chacun pour un. C'est la même unité
-  que `nbFamillesDisponibles` (20 au Delta) et que la capacité du Quartier
-  (`20 × niveau` familles). La famille fondatrice vaut donc **1**, pas 5 comme
-  posé au lot 3.7 : cette erreur d'unité multipliait par cinq la consommation
-  de départ, et se serait propagée à tout l'équilibrage de la phase.
-- **`nbFamillesDisponibles = 20 - 1,5 × difficulté`** (doc 02) rejoint les
-  paramètres de région, à côté de la géographie : c'est le vivier de
-  main-d'œuvre où les chefs puisent, et il se raréfie avec la difficulté.
-- **La ration passe de 1 à 2 vivres par habitant et par quinzaine**
-  (`consoParCycle`, doc 02). La dotation royale suit, pour tenir l'année
-  promise au lot 3.7.
+**L'Égypte pharaonique n'a pas de monnaie frappée** — elle n'apparaît que sous
+domination perse, puis chez les Ptolémées. Les échanges du Nouvel Empire se
+font par troc, mais avec une **unité de compte pondérale** : le **deben**
+(≈ 91 g) et son dixième, le **kite**. Les ostraca de Deir el-Médineh chiffrent
+les prix en deben de cuivre pour le quotidien, en deben d'argent ou d'or pour
+les grosses sommes.
 
-Le premier point est le plus structurant : il déplace la population d'une
-valeur dérivée à un état persisté, et c'est lui qui donne son poids à
-l'arbitrage de toute la phase — recruter, c'est ajouter une bouche.
+Le jeu confond aujourd'hui deux choses sous le même nom : `Ressource::Or` sert
+à la fois de monnaie et de matériau — au point que la mission 2 (Haute-Nubie)
+liste l'or parmi ses ressources de zone, ce qui rendrait une carrière de
+monnaie. La confusion se défait :
 
-#### 4.1 — Le candidat : compétence, traits, spécialité
+- **Le deben devient la monnaie** — dotation, salaires, coûts de construction,
+  prix du Marché, solde des expéditions. Techniquement, une ligne de stock de
+  plus (`Ressource::Deben`), le stock étant générique depuis le lot 3.1 : rien
+  à migrer que les valeurs
+- **L'or redevient un métal qu'on extrait**, avec un prix au Marché — le plus
+  élevé du jeu, l'or valant historiquement un multiple de son poids en cuivre.
+  Les mines de Nubie de la mission 2 retrouvent ainsi leur sens : on y extrait
+  de l'or, qu'on convertit en deben en le vendant
+- Une douzaine d'appels à `Ressource::Or` sont concernés, plus trois gabarits
+
+**À corriger au passage** : `CLAUDE.md` met encore en garde contre la colonne
+`stock_or` et le mot réservé `or` du SQL. Cette colonne n'existe plus depuis
+que le lot 3.1 a généralisé le stock en table `ressource → quantité` — la
+leçon sur les mots réservés reste bonne, son exemple est périmé.
+
+#### 4.1 — Foyers et personnes : la population devient réelle
+
+Le lot 3.7 a posé la population sans consulter les documents, et la
+conversation qui ouvre cette phase l'a révisée une seconde fois. Le modèle
+retenu :
+
+- **On recrute des foyers, pas des individus** (décision de la joueuse). Le
+  doc 02 compte un vivier en familles (`nbFamillesDisponibles`), le doc 01
+  chiffre la capacité du Quartier en familles : embaucher, c'est installer une
+  maisonnée — un salaire versé, plusieurs bouches à nourrir
+- **Une famille compte de 2 à 8 personnes**, tirées au hasard, moyenne 5.
+  L'ordre de grandeur vient des listes de maisonnées des papyrus de Kahun et
+  du village de Deir el-Médineh : un couple, deux à quatre enfants survivants,
+  parfois un aïeul. La variance est une vraie donnée de jeu — à salaire égal,
+  un foyer de 8 coûte quatre fois plus cher à nourrir qu'un foyer de 2
+- **La population affichée est un nombre de personnes**, somme des tailles de
+  tous les foyers résidents. **Chaque personne mange 1 vivre par quinzaine** :
+  la ville consomme exactement sa population, le joueur n'a aucun calcul à
+  faire
+- **Le Quartier d'habitation redevient un plafond**, exprimé en **familles**
+  (`20 × niveau`, doc 01), et non plus une source d'habitants. Il se combine au
+  vivier régional `nbFamillesDisponibles = 20 - 1,5 × difficulté` (doc 02)
+- La famille fondatrice est un foyer comme les autres, tiré comme les autres
+
+Ce lot **remplace** `Game/Population.php` tel qu'écrit au lot 3.7, dont la
+formule (`5 + 10 × niveau de Quartier`) était fausse sur les trois plans à la
+fois : mauvaise source, mauvaise unité, mauvais sens.
+
+#### 4.2 — Le candidat : compétence, traits, spécialité
 
 Règles pures, dans `src/Game/`, sans rien de persisté — c'est du contenu, pas
-de l'état. Toutes les valeurs viennent du doc 03, aucune n'est à inventer.
+de l'état. Les valeurs viennent du doc 03.
 
 - Compétence tirée uniformément entre **20 et 100** ; barème d'affichage en
   étoiles : 20-36 ★, 37-52 ★★, 53-68 ★★★, 69-84 ★★★★, 85-100 ★★★★★
-- Salaire demandé = **`5 + compétence × 0,3`** or par quinzaine
+- Salaire demandé — voir le calibrage du lot 4.6, qui s'écarte du doc 03
 - Ancienneté probable de base = **20 quinzaines**, affichée en libellé
   (« devrait rester longtemps » / « risque de partir bientôt »)
+- **Taille du foyer** qui l'accompagne, tirée entre 2 et 8 (lot 4.1) — une
+  information que le joueur doit voir avant de choisir, puisqu'elle décide de
+  ce que le candidat coûtera à nourrir
 - **Huit traits** : Travailleur acharné, Économe, Fidèle, Ambitieux, Croyant,
   Bagarreur, Expérimenté, Novice, avec leurs effets chiffrés du doc 03
-- **Pas de nom** (décision de la joueuse) : un PNJ se désigne par son poste et
-  ses statistiques, comme dans les documents. La question se reposera quand
-  les écrans montreront plusieurs employés d'un même bâtiment
 - Tirage des traits : **45 % aucun, 40 % un seul, 15 % deux**, chacun des huit
   à parts égales. **Incompatibilités** : Ambitieux/Fidèle et Travailleur
   acharné/Économe ne peuvent jamais coexister
 - **Spécialité de chef**, tirée au hasard selon le bâtiment dirigé (doc 03) :
   Pêcheur ou Commerçant naval au Port, Acheteur ou Vendeur au Marché,
   Gestionnaire rigoureux au Grenier, etc.
+- **Pas de nom** (décision de la joueuse) : un PNJ se désigne par son poste et
+  ses statistiques. La question se reposera quand les écrans montreront
+  plusieurs employés d'un même bâtiment
 
-#### 4.2 — L'offre d'emploi : poster, choisir, renvoyer
+#### 4.3 — L'offre d'emploi : poster, choisir, renvoyer
 
 - Poster une offre selon le poste recherché — **action libre**, elle ne
   consomme pas de quinzaine (doc 05)
@@ -559,7 +597,7 @@ de l'état. Toutes les valeurs viennent du doc 03, aucune n'est à inventer.
   tant que la faveur divine (Phase 6) et le combat (Phase 10) n'existent pas —
   l'affichage doit le dire plutôt que de laisser croire à un bonus actif
 
-#### 4.3 — Chefs par bâtiment, travailleurs par chef
+#### 4.4 — Chefs et travailleurs des bâtiments
 
 Les deux formules du doc 01, appliquées à tous les bâtiments :
 
@@ -569,166 +607,171 @@ Les deux formules du doc 01, appliquées à tous les bâtiments :
   où `travailleursBase` est propre au bâtiment — déjà en place dans le code
   (`TypeDeBatiment::travailleursDeBase()`), posé en Phase 2 et inutilisé depuis
 - Les chefs **recrutent eux-mêmes leurs travailleurs au passage d'une
-  quinzaine** (doc 05), dans la limite de `nbFamillesDisponibles` et de la
-  capacité du Quartier — le joueur voit une jauge « X / Y travailleurs » par
-  chef, il ne recrute pas les ouvriers un par un
-- **Un chef en sous-effectif fait tourner son bâtiment à capacité réduite**
-  (doc 01) — le goulot d'étranglement stratégique des régions difficiles
+  quinzaine** (doc 05), dans la limite du vivier régional et de la capacité du
+  Quartier — le joueur voit une jauge « X / Y travailleurs » par chef, il ne
+  recrute pas les ouvriers un par un
 
-##### Un bâtiment sans chef tourne à moitié (décision de la joueuse)
+##### La règle du demi-rendement, valable partout
 
-Le doc 01 ne parlait que du sous-effectif, jamais de l'absence totale de chef.
-Tranché : **un bâtiment sans chef fonctionne, mais partiellement** — « il ne
-stocke que la moitié de ce qui est produit ». Aucun bâtiment ne s'éteint faute
-d'employés, ce qui écarte l'impasse redoutée : une partie sans or pour
-embaucher continue de tourner, au ralenti.
+Le doc 01 ne parlait que du sous-effectif (« capacité réduite »), jamais de
+l'absence totale de personnel. Tranché avec la joueuse : **rien ne s'éteint
+faute d'employés, tout tourne au moins à moitié** — « il ne stocke que la
+moitié de ce qui est produit ». Une partie sans deben pour embaucher continue
+donc de fonctionner, au ralenti.
 
-**Interprétation à confirmer à l'implémentation**, qui unifie les deux règles
-en une seule formule plutôt que d'en juxtaposer deux :
+Une seule formule, appliquée aux bâtiments comme aux exploitations du
+lot 4.5 :
 
 ```
 rendement = 0,5 + 0,5 × (effectif réel / effectif requis)
 ```
 
-Sans personne, le bâtiment rend la moitié ; au complet, il rend tout ; entre
-les deux, la réduction est proportionnelle — ce que le doc 01 appelle
-« capacité réduite ». La compétence des chefs se module ensuite par-dessus
-(lot 4.6).
+Sans personne, la moitié ; au complet, le plein ; entre les deux, la réduction
+proportionnelle que le doc 01 appelle « capacité réduite ». La compétence des
+chefs se module ensuite par-dessus (lot 4.8).
 
-**Conséquence structurante** : les chefs cessent d'être une taxe obligatoire
-pour devenir un **investissement**. C'est ce qui rend la phase jouable — voir
-l'avertissement d'équilibrage ci-dessous.
+**Conséquence structurante** : les employés cessent d'être une taxe
+obligatoire pour devenir un **investissement**. C'est ce qui rend la phase
+jouable.
 
-#### 4.4 — Le coût d'employer : salaires et vivres
+#### 4.5 — Le territoire aussi a des salariés (décision de la joueuse)
 
-La première charge récurrente en or du jeu, à côté de la nourriture.
+Correction d'une invraisemblance que la Phase 3 avait laissée passer : une
+carrière s'exploitait et un champ se moissonnait sans que personne n'y
+travaille. Désormais :
+
+| Exploitation | Travailleurs requis |
+|---|---|
+| Un gisement en extraction | **2** |
+| Un champ semé | **1** |
+
+La règle du demi-rendement du lot 4.4 s'y applique telle quelle : un gisement
+sans personne rend la moitié — la famille s'en occupe elle-même — et le plein
+une fois ses deux ouvriers en place.
+
+C'est le lot qui **répare le déséquilibre le plus profond** de la phase.
+Jusqu'ici l'extraction ne dépendait d'aucun bâtiment et rapportait autant à
+une ville déserte qu'à une ville pourvue : la moitié de l'économie échappait
+au système d'emploi. Elle y entre.
+
+**Second temps, à enchaîner dans le même lot ou juste après** (piste de la
+joueuse) : **le niveau du Grenier et de l'Entrepôt augmente le nombre
+d'ouvriers affectables** aux champs et aux gisements, et donc la production.
+Cela donne enfin un effet concret à deux bâtiments dont les niveaux ne servent
+à rien aujourd'hui, et referme la boucle : bâtir plus haut → employer plus →
+produire plus → pouvoir employer davantage.
+
+#### 4.6 — Le coût d'employer : salaires et vivres
+
+La première charge récurrente en deben du jeu, à côté de la nourriture.
 
 - Salaires prélevés **à chaque quinzaine**, avec les vivres, dans
   `PassageDeCycle` — même place que `Subsistance`
-- La population totale mange `2 × effectif` (lot 4.0)
-- **Les travailleurs coûtent aussi de l'or** (décision de la joueuse), moins
-  cher qu'un chef. Le doc 03 ne chiffre que le salaire des candidats recrutés
-  par offre ; un travailleur n'ayant ni compétence tirée ni candidature, son
-  salaire est **une valeur à inventer** — un forfait par tête, à calibrer, très
-  inférieur aux 11 à 35 or que réclame un chef
-- **Le Marché reste la seule entrée d'or** tant que le commerce de la Phase 5
-  n'existe pas : c'est l'invariant à ne jamais casser
-  (`DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`)
+- La ville mange **1 vivre par personne** (lot 4.1)
+- **Les travailleurs coûtent aussi** (décision de la joueuse), bien moins
+  qu'un chef. Le doc 03 ne chiffre que les candidats recrutés par offre ; un
+  travailleur n'ayant ni compétence tirée ni candidature, son salaire est une
+  valeur à inventer
+- **La dotation royale couvre un an de salaires** (décision de la joueuse), en
+  plus de l'année de vivres déjà acquise au lot 3.7 — le pharaon finance le
+  démarrage, pas la suite
 
-##### Salaires impayés : le bâtiment s'arrête (décision de la joueuse)
+##### Salaires impayés : le bâtiment s'arrête
 
-Aucun document ne le disait. Tranché : **un bâtiment dont les salaires ne sont
-pas payés cesse de fonctionner**, et le mécontentement suit le même chemin que
-la famine — il s'accumule, puis les employés partent.
+Aucun document ne le disait. Tranché : **un bâtiment ou une exploitation dont
+les salaires ne sont pas payés cesse de fonctionner**, et le mécontentement
+suit le même chemin que la famine — il s'accumule, puis les employés partent.
 
-**Une conséquence à assumer, ou à corriger en playtest** : un bâtiment impayé
-rend *moins* qu'un bâtiment sans aucun chef, qui tourne encore à moitié. Le
-joueur a donc intérêt à renvoyer un chef qu'il ne peut plus payer plutôt qu'à
-le laisser en poste. C'est défendable — des employés non payés cessent le
-travail, alors qu'un bâtiment sans personnel reste tenu par la famille — et ça
-donne au joueur une action claire à prendre plutôt qu'une spirale subie. Si
-l'effet paraît pervers à l'usage, le levier est de ramener l'impayé à moitié
-lui aussi.
+**Une conséquence à assumer, ou à corriger en playtest** : un poste impayé
+rend *moins* qu'un poste vacant, qui tourne encore à moitié. Le joueur a donc
+intérêt à renvoyer un employé qu'il ne peut plus payer plutôt qu'à le laisser
+en poste. C'est défendable — des gens non payés cessent le travail, alors
+qu'une carrière sans ouvriers reste grattée par la famille — et ça donne au
+joueur une action claire à prendre plutôt qu'une spirale subie. Si l'effet
+paraît pervers à l'usage, le levier est de ramener l'impayé à moitié lui aussi.
 
-##### Recalibrage de l'économie : le vrai travail du lot 4.4
+##### Calibrage de travail
 
-**Principe posé par la joueuse** : les chiffres des documents de conception
-sont eux-mêmes inventés et se rectifient au fil de la conception. Le critère
-n'est pas la fidélité au document mais **l'équilibre, et le fait de pousser le
-joueur à se servir des mécaniques du jeu**. Un système qu'on n'utilise jamais
-est un échec au même titre qu'un système qui bloque.
+Première proposition cohérente, vérifiée à la main, à retoucher en playtest —
+au même titre que les valeurs des documents. Elle touche autant aux inventions
+du lot 3.5 qu'aux chiffres du doc 03.
 
-**Le déséquilibre constaté**, en chiffrant avant d'écrire une ligne de code :
-
-| | Par quinzaine |
-|---|---|
-| Salaire d'un chef (doc 03 : `5 + compétence × 0,3`) | 11 à 35 or, ~23 en moyenne |
-| Ce qu'une ville du Delta bien exploitée peut vendre | ~15 à 35 or bruts |
-
-Un seul chef coûte à peu près tout ce que la ville gagne, pour une dotation
-royale de 50 or. Le garde-fou du bâtiment à moitié (lot 4.3) évite le blocage
-— on peut ne pas embaucher — mais expose l'échec symétrique : **une embauche
-jamais rentable, donc jamais utilisée**.
-
-###### Calibrage de travail proposé
-
-Première proposition cohérente, à vérifier en playtest — au même titre que les
-valeurs des documents. Elle touche autant à mes inventions du lot 3.5 qu'aux
-chiffres du doc 03.
-
-| Valeur | Aujourd'hui | Proposé | Pourquoi |
+| Valeur | Avant | Proposé | Pourquoi |
 |---|---|---|---|
-| Extraction d'un gisement, et pêche | 5 | **10** | Invention du lot 3.5. C'est le levier le plus propre : il gonfle l'assiette sans toucher aux prix, déjà calibrés les uns par rapport aux autres |
-| Récolte d'un champ | 10 | **25** | Idem. Un champ du Nil ne donne que pendant Chémou : ramené à l'année, 25 par quinzaine de moisson vaut ~8 par quinzaine, à peine plus qu'une pêcherie qui produit sans interruption |
-| Salaire d'un chef | `5 + comp × 0,3` (11-35) | **`2 + comp × 0,12`** (4-14) | Écart assumé au doc 03. L'écart entre un mauvais et un excellent chef reste d'environ ×3, ce qui préserve l'arbitrage ; seule l'échelle change |
-| Salaire d'un travailleur | — | **1 or** | Valeur à inventer, le doc 03 ne chiffrant que les candidats recrutés par offre |
-| Famille fondatrice | 5 | **1** | Correction d'unité, voir lot 4.0 |
-| Ration | 1 | **2** | Doc 02 |
+| Extraction d'un gisement, et pêche | 5 | **20** | Invention du lot 3.5. Doit désormais nourrir et payer les deux foyers qui l'exploitent |
+| Récolte d'un champ | 10 | **50** | Idem. Un champ du Nil ne donne que pendant Chémou : 50 par quinzaine de moisson vaut ~16 par quinzaine sur l'année |
+| Salaire d'un chef | `5 + comp × 0,3` (11-35) | **`2 + comp × 0,12`** (4-14 deben) | Écart assumé au doc 03. L'écart entre un mauvais et un excellent chef reste d'environ ×3 : seule l'échelle change, l'arbitrage demeure |
+| Salaire d'un travailleur | — | **1 deben** | Valeur à inventer |
+| Ration | 1 par foyer | **1 par personne** | Lecture immédiate : la ville consomme sa population |
+| Prix de l'or au Marché | — (monnaie) | **le plus élevé du jeu** | L'or redevient une marchandise (lot 4.0) |
 
-###### Ce que ce calibrage donne, vérifié à la main
+##### Ce que ce calibrage donne, vérifié à la main
 
-Ville d'exemple : Grenier, Marché, Port et Quartier de niveau 1, tous pourvus ;
-trois gisements et une pêcherie exploités, deux champs du Nil semés.
+Ville d'exemple, Delta, difficulté 0 : Grenier et Marché de niveau 1 pourvus,
+deux gisements et une pêcherie en activité, trois champs du Nil semés.
 
-- **Effectif** : 1 famille + 4 chefs + 8 travailleurs = **13 foyers**, soit
-  26 vivres par quinzaine
-- **Vivres produits** : pêcherie 10 + deux champs du Nil (400 par an, ~16 par
-  quinzaine en moyenne annuelle) = **26** — le Grenier existe précisément pour
-  reporter la moisson de Chémou sur le reste de l'année
-- **Or brut** : trois gisements × 10 unités × ~1,7 or en moyenne + poisson
-  vendu = **~70 or**
-- **Masse salariale** : 4 chefs (~9 en moyenne) + 8 travailleurs = **~44 or**,
-  laissant ~26 or par quinzaine pour construire
+| Poste | Foyers | Personnes |
+|---|---|---|
+| Famille fondatrice | 1 | 5 |
+| Champs (1 ouvrier chacun) | 3 | 15 |
+| Pêcherie (2 ouvriers) | 2 | 10 |
+| Gisements (2 ouvriers chacun) | 4 | 20 |
+| Grenier : 1 chef + 1 ouvrier | 2 | 10 |
+| Marché : 1 chef + 2 ouvriers | 3 | 15 |
+| **Total** | **15** | **75** |
+
+- **Vivres** : besoin 75 par quinzaine ; production 3 champs (~48 en moyenne
+  annuelle) + pêcherie (20) = **68**. Léger déficit, comblé par un quatrième
+  champ ou une seconde pêcherie — la pression est réelle sans être étouffante
+- **Deben** : 2 gisements × 20 unités × ~1,7 = **~68 par quinzaine**, contre
+  une masse salariale de 2 chefs (~18) et 13 travailleurs (13) = **~31**.
+  Reste ~37 pour construire
+- **Vivier** : 15 foyers sur les 20 disponibles au Delta, et sur les 20 que
+  permet un Quartier de niveau 1 — la marge se referme vite, ce qui pousse à
+  monter le Quartier
 
 Et l'embauche redevient un choix qui se défend :
 
-| Chef | Ce qu'il rapporte | Ce qu'il coûte (salaires + bouches) |
+| Chef | Ce qu'il rapporte | Ce qu'il coûte |
 |---|---|---|
-| **Marché** | Double les prix de vente : **+35 or** | 11 or, 6 vivres |
-| **Grenier** | Double la moisson conservée : **+8 vivres** | 10 or, 4 vivres |
-| **Port** | Double la pêche : **+10 vivres** ou +20 or | 12 or, **8 vivres** |
+| **Marché** | Double les prix de vente : **+34 deben** | ~11 deben, 15 bouches |
+| **Grenier** | Double la moisson conservée : **+24 vivres** | ~10 deben, 10 bouches |
+| **Port** | Double la pêche : **+20 vivres** | ~12 deben, 20 bouches |
 
-**Le Port est le point faible de ce calibrage** : ses trois travailleurs de
-base en font l'équipage le plus nombreux du jeu, et ils mangent presque tout
-ce que la pêche supplémentaire rapporte. À surveiller au premier playtest —
-les leviers seraient d'abaisser son `travailleursBase`, ou de faire porter le
-gain par la spécialité « Pêcheur » du lot 4.6 plutôt que par le seul effectif.
+**Le Port reste le point faible** : ses trois travailleurs de base en font
+l'équipage le plus nombreux du jeu, et leurs foyers mangent tout ce que la
+pêche supplémentaire rapporte. À surveiller au premier playtest — les leviers
+seraient d'abaisser son `travailleursBase`, ou de faire porter le gain par la
+spécialité « Pêcheur » du lot 4.8 plutôt que par le seul effectif.
 
-###### Ce que ce calibrage ne règle pas
+**Un déplacement d'équilibre à assumer** : avec ce calibrage, la masse
+salariale dépasse largement le coût des bâtiments (un Grenier coûte 15 deben,
+une quinzaine de salaires en coûte 31). Le poste de dépense principal du jeu
+cesse d'être la construction pour devenir l'emploi — ce qui est cohérent avec
+la phase, et historiquement défendable, mais mérite d'être vu plutôt que subi.
 
-L'extraction des gisements **ne dépend d'aucun bâtiment** : elle rapporte
-autant à une ville sans personnel qu'à une ville pourvue. Seuls le Grenier, le
-Port et le Marché passent par un chef. Tant que c'est le cas, la moitié de
-l'économie échappe au système d'emploi — ce qui est cohérent (on ne salarie
-pas une carrière qu'on exploite soi-même) mais limite l'incitation. La Phase 5,
-en donnant à l'Atelier et à la Forge une vraie production, corrigera ce
-déséquilibre bien mieux qu'un ajustement de chiffres.
-
-#### 4.5 — Départ naturel, mécontentement et famine à deux paliers
+#### 4.7 — Départ naturel, mécontentement et famine à deux paliers
 
 - **Départ naturel** : tirage à chaque quinzaine selon l'ancienneté probable
-  du PNJ (doc 05). Le poste se libère et l'offre se renouvelle
+  du PNJ (doc 05). Le poste se libère, le foyer s'en va, l'offre se renouvelle
 - **Mécontentement de famine** (doc 02), nouveau palier avant l'échec :
-  production ralentie, **départs anticipés** de travailleurs, baisse de
-  renommée (`Family::ajusterRenommee()`, déjà en place)
-- **Mécontentement d'impayé**, sur le même modèle (lot 4.4) : le bâtiment
-  s'arrête, le mécontentement monte, les employés finissent par partir. Deux
-  causes, un seul mécanisme — c'est ce qui évite d'écrire deux fois la même
-  spirale
+  production ralentie, **départs anticipés**, baisse de renommée
+  (`Family::ajusterRenommee()`, déjà en place)
+- **Mécontentement d'impayé**, sur le même modèle (lot 4.6). Deux causes, un
+  seul mécanisme — c'est ce qui évite d'écrire deux fois la même spirale
 - **L'échec par famine du lot 3.7 recule d'un cran** : les quatre quinzaines
   actuelles deviennent le seuil du mécontentement, l'échec ne tombant qu'après
-  une famine nettement plus longue. C'est le compromis tranché avec la joueuse
-  entre le « pas de game over brutal » du doc 02 et l'échec qu'elle avait
-  demandé
+  une famine nettement plus longue. C'est le compromis tranché entre le « pas
+  de game over brutal » du doc 02 et l'échec demandé au lot 3.7
 
-#### 4.6 — Ce que la compétence d'un chef change réellement
+#### 4.8 — Ce que la compétence d'un chef change réellement
 
 Le doc 01 pose que « la compétence d'un chef influence la production du
 bâtiment ». Encore faut-il que le bâtiment produise quelque chose : la plupart
 n'ont d'effet qu'à partir de la Phase 5 (Atelier, Forge) ou plus tard.
 
-**Principe de périmètre retenu** : n'implémenter les effets de chef que pour
-les bâtiments dont la production existe déjà. Trois cas, et trois seulement :
+**Principe de périmètre** : n'implémenter les effets de chef que là où une
+production existe déjà — trois bâtiments, et le territoire depuis le lot 4.5.
 
 | Bâtiment | Effet du chef | Spécialité (doc 03) |
 |---|---|---|
@@ -745,53 +788,57 @@ phase. L'interface doit l'annoncer clairement.
 - **Les Medjaÿ et le combat** (doc 03, seconde moitié) restent en Phase 10 :
   unités, équipement, formule de résolution, blessures et morts permanentes.
   La Caserne se dote de chefs comme les autres bâtiments, mais ne recrute
-  aucun Medjaÿ dans cette phase. La population les comptera quand ils
-  existeront
+  aucun Medjaÿ dans cette phase
 - **Le Charrier** (réquisition, Caserne niveau 7) suit les Medjaÿ en Phase 10
 - **Le craft** de l'Atelier et de la Forge, et le commerce par caravanes de
   l'Entrepôt : Phase 5
-- **Le bonus de main-d'œuvre d'Akhèt** sur `nbFamillesDisponibles` (doc 05) —
-  à ajouter une fois le vivier stabilisé, pas dans le même lot
+- **Le bonus de main-d'œuvre d'Akhèt** sur le vivier régional (doc 05) — à
+  ajouter une fois le vivier stabilisé, pas dans le même lot
 - **Les capacités de stockage** du Grenier et de l'Entrepôt, et la péremption
-  du surplus à l'air libre (doc 01) : c'est un système d'inventaire à part
-  entière, qui mérite son propre lot plutôt que d'être glissé ici
+  du surplus à l'air libre (doc 01) : un système d'inventaire à part entière,
+  qui mérite son propre lot
+- **Le kite**, dixième du deben : sans objet tant que les prix restent en
+  nombres entiers de deben
 
 #### Points tranchés avant d'ouvrir la phase
 
-Quatre questions que les documents laissaient ouvertes, réglées avec la
-joueuse ; le détail de chacune vit dans le lot qui la porte.
-
 | Question | Décision | Lot |
 |---|---|---|
-| Un bâtiment sans aucun chef fonctionne-t-il ? | **Oui, à moitié** — aucun bâtiment ne s'éteint faute d'employés | 4.3 |
-| Que faire si les salaires ne sont pas payés ? | Le bâtiment **s'arrête**, puis mécontentement et départs, comme la famine | 4.4 / 4.5 |
-| Les travailleurs coûtent-ils de l'or ? | **Oui**, un forfait par tête, nettement moins qu'un chef | 4.4 |
-| Les PNJ ont-ils un nom ? | **Non pour l'instant** — désignés par leur poste, la question se reposera plus tard | 4.1 |
-
-L'écart entre les salaires du doc 03 et ce que l'économie peut payer est
-traité au lot 4.4, qui porte un **calibrage de travail chiffré** — validé dans
-son principe par la joueuse : les valeurs des documents sont provisoires et se
-rectifient au fil de la conception, le critère étant l'équilibre et le fait de
-pousser le joueur à se servir des mécaniques.
+| Quelle monnaie ? | Le **deben**, unité de compte pondérale du Nouvel Empire ; l'or redevient un métal qu'on extrait et qu'on vend | 4.0 |
+| Que recrute-t-on ? | Un **foyer** entier, de 2 à 8 personnes — un salaire, plusieurs bouches | 4.1 |
+| Que mange une personne ? | **1 vivre par quinzaine** : la ville consomme sa population | 4.1 |
+| Les PNJ ont-ils un nom ? | **Non pour l'instant** | 4.2 |
+| Un poste vacant fait-il tout cesser ? | **Non, tout tourne à moitié** — aucune impasse possible | 4.4 |
+| Champs et gisements ont-ils des salariés ? | **Oui** : 2 par gisement, 1 par champ | 4.5 |
+| Les travailleurs coûtent-ils ? | **Oui**, bien moins qu'un chef | 4.6 |
+| Salaires impayés ? | Le poste **s'arrête**, puis mécontentement et départs | 4.6 |
+| Que donne le pharaon ? | Un an de vivres **et** un an de salaires | 4.6 |
 
 #### Définition de « fini »
 
 Parcours de bout en bout : poster une offre → comparer des candidats aux
-compétences et traits visibles → en choisir un → le voir prendre son poste à
-la quinzaine suivante → le voir embaucher ses travailleurs → payer salaires et
-vivres à chaque quinzaine → voir un PNJ partir naturellement et l'offre se
-rouvrir.
+compétences, traits et foyers visibles → en choisir un → le voir prendre son
+poste à la quinzaine suivante → le voir embaucher ses ouvriers → affecter des
+ouvriers à un gisement et à un champ → payer salaires et vivres à chaque
+quinzaine → voir un PNJ partir naturellement et l'offre se rouvrir.
 
 Tests unitaires sur les formules du doc, qui sont le cœur calculatoire :
-`nbChefs`, `travailleursParChef`, barème d'étoiles, salaire, distribution des
-traits et respect des incompatibilités. La génération de candidats étant
-aléatoire, ses tests portent sur des **invariants et des distributions** (deux
-traits incompatibles ne sortent jamais ensemble ; la compétence reste dans
-20-100) plutôt que sur un candidat attendu.
+`nbChefs`, `travailleursParChef`, barème d'étoiles, salaire, règle du
+demi-rendement, consommation d'une population. Les tirages étant aléatoires
+(compétence, traits, taille du foyer), leurs tests portent sur des
+**invariants et des distributions** — deux traits incompatibles ne sortent
+jamais ensemble, la compétence reste dans 20-100, un foyer compte entre 2 et 8
+— plutôt que sur un candidat attendu.
+
+Une **vérification d'équilibrage** en conditions réelles, en plus des tests :
+mener une partie sur une année complète et constater qu'une ville correctement
+gérée ne meurt ni de faim ni de faillite, et qu'embaucher reste avantageux.
+C'est le seul moyen de valider le calibrage du lot 4.6, qu'aucun test unitaire
+ne peut juger.
 
 Les quatre portes qualité au vert, et une revue de sécurité : recruter,
-renvoyer et poster une offre modifient l'état d'une partie et doivent passer
-par `PartieVoter::JOUER`.
+renvoyer, poster une offre et affecter des ouvriers modifient l'état d'une
+partie et doivent passer par `PartieVoter::JOUER`.
 
 ---
 
@@ -870,13 +917,16 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Échec de partie | **Famine prolongée** (4 quinzaines) → partie « échouée », conservée et consultable, jamais supprimée |
 | Port | Constructible **dès qu'un point d'eau jouxte la ville**, sans autre condition ; il débloque la pêche, son niveau ne change rien encore |
 | Poisson | **Renouvelable** — la seule ressource du jeu qui ne s'épuise jamais, sans quoi un Port coûteux deviendrait un piège |
-| Population | **Effectif réellement employé** (famille, chefs, travailleurs, Medjaÿ), jamais une formule ; le Quartier d'habitation en est le **plafond** (`20 × niveau`), pas la source |
-| Ration alimentaire | **2 vivres par habitant et par quinzaine** (doc 02), et non 1 comme posé par erreur au lot 3.7 |
+| Monnaie | Le **deben**, unité de compte pondérale du Nouvel Empire — l'Égypte pharaonique n'a pas de monnaie frappée. L'**or** redevient un métal qu'on extrait et qu'on vend |
+| Population | **Un nombre de personnes**, somme des foyers résidents ; le Quartier d'habitation en est le **plafond**, exprimé en familles (`20 × niveau`), jamais la source |
+| Ce qu'on recrute | Un **foyer entier**, de 2 à 8 personnes (moyenne 5, d'après Kahun et Deir el-Médineh) : un salaire versé, plusieurs bouches à nourrir |
+| Ration alimentaire | **1 vivre par personne et par quinzaine** — la ville consomme exactement sa population |
+| Salariés du territoire | **2 par gisement, 1 par champ** : rien ne s'exploite tout seul |
+| Poste vacant | **Tout tourne au moins à moitié**, bâtiments comme exploitations — aucune impasse possible, et l'emploi devient un investissement plutôt qu'une taxe |
+| Salaires impayés | Le poste **s'arrête**, puis mécontentement et départs — même mécanisme que la famine |
+| Salaire des travailleurs | **Dû**, en forfait par tête, bien inférieur à celui d'un chef |
+| Dotation royale | Un an de vivres **et** un an de salaires : le pharaon finance le démarrage, pas la suite |
 | Famine | **Deux paliers** : mécontentement d'abord (production ralentie, départs anticipés, renommée en baisse — doc 02), échec seulement si elle se prolonge bien au-delà |
 | Affichage des PNJ | **Chiffré en interne, qualitatif à l'écran** (doc 03) : étoiles et libellés, jamais de compétence brute. Le salaire fait exception, déjà qualitatif par nature |
-| Bâtiment sans chef | **Fonctionne à moitié** — aucun bâtiment ne s'éteint faute d'employés, ce qui interdit l'impasse et fait du chef un investissement plutôt qu'une taxe |
-| Salaires impayés | Le bâtiment **s'arrête**, puis mécontentement et départs — même mécanisme que la famine |
-| Salaire des travailleurs | **Dû**, en forfait par tête, nettement inférieur à celui d'un chef |
 | Noms des PNJ | **Aucun pour l'instant** : un employé se désigne par son poste, comme dans les documents |
 | Chiffres de conception | **Provisoires par nature**, dans les documents comme dans le code. Ils se rectifient au fil de la conception ; le critère est l'équilibre et le fait de **pousser le joueur à se servir des mécaniques**, pas la fidélité au document |
-| Unité de population | Le **foyer** — une famille, un chef, un travailleur ou une unité Medjaÿ comptent chacun pour un (doc 02). La famille fondatrice vaut 1, pas 5 |
