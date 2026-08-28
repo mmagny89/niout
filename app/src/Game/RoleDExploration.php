@@ -41,7 +41,7 @@ enum RoleDExploration: string
     }
 
     /**
-     * Solde du rôle, en or (doc 04).
+     * Solde du rôle, en deben (doc 04).
      */
     public function cout(): int
     {
@@ -53,12 +53,12 @@ enum RoleDExploration: string
     }
 
     /**
-     * Solde en or réellement dû pour une case à cette distance de la ville.
+     * Solde en deben réellement dû pour une case à cette distance de la ville.
      *
      * **Les cases à moins de trois cases de la ville se reconnaissent
      * entièrement gratuitement**, en orthogonal comme en diagonale : assez
      * proche pour qu'un éclaireur y aille sans qu'on lui compte sa peine, ni
-     * en or ni en vivres (décision de la joueuse). Faire payer le premier pas
+     * en deben ni en vivres (décision de la joueuse). Faire payer le premier pas
      * d'une partie neuve reviendrait à taxer le joueur pour découvrir où il
      * vient d'être envoyé. Au-delà, l'expédition coûte les deux à la fois —
      * voir `provisionsPourUneDistance()`.
@@ -87,7 +87,7 @@ enum RoleDExploration: string
     /**
      * Vivres réellement dus pour une case à cette distance de la ville — nuls
      * dans le même rayon gratuit que `coutPourUneDistance()` : une case à
-     * moins de trois cases de la ville ne coûte rien du tout, ni en or ni en
+     * moins de trois cases de la ville ne coûte rien du tout, ni en deben ni en
      * vivres (décision de la joueuse).
      */
     public function provisionsPourUneDistance(int $distance): int

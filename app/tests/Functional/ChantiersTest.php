@@ -23,7 +23,7 @@ final class ChantiersTest extends KernelTestCase
         self::bootKernel();
         $partie = $this->lancerPartie('debit@example.com');
         $ville = $partie->getVille();
-        $orAvant = $ville->getOr();
+        $debenAvant = $ville->getDeben();
 
         $roseauxAvant = $ville->quantite(Ressource::Roseaux);
         $argileAvant = $ville->quantite(Ressource::Argile);
@@ -31,7 +31,7 @@ final class ChantiersTest extends KernelTestCase
         $this->chantiers()->lancer($partie, TypeDeBatiment::Entrepot);
 
         // Entrepôt niveau 1 : 20 roseaux, 10 argile, 15 or (doc 01).
-        self::assertSame($orAvant - 15, $ville->getOr());
+        self::assertSame($debenAvant - 15, $ville->getDeben());
         self::assertSame($roseauxAvant - 20, $ville->quantite(Ressource::Roseaux));
         self::assertSame($argileAvant - 10, $ville->quantite(Ressource::Argile));
         self::assertCount(1, $ville->getChantiers());
@@ -111,13 +111,13 @@ final class ChantiersTest extends KernelTestCase
 
         // On vide les réserves d'argile : la Caserne en réclame 30.
         $ville->debiterRessources([Ressource::Argile->value => $ville->quantite(Ressource::Argile)]);
-        $orAvant = $ville->getOr();
+        $debenAvant = $ville->getDeben();
 
         try {
             $this->chantiers()->lancer($partie, TypeDeBatiment::Caserne);
             self::fail('Le chantier aurait dû être refusé.');
         } catch (ChantierImpossible) {
-            self::assertSame($orAvant, $ville->getOr(), 'Rien ne doit être débité sur un refus.');
+            self::assertSame($debenAvant, $ville->getDeben(), 'Rien ne doit être débité sur un refus.');
             self::assertCount(0, $ville->getChantiers());
         }
     }
@@ -130,7 +130,7 @@ final class ChantiersTest extends KernelTestCase
 
         // On s'offre les moyens, l'équilibrage n'est pas le sujet ici.
         $ville->crediterRessources([
-            Ressource::Or->value => 500,
+            Ressource::Deben->value => 500,
             Ressource::Roseaux->value => 500,
             Ressource::Calcaire->value => 500,
         ]);

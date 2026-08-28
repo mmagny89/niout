@@ -50,11 +50,11 @@ final readonly class Explorations
             throw new ExplorationImpossible(\sprintf('Il vous faut %d de vivres pour envoyer un %s. Vos réserves n\'en comptent que %d.', $provisions, mb_strtolower($role->libelle()), $ville->getNourriture()));
         }
 
-        if (!$ville->debiterRessources([Ressource::Or->value => $cout])) {
-            throw new ExplorationImpossible(\sprintf('Il vous faut %d or pour envoyer un %s.', $cout, mb_strtolower($role->libelle())));
+        if (!$ville->debiterRessources([Ressource::Deben->value => $cout])) {
+            throw new ExplorationImpossible(\sprintf('Il vous faut %d deben pour envoyer un %s.', $cout, mb_strtolower($role->libelle())));
         }
 
-        // L'or est déjà retiré ; les vivres sont garanties par le contrôle
+        // Les deben sont déjà retirés ; les vivres sont garanties par le contrôle
         // ci-dessus, donc ce débit ne peut plus échouer.
         $ville->debiterNourriture($provisions);
 
@@ -108,7 +108,7 @@ final readonly class Explorations
     }
 
     /**
-     * Solde en or dû pour reconnaître cette case — nul à moins de trois cases
+     * Solde en deben dû pour reconnaître cette case — nul à moins de trois cases
      * de la ville. Exposé pour que l'écran annonce le vrai prix avant l'envoi.
      */
     public function coutVers(GameSave $partie, Zone $destination, RoleDExploration $role): int

@@ -9,25 +9,33 @@ namespace App\Game;
  *
  * Le doc 08 pose le principe — « toute ressource peut toujours être achetée ou
  * vendue » — et chiffre l'import (`prixLocal × 1,5`) et les biens exotiques
- * (15 or l'unité), mais **jamais les prix locaux eux-mêmes**. Ceux-ci sont donc
+ * (15 l'unité), mais **jamais les prix locaux eux-mêmes**. Ceux-ci sont donc
  * inventés, calibrés en ordre de grandeur les uns par rapport aux autres :
  * l'argile et les roseaux, qu'on ramasse au bord du fleuve, ne valent presque
  * rien ; le granite d'Assouan et la turquoise du Sinaï valent qu'on aille les
  * chercher.
  *
- * À revoir au premier playtest — c'est le curseur qui décide si l'or reste rare.
+ * À revoir au premier playtest — c'est le curseur qui décide si le deben reste
+ * rare.
  */
 final readonly class PrixDuMarche
 {
     /**
-     * Prix de vente unitaire, en or. Une ressource absente de cette table ne se
-     * vend pas au Marché local.
+     * Prix de vente unitaire, en deben. Une ressource absente de cette table ne
+     * se vend pas au Marché local — c'est le cas du deben lui-même, qui est la
+     * monnaie et non une marchandise.
      *
      * @return array<string, int>
      */
     public static function table(): array
     {
         return [
+            // L'or n'est plus la monnaie mais un métal, extrait au désert
+            // oriental et en Nubie (doc 08) : le plus cher du jeu. Le rapport
+            // réel de l'or au cuivre sous le Nouvel Empire était bien plus
+            // écrasant que ce ×2 sur le lapis-lazuli — la valeur est comprimée
+            // pour rester jouable, comme le reste de cette table.
+            Ressource::Or->value => 30,
             // Matériaux communs, ramassés sur les berges.
             Ressource::Argile->value => 1,
             Ressource::Roseaux->value => 1,
@@ -59,8 +67,8 @@ final readonly class PrixDuMarche
     }
 
     /**
-     * Prix unitaire d'une ressource, ou null si elle ne se négocie pas. L'or ne
-     * s'y trouve pas : il est la monnaie, pas une marchandise.
+     * Prix unitaire d'une ressource, ou null si elle ne se négocie pas. Le
+     * deben ne s'y trouve pas : il est la monnaie, pas une marchandise.
      */
     public static function pour(Ressource $ressource): ?int
     {

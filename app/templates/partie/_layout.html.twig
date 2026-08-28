@@ -15,17 +15,18 @@
 
                 {# Chaque matériau garde son nom propre : un compteur générique
                    « bois » qui agrégerait roseaux et cèdre cacherait au joueur
-                   ce qu'il possède réellement. Or et vivres restent des
+                   ce qu'il possède réellement. Deben et vivres restent des
                    compteurs à part — le second est une somme délibérée (blé,
                    orge, dattes, poisson), c'est ce qui paie une expédition
-                   quel que soit le vivre en réserve. #}
+                   quel que soit le vivre en réserve. L'or, lui, s'affiche
+                   désormais parmi les matériaux : c'est un métal qu'on extrait. #}
                 <dl class="flex flex-wrap gap-x-5 gap-y-1 text-sm" data-chiffres>
                     <div class="flex items-baseline gap-1.5">
-                        <dt class="text-encre-500">Or</dt>
-                        <dd class="text-encre-900">{{ partie.ville.or }}</dd>
+                        <dt class="text-encre-500">Deben</dt>
+                        <dd class="text-encre-900">{{ partie.ville.deben }}</dd>
                     </div>
                     {% for ligne in partie.ville.stockAffichable %}
-                        {% if ligne.ressource.value != 'or' and not ligne.ressource.estNourriture %}
+                        {% if not ligne.ressource.estLaMonnaie and not ligne.ressource.estNourriture %}
                             <div class="flex items-baseline gap-1.5">
                                 <dt class="text-encre-500">{{ ligne.ressource.libelle|capitalize }}</dt>
                                 <dd class="text-encre-900">{{ ligne.quantite }}</dd>

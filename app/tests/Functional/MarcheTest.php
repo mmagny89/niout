@@ -19,22 +19,22 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 final class MarcheTest extends KernelTestCase
 {
     /**
-     * L'invariant qui débloque le jeu : sans le Marché, l'or n'a **aucune**
-     * source. La dotation royale en donne une fois pour toutes, chaque bâtiment
-     * en consomme, et la partie finit par se figer.
+     * L'invariant qui débloque le jeu : sans le Marché, la monnaie n'a
+     * **aucune** source. La dotation royale en donne une fois pour toutes,
+     * chaque bâtiment en consomme, et la partie finit par se figer.
      */
-    public function testVendreEstLaSeuleFaconDeGagnerDeLOr(): void
+    public function testVendreEstLaSeuleFaconDeGagnerDesDeben(): void
     {
         self::bootKernel();
         $partie = $this->lancerAvecMarche('vente@example.com');
         $ville = $partie->getVille();
         $ville->crediterRessources([Ressource::Calcaire->value => 10]);
-        $orAvant = $ville->getOr();
+        $debenAvant = $ville->getDeben();
 
         $recette = $this->marche()->vendre($partie, Ressource::Calcaire, 10);
 
         self::assertSame(10 * PrixDuMarche::pour(Ressource::Calcaire), $recette);
-        self::assertSame($orAvant + $recette, $ville->getOr());
+        self::assertSame($debenAvant + $recette, $ville->getDeben());
         self::assertSame(0, $ville->quantite(Ressource::Calcaire));
     }
 
@@ -65,14 +65,33 @@ final class MarcheTest extends KernelTestCase
         }
     }
 
-    public function testLOrNeSeVendPasContreDeLOr(): void
+    /**
+     * On ne vend pas la monnaie contre elle-même. L'or, lui, se vend très bien
+     * depuis le lot 4.0 : c'est un métal qu'on extrait, pas un moyen de paiement.
+     */
+    public function testLaMonnaieNeSeVendPasContreElleMeme(): void
     {
         self::bootKernel();
         $partie = $this->lancerAvecMarche('monnaie@example.com');
 
         $this->expectException(VenteImpossible::class);
 
-        $this->marche()->vendre($partie, Ressource::Or, 1);
+        $this->marche()->vendre($partie, Ressource::Deben, 1);
+    }
+
+    public function testLOrSeVendCommeNImporteQuelMetal(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('mine-dor@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Or->value => 4]);
+        $debenAvant = $ville->getDeben();
+
+        $recette = $this->marche()->vendre($partie, Ressource::Or, 4);
+
+        self::assertSame(4 * PrixDuMarche::pour(Ressource::Or), $recette);
+        self::assertSame($debenAvant + $recette, $ville->getDeben());
+        self::assertSame(0, $ville->quantite(Ressource::Or));
     }
 
     public function testUneQuantiteNulleOuNegativeEstRefusee(): void
@@ -100,7 +119,7 @@ final class MarcheTest extends KernelTestCase
         $vendables = [];
         foreach ($this->marche()->etalPour($partie) as $lot) {
             self::assertGreaterThan(0, $lot['quantite']);
-            self::assertNotSame(Ressource::Or, $lot['ressource'], 'L\'or est la monnaie, pas une marchandise.');
+            self::assertNotSame(Ressource::Deben, $lot['ressource'], 'Le deben est la monnaie, pas une marchandise.');
             $vendables[] = $lot['ressource'];
         }
 

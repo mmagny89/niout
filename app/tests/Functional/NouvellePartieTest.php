@@ -39,7 +39,7 @@ final class NouvellePartieTest extends WebTestCase
         self::assertSame(GameSave::PREMIERE_MISSION, $partie->getMission());
         self::assertSame('Sennefer', $partie->getFamille()->getNom());
         // Dotation à difficulté 0 : 50 + 10 × 0 (doc 13).
-        self::assertSame(50, $partie->getVille()->getOr());
+        self::assertSame(50, $partie->getVille()->getDeben());
     }
 
     public function testUneAventureSeDerouleAMemphisAvecLesReglagesChoisis(): void
@@ -55,7 +55,7 @@ final class NouvellePartieTest extends WebTestCase
         self::assertSame(4, $partie->getVille()->getDifficulte());
         self::assertSame(10, $partie->getVille()->getTailleGrille());
         // 50 + 10 × 4.
-        self::assertSame(90, $partie->getVille()->getOr());
+        self::assertSame(90, $partie->getVille()->getDeben());
     }
 
     public function testLaCampagneIgnoreLesReglagesDuModeAventure(): void

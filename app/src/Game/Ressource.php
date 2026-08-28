@@ -19,10 +19,14 @@ namespace App\Game;
  */
 enum Ressource: string
 {
-    case Or = 'or';
+    /**
+     * La monnaie du jeu — voir estLaMonnaie().
+     */
+    case Deben = 'deben';
 
     // Ressources de zone, minérales (doc 08).
     case Argile = 'argile';
+    case Or = 'or';
     case Roseaux = 'roseaux';
     case Calcaire = 'calcaire';
     case Albatre = 'albatre';
@@ -56,8 +60,9 @@ enum Ressource: string
     public function libelle(): string
     {
         return match ($this) {
-            self::Or => 'or',
+            self::Deben => 'deben',
             self::Argile => 'argile',
+            self::Or => 'or',
             self::Roseaux => 'roseaux',
             self::Calcaire => 'calcaire',
             self::Albatre => 'albâtre',
@@ -81,6 +86,26 @@ enum Ressource: string
             self::LapisLazuli => 'lapis-lazuli',
             self::PeauxEtPlumes => 'peaux et plumes',
         };
+    }
+
+    /**
+     * La monnaie, qui n'est pas une marchandise : elle ne se vend pas, ne se
+     * récolte pas, ne se mange pas.
+     *
+     * **L'Égypte pharaonique n'a pas de monnaie frappée** — celle-ci n'apparaît
+     * que bien plus tard, sous domination perse puis chez les Ptolémées. Les
+     * échanges du Nouvel Empire se font par troc, mais avec une unité de compte
+     * pondérale : le *deben* (≈ 91 g) et son dixième, le *kite*. Les ostraca de
+     * Deir el-Médineh chiffrent les prix en deben de cuivre pour le quotidien.
+     *
+     * L'or, lui, est un **métal qu'on extrait** (mines du désert oriental et de
+     * Nubie, doc 08) et qu'on convertit en deben en le vendant. Confondre les
+     * deux, comme le faisait le jeu jusqu'ici, faisait de la mission 2 une
+     * carrière de monnaie.
+     */
+    public function estLaMonnaie(): bool
+    {
+        return self::Deben === $this;
     }
 
     /**

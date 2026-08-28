@@ -6,10 +6,12 @@ namespace App\Tests\Functional;
 
 use App\Entity\User;
 use App\Game\LanceurDePartie;
+use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DomCrawler\Crawler;
 
 final class VilleTest extends WebTestCase
 {
@@ -123,6 +125,41 @@ final class VilleTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
         self::assertResponseStatusCodeSame(403);
+    }
+
+    /**
+     * La barre de jeu compte en deben, et l'or n'y est plus un compteur à part :
+     * c'est un métal qui s'affiche parmi les matériaux, quand la ville en a.
+     * Seul le rendu réel peut le vérifier — le gabarit distingue la monnaie des
+     * matériaux par `estLaMonnaie`.
+     */
+    public function testLaBarreDeJeuCompteEnDebenEtRangeLOrParmiLesMateriaux(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'deben@example.com');
+        $partie = $this->lancer($joueur);
+
+        $partie->getVille()->crediterRessources([Ressource::Or->value => 7]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertResponseIsSuccessful();
+
+        $compteurs = [];
+        $lus = $crawler->filter('dl[data-chiffres] > div')->each(
+            static fn (Crawler $compteur): array => [trim($compteur->filter('dt')->text()), trim($compteur->filter('dd')->text())],
+        );
+        foreach ($lus as [$libelle, $valeur]) {
+            $compteurs[$libelle] = $valeur;
+        }
+
+        // Les deux se comptent désormais séparément : la dotation royale est en
+        // deben, et les 7 unités d'or créditées restent 7 unités de métal.
+        self::assertArrayHasKey('Deben', $compteurs, 'La monnaie s\'appelle désormais le deben.');
+        self::assertSame('50', $compteurs['Deben'], 'La dotation royale de la mission 1.');
+
+        self::assertArrayHasKey('Or', $compteurs, 'L\'or reste affiché, mais comme un matériau.');
+        self::assertSame('7', $compteurs['Or'], 'L\'or extrait ne se confond plus avec la bourse.');
     }
 
     /**
