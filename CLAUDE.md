@@ -270,6 +270,17 @@ d'employés** (décision de la joueuse) : embaucher est un investissement, pas
 une taxe. Un chef pas encore en poste ne réclame rien, et les chefs sortent du
 vivier de bras — ils ne s'encadrent pas eux-mêmes.
 
+**Le mécontentement a deux causes et un seul mécanisme** (`Mecontentement`) :
+la faim et les salaires impayés mènent à la même colère, comptée une fois. Il
+monte et se résorbe d'un cran par quinzaine — symétrie délibérée, qui interdit
+le yo-yo sans rendre la remontée désespérée. Son malus de production est
+**délibérément distinct du rendement d'effectif** : le plancher de 50 % vaut
+pour le manque de bras, pas pour une ville en colère. Avant de toucher à ses
+valeurs, vérifier que **la spirale se redresse encore** — c'est là que ce genre
+de mécanisme casse, quand le malus empêche de produire de quoi lever sa propre
+cause. La famine se lit à deux paliers : mécontentement à 4 quinzaines, échec
+à 12.
+
 **Les salaires tombent à chaque quinzaine, avant la production** (`Salaires`,
 `Paie`). C'est la première charge récurrente en deben, et la principale — une
 quinzaine de salaires coûte plus qu'un Grenier. **L'unité de paiement est le

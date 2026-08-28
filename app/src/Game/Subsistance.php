@@ -17,17 +17,22 @@ use App\Entity\GameSave;
 final readonly class Subsistance
 {
     /**
-     * Quinzaines consécutives de famine avant l'échec de la partie. Valeur
-     * inventée, comme le reste des rythmes de jeu (`RendementDesChamps`,
-     * `Recoltes`) — le besoin de la calibrer reste ouvert, signalé comme tel
-     * plutôt que tranché sans playtest. Deux mois (quatre quinzaines) laissent
-     * le temps de réagir — envoyer un éclaireur, vendre au Marché — sans
-     * rendre la famine anodine.
+     * **La famine se lit à deux paliers** (lot 4.7), et non plus à un seul.
+     *
+     * Les quatre quinzaines du lot 3.7 ne mènent plus à l'échec mais au
+     * mécontentement : on travaille moins bien, on parle de partir, la
+     * renommée s'effrite. L'échec ne tombe qu'après une famine nettement plus
+     * longue.
+     *
+     * C'est le compromis entre le « pas de game over brutal » du doc 02 et
+     * l'échec demandé au lot 3.7 : la ville prévient longtemps avant de
+     * mourir. Les deux valeurs restent inventées, à calibrer en playtest.
      */
     public const int SEUIL_DE_FAMINE = 4;
+    public const int SEUIL_DECHEC = 12;
 
     /**
-     * @return list<string> Ce qui s'est produit, à rapporter au joueur
+     * @return array{evenements: list<string>, famine: bool}
      */
     public function avancerDUnCycle(GameSave $partie): array
     {
@@ -35,7 +40,7 @@ final readonly class Subsistance
         $besoin = $ville->consommationDeNourriture();
 
         if (0 === $besoin) {
-            return [];
+            return ['evenements' => [], 'famine' => false];
         }
 
         $disponible = $ville->getNourriture();
@@ -44,7 +49,7 @@ final readonly class Subsistance
             $ville->debiterNourriture($besoin);
             $partie->reinitialiserLaFamine();
 
-            return [];
+            return ['evenements' => [], 'famine' => false];
         }
 
         // La ville mange ce qu'elle a, rien de plus : le manque ne se reporte
@@ -58,11 +63,11 @@ final readonly class Subsistance
             $ville->population(),
         )];
 
-        if ($partie->getQuinzainesDeFamine() >= self::SEUIL_DE_FAMINE) {
+        if ($partie->getQuinzainesDeFamine() >= self::SEUIL_DECHEC) {
             $partie->echouer();
             $evenements[] = 'Faute de vivres, la ville est abandonnée. La partie s\'achève en échec.';
         }
 
-        return $evenements;
+        return ['evenements' => $evenements, 'famine' => true];
     }
 }
