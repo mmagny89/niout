@@ -122,8 +122,11 @@
                         {% elseif not zoneDetaillee.estDecouverte %}
                             Nul ne sait ce qui s'y trouve. Une reconnaissance le dira.
                         {% elseif zoneDetaillee.porteUnChamp %}
+                            {% set etape = zoneDetaillee.etapeDuChamp(partie.dateDeJeu.saison, partie.dateDeJeu.rangDansLaSaison) %}
                             Un champ y est établi, semé de <strong>{{ zoneDetaillee.culture.libelle }}</strong>.
                             {{ zoneDetaillee.culture.usage }}
+                            <br>
+                            <strong>{{ etape.libelle }}</strong> — {{ etape.explication }}
                         {% elseif zoneDetaillee.porteUnGisement %}
                             Ce que la case recèle :
                         {% else %}

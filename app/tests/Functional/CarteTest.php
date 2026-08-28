@@ -7,7 +7,10 @@ namespace App\Tests\Functional;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Entity\Zone;
+use App\Game\ContenuDeZone;
+use App\Game\Culture;
 use App\Game\LanceurDePartie;
+use App\Game\TypeDeTerrain;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -25,6 +28,38 @@ final class CarteTest extends WebTestCase
         self::assertResponseIsSuccessful();
         // Le Delta se joue en 3×3 (doc 06).
         self::assertCount(9, $crawler->filter('img[src*="/images/tuiles/"]'));
+    }
+
+    /**
+     * Le détail d'une case semée affiche son étape (semis, pousse, récolte ou
+     * repos) — la régression à surveiller est une erreur Twig si l'étape
+     * n'est pas calculable.
+     */
+    public function testLeDetailDUnChampAfficheSonEtape(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'champ-detail@example.com');
+        $partie = $this->lancer($joueur);
+
+        $zone = null;
+        foreach ($partie->getVille()->getZones() as $candidate) {
+            if (!$candidate->porteLaVille()) {
+                $zone = $candidate;
+                break;
+            }
+        }
+        self::assertInstanceOf(Zone::class, $zone);
+        $zone->definirTerrain(TypeDeTerrain::Fertile)
+            ->poserUnContenu(ContenuDeZone::ChampEligible)
+            ->decouvrir()
+            ->semer(Culture::Ble);
+
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $client->request('GET', \sprintf('/partie/%d/carte?zone=%d-%d', $partie->getId(), $zone->getX(), $zone->getY()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('#case', 'Semis');
     }
 
     public function testUneCarteNeuveNeMontreQueLaVilleEtDuBrouillard(): void

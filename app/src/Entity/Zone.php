@@ -6,7 +6,11 @@ namespace App\Entity;
 
 use App\Game\ContenuDeZone;
 use App\Game\Culture;
+use App\Game\CycleAgricoleTerrestre;
+use App\Game\EtapeDeChamp;
+use App\Game\RendementDesChamps;
 use App\Game\Ressource;
+use App\Game\Saison;
 use App\Game\TypeDeTerrain;
 use App\Repository\ZoneRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -68,6 +72,14 @@ class Zone
      */
     #[ORM\Column(nullable: true, enumType: Culture::class)]
     private ?Culture $culture = null;
+
+    /**
+     * Quinzaines écoulées depuis le semis — nul hors culture, et hors sujet
+     * sur le Nil, dont le rythme reste celui de la crue
+     * (`RendementDesChamps`) plutôt que d'un compteur propre à la case.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $quinzainesDepuisSemis = null;
 
     #[ORM\Column]
     private bool $decouverte = false;
@@ -215,8 +227,43 @@ class Zone
     public function semer(Culture $culture): static
     {
         $this->culture = $culture;
+        // Le compteur ne sert qu'au cycle terrestre — sur le Nil, la saison
+        // suffit à situer le champ, sans état propre à la case.
+        $this->quinzainesDepuisSemis = TypeDeTerrain::Nil === $this->terrain ? null : 0;
 
         return $this;
+    }
+
+    public function getQuinzainesDepuisSemis(): ?int
+    {
+        return $this->quinzainesDepuisSemis;
+    }
+
+    /**
+     * Fait avancer le cycle agricole terrestre d'une quinzaine. Sans effet sur
+     * un champ du Nil ou une case sans champ.
+     */
+    public function avancerLeCycleAgricole(): static
+    {
+        if (null !== $this->quinzainesDepuisSemis) {
+            ++$this->quinzainesDepuisSemis;
+        }
+
+        return $this;
+    }
+
+    /**
+     * L'étape du champ établi ici, pour l'affichage — null hors culture.
+     */
+    public function etapeDuChamp(?Saison $saisonActuelle, ?int $rangDansLaSaison): ?EtapeDeChamp
+    {
+        if (!$this->porteUnChamp()) {
+            return null;
+        }
+
+        return TypeDeTerrain::Nil === $this->terrain
+            ? RendementDesChamps::etape($saisonActuelle, $rangDansLaSaison)
+            : CycleAgricoleTerrestre::etape($this->quinzainesDepuisSemis ?? 0);
     }
 
     public function decouvrir(): static

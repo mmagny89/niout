@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Game;
 
 use App\Game\DateDeJeu;
+use App\Game\EtapeDeChamp;
 use App\Game\QualiteDeCrue;
 use App\Game\RendementDesChamps;
 use App\Game\Saison;
@@ -39,22 +40,14 @@ final class RendementDesChampsTest extends TestCase
         }
     }
 
-    public function testLeRendementDePeretMonteAuFilDeLaSaison(): void
+    /**
+     * Semis puis pousse : avoir un champ ne nourrit personne pendant Perèt,
+     * seule la récolte de Chémou le fait.
+     */
+    #[DataProvider('toutesLesQuinzainesDUneSaison')]
+    public function testUnChampNeDonneRienPendantPeret(int $rang): void
     {
-        $precedent = -1;
-
-        for ($rang = 1; $rang <= DateDeJeu::CYCLES_PAR_SAISON; ++$rang) {
-            $rendement = RendementDesChamps::pourUneQuinzaine(Saison::Peret, $rang, QualiteDeCrue::Normale);
-
-            self::assertGreaterThanOrEqual($precedent, $rendement, 'Une culture ne régresse pas.');
-            $precedent = $rendement;
-        }
-
-        self::assertSame(
-            RendementDesChamps::RECOLTE_DE_REFERENCE,
-            $precedent,
-            'La dernière quinzaine de Perèt atteint le plein rendement.',
-        );
+        self::assertSame(0, RendementDesChamps::pourUneQuinzaine(Saison::Peret, $rang, QualiteDeCrue::Forte));
     }
 
     public function testLaCroissanceDePeretIgnoreLaQualiteDeLaCrue(): void
@@ -97,5 +90,21 @@ final class RendementDesChampsTest extends TestCase
     public function testLesJoursEpagomenesNeDonnentRien(): void
     {
         self::assertSame(0, RendementDesChamps::pourUneQuinzaine(null, null, QualiteDeCrue::Forte));
+    }
+
+    public function testAkhetEstUnRepos(): void
+    {
+        self::assertSame(EtapeDeChamp::Repos, RendementDesChamps::etape(Saison::Akhet, 3));
+    }
+
+    public function testLePremierQuartDePeretEstLeSemis(): void
+    {
+        self::assertSame(EtapeDeChamp::Semis, RendementDesChamps::etape(Saison::Peret, 1));
+        self::assertSame(EtapeDeChamp::Pousse, RendementDesChamps::etape(Saison::Peret, DateDeJeu::CYCLES_PAR_SAISON));
+    }
+
+    public function testChemouEstLaRecolte(): void
+    {
+        self::assertSame(EtapeDeChamp::Recolte, RendementDesChamps::etape(Saison::Chemou, 1));
     }
 }
