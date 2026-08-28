@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Game\CoutDeConstruction;
+use App\Game\Population;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use App\Repository\CityRepository;
@@ -162,6 +163,20 @@ class City
     public function getOr(): int
     {
         return $this->quantite(Ressource::Or);
+    }
+
+    /**
+     * Combien d'habitants la ville porte, et ce qu'ils mangent par quinzaine
+     * (`Population`, amorce de la Phase 4).
+     */
+    public function population(): int
+    {
+        return Population::pour($this);
+    }
+
+    public function consommationDeNourriture(): int
+    {
+        return Population::consommationParQuinzaine($this);
     }
 
     /**

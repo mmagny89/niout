@@ -36,6 +36,10 @@
                         <dt class="text-encre-500">Vivres</dt>
                         <dd class="text-encre-900">{{ partie.ville.nourriture }}</dd>
                     </div>
+                    <div class="flex items-baseline gap-1.5" title="Consomme {{ partie.ville.consommationDeNourriture }} vivre(s) par quinzaine">
+                        <dt class="text-encre-500">Habitants</dt>
+                        <dd class="text-encre-900">{{ partie.ville.population }}</dd>
+                    </div>
                 </dl>
             </div>
 
@@ -49,16 +53,25 @@
                 </p>
 
                 {% block actionDeCycle %}
-                    <form method="post" action="{{ path('app_partie_cycle', {id: partie.id}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('cycle') }}">
-                        {# Le joueur revient où il était : avancer le temps
-                           depuis la ville ne doit pas l'éjecter sur la carte. #}
-                        <input type="hidden" name="retour" value="{{ app.request.attributes.get('_route') }}">
-                        <button type="submit"
-                                class="rounded-sm bg-lapis-500 px-4 py-1.5 text-sm font-medium text-sable-50 hover:bg-lapis-600">
-                            Quinzaine suivante
-                        </button>
-                    </form>
+                    {% if partie.estEnCours %}
+                        <form method="post" action="{{ path('app_partie_cycle', {id: partie.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cycle') }}">
+                            {# Le joueur revient où il était : avancer le temps
+                               depuis la ville ne doit pas l'éjecter sur la carte. #}
+                            <input type="hidden" name="retour" value="{{ app.request.attributes.get('_route') }}">
+                            <button type="submit"
+                                    class="rounded-sm bg-lapis-500 px-4 py-1.5 text-sm font-medium text-sable-50 hover:bg-lapis-600">
+                                Quinzaine suivante
+                            </button>
+                        </form>
+                    {% else %}
+                        {# La famine a eu raison de la ville : le temps ne
+                           s'avance plus, mais la partie reste consultable
+                           (doc 00 — chaque partie est une run complète). #}
+                        <span class="rounded-sm bg-terre-100 px-4 py-1.5 text-sm font-medium text-terre-700">
+                            Partie échouée — famine
+                        </span>
+                    {% endif %}
                 {% endblock %}
             </div>
         </div>

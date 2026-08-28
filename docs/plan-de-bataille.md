@@ -221,6 +221,8 @@ vues, pas de la conception.
 - [x] **Phase 2** — Lancer une partie et bâtir · §6.1 · `01`, `05`, `13`
 - [ ] **Phase 3** — Carte, exploration et ressources · §6.2 · `02`, `04`, `06`, `08`
 - [ ] **Phase 4** — Population : recrutement, chefs et travailleurs · `01`, `03`
+      — amorcée au lot 3.7 (habitants affichés, consommation de nourriture,
+      échec par famine) ; recrutement, chefs et travailleurs restent entiers
 - [ ] **Phase 5** — Artisanat et commerce · `08`, `12`
 - [ ] **Phase 6** — Faveur divine et événements · `07`
 - [ ] **Phase 7** — Énigmes, enquêtes et fil rouge · `10`
@@ -410,7 +412,7 @@ Deux conséquences à retenir :
 
 ---
 
-### 6.2 Phase 3 — Carte, exploration et ressources  *(5 lots sur 6)*
+### 6.2 Phase 3 — Carte, exploration et ressources  *(6 lots sur 7 — 3.6 restant)*
 
 **Intention.** Faire basculer la ville de la dépense à la production. Aujourd'hui
 elle consomme une dotation qui ne se renouvelle pas ; à la fin de cette phase,
@@ -730,6 +732,61 @@ plus des invariants sur trente graines pour les autres régions.
 - [ ] Pêche sur les cases d'eau reconnues, une fois le Port dressé
 - [ ] Les cases d'eau cessent d'être un décor : elles portent du contenu comme
       les autres (doc 02)
+
+#### 3.7 — Ville et territoire, ajustements de la joueuse ✅
+
+Six demandes de la joueuse, formulées après coup sur la génération de carte,
+les champs et l'exploration — plus une amorce de la Phase 4 (population),
+remontée pour la même raison que les cycles en Phase 2 : compter les
+habitants et les nourrir n'a pas besoin du recrutement pour exister.
+
+- **Le Nil prime sur la Méditerranée et la mer Rouge** pour le placement de la
+  ville : c'est lui qui a fait naître les villes égyptiennes réelles.
+- **Un seul gisement non alimentaire de chaque matériau dans l'anneau des 8
+  cases autour de la ville** — la garantie de minimum s'y pose en priorité, et
+  y est plafonnée à un exemplaire, même par le tirage aléatoire, « pour éviter
+  d'avoir directement tout ». La garantie de champ minimum passe désormais
+  avant celle des matériaux vitaux (une case cultivable garde sa vocation même
+  si un gisement s'y ajoute ensuite, l'inverse est impossible) — sur la plus
+  petite carte du jeu (Delta, 3×3), un tirage malchanceux peut encore,
+  rarement, saturer les quelques cases fertiles avant qu'aucune garantie
+  n'intervienne : un risque déjà présent avant ce lot, légèrement réduit,
+  pas entièrement éliminé.
+- **Terre non cultivable** (`ContenuDeZone::TerreNonCultivable`) : une case
+  dont le terrain accepterait un champ mais que le tirage n'a pas retenue
+  reste identifiable comme telle, au lieu de se fondre dans le « rien »
+  générique — ce qui couvre aussi le fait que toutes les berges du Nil ne
+  sont pas exploitables.
+- **Les champs se resserrent autour de la ville** plutôt que de se disperser :
+  `garantirDesChamps()` consomme les cases les plus proches en premier, et le
+  poids du tirage aléatoire décroît avec la distance.
+- **Un champ traverse quatre étapes nommées** — semis, pousse, récolte, repos
+  (`EtapeDeChamp`) — sur le modèle des étapes de chantier. Avoir un champ ne
+  nourrit plus personne : seule l'étape « récolte » verse quelque chose au
+  stock. Un champ du Nil reste piloté par la saison (Perèt ne rend plus un
+  rendement croissant, mais rien jusqu'à la moisson de Chémou) ; un champ
+  terrestre (Fertile, Oasis) suit son propre cycle, indépendant de la saison
+  et de la crue (`CycleAgricoleTerrestre`, `Zone::quinzainesDepuisSemis`).
+- **Le rayon gratuit de l'éclaireur passe d'une case à deux** : toute case à
+  moins de trois cases de la ville se reconnaît sans frais d'or ; les vivres
+  restent dues à toute distance.
+
+**Amorce de la Phase 4 — population et subsistance.** Une ville affiche
+désormais ses habitants (`Population`, `City::population()`) : une famille
+fondatrice fixe (`Population::HABITANTS_DE_BASE`), plus un supplément par
+niveau de Quartier d'habitation — le recrutement, les chefs et les
+travailleurs restent entiers pour la Phase 4. Chaque quinzaine, la ville
+consomme de la nourriture selon sa population (`Subsistance`, après la
+récolte) ; à défaut de vivres suffisants, la famine s'accumule
+(`GameSave::$quinzainesDeFamine`) et, passé un seuil
+(`Subsistance::SEUIL_DE_FAMINE`, valeur inventée à calibrer), la partie
+bascule en échec (`StatutDePartie::Echouee`) — conservée et consultable,
+jamais supprimée (doc 00 : « chaque partie est une run complète »). Un
+nouvel attribut de vote, `PartieVoter::JOUER`, ferme les actions qui
+modifient l'état (cycle, chantier, vente, exploration, semis, exploitation)
+sur une partie échouée ; la lecture (`VOIR`) reste ouverte. La dotation
+royale couvre désormais un an complet de vivres pour la famille fondatrice
+plutôt qu'une réserve fixe, calculée sur `Population::HABITANTS_DE_BASE`.
 
 #### Hors périmètre, explicitement
 

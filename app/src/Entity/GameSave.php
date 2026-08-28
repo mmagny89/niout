@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Enum\GameMode;
+use App\Enum\StatutDePartie;
 use App\Game\DateDeJeu;
 use App\Game\QualiteDeCrue;
 use App\Repository\GameSaveRepository;
@@ -80,6 +81,17 @@ class GameSave
 
     #[ORM\Column]
     private \DateTimeImmutable $lastOpenedAt;
+
+    #[ORM\Column(enumType: StatutDePartie::class)]
+    private StatutDePartie $statut = StatutDePartie::EnCours;
+
+    /**
+     * Quinzaines consécutives où la ville n'a pas pu nourrir tous ses
+     * habitants (`Subsistance`). Remis à zéro dès qu'une quinzaine est payée
+     * intégralement.
+     */
+    #[ORM\Column]
+    private int $quinzainesDeFamine = 0;
 
     private function __construct(User $joueur, GameMode $mode, Family $famille, City $ville)
     {
@@ -201,6 +213,51 @@ class GameSave
     public function estCampagne(): bool
     {
         return GameMode::Campagne === $this->mode;
+    }
+
+    public function getStatut(): StatutDePartie
+    {
+        return $this->statut;
+    }
+
+    public function estEnCours(): bool
+    {
+        return StatutDePartie::EnCours === $this->statut;
+    }
+
+    public function getQuinzainesDeFamine(): int
+    {
+        return $this->quinzainesDeFamine;
+    }
+
+    /**
+     * Une quinzaine de plus sans nourriture suffisante. Bascule la partie en
+     * échec une fois le seuil atteint (`Subsistance::SEUIL_DE_FAMINE`).
+     */
+    public function enregistrerUneQuinzaineDeFamine(): static
+    {
+        ++$this->quinzainesDeFamine;
+
+        return $this;
+    }
+
+    public function reinitialiserLaFamine(): static
+    {
+        $this->quinzainesDeFamine = 0;
+
+        return $this;
+    }
+
+    /**
+     * La ville n'a pas pu nourrir ses habitants trop longtemps : la partie se
+     * conclut en échec, conservée plutôt que supprimée — « chaque partie est
+     * une run complète » (doc 00), y compris quand elle finit mal.
+     */
+    public function echouer(): static
+    {
+        $this->statut = StatutDePartie::Echouee;
+
+        return $this;
     }
 
     /**

@@ -33,14 +33,19 @@ final readonly class DotationRoyale
     private const int ARGILE = 30;
 
     /**
-     * De quoi tenir jusqu'à la première moisson.
+     * De quoi nourrir la famille fondatrice pendant un an complet — le cadeau
+     * du pharaon couvre la première année de vivres, pas seulement le temps
+     * d'attendre la première moisson : sans lui, une partie qui tarderait à
+     * bâtir son Grenier ou à établir ses champs tomberait en famine avant
+     * d'en avoir eu la chance. Le Quartier d'habitation, lui, n'existe pas
+     * encore à l'arrivée : seule la population de base compte ici
+     * (`Population::HABITANTS_DE_BASE`).
      *
-     * Valeur inventée, mais la dotation ne peut pas s'en passer : une expédition
-     * se paie en partie en vivres (doc 04), et les champs ne donnent rien avant
-     * Chémou. Sans ce grain de départ, le joueur ne pourrait pas envoyer son
-     * premier éclaireur — donc jamais trouver la terre où semer.
+     * Couvre aussi, comme avant, la marge nécessaire au premier éclaireur : à
+     * ce niveau de population, une année de vivres dépasse largement les
+     * quelques vivres qu'exige une expédition (doc 04).
      */
-    private const int PROVISIONS = 40;
+    private const int PROVISIONS = Population::HABITANTS_DE_BASE * Population::RATION_PAR_HABITANT * DateDeJeu::CYCLES_PAR_ANNEE;
 
     private function __construct(
         public int $or,
