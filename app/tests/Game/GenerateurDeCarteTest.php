@@ -143,6 +143,31 @@ final class GenerateurDeCarteTest extends TestCase
         }
     }
 
+    /**
+     * Le Nil a priorité sur la Méditerranée : quand une région porte les deux,
+     * la ville doit border le fleuve, pas seulement « de l'eau » en général.
+     */
+    public function testLaVilleBordeLeNilEnPrioriteSurLaMediterranee(): void
+    {
+        for ($graine = 1; $graine <= 20; ++$graine) {
+            $ville = new City('Avaris', 0, 4);
+            $this->generer($ville, new GeographieDeRegion(nil: true, mediterranee: true), $graine);
+
+            $centre = $ville->zoneDeLaVille();
+            self::assertInstanceOf(Zone::class, $centre);
+
+            $bordeLeNil = false;
+            foreach ($ville->getZones() as $zone) {
+                if (TypeDeTerrain::Nil === $zone->getTerrain() && $zone->estAdjacenteA($centre)) {
+                    $bordeLeNil = true;
+                    break;
+                }
+            }
+
+            self::assertTrue($bordeLeNil, \sprintf('Ville pas au bord du Nil, graine %d.', $graine));
+        }
+    }
+
     public function testTouteCarteACompteExactementUneVille(): void
     {
         $ville = new City('Avaris', 0, 4);
@@ -216,6 +241,71 @@ final class GenerateurDeCarteTest extends TestCase
                     $zone->getTerrain()->accepteUnChamp(),
                     \sprintf('Champ éligible sur un terrain qui le refuse : %s.', $zone->getTerrain()->value),
                 );
+            }
+        }
+    }
+
+    /**
+     * Une case qui aurait pu porter un champ mais n'en tire pas un doit rester
+     * identifiable comme telle (« terre fertile, non cultivable ») plutôt que
+     * de se fondre dans le « rien » générique du désert ou de la mer.
+     */
+    public function testUneTerreFertileSansChampEstMarqueeNonCultivable(): void
+    {
+        $trouvee = false;
+
+        for ($graine = 1; $graine <= 30 && !$trouvee; ++$graine) {
+            $ville = new City('Avaris', 0, 5);
+            $this->generer($ville, new GeographieDeRegion(nil: true, ressourcesDeZone: [Ressource::Argile]), $graine);
+
+            foreach ($ville->getZones() as $zone) {
+                if (ContenuDeZone::TerreNonCultivable === $zone->getContenu()) {
+                    self::assertTrue($zone->getTerrain()->accepteUnChamp());
+                    $trouvee = true;
+                    break;
+                }
+            }
+        }
+
+        self::assertTrue($trouvee, 'Aucune terre non cultivable rencontrée en 30 graines.');
+    }
+
+    /**
+     * Un matériau non alimentaire garanti près de la ville (anneau des 8
+     * cases) ne s'y trouve qu'en un seul exemplaire : sur une carte assez
+     * grande pour laisser le choix, rien ne doit forcer un doublon local
+     * (décision de la joueuse — « éviter d'avoir directement tout »).
+     */
+    public function testLAnneauProcheNePorteJamaisDeuxFoisLeMemeMateriauSurUneGrandeCarte(): void
+    {
+        $region = new GeographieDeRegion(
+            nil: true,
+            mediterranee: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::Calcaire],
+        );
+
+        for ($graine = 1; $graine <= 30; ++$graine) {
+            $ville = new City('Thèbes', 0, 8);
+            $this->generer($ville, $region, $graine);
+
+            $centre = $ville->zoneDeLaVille();
+            self::assertInstanceOf(Zone::class, $centre);
+
+            $vus = [];
+            foreach ($ville->getZones() as $zone) {
+                if ($zone->porteLaVille() || !$zone->estAdjacenteA($centre)) {
+                    continue;
+                }
+
+                foreach ($zone->getGisements() as $gisement) {
+                    if ($gisement->getRessource()->estNourriture()) {
+                        continue;
+                    }
+
+                    $valeur = $gisement->getRessource()->value;
+                    self::assertArrayNotHasKey($valeur, $vus, \sprintf('%s en double près de la ville, graine %d.', $valeur, $graine));
+                    $vus[$valeur] = true;
+                }
             }
         }
     }

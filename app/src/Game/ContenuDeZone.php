@@ -16,6 +16,7 @@ enum ContenuDeZone: string
     case Rien = 'rien';
     case Ressource = 'ressource';
     case ChampEligible = 'champ_eligible';
+    case TerreNonCultivable = 'terre_non_cultivable';
     case Evenement = 'evenement';
 
     public function libelle(): string
@@ -24,6 +25,7 @@ enum ContenuDeZone: string
             self::Rien => 'Rien de notable',
             self::Ressource => 'Gisement',
             self::ChampEligible => 'Terre cultivable',
+            self::TerreNonCultivable => 'Terre fertile, mais non cultivable',
             self::Evenement => 'Quelque chose s\'y trame',
         };
     }
