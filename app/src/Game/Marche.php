@@ -19,9 +19,28 @@ use Doctrine\ORM\EntityManagerInterface;
  *
  * C'est aussi ce qui donne enfin un sens à l'exploitation d'un gisement au-delà
  * de la construction : un filon de calcaire devient un revenu.
+ *
+ * Le Marché est enfin la **seule source de renommée** aujourd'hui branchée :
+ * le doc 13 accorde +1 pour un « gros contrat commercial conclu », et sans lui
+ * la renommée resterait à zéro pour toujours — ce qui rendrait inertes le prix
+ * d'un appel d'habitants et la migration spontanée, tous deux indexés dessus.
  */
 final readonly class Marche
 {
+    /**
+     * À partir de combien de deben une vente est un « gros contrat » au sens du
+     * doc 13, qui accorde alors +1 de renommée. **Valeur inventée** : le
+     * document nomme le fait, jamais le seuil.
+     *
+     * Calibrée sur l'économie du Delta, où une vente courante rapporte une
+     * poignée de deben : il faut accumuler puis écouler un vrai lot, pas
+     * revendre trois roseaux. Les cent points de renommée demandent donc une
+     * centaine de gros contrats — c'est l'affaire d'une partie entière, ce qui
+     * est le propos du doc 13 : la renommée est un héritage, pas un compteur
+     * qu'on remplit en une saison.
+     */
+    public const int RECETTE_DUN_GROS_CONTRAT = 40;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -58,6 +77,10 @@ final readonly class Marche
 
         $recette = $prix * $quantite;
         $ville->crediterRessources([Ressource::Deben->value => $recette]);
+
+        if ($recette >= self::RECETTE_DUN_GROS_CONTRAT) {
+            $partie->getFamille()->ajusterRenommee(1);
+        }
 
         $this->entityManager->flush();
 

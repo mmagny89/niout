@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Game;
 
+use Random\Randomizer;
+
 /**
  * Les règles de peuplement d'une ville (doc 01, doc 02).
  *
@@ -61,14 +63,44 @@ final readonly class Population
     public const int CHANCE_ACTIF_DEVIENT_ANCIEN = 3;
 
     /**
-     * La mort frappe surtout les anciens. **Personne ne naît** : la ville ne se
-     * repeuple pas d'elle-même, il faut aller chercher des habitants. C'est ce
-     * qui fait du logement et de la renommée un sujet permanent plutôt qu'une
-     * case à cocher une fois.
+     * Chance qu'un actif donne un enfant dans l'année. **Valeur inventée**,
+     * calibrée pour que les naissances compensent à peu près les décès : une
+     * ville bien tenue se maintient seule, mais ne grandit qu'en faisant venir
+     * du monde. C'est ce qui garde au logement et à la renommée un intérêt
+     * permanent, sans condamner pour autant une ville qu'on laisse tranquille.
+     *
+     * **Aucune naissance quand les maisons sont pleines** : la ville ne
+     * déborde jamais de son logement. Simplification assumée — elle rend le
+     * plafond du Quartier lisible plutôt que théorique.
+     */
+    public const int CHANCE_NAISSANCE_PAR_ACTIF = 10;
+
+    /**
+     * La mort frappe surtout les anciens.
      */
     public const int CHANCE_DECES_ANCIEN = 15;
     public const int CHANCE_DECES_ACTIF = 2;
     public const int CHANCE_DECES_ENFANT = 3;
+
+    /**
+     * Une maisonnée qui s'installe : deux bras et une charge variable — de
+     * personne à six bouches de plus. C'est le même profil qu'un candidat
+     * amène (doc 03), et la même variance : à prix égal, on ne sait pas
+     * d'avance si l'on gagne des travailleurs ou des dépendants.
+     *
+     * Le hasard est passé plutôt que tenu, pour que chaque appelant tire avec
+     * le sien — c'est ce qui rend une année de démographie reproductible sous
+     * graine, tirages de migration compris.
+     *
+     * @return array{actifs: int, inactifs: int}
+     */
+    public static function maisonneeQuiArrive(Randomizer $hasard): array
+    {
+        return [
+            'actifs' => GenerateurDeCandidat::ACTIFS_AMENES,
+            'inactifs' => $hasard->getInt(0, GenerateurDeCandidat::INACTIFS_AMENES_MAX),
+        ];
+    }
 
     /**
      * Vivier de main-d'œuvre de la région : `20 - 1,5 × difficulté` (doc 02),
