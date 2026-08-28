@@ -37,14 +37,30 @@
                         <dt class="text-encre-500">Vivres</dt>
                         <dd class="text-encre-900">{{ partie.ville.nourriture }}</dd>
                     </div>
-                    {# Un adulte est un bras et une ration ; un enfant, une
-                       demi-ration qui deviendra un bras à douze ans. Le détail
-                       explique pourquoi deux villes de même population ne
-                       coûtent pas la même chose. #}
+                    {# Un actif est un bras et une ration ; un inactif — enfant
+                       ou ancien — une demi-ration. Le détail explique pourquoi
+                       deux villes de même population ne coûtent pas la même
+                       chose. #}
                     <div class="flex items-baseline gap-1.5"
-                         title="{{ partie.ville.brasDisponibles }} adulte(s), {{ partie.ville.population - partie.ville.brasDisponibles }} enfant(s) — consomme {{ partie.ville.consommationDeNourriture }} vivre(s) par quinzaine">
+                         title="{{ partie.ville.actifs }} actif(s), {{ partie.ville.inactifs }} inactif(s) — consomme {{ partie.ville.consommationDeNourriture }} vivre(s) par quinzaine">
                         <dt class="text-encre-500">Habitants</dt>
                         <dd class="text-encre-900">{{ partie.ville.population }}</dd>
+                    </div>
+                    <div class="flex items-baseline gap-1.5" title="Les bras que la ville peut mettre au travail">
+                        <dt class="text-encre-500">Actifs</dt>
+                        <dd class="text-encre-900">{{ partie.ville.actifs }}</dd>
+                    </div>
+                    {# Le diagnostic du logement : tant qu'il reste des places,
+                       la ville peut accueillir ; à zéro, il faut bâtir avant
+                       d'espérer un habitant de plus. #}
+                    <div class="flex items-baseline gap-1.5"
+                         title="{{ partie.ville.manqueDeLogements
+                             ? 'Plus une place : montez le Quartier d\'habitation pour faire venir du monde'
+                             : 'Maisonnées que la ville peut encore loger' }}">
+                        <dt class="text-encre-500">Logements</dt>
+                        <dd class="{{ partie.ville.manqueDeLogements ? 'text-terre-600' : 'text-encre-900' }}">
+                            {{ partie.ville.foyersOccupes }}/{{ partie.ville.capaciteEnFoyers }}
+                        </dd>
                     </div>
                 </dl>
             </div>

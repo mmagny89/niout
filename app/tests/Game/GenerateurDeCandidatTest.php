@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Game;
 
 use App\Game\GenerateurDeCandidat;
-use App\Game\GenerateurDeFoyer;
-use App\Game\Population;
 use App\Game\SpecialiteDeChef;
 use App\Game\TraitDeCandidat;
 use App\Game\TypeDeBatiment;
@@ -179,17 +177,18 @@ final class GenerateurDeCandidatTest extends TestCase
         self::assertCount(2, $tailles, 'Les deux tailles d\'offre doivent apparaître.');
     }
 
-    public function testChaqueCandidatAmeneUnFoyerCredible(): void
+    public function testChaqueCandidatAmeneUneMaisonneeCredible(): void
     {
-        foreach ($this->candidats() as $candidat) {
-            self::assertSame(Population::ADULTES_PAR_FOYER, $candidat->adultes);
-            self::assertGreaterThanOrEqual(2, $candidat->personnesDuFoyer());
-            self::assertLessThanOrEqual(8, $candidat->personnesDuFoyer());
+        $tailles = [];
 
-            foreach ($candidat->agesDesEnfantsEnAnnees() as $age) {
-                self::assertLessThan(Population::AGE_ADULTE_EN_ANNEES, $age);
-            }
+        foreach ($this->candidats() as $candidat) {
+            self::assertSame(GenerateurDeCandidat::ACTIFS_AMENES, $candidat->actifsAmenes);
+            self::assertGreaterThanOrEqual(2, $candidat->personnesAmenees());
+            self::assertLessThanOrEqual(8, $candidat->personnesAmenees());
+            $tailles[$candidat->personnesAmenees()] = true;
         }
+
+        self::assertCount(7, $tailles, 'Toutes les tailles de deux à huit doivent sortir.');
     }
 
     /**
@@ -212,16 +211,8 @@ final class GenerateurDeCandidatTest extends TestCase
         return $candidats;
     }
 
-    /**
-     * Deux graines distinctes pour les deux tirages : les partager ferait
-     * avancer les deux flux de concert et lierait la taille du foyer à la
-     * compétence, alors qu'elles n'ont rien à voir.
-     */
     private function generateur(int $graine = 2026): GenerateurDeCandidat
     {
-        return new GenerateurDeCandidat(
-            new GenerateurDeFoyer(new Randomizer(new Mt19937($graine * 7 + 1))),
-            new Randomizer(new Mt19937($graine)),
-        );
+        return new GenerateurDeCandidat(new Randomizer(new Mt19937($graine)));
     }
 }

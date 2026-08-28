@@ -8,6 +8,7 @@ use App\Entity\Building;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Enum\StatutDePartie;
+use App\Game\DateDeJeu;
 use App\Game\LanceurDePartie;
 use App\Game\PassageDeCycle;
 use App\Game\Population;
@@ -77,28 +78,23 @@ final class SubsistanceTest extends KernelTestCase
     }
 
     /**
-     * La ville ne compte à l'arrivée que sa famille fondatrice : entre deux et
-     * huit personnes, dont deux adultes. Ce qu'elle mange se déduit de sa
-     * composition — une ration par adulte, une demi par enfant — et jamais
-     * d'une formule tirée d'un bâtiment.
+     * La ville s'ouvre avec les volontaires que le pharaon a appelés, et ce
+     * qu'elle mange se déduit d'eux : une ration par actif, une demi par
+     * inactif — jamais d'une formule tirée d'un bâtiment.
      */
-    public function testAlArriveeSeuleLaFamilleFondatriceMange(): void
+    public function testAlArriveeLaVilleCompteLesVolontairesDuPharaon(): void
     {
         self::bootKernel();
         $partie = $this->lancerPartie('base@example.com');
         $ville = $partie->getVille();
 
-        self::assertCount(1, $ville->getFoyers(), 'Une ville neuve n\'héberge que la famille du joueur.');
-        self::assertGreaterThanOrEqual(2, $ville->population());
-        self::assertLessThanOrEqual(8, $ville->population());
-        self::assertSame(2, $ville->brasDisponibles(), 'Les deux adultes du foyer, et personne d\'autre.');
+        self::assertSame(Population::ACTIFS_AU_DEPART, $ville->getActifs());
+        self::assertSame(10, $ville->population());
+        self::assertSame(6, $ville->getInactifs(), 'Cinq enfants et un ancien.');
 
-        $foyer = $ville->getFoyers()->first();
-        self::assertNotFalse($foyer);
-        self::assertSame(
-            Population::vivresPourDemiRations($foyer->demiRations()),
-            $ville->consommationDeNourriture(),
-        );
+        // Quatre actifs à deux demi-rations, six inactifs à une : quatorze,
+        // soit sept vivres.
+        self::assertSame(7, $ville->consommationDeNourriture());
     }
 
     /**
@@ -112,13 +108,59 @@ final class SubsistanceTest extends KernelTestCase
         $ville = $partie->getVille();
         $populationAvant = $ville->population();
 
-        self::assertSame(1, $ville->capaciteEnFamilles(), 'La Résidence familiale loge la seule famille fondatrice.');
+        // Dix habitants tiennent en deux maisonnées, alors que la Résidence
+        // familiale n'en loge qu'une : la ville manque déjà de logements.
+        self::assertSame(2, $ville->foyersOccupes());
+        self::assertSame(1, $ville->capaciteEnFoyers());
+        self::assertTrue($ville->manqueDeLogements());
 
-        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::QuartierDHabitation, niveau: 2));
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::QuartierDHabitation, niveau: 1));
 
         self::assertSame($populationAvant, $ville->population(), 'Bâtir n\'a fait naître personne.');
-        self::assertSame(41, $ville->capaciteEnFamilles(), 'Deux niveaux de Quartier, plus la Résidence.');
-        self::assertTrue($ville->peutAccueillirUnFoyer());
+        self::assertSame(21, $ville->capaciteEnFoyers(), 'Un niveau de Quartier, plus la Résidence.');
+        self::assertFalse($ville->manqueDeLogements());
+        self::assertSame(19, $ville->foyersLibres());
+    }
+
+    /**
+     * Le bilan démographique ne tombe qu'au changement d'année — jamais au
+     * premier cycle d'une partie, où la ville vient d'arriver.
+     */
+    public function testLeBilanDemographiqueNeTombePasDesLaPremiereQuinzaine(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('bilan@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Ble->value => 10000]);
+        $avant = $ville->population();
+
+        $this->cycle()->passer($partie);
+
+        self::assertSame($avant, $ville->population(), 'Personne ne vieillit ni ne meurt en quinze jours.');
+    }
+
+    /**
+     * Une année entière écoulée, en revanche, laisse des traces : la ville ne
+     * compte plus tout à fait les mêmes gens.
+     */
+    public function testUneAnneeEcouleeChangeLaPopulation(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('annee@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Ble->value => 10000]);
+
+        $evenements = [];
+        for ($i = 0; $i < DateDeJeu::CYCLES_PAR_ANNEE; ++$i) {
+            $evenements = [...$evenements, ...$this->cycle()->passer($partie)];
+        }
+
+        self::assertSame(2, $partie->dateDeJeu()->annee, 'Une année complète a bien passé.');
+        // La population reste plausible : personne ne naît, donc elle ne peut
+        // que décroître, mais pas s'effondrer en un an.
+        self::assertLessThanOrEqual(10, $ville->population());
+        self::assertGreaterThanOrEqual(6, $ville->population());
+        self::assertSame($ville->getActifs() + $ville->getInactifs(), $ville->population());
     }
 
     private function lancerPartie(string $email): GameSave

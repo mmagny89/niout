@@ -179,25 +179,32 @@ mise à part. Toute règle qui rendrait le Marché inatteignable fige la partie 
 c'est ce que vérifie
 `DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`.
 
-**La population est un effectif réel, jamais une formule.** La ville héberge
-des `Foyer` — deux adultes et zéro à six enfants (doc 02, calibrage de la
-joueuse) — et sa population est la somme de leurs personnes. Le Quartier
-d'habitation ne peuple pas : il **plafonne** (`20 × niveau` familles, doc 01),
-et le vivier régional `Population::famillesDisponibles()` borne l'autre bout.
+**La population se compte en trois nombres, jamais en individus** (décision de
+la joueuse) : `City::$actifs`, `$enfants`, `$anciens`. Aucun habitant n'est
+suivi un par un — ce qui compte est de savoir combien de bras la ville a et
+combien de bouches. Le Quartier d'habitation ne peuple pas : il **plafonne**
+(`20 × niveau` maisonnées, doc 01), et `City::manqueDeLogements()` dit au
+joueur quand bâtir avant d'espérer un habitant de plus.
 
 Trois règles à ne pas défaire :
 
-- **Tous les adultes travaillent, sans distinction de sexe.** Ce n'est pas une
-  simplification : les Égyptiennes filaient, tissaient, moulaient, brassaient,
-  moissonnaient, et exerçaient des métiers attestés.
-- **Les enfants portent un âge, jamais une catégorie**, et vieillissent au
-  rythme réel (adulte à douze ans, soit ~300 quinzaines). C'est ce qui rend la
-  croissance observable en campagne pour les aînés — un drapeau enfant/adulte
-  la rendrait invisible.
-- **La consommation se compte en demi-rations** (`Foyer::demiRations()`) — deux
-  par adulte, une par enfant — et ne se convertit en vivres qu'une fois, à
-  l'échelle de la ville (`Population::vivresPourDemiRations()`). Jamais de 0,5
-  en circulation, jamais d'arrondi foyer par foyer.
+- **Le bilan démographique tombe une fois l'an**, pas à chaque quinzaine, et
+  c'est `PassageDeCycle` qui en décide le moment — au changement d'année, avec
+  la crue. Laisser `Demographie` vérifier la date lui-même le ferait tomber dès
+  le premier cycle d'une partie, où la ville vient d'arriver.
+- **Chaque personne est tirée séparément** plutôt qu'un pourcentage appliqué à
+  un total (`Demographie::tirer()`) : c'est ce qui permet de rester en entiers
+  sans traîner de reliquat — un taux de 3 % sur douze actifs ne donnerait
+  sinon jamais rien.
+- **Personne ne naît.** La ville ne se repeuple pas d'elle-même ; c'est au
+  joueur d'aller chercher des habitants. Mesuré sur vingt ans, la population
+  passe de 10 à 7 pendant que les actifs montent de 4 à 6 : une pression
+  lente, pas un effondrement. À resurveiller si des décès s'ajoutent.
+
+**La consommation se compte en demi-rations** — deux par actif, une par
+inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
+(`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais
+d'arrondi groupe par groupe.
 
 **Un champ ne nourrit qu'à sa récolte** (`EtapeDeChamp::Recolte`), jamais
 pendant le semis, la pousse ou le repos. Un champ du Nil suit la saison
