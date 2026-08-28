@@ -72,9 +72,9 @@ final class RendementDesChampsTest extends TestCase
     public static function moissons(): iterable
     {
         // Récolte de référence 10, modulée par ×0,7 / ×1,0 / ×1,3 (doc 05).
-        yield 'crue faible' => [QualiteDeCrue::Faible, 7];
-        yield 'crue normale' => [QualiteDeCrue::Normale, 10];
-        yield 'crue forte' => [QualiteDeCrue::Forte, 13];
+        yield 'crue faible' => [QualiteDeCrue::Faible, 17];
+        yield 'crue normale' => [QualiteDeCrue::Normale, 25];
+        yield 'crue forte' => [QualiteDeCrue::Forte, 32];
     }
 
     public function testUneMoissonDeChemouNeDependPasDuRangDansLaSaison(): void

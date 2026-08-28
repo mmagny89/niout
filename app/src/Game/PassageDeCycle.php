@@ -22,6 +22,7 @@ final readonly class PassageDeCycle
         private Recoltes $recoltes,
         private Demographie $demographie,
         private Subsistance $subsistance,
+        private Salaires $salaires,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
     ) {
@@ -36,10 +37,17 @@ final readonly class PassageDeCycle
         // travaux, les trajets et les récoltes ont eu lieu pendant l'ancien.
         $saison = $partie->dateDeJeu()->saison;
 
+        // La paie d'abord : une équipe qu'on n'a pas pu payer ne travaille pas
+        // dans la quinzaine qu'elle ouvre. La calculer après la production
+        // reviendrait à faire travailler puis à ne pas payer, ce qui ne
+        // laisserait au joueur aucune décision à prendre.
+        $paie = $this->salaires->reglerLaQuinzaine($partie);
+
         $evenements = [
+            ...$paie->messages,
             ...$this->explorations->avancerDUnCycle($partie),
             ...$this->chantiers->avancerDUnCycle($partie, $saison),
-            ...$this->recoltes->avancerDUnCycle($partie),
+            ...$this->recoltes->avancerDUnCycle($partie, $paie),
             // Après la récolte, jamais avant : la ville mange ce que la
             // quinzaine vient d'apporter.
             ...$this->subsistance->avancerDUnCycle($partie),

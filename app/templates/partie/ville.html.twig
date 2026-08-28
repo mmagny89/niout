@@ -291,6 +291,14 @@
             {{ ville.foyersOccupes }} maisonnées sur {{ ville.capaciteEnFoyers }} logées.
             {{ brasDisponibles }} bras restent à placer dans les bâtiments.
         </p>
+        <p class="mt-2 text-sm {{ masseSalariale > ville.deben ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+            Masse salariale : <strong class="font-medium">{{ masseSalariale }} deben</strong> par quinzaine,
+            pour {{ ville.consommationDeNourriture }} vivres de rations.
+            {% if masseSalariale > ville.deben %}
+                Votre caisse ne suit plus : les équipes que vous ne pourrez pas
+                payer cesseront le travail.
+            {% endif %}
+        </p>
 
         <div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
             <p class="text-sm text-encre-600">

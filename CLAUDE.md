@@ -270,6 +270,16 @@ d'employés** (décision de la joueuse) : embaucher est un investissement, pas
 une taxe. Un chef pas encore en poste ne réclame rien, et les chefs sortent du
 vivier de bras — ils ne s'encadrent pas eux-mêmes.
 
+**Les salaires tombent à chaque quinzaine, avant la production** (`Salaires`,
+`Paie`). C'est la première charge récurrente en deben, et la principale — une
+quinzaine de salaires coûte plus qu'un Grenier. **L'unité de paiement est le
+bâtiment ou l'exploitation entière, jamais l'homme**, et une unité impayée
+**s'arrête** : elle rend donc moins qu'une unité vacante, qui tourne encore à
+moitié. C'est assumé — le joueur a intérêt à renvoyer qui il ne peut plus
+payer, ce qui lui donne une action à prendre plutôt qu'une spirale subie. La
+paie circule dans le cycle (`Recoltes::avancerDUnCycle()` la reçoit) parce que
+la recalculer après le débit donnerait un autre résultat.
+
 **Rien ne travaille sans personne, y compris sur le territoire** (lot 4.5) :
 un champ semé réclame un homme, un gisement deux, une pêcherie un. Chaque
 exploitation a un **bâtiment gouvernant** — Grenier pour les champs, Entrepôt
