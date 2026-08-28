@@ -233,32 +233,23 @@ final readonly class GenerateurDeCarte
      * La ville touche l'eau s'il y en a, sinon elle s'installe en terre
      * fertile. Jamais en plein désert, jamais isolée (doc 02).
      *
+     * Le Nil a priorité sur la Méditerranée et la mer Rouge quand la région
+     * en porte : c'est lui qui a fait naître les villes égyptiennes
+     * réelles, la crue et le limon avant tout le reste.
+     *
      * @param list<Zone> $grille
      */
     private function placerLaVille(array $grille, GeographieDeRegion $geographie): void
     {
-        $candidates = [];
+        $candidates = $geographie->nil
+            ? $this->candidatsAdjacentsAUneBerge($grille, static fn (TypeDeTerrain $t): bool => TypeDeTerrain::Nil === $t)
+            : [];
 
-        if ($geographie->aUnPointDEau()) {
-            $eaux = array_values(array_filter(
+        if ([] === $candidates && $geographie->aUnPointDEau()) {
+            $candidates = $this->candidatsAdjacentsAUneBerge(
                 $grille,
-                static fn (Zone $z): bool => $z->getTerrain()->estUnPointDEau(),
-            ));
-
-            foreach ($grille as $zone) {
-                // Toucher l'eau ne suffit pas : le doc 02 interdit aussi le
-                // plein désert, et une case de sable bordant le Nil en reste.
-                if ($zone->getTerrain()->estUnPointDEau() || TypeDeTerrain::Desert === $zone->getTerrain()) {
-                    continue;
-                }
-
-                foreach ($eaux as $eau) {
-                    if ($zone->estAdjacenteA($eau)) {
-                        $candidates[] = $zone;
-                        break;
-                    }
-                }
-            }
+                static fn (TypeDeTerrain $t): bool => $t->estUnPointDEau(),
+            );
         }
 
         if ([] === $candidates) {
@@ -289,6 +280,87 @@ final readonly class GenerateurDeCarte
     }
 
     /**
+     * Cases hors désert et hors eau, adjacentes à au moins une berge du type
+     * retenu par le prédicat — le cœur commun aux deux passes de
+     * `placerLaVille()`.
+     *
+     * @param list<Zone>                   $grille
+     * @param callable(TypeDeTerrain):bool $estUneBerge
+     *
+     * @return list<Zone>
+     */
+    private function candidatsAdjacentsAUneBerge(array $grille, callable $estUneBerge): array
+    {
+        $berges = array_values(array_filter(
+            $grille,
+            static fn (Zone $z): bool => $estUneBerge($z->getTerrain()),
+        ));
+
+        $candidats = [];
+
+        foreach ($grille as $zone) {
+            // Toucher l'eau ne suffit pas : le doc 02 interdit aussi le
+            // plein désert, et une case de sable bordant le Nil en reste.
+            if ($zone->getTerrain()->estUnPointDEau() || TypeDeTerrain::Desert === $zone->getTerrain()) {
+                continue;
+            }
+
+            foreach ($berges as $berge) {
+                if ($zone->estAdjacenteA($berge)) {
+                    $candidats[] = $zone;
+                    break;
+                }
+            }
+        }
+
+        return $candidats;
+    }
+
+    /**
+     * La case de la ville, une fois placée. Utile aux passes qui suivent
+     * `placerLaVille()` mais n'ont pas encore de `City` peuplée pour la
+     * retrouver — `City::ajouterZone()` n'a lieu qu'à la toute fin de
+     * `peupler()`.
+     *
+     * @param list<Zone> $grille
+     */
+    private function zoneDeLaVille(array $grille): ?Zone
+    {
+        foreach ($grille as $zone) {
+            if ($zone->porteLaVille()) {
+                return $zone;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Les 8 cases qui touchent la ville, orthogonales et diagonales — celles
+     * qu'on reconnaît gratuitement (`RoleDExploration::coutPourUneDistance()`)
+     * et qu'on privilégie donc pour les garanties de gisement : un seul
+     * exemplaire de chaque matériau y suffit, pas besoin d'aller l'y chercher
+     * plus loin (décision de la joueuse).
+     *
+     * @param list<Zone> $grille
+     *
+     * @return list<Zone>
+     */
+    private function anneauDeLaVille(array $grille): array
+    {
+        $ville = $this->zoneDeLaVille($grille);
+
+        if (null === $ville) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $grille,
+            static fn (Zone $z): bool => !$z->porteLaVille() && $z->estAdjacenteA($ville),
+        ));
+    }
+
+    /**
      * Tirage pondéré du contenu, case par case (doc 02).
      *
      * @param list<Zone> $grille
@@ -297,13 +369,34 @@ final readonly class GenerateurDeCarte
     {
         $poids = PoidsDeTirage::pourDifficulte($difficulte);
         $quantite = PoidsDeTirage::quantiteParGisement($difficulte);
+        $ville = $this->zoneDeLaVille($grille);
+        $anneau = $this->anneauDeLaVille($grille);
+
+        // Un seul exemplaire de chaque matériau non alimentaire dans
+        // l'anneau proche : sans ce plafond, le tirage aléatoire pourrait à
+        // lui seul poser calcaire, cuivre et turquoise sur les huit cases qui
+        // touchent la ville, qui n'aurait alors plus rien à explorer
+        // (décision de la joueuse — « éviter d'avoir directement tout »).
+        /** @var array<string, true> $materiauxDeLAnneau */
+        $materiauxDeLAnneau = [];
 
         foreach ($grille as $zone) {
             if ($zone->porteLaVille()) {
                 continue;
             }
 
-            $this->tirerLeContenu($zone, $geographie, $poids, $quantite);
+            $dansLAnneau = \in_array($zone, $anneau, true);
+            $distance = null === $ville ? 1 : $zone->distanceDepuis($ville);
+
+            $this->tirerLeContenu($zone, $geographie, $poids, $quantite, $distance, $dansLAnneau ? $materiauxDeLAnneau : null);
+
+            if ($dansLAnneau) {
+                foreach ($zone->getGisements() as $gisement) {
+                    if (!$gisement->getRessource()->estNourriture()) {
+                        $materiauxDeLAnneau[$gisement->getRessource()->value] = true;
+                    }
+                }
+            }
         }
 
         $this->garantirLesMinimums($grille, $geographie, $quantite);
@@ -354,17 +447,21 @@ final readonly class GenerateurDeCarte
      */
     private function garantirLesMinimums(array $grille, GeographieDeRegion $geographie, int $quantite): void
     {
-        // Les vitaux d'abord, et sur une berge : ils commandent la jouabilité,
+        // Les champs d'abord : une case cultivable garde sa vocation même si
+        // un gisement s'y ajoute ensuite (`Zone::poserUnGisement()` ne touche
+        // jamais un contenu déjà posé), alors que l'inverse est impossible —
+        // `garantirDesChamps()` ne convertit qu'une case sans gisement. La
+        // faire passer en dernier pouvait donc, sur une petite carte, laisser
+        // les garanties de matériaux consommer les trois seules terres
+        // cultivables avant que celle des champs n'ait pu s'exécuter.
+        $this->garantirDesChamps($grille);
+
+        // Puis les vitaux, sur une berge : ils commandent la jouabilité,
         // regroupés sur le moins de cases possible pour laisser de la place au
         // reste — une petite carte ne peut pas se permettre de les disperser.
         foreach (self::MATERIAUX_DE_ZONE_HUMIDE as $materiau) {
             $this->garantirUnGisementRiverain($grille, $geographie, $materiau, $quantite);
         }
-
-        // Puis les champs, avant que les ressources de zone n'épuisent la
-        // terre disponible : sur le Delta, les trois se disputent les mêmes
-        // cases, et sans nourriture le Grenier ne sert à rien.
-        $this->garantirDesChamps($grille);
 
         // Au moins un gisement de chaque autre ressource de la région.
         foreach ($geographie->ressourcesDeZone as $materiau) {
@@ -379,30 +476,41 @@ final readonly class GenerateurDeCarte
     }
 
     /**
-     * Pose un gisement de ce matériau si la carte n'en porte aucun, sur une
-     * case de terre qui peut encore en accueillir un.
+     * Pose un gisement de ce matériau si la carte n'en porte aucun, en
+     * priorité dans l'anneau proche de la ville — un seul exemplaire y suffit
+     * (décision de la joueuse) — et seulement à défaut ailleurs sur la carte.
      *
      * @param list<Zone> $grille
      */
     private function garantirUnGisement(array $grille, Ressource $materiau, int $quantite): void
     {
+        $anneau = $this->anneauDeLaVille($grille);
         $candidates = [];
+        $candidatsAnneau = [];
 
         foreach ($grille as $zone) {
             if (null !== $zone->gisementDe($materiau)) {
                 return;
             }
 
-            if (!$zone->porteLaVille() && !$zone->getTerrain()->estUnPointDEau() && $zone->peutPorterUnGisementDePlus()) {
-                $candidates[] = $zone;
+            if ($zone->porteLaVille() || $zone->getTerrain()->estUnPointDEau() || !$zone->peutPorterUnGisementDePlus()) {
+                continue;
+            }
+
+            $candidates[] = $zone;
+
+            if (\in_array($zone, $anneau, true)) {
+                $candidatsAnneau[] = $zone;
             }
         }
 
-        if ([] === $candidates) {
+        $choix = [] !== $candidatsAnneau ? $candidatsAnneau : $candidates;
+
+        if ([] === $choix) {
             return;
         }
 
-        $candidates[$this->hasard->getInt(0, \count($candidates) - 1)]
+        $choix[$this->hasard->getInt(0, \count($choix) - 1)]
             ->poserUnGisement($materiau, $quantite);
     }
 
@@ -437,13 +545,17 @@ final readonly class GenerateurDeCarte
     }
 
     /**
-     * Des terres cultivables en nombre suffisant. On ne convertit que des cases
-     * vides : un gisement déjà tiré vaut mieux qu'un champ de plus.
+     * Des terres cultivables en nombre suffisant, en commençant par les cases
+     * les plus proches de la ville — plus logique et plus conforme à
+     * l'histoire qu'une terre dispersée n'importe où sur la carte (décision
+     * de la joueuse). On ne convertit que des cases vides ou déjà marquées
+     * non cultivables : un gisement déjà tiré vaut mieux qu'un champ de plus.
      *
      * @param list<Zone> $grille
      */
     private function garantirDesChamps(array $grille): void
     {
+        $ville = $this->zoneDeLaVille($grille);
         $vides = [];
         $champs = 0;
 
@@ -459,9 +571,12 @@ final readonly class GenerateurDeCarte
             }
         }
 
+        if (null !== $ville) {
+            usort($vides, static fn (Zone $a, Zone $b): int => $a->distanceDepuis($ville) <=> $b->distanceDepuis($ville));
+        }
+
         while ($champs < self::CHAMPS_MINIMUM && [] !== $vides) {
-            $rang = $this->hasard->getInt(0, \count($vides) - 1);
-            array_splice($vides, $rang, 1)[0]->poserUnContenu(ContenuDeZone::ChampEligible);
+            array_shift($vides)->poserUnContenu(ContenuDeZone::ChampEligible);
             ++$champs;
         }
     }
@@ -473,6 +588,14 @@ final readonly class GenerateurDeCarte
      *
      * Une case pouvant porter deux gisements, la berge choisie n'a pas à être
      * vierge : l'argile et les roseaux cohabitent volontiers sur un même marais.
+     * Priorité à l'anneau proche de la ville, pour la même raison que
+     * `garantirUnGisement()` : un seul exemplaire suffit, et il vaut mieux
+     * l'avoir sous la main qu'au bout de la carte — sauf si le tirage
+     * aléatoire en a déjà posé un exemplaire ailleurs dans l'anneau (hors
+     * berge) : ajouter la berge obligatoire au même endroit y créerait le
+     * doublon que l'anneau doit justement éviter. On la cherche alors hors de
+     * l'anneau en priorité, et on n'accepte le doublon que si aucune autre
+     * berge n'existe nulle part ailleurs sur la carte.
      *
      * @param list<Zone> $grille
      */
@@ -486,13 +609,25 @@ final readonly class GenerateurDeCarte
             return;
         }
 
-        // Deux listes : les berges qui portent déjà un gisement (une case en
-        // porte deux au plus) et les berges encore vierges. Consolider sur les
-        // premières avant d'entamer une case neuve — c'est ce qui permet à
+        $anneau = $this->anneauDeLaVille($grille);
+
+        $dejaDansLAnneau = false;
+        foreach ($anneau as $zone) {
+            if (null !== $zone->gisementDe($materiau)) {
+                $dejaDansLAnneau = true;
+                break;
+            }
+        }
+
+        // Quatre listes : berges déjà pourvues / vierges, chacune scindée
+        // entre l'anneau proche et le reste. Consolider sur les gisements
+        // existants avant d'entamer une case neuve — c'est ce qui permet à
         // l'argile et aux roseaux de tenir sur une seule case plutôt que deux,
         // et laisse de la place aux champs et au poisson sur une petite carte.
-        $avecGisement = [];
-        $vierges = [];
+        $avecGisementAnneau = [];
+        $avecGisementHorsAnneau = [];
+        $viergesAnneau = [];
+        $viergesHorsAnneau = [];
 
         foreach ($grille as $zone) {
             if ($zone->porteLaVille() || $zone->getTerrain()->estUnPointDEau() || !$this->estRiveraine($grille, $zone)) {
@@ -509,14 +644,26 @@ final readonly class GenerateurDeCarte
                 continue;
             }
 
+            $dansLAnneau = \in_array($zone, $anneau, true);
+
             if ($zone->porteUnGisement()) {
-                $avecGisement[] = $zone;
+                $dansLAnneau ? $avecGisementAnneau[] = $zone : $avecGisementHorsAnneau[] = $zone;
             } else {
-                $vierges[] = $zone;
+                $dansLAnneau ? $viergesAnneau[] = $zone : $viergesHorsAnneau[] = $zone;
             }
         }
 
-        $berges = [] !== $avecGisement ? $avecGisement : $vierges;
+        $ordreDePriorite = $dejaDansLAnneau
+            ? [$avecGisementHorsAnneau, $viergesHorsAnneau, $avecGisementAnneau, $viergesAnneau]
+            : [$avecGisementAnneau, $viergesAnneau, $avecGisementHorsAnneau, $viergesHorsAnneau];
+
+        $berges = [];
+        foreach ($ordreDePriorite as $liste) {
+            if ([] !== $liste) {
+                $berges = $liste;
+                break;
+            }
+        }
 
         if ([] === $berges) {
             return;
@@ -540,23 +687,53 @@ final readonly class GenerateurDeCarte
         return false;
     }
 
-    private function tirerLeContenu(Zone $zone, GeographieDeRegion $geographie, PoidsDeTirage $poids, int $quantite): void
-    {
+    /**
+     * @param ?array<string, true> $materiauxExclus matériaux non alimentaires
+     *                                              déjà posés dans l'anneau proche de la ville — null hors de l'anneau,
+     *                                              où rien n'est exclu
+     */
+    private function tirerLeContenu(
+        Zone $zone,
+        GeographieDeRegion $geographie,
+        PoidsDeTirage $poids,
+        int $quantite,
+        int $distanceDeLaVille,
+        ?array $materiauxExclus,
+    ): void {
         $terrain = $zone->getTerrain();
         $champPossible = $terrain->accepteUnChamp();
         $ressourcesPossibles = $terrain->estUnPointDEau()
             ? [Ressource::Poisson]
             : $geographie->ressourcesDeZone;
 
+        if (null !== $materiauxExclus) {
+            $ressourcesPossibles = array_values(array_filter(
+                $ressourcesPossibles,
+                static fn (Ressource $r): bool => !isset($materiauxExclus[$r->value]),
+            ));
+        }
+
+        // Plus la case est loin de la ville, moins elle a de chances de
+        // tirer un champ : les terres cultivables se resserrent autour de la
+        // ville plutôt que de se disperser sur toute la carte (décision de
+        // la joueuse), sans pour autant les en exclure — `garantirDesChamps()`
+        // complète au besoin. Le poids perdu rejoint « vide » et non
+        // « ressource » : l'éloignement rend une case moins arable, pas plus
+        // riche en gisements — sans ce transfert, le total du tirage
+        // rétrécit et gonfle mécaniquement la part de « ressource », au
+        // point de saturer de gisements les rares cases cultivables d'une
+        // petite carte et de ne plus rien laisser à `garantirDesChamps()`.
+        $poidsChamp = $champPossible ? max(1, intdiv($poids->champ, $distanceDeLaVille)) : 0;
+
         $options = [];
         if ([] !== $ressourcesPossibles) {
             $options['ressource'] = $poids->ressource;
         }
         if ($champPossible) {
-            $options['champ'] = $poids->champ;
+            $options['champ'] = $poidsChamp;
         }
         $options['evenement'] = $poids->evenement;
-        $options['vide'] = $poids->vide;
+        $options['vide'] = $poids->vide + ($champPossible ? $poids->champ - $poidsChamp : 0);
 
         match ($this->tirerParmi($options)) {
             'ressource' => $zone->poserUnGisement(
@@ -565,7 +742,12 @@ final readonly class GenerateurDeCarte
             ),
             'champ' => $zone->poserUnContenu(ContenuDeZone::ChampEligible),
             'evenement' => $zone->poserUnContenu(ContenuDeZone::Evenement),
-            default => $zone->poserUnContenu(ContenuDeZone::Rien),
+            // Une case qui aurait pu porter un champ mais n'en tire pas un
+            // reste identifiable comme telle plutôt que de se fondre dans le
+            // « rien » générique : c'est une terre fertile ou une berge du
+            // Nil, simplement pas cultivable (doc 02 — toutes les berges ne
+            // le sont pas).
+            default => $zone->poserUnContenu($champPossible ? ContenuDeZone::TerreNonCultivable : ContenuDeZone::Rien),
         };
     }
 
