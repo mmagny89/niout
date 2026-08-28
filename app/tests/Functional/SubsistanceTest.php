@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
+use App\Entity\Building;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Enum\StatutDePartie;
 use App\Game\LanceurDePartie;
 use App\Game\PassageDeCycle;
+use App\Game\Population;
 use App\Game\Ressource;
 use App\Game\Subsistance;
+use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -73,14 +76,49 @@ final class SubsistanceTest extends KernelTestCase
         self::assertSame(StatutDePartie::Echouee, $partie->getStatut());
     }
 
-    public function testUneQuinzaineSansHabitantsSupplementairesNeCoutePasPlusDeVivres(): void
+    /**
+     * La ville ne compte à l'arrivée que sa famille fondatrice : entre deux et
+     * huit personnes, dont deux adultes. Ce qu'elle mange se déduit de sa
+     * composition — une ration par adulte, une demi par enfant — et jamais
+     * d'une formule tirée d'un bâtiment.
+     */
+    public function testAlArriveeSeuleLaFamilleFondatriceMange(): void
     {
         self::bootKernel();
         $partie = $this->lancerPartie('base@example.com');
         $ville = $partie->getVille();
 
-        // Sans Quartier d'habitation, seule la famille fondatrice mange.
-        self::assertSame($ville->population() * 1, $ville->consommationDeNourriture());
+        self::assertCount(1, $ville->getFoyers(), 'Une ville neuve n\'héberge que la famille du joueur.');
+        self::assertGreaterThanOrEqual(2, $ville->population());
+        self::assertLessThanOrEqual(8, $ville->population());
+        self::assertSame(2, $ville->brasDisponibles(), 'Les deux adultes du foyer, et personne d\'autre.');
+
+        $foyer = $ville->getFoyers()->first();
+        self::assertNotFalse($foyer);
+        self::assertSame(
+            Population::vivresPourDemiRations($foyer->demiRations()),
+            $ville->consommationDeNourriture(),
+        );
+    }
+
+    /**
+     * Le Quartier d'habitation ne peuple pas la ville, il la plafonne : le
+     * monter n'ajoute pas un habitant, il fait de la place.
+     */
+    public function testLeQuartierDHabitationPlafonneSansPeupler(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('plafond@example.com');
+        $ville = $partie->getVille();
+        $populationAvant = $ville->population();
+
+        self::assertSame(1, $ville->capaciteEnFamilles(), 'La Résidence familiale loge la seule famille fondatrice.');
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::QuartierDHabitation, niveau: 2));
+
+        self::assertSame($populationAvant, $ville->population(), 'Bâtir n\'a fait naître personne.');
+        self::assertSame(41, $ville->capaciteEnFamilles(), 'Deux niveaux de Quartier, plus la Résidence.');
+        self::assertTrue($ville->peutAccueillirUnFoyer());
     }
 
     private function lancerPartie(string $email): GameSave

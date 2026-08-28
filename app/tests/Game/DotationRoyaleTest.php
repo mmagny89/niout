@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Game;
 
+use App\Game\DateDeJeu;
 use App\Game\DotationRoyale;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
@@ -14,10 +15,18 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(DotationRoyale::class)]
 final class DotationRoyaleTest extends TestCase
 {
+    /**
+     * Ce que mange une famille fondatrice moyenne — deux adultes et trois
+     * enfants, soit sept demi-rations arrondies à quatre vivres. La dotation
+     * s'y adosse depuis le lot 4.1 : le pharaon dote la famille qu'il envoie,
+     * pas une population théorique.
+     */
+    private const int CONSOMMATION_DE_REFERENCE = 4;
+
     #[DataProvider('dotationsAttendues')]
     public function testLaMonnaieSuitLaFormuleDuDocument(int $difficulte, int $debenAttendu): void
     {
-        $dotation = DotationRoyale::pour($difficulte);
+        $dotation = DotationRoyale::pour($difficulte, self::CONSOMMATION_DE_REFERENCE);
 
         self::assertSame($debenAttendu, $dotation->deben);
     }
@@ -37,8 +46,8 @@ final class DotationRoyaleTest extends TestCase
     {
         // Seule la monnaie suit la difficulté (doc 13) : les matériaux, eux, sont
         // calibrés sur les bâtiments d'ouverture, les mêmes partout.
-        $clemente = self::sansLaMonnaie(DotationRoyale::pour(0)->enRessources());
-        $rude = self::sansLaMonnaie(DotationRoyale::pour(9)->enRessources());
+        $clemente = self::sansLaMonnaie(DotationRoyale::pour(0, self::CONSOMMATION_DE_REFERENCE)->enRessources());
+        $rude = self::sansLaMonnaie(DotationRoyale::pour(9, self::CONSOMMATION_DE_REFERENCE)->enRessources());
 
         self::assertSame($clemente, $rude);
     }
@@ -51,7 +60,7 @@ final class DotationRoyaleTest extends TestCase
     #[DataProvider('batimentsDOuverture')]
     public function testLaDotationCouvreLesBatimentsDOuverture(TypeDeBatiment $type): void
     {
-        $recu = DotationRoyale::pour(0)->enRessources();
+        $recu = DotationRoyale::pour(0, self::CONSOMMATION_DE_REFERENCE)->enRessources();
         $cout = $type->coutDeBase()->pourNiveau(1);
 
         foreach ($cout->ressources() as $ressource) {
@@ -78,7 +87,7 @@ final class DotationRoyaleTest extends TestCase
      */
     public function testLaDotationDonneDesRoseauxEtDeLArgile(): void
     {
-        $recu = DotationRoyale::pour(0)->enRessources();
+        $recu = DotationRoyale::pour(0, self::CONSOMMATION_DE_REFERENCE)->enRessources();
 
         self::assertGreaterThan(0, $recu[Ressource::Roseaux->value] ?? 0);
         self::assertGreaterThan(0, $recu[Ressource::Argile->value] ?? 0);
@@ -90,9 +99,23 @@ final class DotationRoyaleTest extends TestCase
      */
     public function testLaDotationPermetDePartirEnReconnaissance(): void
     {
-        $recu = DotationRoyale::pour(0)->enRessources();
+        $recu = DotationRoyale::pour(0, self::CONSOMMATION_DE_REFERENCE)->enRessources();
 
         self::assertGreaterThan(0, $recu[Ressource::Ble->value]);
+    }
+
+    /**
+     * Le pharaon dote la famille qu'il envoie, pas une population théorique :
+     * une maisonnée qui mange le double part avec le double de grain.
+     */
+    public function testLesVivresSuiventLaFamilleEnvoyee(): void
+    {
+        $petite = DotationRoyale::pour(0, 2)->provisions;
+        $grande = DotationRoyale::pour(0, 4)->provisions;
+
+        self::assertSame(2 * $petite, $grande);
+        // Une année complète de rations, ni plus ni moins.
+        self::assertSame(4 * DateDeJeu::CYCLES_PAR_ANNEE, $grande);
     }
 
     /**

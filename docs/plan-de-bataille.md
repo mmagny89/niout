@@ -550,7 +550,7 @@ distincts, la dotation en deben d'un côté et l'or extrait de l'autre
 (`VilleTest::testLaBarreDeJeuCompteEnDebenEtRangeLOrParmiLesMateriaux()`), et
 un autre que l'or se vend désormais au Marché comme n'importe quel métal.
 
-#### 4.1 — Foyers, âges et bras disponibles
+#### 4.1 — Foyers, âges et bras disponibles  ✅
 
 Le lot 3.7 a posé la population sans consulter les documents ; la conversation
 qui ouvre cette phase l'a révisée deux fois. Le modèle retenu :
@@ -602,6 +602,31 @@ la question se reposera au mode Aventure (Phase 11), qui traverse des règnes.
 Ce lot **remplace** `Game/Population.php` tel qu'écrit au lot 3.7, dont la
 formule (`5 + 10 × niveau de Quartier`) était fausse sur les trois plans à la
 fois : mauvaise source, mauvaise unité, mauvais sens.
+
+##### Livré
+
+`Foyer` porte deux adultes comptés et une liste d'**âges d'enfants en
+quinzaines** — l'unité dans laquelle le temps avance, pour n'avoir aucun reste
+à traîner d'un cycle à l'autre. Les adultes, eux, ne sont pas datés : rien
+dans cette phase ne dépend de leur âge, ni vieillissement ni mortalité, et une
+date de naissance n'aurait produit que de la donnée morte.
+
+Deux choix d'implémentation qui découlent de règles du projet :
+
+- **La consommation se compte en demi-rations**, converties une seule fois à
+  l'échelle de la ville et arrondies au supérieur. Arrondir foyer par foyer
+  ferait manger un enfant isolé gratuitement ; arrondir vers le bas ferait
+  nourrir une partie des habitants pour rien. C'est l'application directe de
+  la règle « aucune valeur de jeu ne se compare en flottants ».
+- **La dotation royale s'adosse à la famille envoyée** : `DotationRoyale::pour()`
+  prend désormais la consommation du foyer fondateur et verse une année
+  complète de ses rations. Le pharaon ne dote pas une population moyenne mais
+  celle qu'il expédie — un couple avec six enfants part avec plus de grain.
+
+La migration installe une famille fondatrice dans chaque ville existante :
+**deux adultes sans enfant**, composition fixe et non tirée au sort, parce
+qu'une migration doit produire le même résultat à chaque exécution et qu'on
+n'invente pas rétroactivement des enfants à une famille déjà installée.
 
 #### 4.2 — Le candidat : compétence, traits, spécialité
 

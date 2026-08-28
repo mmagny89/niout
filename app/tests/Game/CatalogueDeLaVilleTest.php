@@ -124,7 +124,7 @@ final class CatalogueDeLaVilleTest extends TestCase
      */
     private function villeDotee(): City
     {
-        return (new City('Avaris', 0, 3))->crediterRessources(DotationRoyale::pour(0)->enRessources());
+        return (new City('Avaris', 0, 3))->crediterRessources(DotationRoyale::pour(0, 4)->enRessources());
     }
 
     /**

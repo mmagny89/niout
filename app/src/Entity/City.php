@@ -79,6 +79,15 @@ class City
     #[ORM\OneToMany(targetEntity: Chantier::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $chantiers;
 
+    /**
+     * Les maisonnées installées. La ville n'en compte qu'une à l'arrivée — la
+     * famille fondatrice —, les autres s'y ajoutant au fil des embauches.
+     *
+     * @var Collection<int, Foyer>
+     */
+    #[ORM\OneToMany(targetEntity: Foyer::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $foyers;
+
     public function __construct(string $nom, int $difficulte, int $tailleGrille)
     {
         $this->nom = $nom;
@@ -89,6 +98,7 @@ class City
         $this->stock = new ArrayCollection();
         $this->batiments = new ArrayCollection();
         $this->chantiers = new ArrayCollection();
+        $this->foyers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -166,17 +176,92 @@ class City
     }
 
     /**
-     * Combien d'habitants la ville porte, et ce qu'ils mangent par quinzaine
-     * (`Population`, amorce de la Phase 4).
+     * @return Collection<int, Foyer>
+     */
+    public function getFoyers(): Collection
+    {
+        return $this->foyers;
+    }
+
+    public function ajouterFoyer(Foyer $foyer): static
+    {
+        if (!$this->foyers->contains($foyer)) {
+            $this->foyers->add($foyer);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Le nombre d'habitants : la somme des personnes de tous les foyers, jamais
+     * une formule dérivée d'un bâtiment.
      */
     public function population(): int
     {
-        return Population::pour($this);
+        $personnes = 0;
+
+        foreach ($this->foyers as $foyer) {
+            $personnes += $foyer->personnes();
+        }
+
+        return $personnes;
     }
 
+    /**
+     * Les bras que la ville peut mettre au travail — tous ses adultes. Rien
+     * n'en consomme encore : les postes arrivent avec les chefs et les
+     * exploitations (lots 4.4 et 4.5).
+     */
+    public function brasDisponibles(): int
+    {
+        $bras = 0;
+
+        foreach ($this->foyers as $foyer) {
+            $bras += $foyer->getAdultes();
+        }
+
+        return $bras;
+    }
+
+    /**
+     * Ce que la ville mange par quinzaine : une ration par adulte, une
+     * demi-ration par enfant. Le total se calcule en demi-rations et ne se
+     * convertit qu'ici, une seule fois — voir `Population`.
+     */
     public function consommationDeNourriture(): int
     {
-        return Population::consommationParQuinzaine($this);
+        $demiRations = 0;
+
+        foreach ($this->foyers as $foyer) {
+            $demiRations += $foyer->demiRations();
+        }
+
+        return Population::vivresPourDemiRations($demiRations);
+    }
+
+    /**
+     * Combien de familles la ville peut héberger : celles du Quartier
+     * d'habitation (`20 × niveau`, doc 01), plus la famille fondatrice que la
+     * Résidence familiale loge d'emblée.
+     */
+    public function capaciteEnFamilles(): int
+    {
+        $quartier = $this->batimentDeType(TypeDeBatiment::QuartierDHabitation);
+
+        return 1 + Population::FAMILLES_PAR_NIVEAU_DE_QUARTIER * (null === $quartier ? 0 : $quartier->getNiveau());
+    }
+
+    /**
+     * Reste-t-il de la place pour une famille de plus ? Le vivier régional
+     * (`Population::famillesDisponibles()`) borne l'autre extrémité : on ne
+     * peut loger que des familles qui existent.
+     */
+    public function peutAccueillirUnFoyer(): bool
+    {
+        return $this->foyers->count() < min(
+            $this->capaciteEnFamilles(),
+            Population::famillesDisponibles($this->difficulte),
+        );
     }
 
     /**

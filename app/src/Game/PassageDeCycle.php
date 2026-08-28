@@ -20,6 +20,7 @@ final readonly class PassageDeCycle
         private Chantiers $chantiers,
         private Explorations $explorations,
         private Recoltes $recoltes,
+        private Foyers $foyers,
         private Subsistance $subsistance,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
@@ -39,6 +40,10 @@ final readonly class PassageDeCycle
             ...$this->explorations->avancerDUnCycle($partie),
             ...$this->chantiers->avancerDUnCycle($partie, $saison),
             ...$this->recoltes->avancerDUnCycle($partie),
+            // Les enfants vieillissent avant qu'on ne compte les bouches : un
+            // enfant qui atteint douze ans dans cette quinzaine mange dès
+            // celle-ci une ration entière.
+            ...$this->foyers->avancerDUnCycle($partie),
             // Après la récolte, jamais avant : la ville mange ce que la
             // quinzaine vient d'apporter.
             ...$this->subsistance->avancerDUnCycle($partie),

@@ -32,6 +32,7 @@ final readonly class LanceurDePartie
         private MissionCatalogue $missions,
         private GameSaveRepository $parties,
         private GenerateurDeCarte $carte,
+        private GenerateurDeFoyer $foyers,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
     ) {
@@ -86,7 +87,13 @@ final readonly class LanceurDePartie
         // pas de sens, et l'engendrer plus tard laisserait un état à moitié
         // initialisé.
         $this->carte->peupler($ville, $geographie);
-        $dotation = DotationRoyale::pour($ville->getDifficulte());
+
+        // La famille fondatrice s'installe avant la dotation : c'est elle qui
+        // en fixe les vivres, le pharaon envoyant une année de rations pour
+        // le foyer qu'il expédie, pas pour un foyer moyen.
+        $ville->ajouterFoyer($this->foyers->pour($ville));
+
+        $dotation = DotationRoyale::pour($ville->getDifficulte(), $ville->consommationDeNourriture());
         $ville->crediterRessources($dotation->enRessources());
 
         // La crue de la première année est déjà jouée quand le joueur arrive :
