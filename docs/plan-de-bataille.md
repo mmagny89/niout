@@ -486,11 +486,12 @@ fin de cette phase, tout cela réclame des bras — et ces bras ont une famille 
 nourrir et un salaire à toucher.
 
 À la fin de la phase, on doit pouvoir raconter : *« je poste une offre pour
-diriger mon Grenier, trois candidats se présentent, je prends le plus
-compétent malgré son salaire. Il s'installe avec les siens à la quinzaine
-suivante et embauche ses ouvriers parmi les familles de la région. Ma ville
-compte désormais soixante-quinze bouches à nourrir et une masse salariale en
-deben à verser chaque quinzaine. »*
+diriger mon Grenier. Trois candidats se présentent : je prends le moins
+compétent des trois, parce qu'il arrive avec deux grands enfants qui seront en
+âge de travailler dans l'année. Il s'installe avec les siens à la quinzaine
+suivante et va chercher ses ouvriers parmi les adultes de la ville. Ma ville
+compte désormais quarante habitants, vingt-huit bouches à nourrir et une masse
+salariale en deben à verser chaque quinzaine. »*
 
 **Deux principes structurent la phase.** Le premier vient du doc 03 :
 **chiffré en interne, qualitatif à l'affichage** — le moteur manipule des
@@ -532,29 +533,54 @@ monnaie. La confusion se défait :
 que le lot 3.1 a généralisé le stock en table `ressource → quantité` — la
 leçon sur les mots réservés reste bonne, son exemple est périmé.
 
-#### 4.1 — Foyers et personnes : la population devient réelle
+#### 4.1 — Foyers, âges et bras disponibles
 
-Le lot 3.7 a posé la population sans consulter les documents, et la
-conversation qui ouvre cette phase l'a révisée une seconde fois. Le modèle
-retenu :
+Le lot 3.7 a posé la population sans consulter les documents ; la conversation
+qui ouvre cette phase l'a révisée deux fois. Le modèle retenu :
 
-- **On recrute des foyers, pas des individus** (décision de la joueuse). Le
-  doc 02 compte un vivier en familles (`nbFamillesDisponibles`), le doc 01
-  chiffre la capacité du Quartier en familles : embaucher, c'est installer une
-  maisonnée — un salaire versé, plusieurs bouches à nourrir
-- **Une famille compte de 2 à 8 personnes**, tirées au hasard, moyenne 5.
-  L'ordre de grandeur vient des listes de maisonnées des papyrus de Kahun et
-  du village de Deir el-Médineh : un couple, deux à quatre enfants survivants,
-  parfois un aïeul. La variance est une vraie donnée de jeu — à salaire égal,
-  un foyer de 8 coûte quatre fois plus cher à nourrir qu'un foyer de 2
-- **La population affichée est un nombre de personnes**, somme des tailles de
-  tous les foyers résidents. **Chaque personne mange 1 vivre par quinzaine** :
-  la ville consomme exactement sa population, le joueur n'a aucun calcul à
-  faire
-- **Le Quartier d'habitation redevient un plafond**, exprimé en **familles**
-  (`20 × niveau`, doc 01), et non plus une source d'habitants. Il se combine au
+- **La ville héberge des familles**, pas des employés isolés. Le doc 02 compte
+  un vivier en familles (`nbFamillesDisponibles`), le doc 01 chiffre la
+  capacité du Quartier en familles
+- **Une famille compte de 2 à 8 personnes**, moyenne 5 — l'ordre de grandeur
+  des listes de maisonnées des papyrus de Kahun et du village de Deir
+  el-Médineh. Sa composition : **deux adultes et de zéro à six enfants**
+- **Chaque personne porte un âge**, et vieillit avec les quinzaines. Un enfant
+  devient adulte à l'âge réel de travailler, autour de douze ans
+- **Tous les adultes travaillent, sans distinction de sexe.** Ce n'est pas une
+  simplification mais la position historiquement juste : les Égyptiennes
+  filaient et tissaient — le textile était massivement féminin, dans les
+  ateliers des temples comme à la maison —, moulaient le grain, brassaient,
+  participaient aux gros travaux agricoles, et exerçaient des métiers attestés
+  (chanteuse d'Amon, musicienne, sage-femme, nourrice, « supérieure des
+  tisserandes »). Elles pouvaient posséder, hériter, contracter et divorcer,
+  autonomie inhabituelle pour l'époque
+- **Un enfant mange une demi-ration**, un adulte une ration pleine (décision
+  de la joueuse) : une famille moyenne pèse donc ~3,5 vivres par quinzaine et
+  fournit ~2 bras
+- **Le Quartier d'habitation est un plafond** exprimé en familles
+  (`20 × niveau`, doc 01), jamais une source d'habitants. Il se combine au
   vivier régional `nbFamillesDisponibles = 20 - 1,5 × difficulté` (doc 02)
-- La famille fondatrice est un foyer comme les autres, tiré comme les autres
+
+##### Les âges sont réels — et c'est jouable, à une condition
+
+Décision de la joueuse : **pas de compression du temps**, un enfant met une
+douzaine d'années à devenir adulte, soit ~300 quinzaines. J'avais présenté ce
+choix comme condamnant le mécanisme à l'invisibilité en campagne. C'est faux
+**si l'on stocke un âge et non un simple drapeau enfant/adulte** :
+
+- une famille qui arrive avec un enfant de onze ans donne un bras dans
+  ~25 quinzaines — une année de jeu, parfaitement observable en campagne ;
+- une famille de nourrissons est un investissement à très long terme, qui ne
+  paiera qu'en mode Aventure, joué sur plusieurs règnes.
+
+L'âge devient donc un **critère de choix à l'embauche** au même titre que la
+compétence : un chef accompagné de grands enfants vaut mieux qu'un chef à la
+nichée en bas âge. C'est ce qui rend le réalisme jouable ici — mais il faut
+des âges, pas des catégories.
+
+**Hors périmètre** : le vieillissement des adultes, la mortalité et les
+naissances. Douze ans de jeu ne suffisent pas à faire mourir qui que ce soit ;
+la question se reposera au mode Aventure (Phase 11), qui traverse des règnes.
 
 Ce lot **remplace** `Game/Population.php` tel qu'écrit au lot 3.7, dont la
 formule (`5 + 10 × niveau de Quartier`) était fausse sur les trois plans à la
@@ -587,11 +613,18 @@ de l'état. Les valeurs viennent du doc 03.
 
 #### 4.3 — L'offre d'emploi : poster, choisir, renvoyer
 
+**Seuls les chefs se recrutent par offre** (décision de la joueuse, conforme
+au doc 05 : « les chefs recrutent des travailleurs disponibles »). Les
+ouvriers, eux, se puisent dans le vivier d'adultes déjà installés — le joueur
+n'embauche pas ses manœuvres un par un.
+
 - Poster une offre selon le poste recherché — **action libre**, elle ne
   consomme pas de quinzaine (doc 05)
 - **2 à 3 candidats** générés, comparés côte à côte
 - Le choix fait, le poste est **pourvu à la quinzaine suivante** (doc 05 :
-  « durée d'un recrutement une fois le candidat choisi : 1 cycle »)
+  « durée d'un recrutement une fois le candidat choisi : 1 cycle »), et **le
+  chef s'installe avec sa famille** — dont les autres adultes rejoignent le
+  vivier de main-d'œuvre
 - Renvoyer ou remplacer à tout moment
 - Traits « Pieux » et « Bagarreur » posés dès maintenant mais **sans effet**
   tant que la faveur divine (Phase 6) et le combat (Phase 10) n'existent pas —
@@ -606,10 +639,13 @@ Les deux formules du doc 01, appliquées à tous les bâtiments :
 - **`travailleursParChef(niveau) = travailleursBase + arrondiInférieur((niveau - 1) / 3)`**,
   où `travailleursBase` est propre au bâtiment — déjà en place dans le code
   (`TypeDeBatiment::travailleursDeBase()`), posé en Phase 2 et inutilisé depuis
-- Les chefs **recrutent eux-mêmes leurs travailleurs au passage d'une
-  quinzaine** (doc 05), dans la limite du vivier régional et de la capacité du
-  Quartier — le joueur voit une jauge « X / Y travailleurs » par chef, il ne
-  recrute pas les ouvriers un par un
+- Les chefs **puisent leurs travailleurs dans le vivier d'adultes résidents**
+  au passage d'une quinzaine (doc 05) — le joueur voit une jauge
+  « X / Y travailleurs » par chef, il ne recrute pas les ouvriers un par un
+- **Le Port descend à 1 travailleur de base** (décision de la joueuse), contre
+  3 au doc 01 : un chef et un homme suffisent à tenir un quai. C'est la
+  correction du point faible signalé au plan précédent, où l'équipage du Port
+  mangeait tout ce que la pêche rapportait
 
 ##### La règle du demi-rendement, valable partout
 
@@ -640,10 +676,11 @@ Correction d'une invraisemblance que la Phase 3 avait laissée passer : une
 carrière s'exploitait et un champ se moissonnait sans que personne n'y
 travaille. Désormais :
 
-| Exploitation | Travailleurs requis |
-|---|---|
-| Un gisement en extraction | **2** |
-| Un champ semé | **1** |
+| Exploitation | Travailleurs de base | Bâtiment qui la gouverne |
+|---|---|---|
+| Un champ semé | **1** | Grenier |
+| Un gisement en extraction | **2** | Entrepôt |
+| Une pêcherie | **1** — un homme, un bateau | Port |
 
 La règle du demi-rendement du lot 4.4 s'y applique telle quelle : un gisement
 sans personne rend la moitié — la famille s'en occupe elle-même — et le plein
@@ -654,12 +691,24 @@ Jusqu'ici l'extraction ne dépendait d'aucun bâtiment et rapportait autant à
 une ville déserte qu'à une ville pourvue : la moitié de l'économie échappait
 au système d'emploi. Elle y entre.
 
-**Second temps, à enchaîner dans le même lot ou juste après** (piste de la
-joueuse) : **le niveau du Grenier et de l'Entrepôt augmente le nombre
-d'ouvriers affectables** aux champs et aux gisements, et donc la production.
-Cela donne enfin un effet concret à deux bâtiments dont les niveaux ne servent
-à rien aujourd'hui, et referme la boucle : bâtir plus haut → employer plus →
-produire plus → pouvoir employer davantage.
+##### Une règle uniforme : le bâtiment gouverne son exploitation
+
+Piste de la joueuse, généralisée aux trois cas : **le niveau du bâtiment
+augmente à la fois l'équipage affectable et le rendement** de l'exploitation
+qu'il gouverne — le Grenier pour les champs, l'Entrepôt pour les gisements, le
+Port pour les pêcheries.
+
+Trois bénéfices d'un coup, pour une seule règle :
+
+- elle donne enfin un **effet concret aux niveaux** de trois bâtiments qui n'en
+  ont aucun aujourd'hui ;
+- elle referme la boucle du jeu — bâtir plus haut → employer plus → produire
+  plus → pouvoir employer davantage ;
+- elle règle le cas du Port sans traitement particulier : monter le Port fait
+  pêcher davantage et arme plus de bateaux.
+
+À écrire dans le même lot que les équipages de base, dont elle n'est que la
+progression.
 
 #### 4.6 — Le coût d'employer : salaires et vivres
 
@@ -690,65 +739,81 @@ qu'une carrière sans ouvriers reste grattée par la famille — et ça donne au
 joueur une action claire à prendre plutôt qu'une spirale subie. Si l'effet
 paraît pervers à l'usage, le levier est de ramener l'impayé à moitié lui aussi.
 
+##### La masse salariale
+
+Notion que le jeu doit porter explicitement (demande de la joueuse) : ce que
+la ville doit verser à chaque quinzaine, **calculé à partir de la composition
+réelle des foyers** et non d'un forfait. Elle bouge toute seule, sans que le
+joueur ait rien fait — un enfant qui atteint douze ans grossit le vivier, donc
+potentiellement l'emploi ; un départ naturel la fait chuter.
+
+Elle se lit à côté de son pendant alimentaire — population totale d'un côté,
+bouches nourries de l'autre — et ces deux chiffres sont les indicateurs de
+santé de la ville.
+
 ##### Calibrage de travail
 
 Première proposition cohérente, vérifiée à la main, à retoucher en playtest —
 au même titre que les valeurs des documents. Elle touche autant aux inventions
-du lot 3.5 qu'aux chiffres du doc 03.
+du lot 3.5 qu'aux chiffres des docs 01 et 03.
 
 | Valeur | Avant | Proposé | Pourquoi |
 |---|---|---|---|
-| Extraction d'un gisement, et pêche | 5 | **20** | Invention du lot 3.5. Doit désormais nourrir et payer les deux foyers qui l'exploitent |
-| Récolte d'un champ | 10 | **50** | Idem. Un champ du Nil ne donne que pendant Chémou : 50 par quinzaine de moisson vaut ~16 par quinzaine sur l'année |
+| Extraction d'un gisement | 5 | **20** (2 ouvriers) | Invention du lot 3.5. Dix unités par ouvrier, comme la pêche |
+| Pêche | 5 | **10** (1 ouvrier) | Même productivité par tête que la mine ; c'est l'équipage qui diffère, pas l'homme |
+| Récolte d'un champ | 10 | **25** | Un champ du Nil ne donne que pendant Chémou : ~8 par quinzaine ramené à l'année, pour un seul ouvrier |
+| Durée du cycle terrestre | semis 1 / pousse 3 / **récolte 1** / repos 2 | semis 1 / pousse 3 / **récolte 2** / repos 1 | Sans ça, un champ hors Nil rend ~3,6 par quinzaine — moins que ce que mange la famille qui le tient, donc jamais rentable |
+| Travailleurs de base du Port | 3 (doc 01) | **1** | Décision de la joueuse |
 | Salaire d'un chef | `5 + comp × 0,3` (11-35) | **`2 + comp × 0,12`** (4-14 deben) | Écart assumé au doc 03. L'écart entre un mauvais et un excellent chef reste d'environ ×3 : seule l'échelle change, l'arbitrage demeure |
 | Salaire d'un travailleur | — | **1 deben** | Valeur à inventer |
-| Ration | 1 par foyer | **1 par personne** | Lecture immédiate : la ville consomme sa population |
-| Prix de l'or au Marché | — (monnaie) | **le plus élevé du jeu** | L'or redevient une marchandise (lot 4.0) |
+| Ration | 1 par foyer | **1 par adulte, ½ par enfant** | Décision de la joueuse |
 
 ##### Ce que ce calibrage donne, vérifié à la main
 
-Ville d'exemple, Delta, difficulté 0 : Grenier et Marché de niveau 1 pourvus,
-deux gisements et une pêcherie en activité, trois champs du Nil semés.
+Ville d'exemple, Delta, difficulté 0 : Grenier, Marché et Port de niveau 1
+pourvus ; trois champs du Nil semés, deux gisements et une pêcherie en
+activité.
 
-| Poste | Foyers | Personnes |
-|---|---|---|
-| Famille fondatrice | 1 | 5 |
-| Champs (1 ouvrier chacun) | 3 | 15 |
-| Pêcherie (2 ouvriers) | 2 | 10 |
-| Gisements (2 ouvriers chacun) | 4 | 20 |
-| Grenier : 1 chef + 1 ouvrier | 2 | 10 |
-| Marché : 1 chef + 2 ouvriers | 3 | 15 |
-| **Total** | **15** | **75** |
+| Poste | Emplois |
+|---|---|
+| Chefs (Grenier, Marché, Port) | 3 |
+| Ouvriers des bâtiments (1 + 2 + 1) | 4 |
+| Ouvriers du territoire (3 champs, 2 gisements × 2, 1 pêcherie) | 8 |
+| **Total** | **15 emplois** |
 
-- **Vivres** : besoin 75 par quinzaine ; production 3 champs (~48 en moyenne
-  annuelle) + pêcherie (20) = **68**. Léger déficit, comblé par un quatrième
-  champ ou une seconde pêcherie — la pression est réelle sans être étouffante
-- **Deben** : 2 gisements × 20 unités × ~1,7 = **~68 par quinzaine**, contre
-  une masse salariale de 2 chefs (~18) et 13 travailleurs (13) = **~31**.
-  Reste ~37 pour construire
-- **Vivier** : 15 foyers sur les 20 disponibles au Delta, et sur les 20 que
-  permet un Quartier de niveau 1 — la marge se referme vite, ce qui pousse à
-  monter le Quartier
+Quinze emplois réclament quinze adultes, soit **huit familles** résidentes à
+deux adultes en moyenne — dont celles des trois chefs. Ces huit familles
+comptent ~40 personnes : 16 adultes et 24 enfants.
 
-Et l'embauche redevient un choix qui se défend :
+- **Bouches** : 16 adultes + 24 demi-rations = **28 vivres par quinzaine**
+- **Vivres produits** : 3 champs du Nil (~24 en moyenne annuelle) + pêcherie
+  (10) = **34**. Surplus de 6, vendable ou mis en réserve pour la croissance —
+  la marge est mince sans être étouffante
+- **Deben** : 2 gisements × 20 unités × ~1,7 = **~68 par quinzaine**, plus le
+  surplus alimentaire vendu
+- **Masse salariale** : 3 chefs (~9 en moyenne) + 12 ouvriers = **~39 deben**.
+  Reste ~30 pour construire
+- **Vivier** : 8 familles sur les 20 disponibles au Delta — la marge existe,
+  mais chaque nouvel emploi appelle une famille de plus, et le Quartier
+  finira par contraindre
+
+Et l'embauche d'un chef reste un choix qui se défend :
 
 | Chef | Ce qu'il rapporte | Ce qu'il coûte |
 |---|---|---|
-| **Marché** | Double les prix de vente : **+34 deben** | ~11 deben, 15 bouches |
-| **Grenier** | Double la moisson conservée : **+24 vivres** | ~10 deben, 10 bouches |
-| **Port** | Double la pêche : **+20 vivres** | ~12 deben, 20 bouches |
+| **Marché** | Double les prix de vente : **+34 deben** | ~9 deben, ~3,5 bouches |
+| **Grenier** | Double la moisson conservée : **+12 vivres** | ~9 deben, ~3,5 bouches |
+| **Port** | Double la pêche : **+5 vivres** | ~9 deben, ~3,5 bouches |
 
-**Le Port reste le point faible** : ses trois travailleurs de base en font
-l'équipage le plus nombreux du jeu, et leurs foyers mangent tout ce que la
-pêche supplémentaire rapporte. À surveiller au premier playtest — les leviers
-seraient d'abaisser son `travailleursBase`, ou de faire porter le gain par la
-spécialité « Pêcheur » du lot 4.8 plutôt que par le seul effectif.
+Le Port reste le plus modeste des trois, mais il n'est plus déficitaire : son
+équipage ramené à un homme et sa pêcherie à un bateau lui rendent une marge,
+et son niveau ouvrira d'autres bateaux (lot 4.5).
 
 **Un déplacement d'équilibre à assumer** : avec ce calibrage, la masse
 salariale dépasse largement le coût des bâtiments (un Grenier coûte 15 deben,
-une quinzaine de salaires en coûte 31). Le poste de dépense principal du jeu
-cesse d'être la construction pour devenir l'emploi — ce qui est cohérent avec
-la phase, et historiquement défendable, mais mérite d'être vu plutôt que subi.
+une quinzaine de salaires en coûte 39). Le poste de dépense principal du jeu
+cesse d'être la construction pour devenir l'emploi — cohérent avec la phase,
+et historiquement défendable, mais mérite d'être vu plutôt que subi.
 
 #### 4.7 — Départ naturel, mécontentement et famine à deux paliers
 
@@ -805,11 +870,13 @@ phase. L'interface doit l'annoncer clairement.
 | Question | Décision | Lot |
 |---|---|---|
 | Quelle monnaie ? | Le **deben**, unité de compte pondérale du Nouvel Empire ; l'or redevient un métal qu'on extrait et qu'on vend | 4.0 |
-| Que recrute-t-on ? | Un **foyer** entier, de 2 à 8 personnes — un salaire, plusieurs bouches | 4.1 |
-| Que mange une personne ? | **1 vivre par quinzaine** : la ville consomme sa population | 4.1 |
+| Que recrute-t-on ? | **Des chefs seulement**, par offre ; chacun s'installe avec sa famille. Les ouvriers se puisent dans le vivier d'adultes résidents | 4.1 / 4.3 |
+| De quoi une famille est-elle faite ? | **2 adultes et 0 à 6 enfants** (2 à 8 personnes, moyenne 5). Tous les adultes travaillent, **sans distinction de sexe** — les Égyptiennes travaillaient | 4.1 |
+| Les enfants grandissent-ils ? | **Oui, au rythme réel** — adulte vers douze ans. Il faut donc stocker un **âge**, pas une catégorie : un enfant de onze ans donne un bras dans l'année, un nourrisson n'en donnera qu'en mode Aventure | 4.1 |
+| Que mange une personne ? | **1 vivre** pour un adulte, **une demi-ration** pour un enfant | 4.1 |
 | Les PNJ ont-ils un nom ? | **Non pour l'instant** | 4.2 |
 | Un poste vacant fait-il tout cesser ? | **Non, tout tourne à moitié** — aucune impasse possible | 4.4 |
-| Champs et gisements ont-ils des salariés ? | **Oui** : 2 par gisement, 1 par champ | 4.5 |
+| Champs, gisements et pêcheries ont-ils des salariés ? | **Oui** : 1 par champ, 2 par gisement, 1 par pêcherie (un homme, un bateau). Le niveau du bâtiment qui les gouverne — Grenier, Entrepôt, Port — augmente équipage **et** rendement | 4.5 |
 | Les travailleurs coûtent-ils ? | **Oui**, bien moins qu'un chef | 4.6 |
 | Salaires impayés ? | Le poste **s'arrête**, puis mécontentement et départs | 4.6 |
 | Que donne le pharaon ? | Un an de vivres **et** un an de salaires | 4.6 |
@@ -919,9 +986,11 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Poisson | **Renouvelable** — la seule ressource du jeu qui ne s'épuise jamais, sans quoi un Port coûteux deviendrait un piège |
 | Monnaie | Le **deben**, unité de compte pondérale du Nouvel Empire — l'Égypte pharaonique n'a pas de monnaie frappée. L'**or** redevient un métal qu'on extrait et qu'on vend |
 | Population | **Un nombre de personnes**, somme des foyers résidents ; le Quartier d'habitation en est le **plafond**, exprimé en familles (`20 × niveau`), jamais la source |
-| Ce qu'on recrute | Un **foyer entier**, de 2 à 8 personnes (moyenne 5, d'après Kahun et Deir el-Médineh) : un salaire versé, plusieurs bouches à nourrir |
-| Ration alimentaire | **1 vivre par personne et par quinzaine** — la ville consomme exactement sa population |
-| Salariés du territoire | **2 par gisement, 1 par champ** : rien ne s'exploite tout seul |
+| Composition d'une famille | **2 adultes et 0 à 6 enfants** (2 à 8 personnes, moyenne 5, d'après Kahun et Deir el-Médineh). **Tous les adultes travaillent, sans distinction de sexe** : les Égyptiennes filaient, tissaient, brassaient, moissonnaient, et exerçaient des métiers attestés |
+| Âge et croissance | Chaque personne porte un **âge réel** et vieillit ; on devient adulte vers douze ans. Un âge, jamais une catégorie — c'est ce qui rend la croissance observable en campagne pour les grands enfants |
+| Ce qu'on recrute | **Des chefs seulement**, qui s'installent avec leur famille ; les ouvriers se puisent dans le vivier d'adultes déjà résidents |
+| Ration alimentaire | **1 vivre par adulte, une demi-ration par enfant**, par quinzaine |
+| Salariés du territoire | **1 par champ, 2 par gisement, 1 par pêcherie** : rien ne s'exploite tout seul. Le niveau du Grenier, de l'Entrepôt et du Port augmente équipage **et** rendement de l'exploitation qu'il gouverne |
 | Poste vacant | **Tout tourne au moins à moitié**, bâtiments comme exploitations — aucune impasse possible, et l'emploi devient un investissement plutôt qu'une taxe |
 | Salaires impayés | Le poste **s'arrête**, puis mécontentement et départs — même mécanisme que la famine |
 | Salaire des travailleurs | **Dû**, en forfait par tête, bien inférieur à celui d'un chef |
