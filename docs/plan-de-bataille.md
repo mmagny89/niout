@@ -765,7 +765,7 @@ La règle d'affichage du doc 03 — « chiffré en interne, qualitatif à l'affi
 — est **vérifiée par un test d'écran** qui cherche la compétence de chaque
 candidat dans le HTML rendu, plutôt que laissée à la discipline du gabarit.
 
-#### 4.4 — Chefs et travailleurs des bâtiments
+#### 4.4 — Chefs et travailleurs des bâtiments  ✅
 
 Les deux formules du doc 01, appliquées à tous les bâtiments :
 
@@ -804,6 +804,35 @@ chefs se module ensuite par-dessus (lot 4.8).
 **Conséquence structurante** : les employés cessent d'être une taxe
 obligatoire pour devenir un **investissement**. C'est ce qui rend la phase
 jouable.
+
+##### Livré
+
+Le doc 05 dit que **ce sont les chefs qui recrutent** leurs travailleurs. Cette
+phrase donne au demi-rendement sa définition exacte, que le doc 01 laissait
+dans le flou : un bâtiment sans chef ne *réclame* aucun travailleur, donc son
+effectif requis vaut zéro, donc il tourne au plancher. « Sans chef, la moitié »
+cesse d'être une règle à part pour devenir un cas de la formule générale.
+
+Trois conséquences qui en découlent et qu'il ne faut pas défaire :
+
+- **Un chef embauché n'a rien recruté tant qu'il n'a pas pris son poste.** Son
+  bâtiment ne réclame de bras qu'à partir de la quinzaine où il est en poste.
+- **Les chefs sont des actifs comme les autres** : ils sortent du vivier de
+  bras, puisqu'ils ne s'encadrent pas eux-mêmes.
+- **Le rendement se compte en centièmes**, jamais en flottants — il multiplie
+  des quantités de ressources à chaque quinzaine, où un demi perdu finirait
+  par se voir.
+
+**Où le rendement mord aujourd'hui** : sur ce que le Grenier conserve de la
+moisson — l'exemple donné par la joueuse elle-même. Les épis ont poussé ; c'est
+leur rentrée qui manque de bras. Les autres bâtiments affichent leur jauge mais
+n'ont encore aucune production à réduire : les gisements et les champs seront
+dotés au lot 4.5, la compétence des chefs modulera par-dessus au lot 4.8.
+
+**Manque assumé** : quand les bras viennent à manquer, les bâtiments sont
+servis dans l'ordre alphabétique — stable et explicable, mais arbitraire. Le
+joueur ne peut pas encore dire lequel servir en premier. À reprendre si le
+playtest montre que ça coûte des parties.
 
 #### 4.5 — Le territoire aussi a des salariés (décision de la joueuse)
 

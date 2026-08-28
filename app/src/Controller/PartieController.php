@@ -18,6 +18,7 @@ use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
 use App\Game\Culture;
 use App\Game\DateDeJeu;
+use App\Game\Effectifs;
 use App\Game\ExploitationImpossible;
 use App\Game\Exploitations;
 use App\Game\ExplorationImpossible;
@@ -139,6 +140,8 @@ final class PartieController extends AbstractController
             'palier' => $partie->getFamille()->palier(),
             'coutDUnAppel' => $appels->cout($partie),
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
+            'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
+            'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
         ]);
     }
 

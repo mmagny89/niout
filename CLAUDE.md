@@ -261,6 +261,15 @@ Cinq pièges déjà payés, à ne pas refaire :
   le néant — sinon « ressource » augmente artificiellement et peut saturer de
   gisements les rares cases cultivables d'une petite carte.
 
+**Ce sont les chefs qui recrutent** (`Effectifs`, doc 05). Un bâtiment sans
+chef ne réclame aucun travailleur, donc tourne au plancher : « sans chef, la
+moitié » n'est pas une règle à part, c'est un cas de la formule générale
+`0,5 + 0,5 × (réel / requis)`, comptée **en centièmes** parce qu'elle
+multiplie des ressources à chaque quinzaine. **Rien ne s'éteint faute
+d'employés** (décision de la joueuse) : embaucher est un investissement, pas
+une taxe. Un chef pas encore en poste ne réclame rien, et les chefs sortent du
+vivier de bras — ils ne s'encadrent pas eux-mêmes.
+
 **Une offre d'emploi est persistée, une candidature non** (`JobOffer`,
 `Candidat`). L'offre fige son tirage : sans cela, recharger la page relancerait
 les dés jusqu'au cinq étoiles, et le choix entre deux ou trois candidats — le
