@@ -32,21 +32,6 @@ final readonly class DotationRoyale
     private const int ROSEAUX = 35;
     private const int ARGILE = 30;
 
-    /**
-     * De quoi nourrir la famille fondatrice pendant un an complet — le cadeau
-     * du pharaon couvre la première année de vivres, pas seulement le temps
-     * d'attendre la première moisson : sans lui, une partie qui tarderait à
-     * bâtir son Grenier ou à établir ses champs tomberait en famine avant
-     * d'en avoir eu la chance. Le Quartier d'habitation, lui, n'existe pas
-     * encore à l'arrivée : seule la population de base compte ici
-     * (`Population::HABITANTS_DE_BASE`).
-     *
-     * Couvre aussi, comme avant, la marge nécessaire au premier éclaireur : à
-     * ce niveau de population, une année de vivres dépasse largement les
-     * quelques vivres qu'exige une expédition (doc 04).
-     */
-    private const int PROVISIONS = Population::HABITANTS_DE_BASE * Population::RATION_PAR_HABITANT * DateDeJeu::CYCLES_PAR_ANNEE;
-
     private function __construct(
         public int $deben,
         public int $provisions,
@@ -72,12 +57,22 @@ final readonly class DotationRoyale
     /**
      * Le pharaon envoie de quoi ouvrir la partie, les mêmes matériaux partout :
      * roseaux et argile, dont sont faits tous les bâtiments de départ.
+     *
+     * **Les vivres, eux, dépendent de la famille qu'il envoie** : une année
+     * complète de rations pour ce foyer-là, calculée sur sa consommation
+     * réelle. Le pharaon ne dote pas une population moyenne mais celle qu'il
+     * expédie — un couple avec six enfants part avec davantage de grain qu'un
+     * couple sans enfant. Sans cette année de vivres, une partie qui tarderait
+     * à bâtir son Grenier ou à établir ses champs tomberait en famine avant
+     * d'en avoir eu la chance.
+     *
+     * @param int $consommationParQuinzaine ce que mange la famille fondatrice
      */
-    public static function pour(int $difficulte): self
+    public static function pour(int $difficulte, int $consommationParQuinzaine): self
     {
         return new self(
             deben: self::DEBEN_DE_BASE + self::DEBEN_PAR_NIVEAU_DE_DIFFICULTE * $difficulte,
-            provisions: self::PROVISIONS,
+            provisions: $consommationParQuinzaine * DateDeJeu::CYCLES_PAR_ANNEE,
             materiaux: [
                 // Les deux matériaux de la brique crue et de sa toiture : ce
                 // dont tous les bâtiments d'ouverture sont faits (doc 01).

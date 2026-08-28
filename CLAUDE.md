@@ -179,6 +179,26 @@ mise à part. Toute règle qui rendrait le Marché inatteignable fige la partie 
 c'est ce que vérifie
 `DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`.
 
+**La population est un effectif réel, jamais une formule.** La ville héberge
+des `Foyer` — deux adultes et zéro à six enfants (doc 02, calibrage de la
+joueuse) — et sa population est la somme de leurs personnes. Le Quartier
+d'habitation ne peuple pas : il **plafonne** (`20 × niveau` familles, doc 01),
+et le vivier régional `Population::famillesDisponibles()` borne l'autre bout.
+
+Trois règles à ne pas défaire :
+
+- **Tous les adultes travaillent, sans distinction de sexe.** Ce n'est pas une
+  simplification : les Égyptiennes filaient, tissaient, moulaient, brassaient,
+  moissonnaient, et exerçaient des métiers attestés.
+- **Les enfants portent un âge, jamais une catégorie**, et vieillissent au
+  rythme réel (adulte à douze ans, soit ~300 quinzaines). C'est ce qui rend la
+  croissance observable en campagne pour les aînés — un drapeau enfant/adulte
+  la rendrait invisible.
+- **La consommation se compte en demi-rations** (`Foyer::demiRations()`) — deux
+  par adulte, une par enfant — et ne se convertit en vivres qu'une fois, à
+  l'échelle de la ville (`Population::vivresPourDemiRations()`). Jamais de 0,5
+  en circulation, jamais d'arrondi foyer par foyer.
+
 **Un champ ne nourrit qu'à sa récolte** (`EtapeDeChamp::Recolte`), jamais
 pendant le semis, la pousse ou le repos. Un champ du Nil suit la saison
 (`RendementDesChamps` — Akhèt et Perèt rendent 0, seul Chémou moissonne) ; un
