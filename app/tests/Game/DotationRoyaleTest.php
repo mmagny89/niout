@@ -6,7 +6,9 @@ namespace App\Tests\Game;
 
 use App\Game\DateDeJeu;
 use App\Game\DotationRoyale;
+use App\Game\Population;
 use App\Game\Ressource;
+use App\Game\Salaires;
 use App\Game\TypeDeBatiment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -36,10 +38,13 @@ final class DotationRoyaleTest extends TestCase
      */
     public static function dotationsAttendues(): iterable
     {
-        // 50 + 10 × difficulté (doc 13).
-        yield 'Delta, la plus clémente' => [0, 50];
-        yield 'difficulté moyenne' => [5, 100];
-        yield 'Sinaï, la plus rude' => [9, 140];
+        // 50 + 10 × difficulté (doc 13), plus l'année de salaires que le
+        // pharaon avance depuis le lot 4.6 — 4 bras × 1 deben × 25 quinzaines.
+        $salaires = Population::ACTIFS_AU_DEPART * Salaires::SALAIRE_DUN_TRAVAILLEUR * DateDeJeu::CYCLES_PAR_ANNEE;
+
+        yield 'Delta, la plus clémente' => [0, 50 + $salaires];
+        yield 'difficulté moyenne' => [5, 100 + $salaires];
+        yield 'Sinaï, la plus rude' => [9, 140 + $salaires];
     }
 
     public function testLesMateriauxNeDependentPasDeLaDifficulte(): void

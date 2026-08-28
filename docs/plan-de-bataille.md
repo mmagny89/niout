@@ -909,7 +909,7 @@ riche. Un test verrouille désormais l'invariant lui-même
 c'est le genre de règle qui se casse en silence quand un lot ultérieur ajoute
 un troisième multiplicateur.
 
-#### 4.6 — Le coût d'employer : salaires et vivres
+#### 4.6 — Le coût d'employer : salaires et vivres  ✅
 
 La première charge récurrente en deben du jeu, à côté de la nourriture.
 
@@ -1013,6 +1013,41 @@ salariale dépasse largement le coût des bâtiments (un Grenier coûte 15 deben
 une quinzaine de salaires en coûte 39). Le poste de dépense principal du jeu
 cesse d'être la construction pour devenir l'emploi — cohérent avec la phase,
 et historiquement défendable, mais mérite d'être vu plutôt que subi.
+
+##### Livré
+
+**Le calibrage a été re-mesuré sur la ville d'exemple ci-dessus** plutôt que
+repris de confiance, et il tombe juste : 15 emplois, ~34 vivres produits pour
+26 mangés, ~68 deben de revenus pour 39 de salaires. La marge est mince sans
+être étouffante, comme voulu.
+
+Trois choses tranchées en écrivant le lot :
+
+- **L'unité de paiement est le bâtiment ou l'exploitation entière**, jamais
+  l'homme : payer trois ouvriers sur quatre ne veut rien dire pour un joueur
+  qui raisonne en carrières et en chantiers. Une unité est payée ou elle
+  s'arrête.
+- **La paie tombe avant la production**, pas après. Payer en fin de quinzaine
+  reviendrait à faire travailler puis à ne pas payer, ce qui ne laisserait au
+  joueur aucune décision à prendre.
+- **La rareté régionale ne pèse pas sur la pêche.** Un banc de poisson n'est
+  pas un filon plus ou moins riche ; seul ce qu'on arrache au sol s'appauvrit
+  avec la région.
+
+**Le rendement propre d'un bâtiment retrouve un emploi.** Depuis que le lot 4.5
+avait retiré son double comptage sur le stockage, le personnel d'un bâtiment ne
+servait plus à rien — défaut réel, hérité du lot 4.4. Il module désormais le
+**bonus** que le bâtiment accorde à ses exploitations : un Grenier bien tenu
+fait mieux rendre ses champs. Moduler le bonus et non la base est délibéré —
+c'est la seule façon de faire compter ce personnel sans multiplier deux
+planchers de 50 %, ce que l'invariant interdit.
+
+**Une conséquence du calibrage qui mérite d'être vue** : la dotation royale
+avance une année de salaires *des bras que le pharaon envoie* (100 deben), pas
+d'un chef. Un chef à 8 deben coûte 200 par an à lui seul. Embaucher avant
+d'avoir un revenu de Marché mène donc à la faillite en une quinzaine de
+cycles — c'est la tension voulue, mais elle est raide et mérite un œil en
+playtest.
 
 #### 4.7 — Départ naturel, mécontentement et famine à deux paliers
 

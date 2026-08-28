@@ -33,6 +33,7 @@ use App\Game\RecrutementImpossible;
 use App\Game\Recrutements;
 use App\Game\Ressource;
 use App\Game\RoleDExploration;
+use App\Game\Salaires;
 use App\Game\SpecialiteDeChef;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
@@ -126,6 +127,7 @@ final class PartieController extends AbstractController
         Marche $marche,
         AppelDHabitants $appels,
         Recrutements $recrutements,
+        Salaires $salaires,
     ): Response {
         $ville = $partie->getVille();
 
@@ -142,6 +144,9 @@ final class PartieController extends AbstractController
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
             'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
             'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
+            // Les deux indicateurs de santé de la ville, côte à côte : les
+            // bouches et les bras.
+            'masseSalariale' => $salaires->masseSalariale($ville, $partie->getCycle()),
         ]);
     }
 

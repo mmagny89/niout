@@ -22,8 +22,8 @@ final readonly class CycleAgricoleTerrestre
 {
     private const int DUREE_SEMIS = 1;
     private const int DUREE_POUSSE = 3;
-    private const int DUREE_RECOLTE = 1;
-    private const int DUREE_REPOS = 2;
+    public const int DUREE_RECOLTE = 2;
+    private const int DUREE_REPOS = 1;
 
     public const int DUREE_TOTALE = self::DUREE_SEMIS + self::DUREE_POUSSE + self::DUREE_RECOLTE + self::DUREE_REPOS;
 

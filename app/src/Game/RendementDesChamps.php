@@ -29,7 +29,7 @@ final readonly class RendementDesChamps
      * est calibrée pour qu'une moisson de Chémou (8 quinzaines) nourrisse
      * confortablement quelques expéditions, sans rendre le Grenier superflu.
      */
-    public const int RECOLTE_DE_REFERENCE = 10;
+    public const int RECOLTE_DE_REFERENCE = 25;
 
     /**
      * @param ?int $rangDansLaSaison de 1 à 8 ; null pendant les jours épagomènes

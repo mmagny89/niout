@@ -11,6 +11,7 @@ use App\Entity\User;
 use App\Game\Candidat;
 use App\Game\ContenuDeZone;
 use App\Game\Culture;
+use App\Game\CycleAgricoleTerrestre;
 use App\Game\Effectifs;
 use App\Game\Exploitations;
 use App\Game\LanceurDePartie;
@@ -50,11 +51,11 @@ final class DemiRendementTest extends KernelTestCase
             'Rien ne s\'éteint faute d\'employés : un champ sans personne donne encore.',
         );
 
-        self::assertSame(
-            intdiv($avecBras, 2),
-            $sansBras,
-            'Sans bras, la moitié exactement de ce qu\'un champ tenu rapporte.',
-        );
+        // Pas une égalité stricte : le rendement s'applique quinzaine par
+        // quinzaine et s'arrondit vers le bas à chaque fois, ce qui peut
+        // coûter une unité par quinzaine de récolte.
+        self::assertGreaterThanOrEqual(intdiv($avecBras, 2) - CycleAgricoleTerrestre::DUREE_TOTALE, $sansBras);
+        self::assertLessThan($avecBras, $sansBras, 'Un champ sans bras rapporte moins qu\'un champ tenu.');
     }
 
     /**
@@ -74,9 +75,9 @@ final class DemiRendementTest extends KernelTestCase
         $avecBras = $this->recolterSurUnCycleComplet('plancher-avec@example.com', avecBras: true);
 
         self::assertGreaterThanOrEqual(
-            intdiv($avecBras, 2),
+            intdiv($avecBras, 2) - CycleAgricoleTerrestre::DUREE_TOTALE,
             $sansBras,
-            'La récolte d\'une ville déserte ne doit jamais tomber sous la moitié.',
+            'La récolte d\'une ville déserte ne doit jamais tomber sous la moitié, à l\'arrondi près.',
         );
     }
 
@@ -229,7 +230,7 @@ final class DemiRendementTest extends KernelTestCase
 
         $recolte = 0;
 
-        for ($i = 0; $i < \App\Game\CycleAgricoleTerrestre::DUREE_TOTALE; ++$i) {
+        for ($i = 0; $i < CycleAgricoleTerrestre::DUREE_TOTALE; ++$i) {
             $avant = $ville->quantite(Ressource::Ble);
             $consommation = $ville->consommationDeNourriture();
             static::getContainer()->get(PassageDeCycle::class)->passer($partie);
@@ -282,6 +283,12 @@ final class DemiRendementTest extends KernelTestCase
         $gestionnaire->persist($user);
         $gestionnaire->flush();
 
-        return static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
+        $partie = static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
+
+        // Ces tests mesurent l'effet des bras, pas celui de la bourse : une
+        // ville insolvable verrait ses équipes s'arrêter (lot 4.6).
+        $partie->getVille()->crediterRessources([Ressource::Deben->value => 100000]);
+
+        return $partie;
     }
 }

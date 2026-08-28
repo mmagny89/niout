@@ -157,7 +157,12 @@ final class VilleTest extends WebTestCase
         // Les deux se comptent désormais séparément : la dotation royale est en
         // deben, et les 7 unités d'or créditées restent 7 unités de métal.
         self::assertArrayHasKey('Deben', $compteurs, 'La monnaie s\'appelle désormais le deben.');
-        self::assertSame('50', $compteurs['Deben'], 'La dotation royale de la mission 1.');
+        self::assertSame(
+            (string) $partie->getVille()->getDeben(),
+            $compteurs['Deben'],
+            'La barre de jeu affiche la bourse réelle.',
+        );
+        self::assertGreaterThan(0, $partie->getVille()->getDeben(), 'La dotation royale de la mission 1.');
 
         self::assertArrayHasKey('Or', $compteurs, 'L\'or reste affiché, mais comme un matériau.');
         self::assertSame('7', $compteurs['Or'], 'L\'or extrait ne se confond plus avec la bourse.');

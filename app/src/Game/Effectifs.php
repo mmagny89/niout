@@ -230,10 +230,25 @@ final readonly class Effectifs
     /**
      * Ce que le niveau du bâtiment gouvernant ajoute au rendement, en
      * centièmes. Cent quand il n'est pas dressé : aucun bonus, aucun malus.
+     *
+     * `$rendementDuBatiment` module ce **bonus**, jamais la base — et c'est ce
+     * qui donne enfin un effet au personnel d'un bâtiment (lot 4.4), resté
+     * sans emploi depuis que le lot 4.5 a retiré son double comptage sur le
+     * stockage. Un Grenier bien tenu fait mieux rendre ses champs ; un Grenier
+     * désert les laisse à eux-mêmes.
+     *
+     * Moduler le bonus plutôt que la base est délibéré : c'est la seule façon
+     * de faire compter le personnel d'un bâtiment **sans** multiplier deux
+     * planchers de 50 %, ce qui ferait tomber la chaîne à 25 % — sous le
+     * « tout tourne au moins à moitié » que la règle promet.
      */
-    public static function bonusDeNiveauEnCentiemes(int $niveauGouvernant): int
-    {
-        return self::RENDEMENT_PLEIN + self::BONUS_PAR_NIVEAU_GOUVERNANT * max(0, $niveauGouvernant - 1);
+    public static function bonusDeNiveauEnCentiemes(
+        int $niveauGouvernant,
+        int $rendementDuBatiment = self::RENDEMENT_PLEIN,
+    ): int {
+        $bonus = self::BONUS_PAR_NIVEAU_GOUVERNANT * max(0, $niveauGouvernant - 1);
+
+        return self::RENDEMENT_PLEIN + intdiv($bonus * $rendementDuBatiment, self::RENDEMENT_PLEIN);
     }
 
     /**
@@ -258,8 +273,12 @@ final readonly class Effectifs
 
         $repartition = [];
 
+        $batiments = self::repartir($ville, $cycle);
+
         foreach (self::exploitations($ville) as $cle => $exploitation) {
+            $gouvernant = self::batimentGouvernant($exploitation['ressource']);
             $niveau = self::niveauDuGouvernant($ville, $exploitation['ressource']);
+            $rendementDuGouvernant = $batiments[$gouvernant->value]['rendement'] ?? self::RENDEMENT_PLEIN;
             $requis = self::equipageRequis($exploitation['ressource'], $niveau);
             $affectes = min($requis, max(0, $bras));
             $bras -= $affectes;
@@ -270,7 +289,8 @@ final readonly class Effectifs
                 'requis' => $requis,
                 'affectes' => $affectes,
                 'rendement' => intdiv(
-                    self::rendementEnCentiemes($affectes, $requis) * self::bonusDeNiveauEnCentiemes($niveau),
+                    self::rendementEnCentiemes($affectes, $requis)
+                        * self::bonusDeNiveauEnCentiemes($niveau, $rendementDuGouvernant),
                     self::RENDEMENT_PLEIN,
                 ),
             ];

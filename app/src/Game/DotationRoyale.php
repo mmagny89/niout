@@ -18,6 +18,24 @@ final readonly class DotationRoyale
     private const int DEBEN_PAR_NIVEAU_DE_DIFFICULTE = 10;
 
     /**
+     * **Le pharaon avance aussi une année de salaires** (décision de la
+     * joueuse), en plus de l'année de vivres : de quoi employer les bras qu'il
+     * envoie pendant vingt-cinq quinzaines. Il finance le démarrage, pas la
+     * suite — passé la première année, la ville paie ses gens sur ce qu'elle
+     * gagne, ou renvoie.
+     *
+     * Sans cette avance, la charge salariale du lot 4.6 tombait sur une bourse
+     * calibrée pour deux bâtiments : la partie se figeait avant d'avoir pu
+     * ouvrir la moindre carrière.
+     */
+    private static function anneeDeSalaires(): int
+    {
+        return Population::ACTIFS_AU_DEPART
+            * Salaires::SALAIRE_DUN_TRAVAILLEUR
+            * DateDeJeu::CYCLES_PAR_ANNEE;
+    }
+
+    /**
      * De quoi couvrir le premier bâtiment, quelle que soit la région.
      *
      * Calibré pour couvrir **d'emblée le Grenier et le Marché** (15/15/15 et
@@ -71,7 +89,7 @@ final readonly class DotationRoyale
     public static function pour(int $difficulte, int $consommationParQuinzaine): self
     {
         return new self(
-            deben: self::DEBEN_DE_BASE + self::DEBEN_PAR_NIVEAU_DE_DIFFICULTE * $difficulte,
+            deben: self::DEBEN_DE_BASE + self::DEBEN_PAR_NIVEAU_DE_DIFFICULTE * $difficulte + self::anneeDeSalaires(),
             provisions: $consommationParQuinzaine * DateDeJeu::CYCLES_PAR_ANNEE,
             materiaux: [
                 // Les deux matériaux de la brique crue et de sa toiture : ce

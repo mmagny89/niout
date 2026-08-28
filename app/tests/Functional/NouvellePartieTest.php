@@ -7,7 +7,10 @@ namespace App\Tests\Functional;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Enum\GameMode;
+use App\Game\DateDeJeu;
 use App\Game\LanceurDePartie;
+use App\Game\Population;
+use App\Game\Salaires;
 use App\Repository\GameSaveRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -38,8 +41,9 @@ final class NouvellePartieTest extends WebTestCase
         self::assertSame('Avaris', $partie->getVille()->getNom());
         self::assertSame(GameSave::PREMIERE_MISSION, $partie->getMission());
         self::assertSame('Sennefer', $partie->getFamille()->getNom());
-        // Dotation à difficulté 0 : 50 + 10 × 0 (doc 13).
-        self::assertSame(50, $partie->getVille()->getDeben());
+        // Dotation à difficulté 0 : 50 + 10 × 0 (doc 13), plus l'année de
+        // salaires que le pharaon avance depuis le lot 4.6.
+        self::assertSame(50 + self::anneeDeSalaires(), $partie->getVille()->getDeben());
     }
 
     public function testUneAventureSeDerouleAMemphisAvecLesReglagesChoisis(): void
@@ -54,8 +58,8 @@ final class NouvellePartieTest extends WebTestCase
         self::assertNull($partie->getMission(), 'Le mode Aventure ne suit pas de missions.');
         self::assertSame(4, $partie->getVille()->getDifficulte());
         self::assertSame(10, $partie->getVille()->getTailleGrille());
-        // 50 + 10 × 4.
-        self::assertSame(90, $partie->getVille()->getDeben());
+        // 50 + 10 × 4, plus l'année de salaires avancée.
+        self::assertSame(90 + self::anneeDeSalaires(), $partie->getVille()->getDeben());
     }
 
     public function testLaCampagneIgnoreLesReglagesDuModeAventure(): void
@@ -163,5 +167,14 @@ final class NouvellePartieTest extends WebTestCase
     private function depot(): GameSaveRepository
     {
         return static::getContainer()->get(GameSaveRepository::class);
+    }
+
+    /**
+     * Ce que le pharaon avance en salaires : de quoi employer les bras qu'il
+     * envoie pendant une année complète (lot 4.6).
+     */
+    private static function anneeDeSalaires(): int
+    {
+        return Population::ACTIFS_AU_DEPART * Salaires::SALAIRE_DUN_TRAVAILLEUR * DateDeJeu::CYCLES_PAR_ANNEE;
     }
 }

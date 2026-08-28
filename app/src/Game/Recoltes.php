@@ -23,13 +23,19 @@ use App\Entity\GameSave;
 final readonly class Recoltes
 {
     /**
-     * Ce qu'un gisement livre par quinzaine, avant le malus de rareté.
+     * Ce qu'une exploitation livre par quinzaine, avant le malus de rareté.
      *
-     * Valeur inventée : aucun document ne chiffre le débit d'une carrière. Le
-     * doc 01 ne chiffre que la production des bâtiments, et un gisement n'en
-     * est pas un.
+     * Valeurs inventées : aucun document ne chiffre le débit d'une carrière.
+     * Le doc 01 ne chiffre que la production des bâtiments, et un gisement
+     * n'en est pas un.
+     *
+     * **Calibrées à dix unités par ouvrier** (lot 4.6) : deux hommes sur une
+     * carrière, un seul sur une barque. C'est l'équipage qui diffère, jamais
+     * la productivité d'un homme — sans quoi le choix entre creuser et pêcher
+     * se ferait sur un barème arbitraire plutôt que sur la carte.
      */
-    public const int EXTRACTION_DE_REFERENCE = 5;
+    public const int EXTRACTION_DE_REFERENCE = 20;
+    public const int PECHE_DE_REFERENCE = 10;
 
     /**
      * Rareté régionale : `1,0 - 0,05 × difficulté`, plancher à 0,55 (doc 01),
@@ -43,11 +49,13 @@ final readonly class Recoltes
     /**
      * @return list<string> Ce qui s'est produit, à rapporter au joueur
      */
-    public function avancerDUnCycle(GameSave $partie): array
+    public function avancerDUnCycle(GameSave $partie, ?Paie $paie = null): array
     {
+        $paie ??= Paie::vide();
+
         return [
-            ...$this->extraire($partie),
-            ...$this->moissonner($partie),
+            ...$this->extraire($partie, $paie),
+            ...$this->moissonner($partie, $paie),
         ];
     }
 
@@ -57,10 +65,9 @@ final readonly class Recoltes
      *
      * @return list<string>
      */
-    private function extraire(GameSave $partie): array
+    private function extraire(GameSave $partie, Paie $paie): array
     {
         $ville = $partie->getVille();
-        $rendu = $this->extractionParGisement($ville->getDifficulte());
         $equipages = Effectifs::repartirLeTerritoire($ville, $partie->getCycle());
 
         // Deux paniers, pour deux gestes distincts : on creuse une carrière,
@@ -85,8 +92,15 @@ final readonly class Recoltes
                 // creuser moins, ils n'évaporent pas le calcaire déjà remonté.
                 // C'est aussi ce qui fait durer plus longtemps un gisement mal
                 // tenu, ce qui est juste.
-                $rendement = $equipages[Effectifs::cleDe($zone, $ressource)]['rendement']
-                    ?? Effectifs::RENDEMENT_PLANCHER;
+                $cle = Effectifs::cleDe($zone, $ressource);
+
+                // Une équipe qu'on n'a pas payée ne descend pas au fond.
+                if ($paie->estImpaye($cle)) {
+                    continue;
+                }
+
+                $rendement = $equipages[$cle]['rendement'] ?? Effectifs::RENDEMENT_PLANCHER;
+                $rendu = $this->extractionParGisement($ville->getDifficulte(), $ressource);
                 $demande = max(1, intdiv($rendu * $rendement, Effectifs::RENDEMENT_PLEIN));
                 $extrait = $gisement->extraire($demande);
 
@@ -139,7 +153,7 @@ final readonly class Recoltes
      *
      * @return list<string>
      */
-    private function moissonner(GameSave $partie): array
+    private function moissonner(GameSave $partie, Paie $paie): array
     {
         $ville = $partie->getVille();
         $champs = [];
@@ -187,9 +201,17 @@ final readonly class Recoltes
                 continue;
             }
 
+            $cle = Effectifs::cleDe($zone, null);
+
+            // Une équipe impayée ne moissonne pas — à la différence d'un champ
+            // simplement dépeuplé, que la famille reprend à moitié.
+            if ($paie->estImpaye($cle)) {
+                continue;
+            }
+
             // Un champ sans bras donne encore, mais moitié moins : la famille
             // le moissonne elle-même.
-            $rendement = $equipages[Effectifs::cleDe($zone, null)]['rendement'] ?? Effectifs::RENDEMENT_PLANCHER;
+            $rendement = $equipages[$cle]['rendement'] ?? Effectifs::RENDEMENT_PLANCHER;
             $quantite = intdiv($quantite * $rendement, Effectifs::RENDEMENT_PLEIN);
 
             if ($quantite <= 0) {
@@ -216,12 +238,16 @@ final readonly class Recoltes
      * une unité : une mine en activité qui ne rendrait rien n'aurait aucun sens
      * pour le joueur, quelle que soit la dureté de la région.
      */
-    private function extractionParGisement(int $difficulte): int
+    private function extractionParGisement(int $difficulte, Ressource $ressource): int
     {
-        return max(1, intdiv(
-            self::EXTRACTION_DE_REFERENCE * self::modificateurDeRareteEnCentiemes($difficulte),
-            100,
-        ));
+        // La rareté régionale pèse sur ce qu'on arrache au sol, jamais sur ce
+        // qu'on tire de l'eau : un banc de poisson n'est pas un filon plus ou
+        // moins riche.
+        $reference = Ressource::Poisson === $ressource
+            ? self::PECHE_DE_REFERENCE
+            : intdiv(self::EXTRACTION_DE_REFERENCE * self::modificateurDeRareteEnCentiemes($difficulte), 100);
+
+        return max(1, $reference);
     }
 
     /**
