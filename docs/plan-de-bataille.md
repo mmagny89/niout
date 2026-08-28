@@ -1049,7 +1049,7 @@ d'avoir un revenu de Marché mène donc à la faillite en une quinzaine de
 cycles — c'est la tension voulue, mais elle est raide et mérite un œil en
 playtest.
 
-#### 4.7 — Départ naturel, mécontentement et famine à deux paliers
+#### 4.7 — Départ naturel, mécontentement et famine à deux paliers  ✅
 
 - **Départ naturel** : tirage à chaque quinzaine selon l'ancienneté probable
   du PNJ (doc 05). Le poste se libère, le foyer s'en va, l'offre se renouvelle
@@ -1062,6 +1062,42 @@ playtest.
   actuelles deviennent le seuil du mécontentement, l'échec ne tombant qu'après
   une famine nettement plus longue. C'est le compromis tranché entre le « pas
   de game over brutal » du doc 02 et l'échec demandé au lot 3.7
+
+##### Livré
+
+Douze quinzaines avant l'échec, contre quatre auparavant — la ville prévient
+maintenant six mois de jeu avant de mourir.
+
+**La spirale se redresse, et c'est la propriété qui compte.** Un mécanisme de
+ce genre se casse précisément là : quand le malus de production empêche de
+produire de quoi lever la cause du malus. Mesuré plutôt que supposé — une ville
+affamée huit quinzaines puis ravitaillée retrouve le calme en huit quinzaines,
+sans perdre la partie ni sa population.
+
+Le mécontentement se résorbe **au même rythme qu'il monte**, un cran par
+quinzaine. La symétrie est délibérée : assez lente pour interdire le yo-yo
+(affamer, redresser, réaffamer), assez rapide pour qu'une ville redressée s'en
+sorte. Une résorption plus lente aurait rendu la remontée désespérée.
+
+Trois choses tranchées en écrivant :
+
+- **Le mécontentement pèse sur la quinzaine suivante**, jamais sur celle qui
+  vient de le produire — sans quoi une seule mauvaise quinzaine se paierait
+  deux fois.
+- **Son malus de production est délibérément distinct du rendement
+  d'effectif.** Le plancher de 50 % vaut pour le manque de bras (« rien ne
+  s'éteint faute d'employés »), pas pour une ville en colère, qui peut
+  descendre plus bas. Les deux se multiplient, et c'est assumé — mais le malus
+  reste borné à 30 % pour que la spirale se redresse encore.
+- **La chance de départ vaut `100 / ancienneté`**, ce qui tient l'annonce du
+  doc 03 sans avoir à compter les quinzaines de service de chaque chef.
+  Mesuré sur 300 tirages : un chef annoncé pour vingt quinzaines en sert une
+  vingtaine en moyenne. Le mécontentement double cette chance — assez pour
+  qu'on voie ses gens partir, pas assez pour vider la ville en une saison, ce
+  qui ferait du mécontentement un échec déguisé plutôt qu'un avertissement.
+
+Le trait « Fidèle » du doc 03 cesse au passage d'être décoratif : sans départs,
+l'ancienneté annoncée à l'embauche ne voulait rien dire.
 
 #### 4.8 — Ce que la compétence d'un chef change réellement
 

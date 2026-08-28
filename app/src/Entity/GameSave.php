@@ -93,6 +93,19 @@ class GameSave
     #[ORM\Column]
     private int $quinzainesDeFamine = 0;
 
+    /**
+     * Quinzaines de mécontentement accumulées (`Mecontentement`). **Deux
+     * causes, un seul compteur** : la faim et les salaires impayés mènent à la
+     * même colère, et il n'y a aucune raison de la compter deux fois.
+     *
+     * Il se résorbe **au même rythme qu'il monte**, un cran par quinzaine :
+     * une ville qu'on affame huit quinzaines met huit quinzaines à se calmer.
+     * Assez lent pour interdire le yo-yo, assez rapide pour qu'une ville
+     * redressée s'en sorte.
+     */
+    #[ORM\Column]
+    private int $quinzainesDeMecontentement = 0;
+
     private function __construct(User $joueur, GameMode $mode, Family $famille, City $ville)
     {
         $this->joueur = $joueur;
@@ -237,6 +250,30 @@ class GameSave
     public function enregistrerUneQuinzaineDeFamine(): static
     {
         ++$this->quinzainesDeFamine;
+
+        return $this;
+    }
+
+    public function getQuinzainesDeMecontentement(): int
+    {
+        return $this->quinzainesDeMecontentement;
+    }
+
+    public function aggraverLeMecontentement(int $plafond): static
+    {
+        $this->quinzainesDeMecontentement = min($plafond, $this->quinzainesDeMecontentement + 1);
+
+        return $this;
+    }
+
+    /**
+     * Une quinzaine qui se passe bien apaise d'un cran — le même que celui qui
+     * aggrave, ce qui rend la remontée aussi longue que la descente une fois
+     * la cause levée.
+     */
+    public function apaiserLeMecontentement(): static
+    {
+        $this->quinzainesDeMecontentement = max(0, $this->quinzainesDeMecontentement - 1);
 
         return $this;
     }

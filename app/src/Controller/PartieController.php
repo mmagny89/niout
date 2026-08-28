@@ -25,6 +25,7 @@ use App\Game\ExplorationImpossible;
 use App\Game\Explorations;
 use App\Game\LanceurDePartie;
 use App\Game\Marche;
+use App\Game\Mecontentement;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\PassageDeCycle;
@@ -128,6 +129,7 @@ final class PartieController extends AbstractController
         AppelDHabitants $appels,
         Recrutements $recrutements,
         Salaires $salaires,
+        Mecontentement $mecontentement,
     ): Response {
         $ville = $partie->getVille();
 
@@ -147,6 +149,9 @@ final class PartieController extends AbstractController
             // Les deux indicateurs de santé de la ville, côte à côte : les
             // bouches et les bras.
             'masseSalariale' => $salaires->masseSalariale($ville, $partie->getCycle()),
+            'mecontentement' => $partie->getQuinzainesDeMecontentement(),
+            'villeMecontente' => $mecontentement->pese($partie),
+            'rendementDeLHumeur' => $mecontentement->rendementEnCentiemes($partie),
         ]);
     }
 

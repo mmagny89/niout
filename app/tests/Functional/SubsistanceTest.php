@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Enum\StatutDePartie;
 use App\Game\DateDeJeu;
 use App\Game\LanceurDePartie;
+use App\Game\Mecontentement;
 use App\Game\PassageDeCycle;
 use App\Game\Population;
 use App\Game\Ressource;
@@ -61,6 +62,34 @@ final class SubsistanceTest extends KernelTestCase
         self::assertSame(0, $partie->getQuinzainesDeFamine());
     }
 
+    /**
+     * **La famine se lit à deux paliers** depuis le lot 4.7 : le premier
+     * mécontente, le second seul fait échouer. C'est le compromis entre le
+     * « pas de game over brutal » du doc 02 et l'échec demandé au lot 3.7 —
+     * la ville prévient longtemps avant de mourir.
+     */
+    public function testLaFamineMecontenteAvantDeFaireEchouer(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('famine-palier@example.com');
+        $ville = $partie->getVille();
+        $ville->debiterNourriture($ville->getNourriture());
+
+        for ($i = 0; $i < Subsistance::SEUIL_DE_FAMINE; ++$i) {
+            $this->cycle()->passer($partie);
+        }
+
+        self::assertTrue(
+            $partie->estEnCours(),
+            'Quatre quinzaines de famine ne doivent plus suffire à faire échouer.',
+        );
+        self::assertGreaterThanOrEqual(
+            Mecontentement::SEUIL,
+            $partie->getQuinzainesDeMecontentement(),
+            'Elles doivent en revanche avoir mécontenté la ville.',
+        );
+    }
+
     public function testLaFamineProlongeeFaitEchouerLaPartie(): void
     {
         self::bootKernel();
@@ -68,7 +97,7 @@ final class SubsistanceTest extends KernelTestCase
         $ville = $partie->getVille();
         $ville->debiterNourriture($ville->getNourriture());
 
-        for ($i = 0; $i < Subsistance::SEUIL_DE_FAMINE; ++$i) {
+        for ($i = 0; $i < Subsistance::SEUIL_DECHEC; ++$i) {
             self::assertTrue($partie->estEnCours(), \sprintf('Ne devrait pas encore avoir échoué au cycle %d.', $i));
             $this->cycle()->passer($partie);
         }

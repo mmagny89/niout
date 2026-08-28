@@ -23,6 +23,8 @@ final readonly class PassageDeCycle
         private Demographie $demographie,
         private Subsistance $subsistance,
         private Salaires $salaires,
+        private Mecontentement $mecontentement,
+        private DepartsNaturels $departs,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
     ) {
@@ -43,14 +45,30 @@ final readonly class PassageDeCycle
         // laisserait au joueur aucune décision à prendre.
         $paie = $this->salaires->reglerLaQuinzaine($partie);
 
+        $subsistance = null;
+
         $evenements = [
             ...$paie->messages,
             ...$this->explorations->avancerDUnCycle($partie),
             ...$this->chantiers->avancerDUnCycle($partie, $saison),
-            ...$this->recoltes->avancerDUnCycle($partie, $paie),
-            // Après la récolte, jamais avant : la ville mange ce que la
-            // quinzaine vient d'apporter.
-            ...$this->subsistance->avancerDUnCycle($partie),
+            ...$this->recoltes->avancerDUnCycle($partie, $paie, $this->mecontentement->rendementEnCentiemes($partie)),
+        ];
+
+        // Après la récolte, jamais avant : la ville mange ce que la quinzaine
+        // vient d'apporter.
+        $subsistance = $this->subsistance->avancerDUnCycle($partie);
+        $evenements = [...$evenements, ...$subsistance['evenements']];
+
+        // Les deux causes se rejoignent ici, et nulle part ailleurs : on ne
+        // mange pas, ou l'on n'est pas payé. Le mécontentement pèse ensuite
+        // sur la quinzaine suivante — jamais sur celle qui vient de le
+        // produire, sans quoi une seule mauvaise quinzaine se paierait deux
+        // fois.
+        $this->mecontentement->enregistrer($partie, $subsistance['famine'], !$paie->toutEstPaye());
+        $evenements = [
+            ...$evenements,
+            ...$this->mecontentement->raconter($partie),
+            ...$this->departs->avancerDUnCycle($partie),
         ];
 
         $partie->avancerDUnCycle();

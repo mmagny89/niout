@@ -26,6 +26,20 @@
             {% endif %}
         </p>
 
+        {# Le mécontentement est une spirale : la subir sans la comprendre
+           serait injuste. L'écran dit la cause et le remède. #}
+        {% if villeMecontente %}
+            <p class="mt-4 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-4 py-3 text-sm text-encre-700">
+                <strong class="text-encre-900">La ville est mécontente</strong>
+                depuis {{ mecontentement }} quinzaine{{ mecontentement > 1 ? 's' : '' }} :
+                on n'y mange pas à sa faim, ou l'on n'y est pas payé.
+                La production tombe à <span data-chiffres>{{ rendementDeLHumeur }} %</span>,
+                les départs s'accélèrent, et votre renom s'en ressent.
+                Nourrissez et payez vos gens : la colère retombe aussi lentement
+                qu'elle est montée.
+            </p>
+        {% endif %}
+
         {% if chantiers|length > 0 %}
             <h2 class="mt-10 text-2xl text-encre-900">Chantiers en cours</h2>
             <ul class="mt-4 space-y-3 list-none p-0">

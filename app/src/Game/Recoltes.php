@@ -49,13 +49,24 @@ final readonly class Recoltes
     /**
      * @return list<string> Ce qui s'est produit, à rapporter au joueur
      */
-    public function avancerDUnCycle(GameSave $partie, ?Paie $paie = null): array
-    {
+    /**
+     * @return list<string> Ce qui s'est produit, à rapporter au joueur
+     *
+     * `$humeur` est le malus de mécontentement, en centièmes. Il est
+     * **délibérément distinct** du rendement d'effectif : le plancher de 50 %
+     * vaut pour le manque de bras, pas pour une ville en colère, qui peut
+     * descendre plus bas.
+     */
+    public function avancerDUnCycle(
+        GameSave $partie,
+        ?Paie $paie = null,
+        int $humeur = Effectifs::RENDEMENT_PLEIN,
+    ): array {
         $paie ??= Paie::vide();
 
         return [
-            ...$this->extraire($partie, $paie),
-            ...$this->moissonner($partie, $paie),
+            ...$this->extraire($partie, $paie, $humeur),
+            ...$this->moissonner($partie, $paie, $humeur),
         ];
     }
 
@@ -65,7 +76,7 @@ final readonly class Recoltes
      *
      * @return list<string>
      */
-    private function extraire(GameSave $partie, Paie $paie): array
+    private function extraire(GameSave $partie, Paie $paie, int $humeur): array
     {
         $ville = $partie->getVille();
         $equipages = Effectifs::repartirLeTerritoire($ville, $partie->getCycle());
@@ -99,7 +110,10 @@ final readonly class Recoltes
                     continue;
                 }
 
-                $rendement = $equipages[$cle]['rendement'] ?? Effectifs::RENDEMENT_PLANCHER;
+                $rendement = intdiv(
+                    ($equipages[$cle]['rendement'] ?? Effectifs::RENDEMENT_PLANCHER) * $humeur,
+                    Effectifs::RENDEMENT_PLEIN,
+                );
                 $rendu = $this->extractionParGisement($ville->getDifficulte(), $ressource);
                 $demande = max(1, intdiv($rendu * $rendement, Effectifs::RENDEMENT_PLEIN));
                 $extrait = $gisement->extraire($demande);
@@ -153,7 +167,7 @@ final readonly class Recoltes
      *
      * @return list<string>
      */
-    private function moissonner(GameSave $partie, Paie $paie): array
+    private function moissonner(GameSave $partie, Paie $paie, int $humeur): array
     {
         $ville = $partie->getVille();
         $champs = [];
@@ -211,7 +225,10 @@ final readonly class Recoltes
 
             // Un champ sans bras donne encore, mais moitié moins : la famille
             // le moissonne elle-même.
-            $rendement = $equipages[$cle]['rendement'] ?? Effectifs::RENDEMENT_PLANCHER;
+            $rendement = intdiv(
+                ($equipages[$cle]['rendement'] ?? Effectifs::RENDEMENT_PLANCHER) * $humeur,
+                Effectifs::RENDEMENT_PLEIN,
+            );
             $quantite = intdiv($quantite * $rendement, Effectifs::RENDEMENT_PLEIN);
 
             if ($quantite <= 0) {
