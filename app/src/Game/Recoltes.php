@@ -113,16 +113,19 @@ final readonly class Recoltes
             return [];
         }
 
+        // Le cycle terrestre avance dans tous les cas — semis, pousse et
+        // repos se poursuivent même sans Grenier, seule la conservation de la
+        // récolte en dépend. Un champ du Nil n'a pas de compteur propre : sa
+        // case reste inchangée, seule la saison le fait avancer.
+        foreach ($champs as $zone) {
+            $zone->avancerLeCycleAgricole();
+        }
+
         if (!$ville->possede(TypeDeBatiment::Grenier)) {
             return ['Vos champs ont donné, mais sans Grenier rien ne se conserve : la récolte est perdue.'];
         }
 
         $date = $partie->dateDeJeu();
-        $parChamp = RendementDesChamps::pourUneQuinzaine($date->saison, $date->rangDansLaSaison, $partie->getCrue());
-
-        if (0 === $parChamp) {
-            return [];
-        }
 
         /** @var array<string, int> $recolte */
         $recolte = [];
@@ -131,8 +134,23 @@ final readonly class Recoltes
             $culture = $zone->getCulture();
             \assert(null !== $culture);
 
+            $quantite = TypeDeTerrain::Nil === $zone->getTerrain()
+                ? RendementDesChamps::pourUneQuinzaine($date->saison, $date->rangDansLaSaison, $partie->getCrue())
+                // Le compteur vient d'avancer : la quinzaine qui s'achève est
+                // donc celle d'avant, seule pertinente pour ce qui vient de
+                // mûrir.
+                : CycleAgricoleTerrestre::pourUneQuinzaine(($zone->getQuinzainesDepuisSemis() ?? 1) - 1);
+
+            if ($quantite <= 0) {
+                continue;
+            }
+
             $valeur = $culture->ressource()->value;
-            $recolte[$valeur] = ($recolte[$valeur] ?? 0) + $parChamp;
+            $recolte[$valeur] = ($recolte[$valeur] ?? 0) + $quantite;
+        }
+
+        if ([] === $recolte) {
+            return [];
         }
 
         $ville->crediterRessources($recolte);
