@@ -79,6 +79,7 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `Zone`, `Gisement` | ✅ | Une case de la carte d'exploration, ses filons | 02, 08 |
 | `Expedition` | ✅ | Un éclaireur en route vers une case | 04 |
 | `StockDeRessource` | ✅ | Une ligne du stock de la ville (ressource → quantité) | 08 |
+| Employés et offres (Phase 4) | — | Un chef en poste, ses travailleurs, les candidatures en cours | 01, 03 |
 | … (Phase 5+) | — | Medjaÿ, faveur divine, énigmes | 03, 07, 10 |
 
 `Family`, `City` et tout ce qui s'y rattache (`Zone`, `Building`, `Chantier`,
@@ -164,9 +165,9 @@ vues, pas de la conception.
 - [x] **Phase 1** — Comptes et page d'accueil · §5
 - [x] **Phase 2** — Lancer une partie et bâtir · §6.1 · `01`, `05`, `13`
 - [x] **Phase 3** — Carte, exploration et ressources · §6.2 · `02`, `04`, `06`, `08`
-- [ ] **Phase 4** — Population : recrutement, chefs et travailleurs · `01`, `03`
-      — amorcée au lot 3.7 (habitants affichés, consommation de nourriture,
-      échec par famine) ; recrutement, chefs et travailleurs restent entiers
+- [ ] **Phase 4** — Population : recrutement, chefs et travailleurs · §6.3 ·
+      `01`, `03`, `02`, `05` — amorcée au lot 3.7 (habitants, consommation,
+      famine), dont le lot 4.0 corrige les écarts aux documents
 - [ ] **Phase 5** — Artisanat et commerce · `08`, `12`
 - [ ] **Phase 6** — Faveur divine et événements · `07`
 - [ ] **Phase 7** — Énigmes, enquêtes et fil rouge · `10`
@@ -462,6 +463,208 @@ Aucun document ne les chiffre. Toutes signalées comme telles dans le code.
 | Seuil de famine avant échec de partie | 4 quinzaines consécutives | `Subsistance::SEUIL_DE_FAMINE` |
 | Dotation royale en vivres | population de base × ration × 25 quinzaines (≈125 blé) | `DotationRoyale` |
 
+**Quatre de ces valeurs n'avaient pas à être inventées.** Les trois dernières
+lignes, plus celle des habitants, touchent à la population — que les docs 01 et
+02 chiffrent en réalité (`consoParCycle = 2`, capacité du Quartier
+`20 × niveau`, `nbFamillesDisponibles = 20 - 1,5 × difficulté`). Elles ont été
+posées sans consulter ces documents ; le lot 4.0 les réaligne. Les autres
+lignes restent bien des inventions assumées, les docs ne les chiffrant nulle
+part.
+
+---
+
+### 6.3 Phase 4 — Population : recrutement, chefs et travailleurs
+
+**Sources** : docs `01` (chefs/travailleurs, effets de niveau), `03`
+(recrutement, stats, traits, spécialités), `02` (familles disponibles,
+consommation, mécontentement), `05` (délai de recrutement, départ naturel).
+
+**Intention.** Faire cesser la fiction d'une ville que le joueur actionne
+seul. Jusqu'ici les bâtiments fonctionnent parce qu'ils existent ; à la fin de
+cette phase, ils fonctionnent parce que quelqu'un y travaille — et ce
+quelqu'un a une compétence, un salaire, et peut partir.
+
+À la fin de la phase, on doit pouvoir raconter : *« je poste une offre pour
+diriger mon Grenier, trois candidats se présentent, je prends le plus
+compétent malgré son salaire, il arrive à la quinzaine suivante et embauche
+ses ouvriers parmi les familles de la région. Ma ville compte désormais
+dix-huit bouches à nourrir et une masse salariale à payer chaque quinzaine. »*
+
+**Le principe qui structure toute la phase** (doc 03) : **chiffré en interne,
+qualitatif à l'affichage**. Le moteur manipule des compétences de 20 à 100 ; le
+joueur ne voit jamais que des étoiles et des libellés. Seul le salaire
+s'affiche en clair, étant déjà qualitatif par nature.
+
+#### 4.0 — Réalignement du modèle de population  *(prérequis)*
+
+Le lot 3.7 a posé la population sans consulter les documents. Trois écarts à
+corriger avant de bâtir dessus, tranchés avec la joueuse :
+
+- **La population devient un effectif réel**, pas une formule. Le Quartier
+  d'habitation cesse d'engendrer des habitants pour redevenir ce que le doc 01
+  en dit : un **plafond** de capacité (`20 × niveau` familles). La population
+  est la somme de ce qui est réellement employé — famille fondatrice, chefs,
+  travailleurs, et les Medjaÿ quand la Phase 10 les amènera. En début de
+  partie, la ville ne compte donc que sa famille fondatrice.
+- **`nbFamillesDisponibles = 20 - 1,5 × difficulté`** (doc 02) rejoint les
+  paramètres de région, à côté de la géographie : c'est le vivier de
+  main-d'œuvre où les chefs puisent, et il se raréfie avec la difficulté.
+- **La ration passe de 1 à 2 vivres par habitant et par quinzaine**
+  (`consoParCycle`, doc 02). La dotation royale suit, pour tenir l'année
+  promise au lot 3.7.
+
+Le premier point est le plus structurant : il déplace la population d'une
+valeur dérivée à un état persisté, et c'est lui qui donne son poids à
+l'arbitrage de toute la phase — recruter, c'est ajouter une bouche.
+
+#### 4.1 — Le candidat : compétence, traits, spécialité
+
+Règles pures, dans `src/Game/`, sans rien de persisté — c'est du contenu, pas
+de l'état. Toutes les valeurs viennent du doc 03, aucune n'est à inventer.
+
+- Compétence tirée uniformément entre **20 et 100** ; barème d'affichage en
+  étoiles : 20-36 ★, 37-52 ★★, 53-68 ★★★, 69-84 ★★★★, 85-100 ★★★★★
+- Salaire demandé = **`5 + compétence × 0,3`** or par quinzaine
+- Ancienneté probable de base = **20 quinzaines**, affichée en libellé
+  (« devrait rester longtemps » / « risque de partir bientôt »)
+- **Huit traits** : Travailleur acharné, Économe, Fidèle, Ambitieux, Croyant,
+  Bagarreur, Expérimenté, Novice, avec leurs effets chiffrés du doc 03
+- Tirage des traits : **45 % aucun, 40 % un seul, 15 % deux**, chacun des huit
+  à parts égales. **Incompatibilités** : Ambitieux/Fidèle et Travailleur
+  acharné/Économe ne peuvent jamais coexister
+- **Spécialité de chef**, tirée au hasard selon le bâtiment dirigé (doc 03) :
+  Pêcheur ou Commerçant naval au Port, Acheteur ou Vendeur au Marché,
+  Gestionnaire rigoureux au Grenier, etc.
+
+#### 4.2 — L'offre d'emploi : poster, choisir, renvoyer
+
+- Poster une offre selon le poste recherché — **action libre**, elle ne
+  consomme pas de quinzaine (doc 05)
+- **2 à 3 candidats** générés, comparés côte à côte
+- Le choix fait, le poste est **pourvu à la quinzaine suivante** (doc 05 :
+  « durée d'un recrutement une fois le candidat choisi : 1 cycle »)
+- Renvoyer ou remplacer à tout moment
+- Traits « Pieux » et « Bagarreur » posés dès maintenant mais **sans effet**
+  tant que la faveur divine (Phase 6) et le combat (Phase 10) n'existent pas —
+  l'affichage doit le dire plutôt que de laisser croire à un bonus actif
+
+#### 4.3 — Chefs par bâtiment, travailleurs par chef
+
+Les deux formules du doc 01, appliquées à tous les bâtiments :
+
+- **`nbChefs(niveau) = arrondiSupérieur(niveau / 3)`** — 1 chef aux niveaux 1-3,
+  2 aux niveaux 4-6, 3 aux niveaux 7-9
+- **`travailleursParChef(niveau) = travailleursBase + arrondiInférieur((niveau - 1) / 3)`**,
+  où `travailleursBase` est propre au bâtiment — déjà en place dans le code
+  (`TypeDeBatiment::travailleursDeBase()`), posé en Phase 2 et inutilisé depuis
+- Les chefs **recrutent eux-mêmes leurs travailleurs au passage d'une
+  quinzaine** (doc 05), dans la limite de `nbFamillesDisponibles` et de la
+  capacité du Quartier — le joueur voit une jauge « X / Y travailleurs » par
+  chef, il ne recrute pas les ouvriers un par un
+- **Un chef en sous-effectif fait tourner son bâtiment à capacité réduite**
+  (doc 01) — le goulot d'étranglement stratégique des régions difficiles
+
+#### 4.4 — Le coût d'employer : salaires et vivres
+
+La première charge récurrente en or du jeu, à côté de la nourriture.
+
+- Salaires prélevés **à chaque quinzaine**, avec les vivres, dans
+  `PassageDeCycle` — même place que `Subsistance`
+- La population totale mange `2 × effectif` (lot 4.0)
+- **Le Marché reste la seule entrée d'or** tant que le commerce de la Phase 5
+  n'existe pas : c'est l'invariant à ne jamais casser
+  (`DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`). Une
+  masse salariale qui dépasserait durablement ce qu'un joueur peut vendre
+  figerait la partie aussi sûrement que l'absence d'or au lot 3.5
+
+#### 4.5 — Départ naturel, mécontentement et famine à deux paliers
+
+- **Départ naturel** : tirage à chaque quinzaine selon l'ancienneté probable
+  du PNJ (doc 05). Le poste se libère et l'offre se renouvelle
+- **Mécontentement de famine** (doc 02), nouveau palier avant l'échec :
+  production ralentie, **départs anticipés** de travailleurs, baisse de
+  renommée (`Family::ajusterRenommee()`, déjà en place)
+- **L'échec par famine du lot 3.7 recule d'un cran** : les quatre quinzaines
+  actuelles deviennent le seuil du mécontentement, l'échec ne tombant qu'après
+  une famine nettement plus longue. C'est le compromis tranché avec la joueuse
+  entre le « pas de game over brutal » du doc 02 et l'échec qu'elle avait
+  demandé
+
+#### 4.6 — Ce que la compétence d'un chef change réellement
+
+Le doc 01 pose que « la compétence d'un chef influence la production du
+bâtiment ». Encore faut-il que le bâtiment produise quelque chose : la plupart
+n'ont d'effet qu'à partir de la Phase 5 (Atelier, Forge) ou plus tard.
+
+**Principe de périmètre retenu** : n'implémenter les effets de chef que pour
+les bâtiments dont la production existe déjà. Trois cas, et trois seulement :
+
+| Bâtiment | Effet du chef | Spécialité (doc 03) |
+|---|---|---|
+| Grenier | Réduit les pertes sur la récolte | Gestionnaire rigoureux |
+| Port | Module le rendement de pêche | Pêcheur (+20 %) |
+| Marché | Module les prix | Acheteur / Vendeur (±10 %) |
+
+Les spécialités des autres bâtiments sont **générées** dès maintenant (un
+candidat est un profil complet, doc 03) mais restent **inertes** jusqu'à leur
+phase. L'interface doit l'annoncer clairement.
+
+#### Hors périmètre, explicitement
+
+- **Les Medjaÿ et le combat** (doc 03, seconde moitié) restent en Phase 10 :
+  unités, équipement, formule de résolution, blessures et morts permanentes.
+  La Caserne se dote de chefs comme les autres bâtiments, mais ne recrute
+  aucun Medjaÿ dans cette phase. La population les comptera quand ils
+  existeront
+- **Le Charrier** (réquisition, Caserne niveau 7) suit les Medjaÿ en Phase 10
+- **Le craft** de l'Atelier et de la Forge, et le commerce par caravanes de
+  l'Entrepôt : Phase 5
+- **Le bonus de main-d'œuvre d'Akhèt** sur `nbFamillesDisponibles` (doc 05) —
+  à ajouter une fois le vivier stabilisé, pas dans le même lot
+- **Les capacités de stockage** du Grenier et de l'Entrepôt, et la péremption
+  du surplus à l'air libre (doc 01) : c'est un système d'inventaire à part
+  entière, qui mérite son propre lot plutôt que d'être glissé ici
+
+#### Points à trancher pendant la phase
+
+- **Un bâtiment sans aucun chef fonctionne-t-il ?** Le doc 01 ne parle que du
+  sous-effectif (« capacité réduite »), jamais de l'absence totale de chef. Si
+  un Grenier sans chef cesse de conserver la récolte, une partie sans or pour
+  embaucher se retrouve bloquée — exactement le genre d'impasse déjà rencontré
+  au lot 3.5. À trancher avant d'écrire le lot 4.3.
+- **Que se passe-t-il si les salaires ne peuvent pas être payés ?** Aucun
+  document ne le dit. Le parallèle avec la famine (mécontentement puis départ)
+  est la piste la plus cohérente, à confirmer.
+- **Le salaire des travailleurs** : le doc 03 ne chiffre un salaire que pour
+  les candidats recrutés par offre. Les travailleurs, embauchés par leur chef
+  et non par le joueur, coûtent-ils quelque chose ? À trancher — leur donner
+  un coût rendrait la masse salariale bien plus lourde.
+- **Les PNJ ont-ils un nom ?** Aucun document n'en parle : ils n'y sont décrits
+  que par leurs statistiques. Un chef nommé rendrait pourtant les écrans bien
+  plus lisibles qu'un « chef n° 2 », et le jeu dispose déjà d'un vivier
+  onomastique authentique (le nom de famille par défaut, Nakht, vient du
+  doc 09). Si des noms sont retenus, c'est une invention à assumer et à
+  signaler comme telle, pas une donnée de conception.
+
+#### Définition de « fini »
+
+Parcours de bout en bout : poster une offre → comparer des candidats aux
+compétences et traits visibles → en choisir un → le voir prendre son poste à
+la quinzaine suivante → le voir embaucher ses travailleurs → payer salaires et
+vivres à chaque quinzaine → voir un PNJ partir naturellement et l'offre se
+rouvrir.
+
+Tests unitaires sur les formules du doc, qui sont le cœur calculatoire :
+`nbChefs`, `travailleursParChef`, barème d'étoiles, salaire, distribution des
+traits et respect des incompatibilités. La génération de candidats étant
+aléatoire, ses tests portent sur des **invariants et des distributions** (deux
+traits incompatibles ne sortent jamais ensemble ; la compétence reste dans
+20-100) plutôt que sur un candidat attendu.
+
+Les quatre portes qualité au vert, et une revue de sécurité : recruter,
+renvoyer et poster une offre modifient l'état d'une partie et doivent passer
+par `PartieVoter::JOUER`.
+
 ---
 
 ## 7. Pipeline des assets graphiques
@@ -539,3 +742,7 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Échec de partie | **Famine prolongée** (4 quinzaines) → partie « échouée », conservée et consultable, jamais supprimée |
 | Port | Constructible **dès qu'un point d'eau jouxte la ville**, sans autre condition ; il débloque la pêche, son niveau ne change rien encore |
 | Poisson | **Renouvelable** — la seule ressource du jeu qui ne s'épuise jamais, sans quoi un Port coûteux deviendrait un piège |
+| Population | **Effectif réellement employé** (famille, chefs, travailleurs, Medjaÿ), jamais une formule ; le Quartier d'habitation en est le **plafond** (`20 × niveau`), pas la source |
+| Ration alimentaire | **2 vivres par habitant et par quinzaine** (doc 02), et non 1 comme posé par erreur au lot 3.7 |
+| Famine | **Deux paliers** : mécontentement d'abord (production ralentie, départs anticipés, renommée en baisse — doc 02), échec seulement si elle se prolonge bien au-delà |
+| Affichage des PNJ | **Chiffré en interne, qualitatif à l'écran** (doc 03) : étoiles et libellés, jamais de compétence brute. Le salaire fait exception, déjà qualitatif par nature |
