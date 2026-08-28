@@ -10,6 +10,13 @@ use App\Entity\GameSave;
  * Ce que le territoire verse au stock à chaque quinzaine : l'extraction des
  * gisements et la récolte des champs (doc 01, doc 02, doc 05).
  *
+ * **Rien ne travaille sans personne** (lot 4.5) : chaque champ semé et chaque
+ * gisement en activité réclame son équipage, et rend au prorata de ce qu'il
+ * en a — jamais moins de la moitié, la famille s'en occupant elle-même. C'est
+ * ce qui fait entrer le territoire dans le système d'emploi : jusqu'au lot
+ * 4.5, une carrière rapportait autant à une ville déserte qu'à une ville
+ * pourvue, et la moitié de l'économie échappait ainsi aux salaires.
+ *
  * Ne persiste rien, comme les chantiers et les expéditions : PassageDeCycle
  * réunit tout en une seule écriture.
  */
@@ -54,6 +61,7 @@ final readonly class Recoltes
     {
         $ville = $partie->getVille();
         $rendu = $this->extractionParGisement($ville->getDifficulte());
+        $equipages = Effectifs::repartirLeTerritoire($ville, $partie->getCycle());
 
         // Deux paniers, pour deux gestes distincts : on creuse une carrière,
         // on ne creuse pas un banc de poisson. Le stock, lui, ne fait pas la
@@ -71,7 +79,16 @@ final readonly class Recoltes
                 }
 
                 $ressource = $gisement->getRessource();
-                $extrait = $gisement->extraire($rendu);
+
+                // Le rendement de l'équipage s'applique à ce qu'on demande au
+                // filon, pas à ce qu'on en tire : deux hommes en moins font
+                // creuser moins, ils n'évaporent pas le calcaire déjà remonté.
+                // C'est aussi ce qui fait durer plus longtemps un gisement mal
+                // tenu, ce qui est juste.
+                $rendement = $equipages[Effectifs::cleDe($zone, $ressource)]['rendement']
+                    ?? Effectifs::RENDEMENT_PLANCHER;
+                $demande = max(1, intdiv($rendu * $rendement, Effectifs::RENDEMENT_PLEIN));
+                $extrait = $gisement->extraire($demande);
 
                 if ($extrait > 0) {
                     if (Ressource::Poisson === $ressource) {
@@ -111,11 +128,14 @@ final readonly class Recoltes
      * La moisson. Sans Grenier, elle n'a nulle part où aller : les champs
      * existent, ils travaillent, mais rien n'entre au stock (doc 01).
      *
-     * **Le Grenier ne conserve qu'à hauteur de ce qu'il a de bras** (décision
-     * de la joueuse : « un bâtiment sans chef fonctionne mais partiellement,
-     * il ne stocke que la moitié de ce qui est produit »). Le rendement
-     * s'applique à ce qui entre, pas à ce que les champs donnent : les épis
-     * ont poussé, c'est leur conservation qui manque de monde.
+     * **Le Grenier pèse sur la récolte par ses champs, pas deux fois.** Le lot
+     * 4.4 réduisait en plus ce qu'il conservait, faute d'un autre endroit où
+     * la règle mordait. Depuis que le lot 4.5 lui donne les champs à
+     * gouverner — leur équipage et leur bonus de niveau —, ce second
+     * modificateur faisait payer deux fois le même manque de bras : deux
+     * planchers de 50 % qui se multiplient tombent à 25 %, sous le « tout
+     * tourne au moins à moitié » que la règle promet. Un seul canal, donc, et
+     * c'est le plus riche.
      *
      * @return list<string>
      */
@@ -147,6 +167,7 @@ final readonly class Recoltes
         }
 
         $date = $partie->dateDeJeu();
+        $equipages = Effectifs::repartirLeTerritoire($ville, $partie->getCycle());
 
         /** @var array<string, int> $recolte */
         $recolte = [];
@@ -166,6 +187,15 @@ final readonly class Recoltes
                 continue;
             }
 
+            // Un champ sans bras donne encore, mais moitié moins : la famille
+            // le moissonne elle-même.
+            $rendement = $equipages[Effectifs::cleDe($zone, null)]['rendement'] ?? Effectifs::RENDEMENT_PLANCHER;
+            $quantite = intdiv($quantite * $rendement, Effectifs::RENDEMENT_PLEIN);
+
+            if ($quantite <= 0) {
+                continue;
+            }
+
             $valeur = $culture->ressource()->value;
             $recolte[$valeur] = ($recolte[$valeur] ?? 0) + $quantite;
         }
@@ -174,36 +204,11 @@ final readonly class Recoltes
             return [];
         }
 
-        $rendement = Effectifs::rendementDe($ville, TypeDeBatiment::Grenier, $partie->getCycle());
-        $conserve = [];
-        $perdu = false;
-
-        foreach ($recolte as $ressource => $quantite) {
-            $garde = intdiv($quantite * $rendement, Effectifs::RENDEMENT_PLEIN);
-
-            if ($garde < $quantite) {
-                $perdu = true;
-            }
-
-            if ($garde > 0) {
-                $conserve[$ressource] = $garde;
-            }
-        }
-
-        if ([] === $conserve) {
-            return ['Faute de bras au Grenier, rien de ce qui a été moissonné n\'a pu être rentré.'];
-        }
-
-        $ville->crediterRessources($conserve);
+        $ville->crediterRessources($recolte);
 
         $verbe = Saison::Chemou === $date->saison ? 'La moisson rentre' : 'Les champs ont donné';
-        $messages = [$this->enoncer($verbe, $conserve)];
 
-        if ($perdu) {
-            $messages[] = 'Le Grenier manque de bras : une part de la récolte s\'est perdue faute d\'être rentrée à temps.';
-        }
-
-        return $messages;
+        return [$this->enoncer($verbe, $recolte)];
     }
 
     /**

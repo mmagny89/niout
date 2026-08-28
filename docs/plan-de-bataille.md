@@ -834,7 +834,7 @@ servis dans l'ordre alphabétique — stable et explicable, mais arbitraire. Le
 joueur ne peut pas encore dire lequel servir en premier. À reprendre si le
 playtest montre que ça coûte des parties.
 
-#### 4.5 — Le territoire aussi a des salariés (décision de la joueuse)
+#### 4.5 — Le territoire aussi a des salariés (décision de la joueuse)  ✅
 
 Correction d'une invraisemblance que la Phase 3 avait laissée passer : une
 carrière s'exploitait et un champ se moissonnait sans que personne n'y
@@ -873,6 +873,41 @@ Trois bénéfices d'un coup, pour une seule règle :
 
 À écrire dans le même lot que les équipages de base, dont elle n'est que la
 progression.
+
+##### Livré
+
+Le bonus de niveau vaut `+10 %` par niveau au-dessus du premier (**valeur
+inventée**), et le niveau élargit l'équipage réclamé selon la même progression
+que l'encadrement d'un chef, `+1 tous les trois niveaux` (doc 01). Le marché
+est donc **à double tranchant, volontairement** : un niveau gagné sans bras
+pour le suivre fait baisser le rendement avant de le faire monter. C'est le
+prix de la boucle, pas un défaut — sans lui, monter un bâtiment serait un
+cadeau sans contrepartie.
+
+Deux choix qui n'étaient pas dans le plan :
+
+- **Le rendement d'un gisement s'applique à ce qu'on lui demande, pas à ce
+  qu'on en tire.** Deux hommes en moins font creuser moins ; ils n'évaporent
+  pas le calcaire déjà remonté. Un filon mal tenu dure donc plus longtemps,
+  ce qui est juste.
+- **Sans son bâtiment gouvernant, une exploitation garde son équipage de base
+  et ne touche aucun bonus** — elle ne s'arrête pas pour autant. « Rien ne
+  s'éteint » vaut aussi ici.
+
+##### Un double comptage retiré du lot 4.4
+
+Le lot 4.4 réduisait ce que le Grenier **conservait** de la moisson, faute
+d'un autre endroit où la règle mordait. Depuis que le Grenier gouverne les
+champs — leur équipage et leur bonus —, ce second modificateur faisait payer
+deux fois le même manque de bras : deux planchers de 50 % qui se multiplient
+tombent à **25 %**, sous le « tout tourne au moins à moitié » que la règle
+promet. Mesuré, pas supposé.
+
+Le modificateur sur le stockage est donc retiré : un seul canal, le plus
+riche. Un test verrouille désormais l'invariant lui-même
+(`DemiRendementTest::testLaChaineAlimentaireNeDescendJamaisSousLaMoitie()`) —
+c'est le genre de règle qui se casse en silence quand un lot ultérieur ajoute
+un troisième multiplicateur.
 
 #### 4.6 — Le coût d'employer : salaires et vivres
 

@@ -124,6 +124,13 @@
                         {% elseif zoneDetaillee.porteUnChamp %}
                             {% set etape = zoneDetaillee.etapeDuChamp(partie.dateDeJeu.saison, partie.dateDeJeu.rangDansLaSaison) %}
                             Un champ y est établi, semé de <strong>{{ zoneDetaillee.culture.libelle }}</strong>.
+                            {% set equipageDuChamp = equipages[zoneDetaillee.x ~ ':' ~ zoneDetaillee.y ~ ':champ'] %}
+                            {% if equipageDuChamp %}
+                                <span class="text-encre-500" data-chiffres>
+                                    {{ equipageDuChamp.affectes }} / {{ equipageDuChamp.requis }} travailleurs
+                                    · {{ equipageDuChamp.rendement }} % de rendement
+                                </span>
+                            {% endif %}
                             {{ zoneDetaillee.culture.usage }}
                             <br>
                             <strong>{{ etape.libelle }}</strong> — {{ etape.explication }}
@@ -197,7 +204,16 @@
                                         {% elseif gisement.estEpuise %}
                                             <span class="text-sm text-encre-500">Filon épuisé.</span>
                                         {% elseif gisement.estExploitee %}
-                                            <span class="text-sm text-encre-500">{{ estPoisson ? 'Pêche en cours.' : 'Extraction en cours.' }}</span>
+                                            {# L'équipage, pas seulement l'activité : c'est ce
+                                               qui dit au joueur pourquoi une carrière rapporte
+                                               moitié moins qu'attendu. #}
+                                            {% set equipage = equipages[zoneDetaillee.x ~ ':' ~ zoneDetaillee.y ~ ':' ~ gisement.ressource.value] %}
+                                            <span class="text-sm text-encre-500">
+                                                {{ estPoisson ? 'Pêche en cours.' : 'Extraction en cours.' }}
+                                                {% if equipage %}
+                                                    <span data-chiffres>{{ equipage.affectes }} / {{ equipage.requis }} travailleurs · {{ equipage.rendement }} %</span>
+                                                {% endif %}
+                                            </span>
                                         {% elseif estPoisson and not aUnPort %}
                                             <span class="text-sm text-encre-500">Il faudra un Port pour pêcher ici.</span>
                                         {% else %}

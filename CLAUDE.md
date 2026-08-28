@@ -270,6 +270,22 @@ d'employés** (décision de la joueuse) : embaucher est un investissement, pas
 une taxe. Un chef pas encore en poste ne réclame rien, et les chefs sortent du
 vivier de bras — ils ne s'encadrent pas eux-mêmes.
 
+**Rien ne travaille sans personne, y compris sur le territoire** (lot 4.5) :
+un champ semé réclame un homme, un gisement deux, une pêcherie un. Chaque
+exploitation a un **bâtiment gouvernant** — Grenier pour les champs, Entrepôt
+pour les carrières, Port pour les pêcheries — dont le niveau élargit
+l'équipage réclamé *et* le rendement, ce qui referme la boucle du jeu et rend
+le niveau coûteux avant d'être payant.
+
+**Un seul multiplicateur de rendement par chaîne de production.** Deux
+planchers de 50 % qui se multiplient tombent à 25 %, sous le « tout tourne au
+moins à moitié » que la règle promet — c'est ce qui a fait retirer, au lot 4.5,
+le modificateur que le lot 4.4 posait sur le stockage du Grenier, devenu un
+double comptage dès lors que le Grenier gouvernait les champs. Avant d'ajouter
+un multiplicateur à une production, vérifier qu'aucun autre ne s'y applique
+déjà : `DemiRendementTest::testLaChaineAlimentaireNeDescendJamaisSousLaMoitie()`
+garde l'invariant.
+
 **Une offre d'emploi est persistée, une candidature non** (`JobOffer`,
 `Candidat`). L'offre fige son tirage : sans cela, recharger la page relancerait
 les dés jusqu'au cinq étoiles, et le choix entre deux ou trois candidats — le

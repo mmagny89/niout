@@ -6,6 +6,7 @@ namespace App\Game;
 
 use App\Entity\Building;
 use App\Entity\City;
+use App\Entity\Zone;
 
 /**
  * Qui tient les bâtiments, et à quel rendement (doc 01, doc 05).
@@ -45,6 +46,35 @@ final readonly class Effectifs
      */
     public const int RENDEMENT_PLANCHER = 50;
     public const int RENDEMENT_PLEIN = 100;
+
+    /**
+     * Les équipages de base du territoire (décision de la joueuse) : un homme
+     * par champ, deux par carrière, un par pêcherie — un homme, un bateau.
+     *
+     * Ils réparent une invraisemblance que la Phase 3 avait laissée passer :
+     * une carrière s'exploitait et un champ se moissonnait sans que personne
+     * n'y travaille. La moitié de l'économie échappait ainsi au système
+     * d'emploi.
+     */
+    public const int TRAVAILLEURS_PAR_CHAMP = 1;
+    public const int TRAVAILLEURS_PAR_GISEMENT = 2;
+    public const int TRAVAILLEURS_PAR_PECHERIE = 1;
+
+    /**
+     * Ce que chaque niveau du bâtiment gouvernant ajoute au rendement de
+     * l'exploitation, en centièmes. **Valeur inventée.**.
+     *
+     * C'est elle qui referme la boucle du jeu : bâtir plus haut fait produire
+     * plus, ce qui permet d'employer davantage, ce qui fait produire plus
+     * encore. Et elle donne enfin un effet concret aux niveaux du Grenier, de
+     * l'Entrepôt et du Port, qui n'en avaient aucun.
+     *
+     * Le marché est délibérément à double tranchant : monter le bâtiment
+     * **augmente aussi l'équipage réclamé** (`equipageRequis()`). Un niveau
+     * gagné sans bras pour le suivre fait donc baisser le rendement avant de
+     * le faire monter — c'est le prix de la boucle, pas un défaut.
+     */
+    public const int BONUS_PAR_NIVEAU_GOUVERNANT = 10;
 
     /**
      * Combien de travailleurs un chef encadre à ce niveau (doc 01).
@@ -150,6 +180,148 @@ final readonly class Effectifs
         }
 
         return $repartition;
+    }
+
+    /**
+     * Le bâtiment qui gouverne une exploitation : le Grenier pour les champs,
+     * l'Entrepôt pour les carrières, le Port pour les pêcheries.
+     *
+     * Une seule règle pour les trois cas, plutôt qu'un traitement particulier
+     * du Port — monter le Port fait pêcher davantage et arme plus de bateaux,
+     * exactement comme monter l'Entrepôt fait creuser davantage.
+     */
+    public static function batimentGouvernant(?Ressource $ressource): TypeDeBatiment
+    {
+        if (null === $ressource) {
+            return TypeDeBatiment::Grenier;
+        }
+
+        return Ressource::Poisson === $ressource ? TypeDeBatiment::Port : TypeDeBatiment::Entrepot;
+    }
+
+    /**
+     * L'équipage de base d'une exploitation. `null` désigne un champ — la
+     * seule exploitation qui ne porte pas de ressource extraite.
+     */
+    public static function equipageDeBase(?Ressource $ressource): int
+    {
+        if (null === $ressource) {
+            return self::TRAVAILLEURS_PAR_CHAMP;
+        }
+
+        return Ressource::Poisson === $ressource
+            ? self::TRAVAILLEURS_PAR_PECHERIE
+            : self::TRAVAILLEURS_PAR_GISEMENT;
+    }
+
+    /**
+     * L'équipage que réclame une exploitation, une fois compté ce que le
+     * niveau de son bâtiment gouvernant y ajoute — même progression que
+     * l'encadrement d'un chef, `+1 tous les trois niveaux` (doc 01).
+     *
+     * Sans le bâtiment gouvernant, l'équipage de base : on creuse toujours,
+     * mais sans rien pour organiser le travail.
+     */
+    public static function equipageRequis(?Ressource $ressource, int $niveauGouvernant): int
+    {
+        return self::equipageDeBase($ressource) + max(0, intdiv($niveauGouvernant - 1, 3));
+    }
+
+    /**
+     * Ce que le niveau du bâtiment gouvernant ajoute au rendement, en
+     * centièmes. Cent quand il n'est pas dressé : aucun bonus, aucun malus.
+     */
+    public static function bonusDeNiveauEnCentiemes(int $niveauGouvernant): int
+    {
+        return self::RENDEMENT_PLEIN + self::BONUS_PAR_NIVEAU_GOUVERNANT * max(0, $niveauGouvernant - 1);
+    }
+
+    /**
+     * Répartit entre les exploitations du territoire les bras que les
+     * bâtiments n'ont pas pris.
+     *
+     * **Les bâtiments passent avant** : ils abritent et conservent, et une
+     * ville dont le Grenier est désert ne garderait rien de ce que ses champs
+     * lui donnent. Comme pour les bâtiments, l'ordre à l'intérieur est stable
+     * mais arbitraire — le joueur ne choisit pas encore qui servir d'abord.
+     *
+     * @return array<string, array{zone: Zone, ressource: ?Ressource, requis: int, affectes: int, rendement: int}>
+     *                                                                                                             indexé par « x:y:ressource »
+     */
+    public static function repartirLeTerritoire(City $ville, int $cycle): array
+    {
+        $bras = self::brasDisponibles($ville, $cycle);
+
+        foreach (self::repartir($ville, $cycle) as $ligne) {
+            $bras -= $ligne['affectes'];
+        }
+
+        $repartition = [];
+
+        foreach (self::exploitations($ville) as $cle => $exploitation) {
+            $niveau = self::niveauDuGouvernant($ville, $exploitation['ressource']);
+            $requis = self::equipageRequis($exploitation['ressource'], $niveau);
+            $affectes = min($requis, max(0, $bras));
+            $bras -= $affectes;
+
+            $repartition[$cle] = [
+                'zone' => $exploitation['zone'],
+                'ressource' => $exploitation['ressource'],
+                'requis' => $requis,
+                'affectes' => $affectes,
+                'rendement' => intdiv(
+                    self::rendementEnCentiemes($affectes, $requis) * self::bonusDeNiveauEnCentiemes($niveau),
+                    self::RENDEMENT_PLEIN,
+                ),
+            ];
+        }
+
+        return $repartition;
+    }
+
+    /**
+     * La clé sous laquelle une exploitation se retrouve dans la répartition.
+     */
+    public static function cleDe(Zone $zone, ?Ressource $ressource): string
+    {
+        return \sprintf('%d:%d:%s', $zone->getX(), $zone->getY(), null === $ressource ? 'champ' : $ressource->value);
+    }
+
+    /**
+     * Tout ce qui travaille sur le territoire : les champs semés et les
+     * gisements en activité. Un filon dormant ne réclame personne.
+     *
+     * @return array<string, array{zone: Zone, ressource: ?Ressource}>
+     */
+    private static function exploitations(City $ville): array
+    {
+        $zones = array_values($ville->getZones()->toArray());
+        usort(
+            $zones,
+            static fn (Zone $a, Zone $b): int => [$a->getX(), $a->getY()] <=> [$b->getX(), $b->getY()],
+        );
+
+        $exploitations = [];
+
+        foreach ($zones as $zone) {
+            if ($zone->porteUnChamp()) {
+                $exploitations[self::cleDe($zone, null)] = ['zone' => $zone, 'ressource' => null];
+            }
+
+            foreach ($zone->getGisements() as $gisement) {
+                if ($gisement->estExploitee()) {
+                    $ressource = $gisement->getRessource();
+                    $exploitations[self::cleDe($zone, $ressource)] = ['zone' => $zone, 'ressource' => $ressource];
+                }
+            }
+        }
+
+        return $exploitations;
+    }
+
+    private static function niveauDuGouvernant(City $ville, ?Ressource $ressource): int
+    {
+        return $ville->batimentDeType(self::batimentGouvernant($ressource))?->getNiveau() ?? 0;
     }
 
     /**

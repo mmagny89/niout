@@ -342,6 +342,10 @@ final class PartieController extends AbstractController
             // Sans Port, aucune barque n'appareille : la case poissonneuse
             // s'affiche, mais le bouton laisse la place au motif.
             'aUnPort' => $ville->possede(TypeDeBatiment::Port),
+            // Les équipages du territoire, indexés par « x:y:ressource » —
+            // c'est ce qui dit au joueur qu'une carrière tourne à moitié faute
+            // de bras, plutôt que de le lui laisser deviner au stock.
+            'equipages' => Effectifs::repartirLeTerritoire($ville, $partie->getCycle()),
         ]);
     }
 
