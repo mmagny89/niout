@@ -529,6 +529,9 @@ de l'état. Toutes les valeurs viennent du doc 03, aucune n'est à inventer.
   (« devrait rester longtemps » / « risque de partir bientôt »)
 - **Huit traits** : Travailleur acharné, Économe, Fidèle, Ambitieux, Croyant,
   Bagarreur, Expérimenté, Novice, avec leurs effets chiffrés du doc 03
+- **Pas de nom** (décision de la joueuse) : un PNJ se désigne par son poste et
+  ses statistiques, comme dans les documents. La question se reposera quand
+  les écrans montreront plusieurs employés d'un même bâtiment
 - Tirage des traits : **45 % aucun, 40 % un seul, 15 % deux**, chacun des huit
   à parts égales. **Incompatibilités** : Ambitieux/Fidèle et Travailleur
   acharné/Économe ne peuvent jamais coexister
@@ -564,6 +567,30 @@ Les deux formules du doc 01, appliquées à tous les bâtiments :
 - **Un chef en sous-effectif fait tourner son bâtiment à capacité réduite**
   (doc 01) — le goulot d'étranglement stratégique des régions difficiles
 
+##### Un bâtiment sans chef tourne à moitié (décision de la joueuse)
+
+Le doc 01 ne parlait que du sous-effectif, jamais de l'absence totale de chef.
+Tranché : **un bâtiment sans chef fonctionne, mais partiellement** — « il ne
+stocke que la moitié de ce qui est produit ». Aucun bâtiment ne s'éteint faute
+d'employés, ce qui écarte l'impasse redoutée : une partie sans or pour
+embaucher continue de tourner, au ralenti.
+
+**Interprétation à confirmer à l'implémentation**, qui unifie les deux règles
+en une seule formule plutôt que d'en juxtaposer deux :
+
+```
+rendement = 0,5 + 0,5 × (effectif réel / effectif requis)
+```
+
+Sans personne, le bâtiment rend la moitié ; au complet, il rend tout ; entre
+les deux, la réduction est proportionnelle — ce que le doc 01 appelle
+« capacité réduite ». La compétence des chefs se module ensuite par-dessus
+(lot 4.6).
+
+**Conséquence structurante** : les chefs cessent d'être une taxe obligatoire
+pour devenir un **investissement**. C'est ce qui rend la phase jouable — voir
+l'avertissement d'équilibrage ci-dessous.
+
 #### 4.4 — Le coût d'employer : salaires et vivres
 
 La première charge récurrente en or du jeu, à côté de la nourriture.
@@ -571,11 +598,64 @@ La première charge récurrente en or du jeu, à côté de la nourriture.
 - Salaires prélevés **à chaque quinzaine**, avec les vivres, dans
   `PassageDeCycle` — même place que `Subsistance`
 - La population totale mange `2 × effectif` (lot 4.0)
+- **Les travailleurs coûtent aussi de l'or** (décision de la joueuse), moins
+  cher qu'un chef. Le doc 03 ne chiffre que le salaire des candidats recrutés
+  par offre ; un travailleur n'ayant ni compétence tirée ni candidature, son
+  salaire est **une valeur à inventer** — un forfait par tête, à calibrer, très
+  inférieur aux 11 à 35 or que réclame un chef
 - **Le Marché reste la seule entrée d'or** tant que le commerce de la Phase 5
   n'existe pas : c'est l'invariant à ne jamais casser
-  (`DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`). Une
-  masse salariale qui dépasserait durablement ce qu'un joueur peut vendre
-  figerait la partie aussi sûrement que l'absence d'or au lot 3.5
+  (`DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`)
+
+##### Salaires impayés : le bâtiment s'arrête (décision de la joueuse)
+
+Aucun document ne le disait. Tranché : **un bâtiment dont les salaires ne sont
+pas payés cesse de fonctionner**, et le mécontentement suit le même chemin que
+la famine — il s'accumule, puis les employés partent.
+
+**Une conséquence à assumer, ou à corriger en playtest** : un bâtiment impayé
+rend *moins* qu'un bâtiment sans aucun chef, qui tourne encore à moitié. Le
+joueur a donc intérêt à renvoyer un chef qu'il ne peut plus payer plutôt qu'à
+le laisser en poste. C'est défendable — des employés non payés cessent le
+travail, alors qu'un bâtiment sans personnel reste tenu par la famille — et ça
+donne au joueur une action claire à prendre plutôt qu'une spirale subie. Si
+l'effet paraît pervers à l'usage, le levier est de ramener l'impayé à moitié
+lui aussi.
+
+##### Avertissement d'équilibrage : les salaires du doc 03 dépassent l'économie actuelle
+
+Constat établi en chiffrant, avant d'écrire une ligne de code — le même genre
+d'impasse que « l'or n'avait aucune source » au lot 3.5, trouvée cette fois
+avant de la subir en jeu.
+
+| | Par quinzaine |
+|---|---|
+| Salaire d'un chef (doc 03 : `5 + compétence × 0,3`) | **11 à 35 or**, ~23 en moyenne |
+| Ce qu'une ville du Delta bien exploitée peut vendre au Marché | **~15 à 35 or bruts**, matériaux de construction compris |
+
+**Un seul chef coûte donc à peu près tout ce que la ville gagne**, alors que la
+dotation royale n'est que de 50 or. Trois ou quatre chefs — le minimum pour
+tenir Grenier, Marché et Port au complet — mèneraient à la faillite en une
+quinzaine.
+
+Deux garde-fous existent déjà, et ils ne suffisent probablement pas :
+
+- le bâtiment sans chef tourne à moitié (lot 4.3), donc **ne pas embaucher
+  reste jouable** — la partie ne se fige pas ;
+- mais doubler un rendement de 15-20 or pour 23 or de salaire n'est jamais
+  rentable, et le système entier risque de **n'être jamais utilisé** : l'échec
+  symétrique, moins visible qu'un blocage mais tout aussi réel.
+
+**À trancher avant le lot 4.4**, entre trois leviers — les deux premiers
+portent sur des valeurs que j'ai inventées, pas sur la conception :
+
+1. **Monter la production** — `Recoltes::EXTRACTION_DE_REFERENCE` (5) et les
+   prix de `PrixDuMarche` sont des inventions du lot 3.5, explicitement
+   signalées « à revoir au premier playtest »
+2. **Baisser les salaires** — écart au doc 03, qui reconnaît lui-même que ses
+   valeurs sont « une première proposition cohérente, pas un résultat testé »
+3. **Rendre le gain d'un chef proportionnel à autre chose** que le seul
+   doublement de production — la compétence, les spécialités du lot 4.6
 
 #### 4.5 — Départ naturel, mécontentement et famine à deux paliers
 
@@ -584,6 +664,10 @@ La première charge récurrente en or du jeu, à côté de la nourriture.
 - **Mécontentement de famine** (doc 02), nouveau palier avant l'échec :
   production ralentie, **départs anticipés** de travailleurs, baisse de
   renommée (`Family::ajusterRenommee()`, déjà en place)
+- **Mécontentement d'impayé**, sur le même modèle (lot 4.4) : le bâtiment
+  s'arrête, le mécontentement monte, les employés finissent par partir. Deux
+  causes, un seul mécanisme — c'est ce qui évite d'écrire deux fois la même
+  spirale
 - **L'échec par famine du lot 3.7 recule d'un cran** : les quatre quinzaines
   actuelles deviennent le seuil du mécontentement, l'échec ne tombant qu'après
   une famine nettement plus longue. C'est le compromis tranché avec la joueuse
@@ -625,26 +709,21 @@ phase. L'interface doit l'annoncer clairement.
   du surplus à l'air libre (doc 01) : c'est un système d'inventaire à part
   entière, qui mérite son propre lot plutôt que d'être glissé ici
 
-#### Points à trancher pendant la phase
+#### Points tranchés avant d'ouvrir la phase
 
-- **Un bâtiment sans aucun chef fonctionne-t-il ?** Le doc 01 ne parle que du
-  sous-effectif (« capacité réduite »), jamais de l'absence totale de chef. Si
-  un Grenier sans chef cesse de conserver la récolte, une partie sans or pour
-  embaucher se retrouve bloquée — exactement le genre d'impasse déjà rencontré
-  au lot 3.5. À trancher avant d'écrire le lot 4.3.
-- **Que se passe-t-il si les salaires ne peuvent pas être payés ?** Aucun
-  document ne le dit. Le parallèle avec la famine (mécontentement puis départ)
-  est la piste la plus cohérente, à confirmer.
-- **Le salaire des travailleurs** : le doc 03 ne chiffre un salaire que pour
-  les candidats recrutés par offre. Les travailleurs, embauchés par leur chef
-  et non par le joueur, coûtent-ils quelque chose ? À trancher — leur donner
-  un coût rendrait la masse salariale bien plus lourde.
-- **Les PNJ ont-ils un nom ?** Aucun document n'en parle : ils n'y sont décrits
-  que par leurs statistiques. Un chef nommé rendrait pourtant les écrans bien
-  plus lisibles qu'un « chef n° 2 », et le jeu dispose déjà d'un vivier
-  onomastique authentique (le nom de famille par défaut, Nakht, vient du
-  doc 09). Si des noms sont retenus, c'est une invention à assumer et à
-  signaler comme telle, pas une donnée de conception.
+Quatre questions que les documents laissaient ouvertes, réglées avec la
+joueuse ; le détail de chacune vit dans le lot qui la porte.
+
+| Question | Décision | Lot |
+|---|---|---|
+| Un bâtiment sans aucun chef fonctionne-t-il ? | **Oui, à moitié** — aucun bâtiment ne s'éteint faute d'employés | 4.3 |
+| Que faire si les salaires ne sont pas payés ? | Le bâtiment **s'arrête**, puis mécontentement et départs, comme la famine | 4.4 / 4.5 |
+| Les travailleurs coûtent-ils de l'or ? | **Oui**, un forfait par tête, nettement moins qu'un chef | 4.4 |
+| Les PNJ ont-ils un nom ? | **Non pour l'instant** — désignés par leur poste, la question se reposera plus tard | 4.1 |
+
+Reste un seul point ouvert, et c'est le plus lourd : **l'écart entre les
+salaires du doc 03 et ce que l'économie actuelle peut payer**, chiffré au
+lot 4.4. À trancher avant d'écrire ce lot-là.
 
 #### Définition de « fini »
 
@@ -746,3 +825,7 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Ration alimentaire | **2 vivres par habitant et par quinzaine** (doc 02), et non 1 comme posé par erreur au lot 3.7 |
 | Famine | **Deux paliers** : mécontentement d'abord (production ralentie, départs anticipés, renommée en baisse — doc 02), échec seulement si elle se prolonge bien au-delà |
 | Affichage des PNJ | **Chiffré en interne, qualitatif à l'écran** (doc 03) : étoiles et libellés, jamais de compétence brute. Le salaire fait exception, déjà qualitatif par nature |
+| Bâtiment sans chef | **Fonctionne à moitié** — aucun bâtiment ne s'éteint faute d'employés, ce qui interdit l'impasse et fait du chef un investissement plutôt qu'une taxe |
+| Salaires impayés | Le bâtiment **s'arrête**, puis mécontentement et départs — même mécanisme que la famine |
+| Salaire des travailleurs | **Dû**, en forfait par tête, nettement inférieur à celui d'un chef |
+| Noms des PNJ | **Aucun pour l'instant** : un employé se désigne par son poste, comme dans les documents |
