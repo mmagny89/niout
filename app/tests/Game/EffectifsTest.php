@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Game;
 
 use App\Game\Effectifs;
+use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -65,6 +66,61 @@ final class EffectifsTest extends TestCase
         yield 'la moitié des postes' => [1, 2, 75];
         yield 'au complet' => [2, 2, 100];
         yield 'plus que nécessaire ne dépasse pas le plein' => [9, 2, 100];
+    }
+
+    /**
+     * Les équipages de base du territoire (décision de la joueuse) : un homme
+     * par champ, deux par carrière, un par pêcherie.
+     */
+    public function testLesEquipagesDeBaseDuTerritoire(): void
+    {
+        self::assertSame(Effectifs::TRAVAILLEURS_PAR_CHAMP, Effectifs::equipageDeBase(null));
+        self::assertSame(Effectifs::TRAVAILLEURS_PAR_PECHERIE, Effectifs::equipageDeBase(Ressource::Poisson));
+        self::assertSame(Effectifs::TRAVAILLEURS_PAR_GISEMENT, Effectifs::equipageDeBase(Ressource::Calcaire));
+    }
+
+    /**
+     * Une seule règle pour les trois cas, plutôt qu'un traitement particulier
+     * du Port.
+     */
+    public function testChaqueExploitationADeSonBatimentGouvernant(): void
+    {
+        self::assertSame(TypeDeBatiment::Grenier, Effectifs::batimentGouvernant(null));
+        self::assertSame(TypeDeBatiment::Entrepot, Effectifs::batimentGouvernant(Ressource::Calcaire));
+        self::assertSame(TypeDeBatiment::Port, Effectifs::batimentGouvernant(Ressource::Poisson));
+    }
+
+    /**
+     * Le marché à double tranchant qui referme la boucle du jeu : monter le
+     * bâtiment gouvernant fait produire plus, **et** réclame plus de bras.
+     * Les deux doivent croître ensemble, sinon le niveau n'est qu'un cadeau.
+     */
+    public function testMonterLeBatimentGouvernantAugmenteLeBonusEtLEquipage(): void
+    {
+        $bonusBas = Effectifs::bonusDeNiveauEnCentiemes(1);
+        $bonusHaut = Effectifs::bonusDeNiveauEnCentiemes(7);
+
+        self::assertSame(Effectifs::RENDEMENT_PLEIN, $bonusBas, 'Au niveau 1, ni bonus ni malus.');
+        self::assertGreaterThan($bonusBas, $bonusHaut);
+
+        self::assertGreaterThan(
+            Effectifs::equipageRequis(Ressource::Calcaire, 1),
+            Effectifs::equipageRequis(Ressource::Calcaire, 7),
+            'Un bâtiment plus haut réclame aussi plus de bras.',
+        );
+    }
+
+    /**
+     * Sans le bâtiment gouvernant, l'exploitation garde son équipage de base
+     * et ne touche aucun bonus — elle ne s'arrête pas pour autant.
+     */
+    public function testSansBatimentGouvernantLExploitationGardeSonEquipageDeBase(): void
+    {
+        self::assertSame(
+            Effectifs::TRAVAILLEURS_PAR_GISEMENT,
+            Effectifs::equipageRequis(Ressource::Calcaire, 0),
+        );
+        self::assertSame(Effectifs::RENDEMENT_PLEIN, Effectifs::bonusDeNiveauEnCentiemes(0));
     }
 
     public function testLeRendementCroitAvecLesBras(): void

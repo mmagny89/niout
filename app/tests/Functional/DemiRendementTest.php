@@ -31,28 +31,112 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 final class DemiRendementTest extends KernelTestCase
 {
     /**
-     * L'exemple donné par la joueuse elle-même : « un bâtiment sans chef
-     * fonctionne mais partiellement, il ne stocke que la moitié de ce qui est
-     * produit ».
+     * L'esprit de la décision de la joueuse — « un bâtiment sans chef
+     * fonctionne mais partiellement » — appliqué au canal qui le porte depuis
+     * le lot 4.5 : un champ sans bras donne encore, mais moitié moins.
+     *
+     * La famille le moissonne elle-même ; c'est le plancher, jamais zéro.
      */
-    public function testUnGrenierSansChefNeConserveQueLaMoitieDeLaRecolte(): void
+    public function testUnChampSansBrasNeDonneQueLaMoitieDeSaRecolte(): void
     {
         self::bootKernel();
 
-        $sansChef = $this->recolterSurUnCycleComplet('sans-chef@example.com', avecChef: false);
-        $avecChef = $this->recolterSurUnCycleComplet('avec-chef@example.com', avecChef: true);
+        $sansBras = $this->recolterSurUnCycleComplet('champ-sans-bras@example.com', avecBras: false);
+        $avecBras = $this->recolterSurUnCycleComplet('champ-avec-bras@example.com', avecBras: true);
 
         self::assertGreaterThan(
             0,
-            $sansChef,
-            'Rien ne s\'éteint faute d\'employés : un Grenier sans personne conserve encore.',
+            $sansBras,
+            'Rien ne s\'éteint faute d\'employés : un champ sans personne donne encore.',
         );
 
         self::assertSame(
-            intdiv($avecChef, 2),
-            $sansChef,
-            'Sans chef, la moitié exactement de ce qu\'un Grenier tenu rentre.',
+            intdiv($avecBras, 2),
+            $sansBras,
+            'Sans bras, la moitié exactement de ce qu\'un champ tenu rapporte.',
         );
+    }
+
+    /**
+     * L'invariant que le lot 4.4 promet — « tout tourne au moins à moitié » —
+     * et que deux modificateurs qui se multiplieraient casseraient : une ville
+     * entièrement dépeuplée doit garder la moitié de sa récolte, pas le quart.
+     *
+     * C'est ce qui a fait retirer le second modificateur du Grenier au lot 4.5 :
+     * depuis qu'il gouverne les champs, il pesait deux fois sur la même
+     * récolte.
+     */
+    public function testLaChaineAlimentaireNeDescendJamaisSousLaMoitie(): void
+    {
+        self::bootKernel();
+
+        $sansBras = $this->recolterSurUnCycleComplet('plancher-sans@example.com', avecBras: false);
+        $avecBras = $this->recolterSurUnCycleComplet('plancher-avec@example.com', avecBras: true);
+
+        self::assertGreaterThanOrEqual(
+            intdiv($avecBras, 2),
+            $sansBras,
+            'La récolte d\'une ville déserte ne doit jamais tomber sous la moitié.',
+        );
+    }
+
+    /**
+     * La réparation du déséquilibre le plus profond de la phase : jusqu'au
+     * lot 4.5, une carrière rapportait autant à une ville déserte qu'à une
+     * ville pourvue — la moitié de l'économie échappait au système d'emploi.
+     */
+    public function testUneCarriereSansBrasRapporteMoinsQuUneCarriereTenue(): void
+    {
+        self::bootKernel();
+
+        $tenue = $this->extraireSurCinqCycles('carriere-tenue@example.com', avecBras: true);
+        $deserte = $this->extraireSurCinqCycles('carriere-deserte@example.com', avecBras: false);
+
+        self::assertGreaterThan(0, $deserte, 'La famille creuse elle-même : jamais zéro.');
+        self::assertLessThan($tenue, $deserte, 'Une ville déserte ne doit pas extraire autant qu\'une ville pourvue.');
+    }
+
+    /**
+     * La boucle que le lot referme : bâtir plus haut fait produire plus — à
+     * condition d'avoir les bras, puisque le niveau réclame aussi un équipage
+     * plus large.
+     */
+    public function testMonterLEntrepotFaitExtraireDavantage(): void
+    {
+        self::bootKernel();
+
+        $basique = $this->extraireSurCinqCycles('entrepot-1@example.com', avecBras: true, niveauEntrepot: 1);
+        $eleve = $this->extraireSurCinqCycles('entrepot-7@example.com', avecBras: true, niveauEntrepot: 7);
+
+        self::assertGreaterThan($basique, $eleve);
+    }
+
+    /**
+     * Ouvre une carrière et rend ce qu'elle a versé au stock.
+     */
+    private function extraireSurCinqCycles(string $email, bool $avecBras, int $niveauEntrepot = 1): int
+    {
+        $partie = $this->lancerPartie($email);
+        $ville = $partie->getVille();
+
+        $zone = $this->premiereZoneHorsVille($partie);
+        $zone->decouvrir();
+        $zone->poserUnGisement(Ressource::Calcaire, 999);
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Entrepot, $niveauEntrepot));
+        static::getContainer()->get(Exploitations::class)->exploiter($partie, $zone, Ressource::Calcaire);
+
+        if (!$avecBras) {
+            $ville->laisserPartir($ville->getActifs(), 0);
+        }
+
+        $avant = $ville->quantite(Ressource::Calcaire);
+
+        for ($i = 0; $i < 5; ++$i) {
+            static::getContainer()->get(PassageDeCycle::class)->passer($partie);
+        }
+
+        return $ville->quantite(Ressource::Calcaire) - $avant;
     }
 
     /**
@@ -125,7 +209,7 @@ final class DemiRendementTest extends KernelTestCase
      * Sème un champ, fait tourner un cycle agricole complet et rend ce qui est
      * réellement entré au stock — consommation neutralisée.
      */
-    private function recolterSurUnCycleComplet(string $email, bool $avecChef): int
+    private function recolterSurUnCycleComplet(string $email, bool $avecBras): int
     {
         $partie = $this->lancerPartie($email);
         $ville = $partie->getVille();
@@ -138,8 +222,9 @@ final class DemiRendementTest extends KernelTestCase
         static::getContainer()->get(Exploitations::class)->semer($partie, $zone, Culture::Ble);
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier));
 
-        if ($avecChef) {
-            $this->installerUnChef($partie, TypeDeBatiment::Grenier);
+        if (!$avecBras) {
+            // Plus un seul actif : personne pour tenir le champ ni le Grenier.
+            $ville->laisserPartir($ville->getActifs(), 0);
         }
 
         $recolte = 0;
