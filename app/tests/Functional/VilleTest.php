@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
+use App\Entity\Building;
 use App\Entity\User;
 use App\Game\LanceurDePartie;
 use App\Game\Ressource;
@@ -189,6 +190,65 @@ final class VilleTest extends WebTestCase
         $client->request('POST', \sprintf('/partie/%d/cycle', $partie->getId()), ['_token' => $token]);
 
         self::assertResponseStatusCodeSame(403);
+    }
+
+    /**
+     * Une ville pleine ne propose pas d'appeler du monde : elle dit d'abord
+     * quoi bâtir. C'est le seul endroit où le joueur apprend le lien entre le
+     * Quartier d'habitation et sa population.
+     */
+    public function testUneVillePleineExpliqueQuIlFautBatirAvantDAppeler(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'complet@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertTrue($partie->getVille()->manqueDeLogements());
+        self::assertCount(
+            0,
+            $crawler->filter(\sprintf('form[action="/partie/%d/ville/appeler"]', $partie->getId())),
+            'Aucun bouton d\'appel tant que les maisons sont pleines.',
+        );
+        self::assertSelectorTextContains('body', 'Quartier d\'habitation');
+    }
+
+    /**
+     * Le parcours complet, jeton compris : une ville logée et fournie fait
+     * venir une maisonnée, et la page suivante le dit.
+     */
+    public function testUneVilleLogeeFaitVenirUneMaisonnee(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'appel-ecran@example.com');
+        $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::QuartierDHabitation));
+        $ville->crediterRessources([Ressource::Deben->value => 500]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $population = $ville->population();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $formulaire = $crawler->filter(\sprintf('form[action="/partie/%d/ville/appeler"]', $partie->getId()));
+
+        self::assertCount(1, $formulaire, 'Une ville logée doit pouvoir appeler du monde.');
+
+        $client->submit($formulaire->form());
+
+        self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
+        $client->followRedirect();
+        self::assertSelectorTextContains('body', 'maisonnée s\'installe');
+
+        // La requête a rejoué le noyau : l'objet d'avant n'appartient plus au
+        // gestionnaire courant. On relit la partie plutôt que de le rafraîchir.
+        $relue = static::getContainer()->get(EntityManagerInterface::class)
+            ->find(\App\Entity\GameSave::class, $partie->getId());
+        self::assertNotNull($relue);
+        self::assertGreaterThan($population, $relue->getVille()->population());
     }
 
     private function lancer(User $joueur): \App\Entity\GameSave

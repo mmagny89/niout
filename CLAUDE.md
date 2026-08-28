@@ -196,11 +196,19 @@ Trois règles à ne pas défaire :
   un total (`Demographie::tirer()`) : c'est ce qui permet de rester en entiers
   sans traîner de reliquat — un taux de 3 % sur douze actifs ne donnerait
   sinon jamais rien.
-- **Personne ne naît.** La ville ne se repeuple pas d'elle-même ; c'est au
-  joueur d'aller chercher des habitants. Mesuré sur vingt ans, la population
-  passe de 10 à 7 pendant que les actifs montent de 4 à 6 : une pression
-  lente, pas un effondrement. À resurveiller si des décès s'ajoutent.
-
+- **On naît, mais seulement s'il y a de la place.** `CHANCE_NAISSANCE_PAR_ACTIF`
+  est nulle quand `manqueDeLogements()` — la ville ne déborde jamais de son
+  logement, ce qui rend le plafond du Quartier lisible plutôt que théorique.
+  Mesuré sur 200 parties de vingt ans : sans Quartier la population fond de 10
+  à 5, avec un Quartier de niveau 1 elle monte à 13, et aucune ville ne
+  s'éteint. Ne pas bâtir coûte des habitants ; bâtir en fait gagner lentement.
+- **Faire venir des habitants passe par la renommée** (`PalierDeRenommee`,
+  doc 13) : elle fixe le prix d'un appel et, à partir de « Respectée », fait
+  venir des maisonnées toutes seules. Piège déjà payé : `ajusterRenommee()`
+  n'était appelé de nulle part, donc la renommée restait à zéro pour toujours
+  et toute règle indexée dessus était **inerte**. C'est le Marché qui l'alimente
+  désormais (`Marche::RECETTE_DUN_GROS_CONTRAT`) — avant d'indexer une règle
+  sur une valeur, vérifier qu'une source la fait bouger.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais

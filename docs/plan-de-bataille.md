@@ -618,11 +618,41 @@ de la simplicité demandée, et il se paie sur la richesse du choix à l'embauch
 
 ##### À reprendre plus tard
 
-- **Faire venir des habitants** est une fonctionnalité à part entière — adossée
-  à la renommée, peut-être à des ressources offertes, et bornée par le
-  logement. Elle mérite son lot.
-- **Les naissances**, si la ville doit pouvoir se maintenir seule sur une
-  longue partie. Sans elles, l'immigration est la seule source de population.
+##### Repris ensuite — naissances et appel d'habitants  ✅
+
+Les deux manques ci-dessus sont comblés, dans le même lot parce qu'ils se
+tiennent : sans naissances l'appel d'habitants est la seule source de
+population, et sans logement ni l'un ni l'autre ne produit quoi que ce soit.
+
+- **On naît, mais seulement s'il y a de la place.** Un actif a une chance sur
+  dix de donner un enfant dans l'année (valeur inventée), et aucune quand les
+  maisons sont pleines. La ville ne déborde jamais de son logement —
+  simplification assumée, qui rend le plafond du Quartier lisible plutôt que
+  théorique.
+- **Faire venir une maisonnée** coûte des deben, d'autant moins que la famille
+  est connue (`PalierDeRenommee::coutDAppel()`, 30 à 5), et se refuse tant
+  qu'il manque des logements.
+- **La migration spontanée** du doc 13 s'ajoute à partir de « Respectée » :
+  une maisonnée s'installe d'elle-même, sans qu'on l'appelle ni qu'on la paie.
+
+**Un défaut de fond trouvé en chemin** : `ajusterRenommee()` n'était appelé de
+nulle part. La renommée valait donc zéro pour toujours, et tout ce qui aurait
+été indexé dessus — prix d'un appel, migration spontanée — serait resté inerte
+sans qu'aucun test ne le signale. Le Marché l'alimente désormais : le doc 13
+accorde +1 pour un « gros contrat commercial conclu », dont le seuil (40 deben)
+est inventé et à recalibrer. C'est aujourd'hui la seule source de renommée
+branchée.
+
+**Calibrage vérifié**, pas postulé — 200 parties de vingt ans par cas :
+
+| Logement | Population après 20 ans | Actifs | Villes éteintes |
+|---|---|---|---|
+| Aucun Quartier (1 foyer) | 10 → 5 | 3 | 0 % |
+| Quartier niveau 1 (21 foyers) | 10 → 13 | 7 | 0 % |
+
+Ne pas bâtir coûte des habitants, bâtir en fait gagner lentement, et aucune
+ville ne s'éteint. C'est la pression voulue : le Quartier d'habitation cesse
+d'être décoratif sans que la démographie devienne une course.
 
 #### 4.2 — Le candidat : compétence, traits, spécialité  ✅
 

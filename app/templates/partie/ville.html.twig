@@ -101,14 +101,15 @@
             {% endfor %}
         </ul>
 
-        {# Le Marché est la seule entrée d'or du jeu : sans lui, la dotation
-           royale s'épuise et la partie se fige. #}
+        {# Le Marché est la seule entrée de deben du jeu : sans lui, la dotation
+           royale s'épuise et la partie se fige. C'est aussi la seule source de
+           renommée branchée à ce jour (doc 13). #}
         {% if aUnMarche %}
             <h2 class="mt-10 text-2xl text-encre-900">Marché</h2>
             <p class="mt-2 text-sm text-encre-500">
                 Écoulez votre surplus. C'est pour l'instant la seule façon de
-                gagner de l'or — l'achat et les caravanes viendront avec le
-                commerce longue distance.
+                gagner des deben — l'achat et les caravanes viendront avec le
+                commerce longue distance. Un gros contrat vous fait un nom.
             </p>
 
             {% if etal is empty %}
@@ -125,7 +126,7 @@
 
                                     <span class="font-display text-lg text-encre-900">{{ lot.ressource.libelle }}</span>
                                     <span class="text-sm text-encre-500" data-chiffres>
-                                        {{ lot.quantite }} en réserve · {{ lot.prix }} or l'unité
+                                        {{ lot.quantite }} en réserve · {{ lot.prix }} deben l'unité
                                     </span>
 
                                     <span class="ml-auto flex items-baseline gap-3">
@@ -149,6 +150,47 @@
                 </ul>
             {% endif %}
         {% endif %}
+
+        {# Faire venir des habitants : deux verrous, le logement et la bourse.
+           L'écran annonce les deux avant que la joueuse ne s'engage. #}
+        <h2 class="mt-10 text-2xl text-encre-900">Habitants</h2>
+        <p class="mt-2 text-sm text-encre-500">
+            {{ ville.population }} habitants, dont {{ ville.actifs }} en âge de
+            travailler et {{ ville.inactifs }} à charge.
+            {{ ville.foyersOccupes }} maisonnées sur {{ ville.capaciteEnFoyers }} logées.
+        </p>
+
+        <div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+            <p class="text-sm text-encre-600">
+                Votre famille est <strong class="font-medium text-encre-900">{{ palier.libelle|lower }}</strong> :
+                {{ palier.attractivite }}
+            </p>
+
+            {% if ville.manqueDeLogements %}
+                <p class="mt-3 text-sm text-encre-500">
+                    Vos maisons sont pleines. Montez le Quartier d'habitation
+                    avant d'espérer faire venir du monde — et sachez qu'aucun
+                    enfant ne naîtra tant qu'il n'y aura pas de place.
+                </p>
+            {% elseif partie.estEnCours %}
+                <form method="post" action="{{ path('app_partie_appeler', {id: partie.id}) }}"
+                      class="mt-3 flex flex-wrap items-baseline gap-4">
+                    {# Jeton classique : « appeler » n'est pas dans
+                       stateless_token_ids, donc pas de contrôleur Stimulus —
+                       il écraserait un jeton valide par un jeton généré. #}
+                    <input type="hidden" name="_token" value="{{ csrf_token('appeler') }}">
+
+                    <span class="text-sm text-encre-500" data-chiffres>
+                        {{ coutDUnAppel }} deben la maisonnée
+                    </span>
+
+                    <button type="submit"
+                            class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        Faire venir une maisonnée
+                    </button>
+                </form>
+            {% endif %}
+        </div>
 
         <h2 class="mt-10 text-2xl text-encre-900">À bâtir</h2>
         <p class="mt-2 text-sm text-encre-500">

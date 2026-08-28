@@ -21,10 +21,11 @@ use Random\Randomizer;
  * actifs ne donnerait sinon jamais rien. Et la variance qui en résulte est
  * juste : certaines années sont plus dures que d'autres.
  *
- * **Personne ne naît.** La ville ne se repeuple pas d'elle-même : c'est au
- * joueur d'aller chercher des habitants, ce qui fait du logement et de la
- * renommée un sujet permanent. Le corollaire à surveiller en playtest : une
- * ville laissée à elle-même s'éteint lentement.
+ * Deux choses peuvent au contraire faire croître la ville, et **toutes deux
+ * s'arrêtent net quand les maisons sont pleines** : les naissances, et la
+ * migration spontanée que le doc 13 accorde aux familles respectées. Ni l'une
+ * ni l'autre ne remplace l'appel volontaire d'habitants — elles maintiennent,
+ * elles n'agrandissent qu'à la marge.
  *
  * Ne persiste rien, comme les autres résolutions de cycle : `PassageDeCycle`
  * réunit tout en une seule écriture.
@@ -70,7 +71,70 @@ final readonly class Demographie
             $decesAnciens,
         );
 
-        return $this->raconter($enfantsDevenusActifs, $actifsDevenusAnciens, $decesEnfants + $decesActifs + $decesAnciens);
+        // Naissances et migration se calculent après le bilan, sur une ville
+        // dont on connaît enfin la place restante : une maison libérée par un
+        // décès peut accueillir dans la même année.
+        $naissances = $this->naitre($partie);
+        $arrivees = $this->migrerSpontanement($partie);
+
+        return [
+            ...$this->raconter($enfantsDevenusActifs, $actifsDevenusAnciens, $decesEnfants + $decesActifs + $decesAnciens),
+            ...$naissances,
+            ...$arrivees,
+        ];
+    }
+
+    /**
+     * Les naissances de l'année — jamais au-delà de ce que la ville peut
+     * loger.
+     *
+     * @return list<string>
+     */
+    private function naitre(GameSave $partie): array
+    {
+        $ville = $partie->getVille();
+
+        if ($ville->manqueDeLogements()) {
+            return [];
+        }
+
+        $naissances = $this->tirer($ville->getActifs(), Population::CHANCE_NAISSANCE_PAR_ACTIF);
+
+        if (0 === $naissances) {
+            return [];
+        }
+
+        $ville->accueillir(0, $naissances, 0);
+
+        return [1 === $naissances
+            ? 'Un enfant est né cette année.'
+            : \sprintf('%d enfants sont nés cette année.', $naissances),
+        ];
+    }
+
+    /**
+     * La migration spontanée du doc 13 : à partir du palier « Respectée », des
+     * maisonnées s'installent sans qu'on les appelle ni qu'on les paie.
+     *
+     * @return list<string>
+     */
+    private function migrerSpontanement(GameSave $partie): array
+    {
+        $ville = $partie->getVille();
+        $palier = $partie->getFamille()->palier();
+
+        if ($ville->manqueDeLogements() || $this->hasard->getInt(1, 100) > $palier->chanceDeMigrationSpontanee()) {
+            return [];
+        }
+
+        $maisonnee = Population::maisonneeQuiArrive($this->hasard);
+        $ville->accueillir($maisonnee['actifs'], $maisonnee['inactifs'], 0);
+
+        return [\sprintf(
+            'Votre renommée a fait venir une maisonnée : %d bras et %d bouches de plus.',
+            $maisonnee['actifs'],
+            $maisonnee['inactifs'],
+        )];
     }
 
     /**

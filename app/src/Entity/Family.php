@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Game\PalierDeRenommee;
 use App\Repository\FamilyRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -85,14 +86,16 @@ class Family
     /**
      * Palier de renommée, tel que défini par le doc 13.
      */
+    /**
+     * Le palier atteint, qui décide de l'attractivité de la ville (doc 13).
+     */
+    public function palier(): PalierDeRenommee
+    {
+        return PalierDeRenommee::pour($this->renommee);
+    }
+
     public function palierDeRenommee(): string
     {
-        return match (true) {
-            $this->renommee < 20 => 'Inconnue',
-            $this->renommee < 40 => 'Modeste',
-            $this->renommee < 60 => 'Reconnue',
-            $this->renommee < 80 => 'Respectée',
-            default => 'Illustre',
-        };
+        return $this->palier()->libelle();
     }
 }

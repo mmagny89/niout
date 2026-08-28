@@ -11,6 +11,8 @@ use App\Entity\User;
 use App\Entity\Zone;
 use App\Enum\GameMode;
 use App\Form\NouvellePartieType;
+use App\Game\AppelDHabitants;
+use App\Game\AppelImpossible;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
@@ -114,7 +116,7 @@ final class PartieController extends AbstractController
      */
     #[Route('/{id}/ville', name: 'app_partie_ville', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function ville(GameSave $partie, CatalogueDeLaVille $catalogue, Marche $marche): Response
+    public function ville(GameSave $partie, CatalogueDeLaVille $catalogue, Marche $marche, AppelDHabitants $appels): Response
     {
         $ville = $partie->getVille();
 
@@ -126,6 +128,8 @@ final class PartieController extends AbstractController
             'offres' => $catalogue->pour($ville),
             'aUnMarche' => $ville->possede(TypeDeBatiment::Marche),
             'etal' => $ville->possede(TypeDeBatiment::Marche) ? $marche->etalPour($partie) : [],
+            'palier' => $partie->getFamille()->palier(),
+            'coutDUnAppel' => $appels->cout($partie),
         ]);
     }
 
@@ -150,13 +154,42 @@ final class PartieController extends AbstractController
         try {
             $recette = $marche->vendre($partie, $ressource, $request->request->getInt('quantite'));
             $this->addFlash('succes', \sprintf(
-                '%d %s vendu%s : %d or entrent en caisse.',
+                '%d %s vendu%s : %d deben entrent en caisse.',
                 $request->request->getInt('quantite'),
                 $ressource->libelle(),
                 $request->request->getInt('quantite') > 1 ? 's' : '',
                 $recette,
             ));
         } catch (VenteImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Fait venir une maisonnée dans la ville.
+     *
+     * Le prix suit la renommée de la famille (doc 13) et le logement borne
+     * l'action : c'est ce qui fait du Quartier d'habitation autre chose qu'un
+     * bâtiment décoratif.
+     */
+    #[Route('/{id}/ville/appeler', name: 'app_partie_appeler', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function appeler(Request $request, GameSave $partie, AppelDHabitants $appels): Response
+    {
+        if (!$this->isCsrfTokenValid('appeler', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        try {
+            $maisonnee = $appels->appeler($partie);
+            $this->addFlash('succes', \sprintf(
+                'Une maisonnée s\'installe : %d bras et %d bouches de plus.',
+                $maisonnee['actifs'],
+                $maisonnee['inactifs'],
+            ));
+        } catch (AppelImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
