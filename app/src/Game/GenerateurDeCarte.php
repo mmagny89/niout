@@ -306,9 +306,7 @@ final readonly class GenerateurDeCarte
             $this->tirerLeContenu($zone, $geographie, $poids, $quantite);
         }
 
-        foreach (self::MATERIAUX_DE_ZONE_HUMIDE as $materiau) {
-            $this->garantirUnGisementRiverain($grille, $geographie, $materiau, $quantite);
-        }
+        $this->garantirLesMinimums($grille, $geographie, $quantite);
     }
 
     /**
@@ -322,6 +320,151 @@ final readonly class GenerateurDeCarte
      * imbâtissable au deuxième bâtiment — ce qui s'est produit en jeu.
      */
     private const array MATERIAUX_DE_ZONE_HUMIDE = [Ressource::Argile, Ressource::Roseaux];
+
+    /**
+     * Minimum de champs sur une carte. Sans terre à semer, le Grenier et tout
+     * le cycle agricole restent lettre morte.
+     *
+     * Valeur invention, volontairement modeste : sur le Delta (3×3, la plus
+     * petite carte du jeu), les cases riveraines se disputent déjà entre
+     * matériaux vitaux, poisson et champs. Un minimum de 2 s'est révélé
+     * irréalisable sur cette carte — le tirage pouvait épuiser toute la terre
+     * disponible avant que la garantie de champs ne s'exécute, laissant la
+     * partie sans terre à semer. 1 suffit à rendre l'agriculture possible ;
+     * les régions plus grandes en offriront naturellement davantage.
+     */
+    private const int CHAMPS_MINIMUM = 1;
+
+    /**
+     * Minimum de cases poissonneuses, là où il y a de l'eau. Le Port n'aurait
+     * sinon rien à pêcher. Même calibrage modeste, pour la même raison.
+     */
+    private const int POISSON_MINIMUM = 1;
+
+    /**
+     * Le tirage seul laisse trop de place au hasard : une carte peut sortir
+     * sans champ, sans poisson, ou sans l'une des ressources de sa région. On
+     * complète donc après coup, **sans jamais rien retirer** de ce que le
+     * tirage a produit.
+     *
+     * « En fonction de la région » : on ne garantit que ce que la région porte
+     * réellement. Une région sans roseaux n'en verra pas apparaître.
+     *
+     * @param list<Zone> $grille
+     */
+    private function garantirLesMinimums(array $grille, GeographieDeRegion $geographie, int $quantite): void
+    {
+        // Les vitaux d'abord, et sur une berge : ils commandent la jouabilité,
+        // regroupés sur le moins de cases possible pour laisser de la place au
+        // reste — une petite carte ne peut pas se permettre de les disperser.
+        foreach (self::MATERIAUX_DE_ZONE_HUMIDE as $materiau) {
+            $this->garantirUnGisementRiverain($grille, $geographie, $materiau, $quantite);
+        }
+
+        // Puis les champs, avant que les ressources de zone n'épuisent la
+        // terre disponible : sur le Delta, les trois se disputent les mêmes
+        // cases, et sans nourriture le Grenier ne sert à rien.
+        $this->garantirDesChamps($grille);
+
+        // Au moins un gisement de chaque autre ressource de la région.
+        foreach ($geographie->ressourcesDeZone as $materiau) {
+            if (\in_array($materiau, self::MATERIAUX_DE_ZONE_HUMIDE, true)) {
+                continue;
+            }
+
+            $this->garantirUnGisement($grille, $materiau, $quantite);
+        }
+
+        $this->garantirDuPoisson($grille, $quantite);
+    }
+
+    /**
+     * Pose un gisement de ce matériau si la carte n'en porte aucun, sur une
+     * case de terre qui peut encore en accueillir un.
+     *
+     * @param list<Zone> $grille
+     */
+    private function garantirUnGisement(array $grille, Ressource $materiau, int $quantite): void
+    {
+        $candidates = [];
+
+        foreach ($grille as $zone) {
+            if (null !== $zone->gisementDe($materiau)) {
+                return;
+            }
+
+            if (!$zone->porteLaVille() && !$zone->getTerrain()->estUnPointDEau() && $zone->peutPorterUnGisementDePlus()) {
+                $candidates[] = $zone;
+            }
+        }
+
+        if ([] === $candidates) {
+            return;
+        }
+
+        $candidates[$this->hasard->getInt(0, \count($candidates) - 1)]
+            ->poserUnGisement($materiau, $quantite);
+    }
+
+    /**
+     * Le poisson est la seule ressource des cases d'eau (doc 08). Une carte qui
+     * borde l'eau doit en porter, sans quoi le Port serait un quai désert.
+     *
+     * @param list<Zone> $grille
+     */
+    private function garantirDuPoisson(array $grille, int $quantite): void
+    {
+        $eaux = [];
+        $poissonneuses = 0;
+
+        foreach ($grille as $zone) {
+            if (!$zone->getTerrain()->estUnPointDEau()) {
+                continue;
+            }
+
+            if (null !== $zone->gisementDe(Ressource::Poisson)) {
+                ++$poissonneuses;
+            } else {
+                $eaux[] = $zone;
+            }
+        }
+
+        while ($poissonneuses < self::POISSON_MINIMUM && [] !== $eaux) {
+            $rang = $this->hasard->getInt(0, \count($eaux) - 1);
+            array_splice($eaux, $rang, 1)[0]->poserUnGisement(Ressource::Poisson, $quantite);
+            ++$poissonneuses;
+        }
+    }
+
+    /**
+     * Des terres cultivables en nombre suffisant. On ne convertit que des cases
+     * vides : un gisement déjà tiré vaut mieux qu'un champ de plus.
+     *
+     * @param list<Zone> $grille
+     */
+    private function garantirDesChamps(array $grille): void
+    {
+        $vides = [];
+        $champs = 0;
+
+        foreach ($grille as $zone) {
+            if ($zone->porteLaVille() || !$zone->getTerrain()->accepteUnChamp()) {
+                continue;
+            }
+
+            if (ContenuDeZone::ChampEligible === $zone->getContenu()) {
+                ++$champs;
+            } elseif (!$zone->porteUnGisement()) {
+                $vides[] = $zone;
+            }
+        }
+
+        while ($champs < self::CHAMPS_MINIMUM && [] !== $vides) {
+            $rang = $this->hasard->getInt(0, \count($vides) - 1);
+            array_splice($vides, $rang, 1)[0]->poserUnContenu(ContenuDeZone::ChampEligible);
+            ++$champs;
+        }
+    }
 
     /**
      * Assure au moins un gisement de ce matériau en bordure d'eau, si la région
@@ -343,7 +486,13 @@ final readonly class GenerateurDeCarte
             return;
         }
 
-        $berges = [];
+        // Deux listes : les berges qui portent déjà un gisement (une case en
+        // porte deux au plus) et les berges encore vierges. Consolider sur les
+        // premières avant d'entamer une case neuve — c'est ce qui permet à
+        // l'argile et aux roseaux de tenir sur une seule case plutôt que deux,
+        // et laisse de la place aux champs et au poisson sur une petite carte.
+        $avecGisement = [];
+        $vierges = [];
 
         foreach ($grille as $zone) {
             if ($zone->porteLaVille() || $zone->getTerrain()->estUnPointDEau() || !$this->estRiveraine($grille, $zone)) {
@@ -356,10 +505,18 @@ final readonly class GenerateurDeCarte
                 return;
             }
 
-            if ($zone->peutPorterUnGisementDePlus()) {
-                $berges[] = $zone;
+            if (!$zone->peutPorterUnGisementDePlus()) {
+                continue;
+            }
+
+            if ($zone->porteUnGisement()) {
+                $avecGisement[] = $zone;
+            } else {
+                $vierges[] = $zone;
             }
         }
+
+        $berges = [] !== $avecGisement ? $avecGisement : $vierges;
 
         if ([] === $berges) {
             return;

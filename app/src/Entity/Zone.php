@@ -159,7 +159,15 @@ class Zone
             return $this;
         }
 
-        $this->contenu = ContenuDeZone::Ressource;
+        // N'écrase jamais un contenu déjà plus spécifique — une terre
+        // cultivable ou un événement. Un gisement peut s'y ajouter sans
+        // effacer ce que la génération y a posé en premier : c'est ce qui a
+        // fait disparaître le seul champ garanti d'une carte, une carrière de
+        // calcaire posée après coup ayant repris la case pour elle.
+        if (ContenuDeZone::Rien === $this->contenu) {
+            $this->contenu = ContenuDeZone::Ressource;
+        }
+
         $this->gisements->add(new Gisement($this, $ressource, $quantite));
 
         return $this;

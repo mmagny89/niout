@@ -67,17 +67,26 @@ enum TypeDeBatiment: string
         return match ($this) {
             // Bâtiment de départ, offert avec la ville.
             self::ResidenceFamiliale => new CoutDeConstruction(),
-            self::QuartierDHabitation => new CoutDeConstruction(bois: 25, pierre: 15, or: 20),
-            self::Grenier => new CoutDeConstruction(bois: 15, pierre: 15, or: 15),
-            self::Entrepot => new CoutDeConstruction(bois: 20, pierre: 10, or: 15),
-            self::Marche => new CoutDeConstruction(bois: 15, pierre: 5, or: 15),
-            self::Forge => new CoutDeConstruction(bois: 15, pierre: 25, or: 30),
-            self::Atelier => new CoutDeConstruction(bois: 20, pierre: 10, or: 20),
-            self::Temple => new CoutDeConstruction(bois: 10, pierre: 30, or: 10, lin: 5, maconnerie: FamilleDeMateriau::Pierre),
-            self::MaisonDesScribes => new CoutDeConstruction(bois: 25, pierre: 15, or: 35),
-            self::Caserne => new CoutDeConstruction(bois: 20, pierre: 30, or: 40),
-            self::Auberge => new CoutDeConstruction(bois: 20, pierre: 10, or: 20),
-            self::Port => new CoutDeConstruction(bois: 40, pierre: 20, or: 50, maconnerie: FamilleDeMateriau::Pierre),
+            // Les quantités du doc 01 sont reprises telles quelles ; seuls les
+            // matériaux sont nommés. Le « bois » de son tableau devient des
+            // roseaux — le doc 01 décrit lui-même les toitures en troncs de
+            // palmier et en nattes — et sa « pierre » devient de l'argile, la
+            // brique crue dont il dit que presque toute la ville est faite.
+            self::QuartierDHabitation => CoutDeConstruction::de(or: 20, roseaux: 25, argile: 15),
+            self::Grenier => CoutDeConstruction::de(or: 15, roseaux: 15, argile: 15),
+            self::Entrepot => CoutDeConstruction::de(or: 15, roseaux: 20, argile: 10),
+            self::Marche => CoutDeConstruction::de(or: 15, roseaux: 15, argile: 5),
+            self::Forge => CoutDeConstruction::de(or: 30, roseaux: 15, argile: 25),
+            self::Atelier => CoutDeConstruction::de(or: 20, roseaux: 20, argile: 10),
+            self::MaisonDesScribes => CoutDeConstruction::de(or: 35, roseaux: 25, argile: 15),
+            self::Caserne => CoutDeConstruction::de(or: 40, roseaux: 20, argile: 30),
+            self::Auberge => CoutDeConstruction::de(or: 20, roseaux: 20, argile: 10),
+            // Les deux seuls bâtiments de pierre de taille (doc 01, colonne
+            // « matériau dominant »). Le calcaire de Tourah remontait et
+            // descendait réellement le fleuve : une région qui n'en porte pas
+            // devra l'importer.
+            self::Temple => CoutDeConstruction::de(or: 10, roseaux: 10, calcaire: 30, lin: 5),
+            self::Port => CoutDeConstruction::de(or: 50, roseaux: 40, calcaire: 20),
         };
     }
 

@@ -665,6 +665,52 @@ Dotation revue en conséquence : 35 bois, 30 argile, 50 or — de quoi dresser l
 Grenier **et** le Marché dès l'arrivée. Ce n'est pas une largesse : une partie
 qui n'atteindrait pas le Marché ne pourrait plus jamais gagner un or.
 
+##### Les familles de matériaux disparaissent : chaque coût nomme sa ressource
+
+Retour en arrière sur le point 2 ci-dessus (décision de la joueuse). Le
+compteur « Bois 35 » de la barre de jeu agrégeait en réalité les roseaux et le
+cèdre ; « Pierre » agrégeait calcaire, grès et granite. Le joueur ne pouvait
+donc jamais savoir ce qu'il possédait vraiment, ni distinguer une pénurie de
+roseaux d'une pénurie de cèdre.
+
+**`FamilleDeMateriau` est supprimée.** `CoutDeConstruction` ne porte plus de
+lignes « bois »/« pierre » mais des ressources nommées
+(`CoutDeConstruction::de(roseaux: 15, argile: 15, or: 15)` pour le Grenier) :
+plus aucune substitution. Conséquence assumée, conforme au doc 08 : une région
+qui ne porte pas un matériau ne peut rien bâtir qui en réclame, sans passer par
+le commerce — c'est ce qui donne son poids à la géographie régionale. Les
+quantités du doc 01 sont conservées telles quelles ; seul le nom du matériau
+change, avec le même principe qu'au point 2 : brique crue (roseaux + argile)
+pour presque tout, calcaire pour le seul Temple et le Port.
+
+`City::stockAffichable()` remplace les raccourcis `getBois()`/`getPierre()` :
+chaque ligne de stock non nulle, triée, l'or en tête — rien n'est agrégé. La
+barre de jeu et les écrans de récapitulatif listent désormais ce qu'ils
+trouvent dans le stock plutôt qu'un jeu de compteurs fixes.
+
+##### Un minimum de champs et de poisson, selon la région (décision de la joueuse)
+
+Deuxième demande du même échange : garantir un minimum de chaque ressource sur
+la carte, champs et poisson compris, « en fonction de la région ». Deux
+défauts trouvés en l'implémentant, tous deux sur la plus petite carte du jeu
+(Delta, 3×3, mission 1) :
+
+- **Contention entre garanties.** Matériaux vitaux, poisson et champs se
+  disputent les mêmes cases riveraines ; un minimum de 2 par catégorie s'est
+  révélé irréalisable — une carte est sortie sans un seul champ. Calibré à 1
+  (`CHAMPS_MINIMUM`, `POISSON_MINIMUM` dans `GenerateurDeCarte`), et les deux
+  matériaux vitaux sont désormais regroupés sur la même case quand c'est
+  possible plutôt que dispersés, pour laisser de la place au reste.
+- **Un gisement posé après coup effaçait un champ déjà garanti.**
+  `Zone::poserUnGisement()` écrasait inconditionnellement le contenu de la
+  case ; une carrière de calcaire ajoutée après la garantie de champs pouvait
+  ainsi reprendre silencieusement une case tout juste marquée cultivable. La
+  méthode ne fait plus remonter `Rien` vers `Ressource` que si le contenu était
+  encore vierge — un champ ou un événement déjà posés restent intacts.
+
+Un test rejoue exactement la géographie de la mission 1 sur 50 graines, en
+plus des invariants sur trente graines pour les autres régions.
+
 ##### Deux ajustements d'ouverture de partie (décisions de la joueuse)
 
 - **La dotation royale couvre le Grenier**, pas seulement l'Entrepôt : sa part

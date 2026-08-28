@@ -130,23 +130,31 @@ directement.
 Les constructeurs nommés (`GameSave::pourCampagne()`) sont préférés à un
 constructeur public quand ils rendent un invariant impossible à violer.
 
-**`bois` et `pierre` ne sont pas des ressources, ce sont des familles.** Le
-doc 01 chiffre les bâtiments dans ces matériaux génériques, le doc 08 ne connaît
-que des matériaux nommés (calcaire, granite, roseaux…). Un coût se paie donc
-avec n'importe quel matériau de la famille demandée — voir
-`Game/FamilleDeMateriau`, qui porte la démonstration, et `City::payer()`, qui
-prélève du plus abondant au plus rare. Trois familles, pas deux : la **brique
-crue** (argile seule) et la **pierre de taille** sont distinctes, le doc 01
-donnant à chaque bâtiment son « matériau dominant » — brique crue partout, pierre
-pour le seul Temple et le Port. Ne jamais réintroduire une ressource
-`Ressource::Bois` ou `Ressource::Pierre` : la première mission redeviendrait
-injouable, le Delta ne portant ni l'un ni l'autre.
+**Chaque ressource reste distincte, jamais agrégée.** Il n'existe ni ressource
+`Bois` ni `Pierre` — le doc 01 chiffre ses bâtiments dans ces matériaux
+génériques, mais chaque coût nomme désormais le matériau réel qu'il réclame
+(`CoutDeConstruction::de(roseaux: …, argile: …)`) : un grenier coûte des
+roseaux et de l'argile, un temple du calcaire. Rien ne se substitue à rien —
+une région qui ne porte pas un matériau doit l'importer (commerce, Phase 5).
+Ne jamais réintroduire un compteur générique ni une famille de matériaux : un
+« bois » qui agrégerait roseaux et cèdre cacherait au joueur ce qu'il possède
+réellement, ce qui a été le défaut corrigé ici.
 
 **Une case porte jusqu'à deux gisements** (`Zone::GISEMENTS_MAX`), jamais deux
 fois le même. À un seul, l'argile et les roseaux — les deux matériaux dont rien
 ne tient lieu, tous deux nés de l'eau — se disputaient les rares berges d'une
 grille 3×3, et une partie pouvait se figer faute de l'un des deux. La génération
-garantit un gisement de chacun en bordure d'eau quand la région en porte.
+garantit aussi un minimum de champs et de cases poissonneuses par région
+(`GenerateurDeCarte::CHAMPS_MINIMUM`, `POISSON_MINIMUM`) — sur la plus petite
+carte du jeu (Delta, 3×3), matériaux, champs et poisson se disputent les mêmes
+cases, d'où un minimum volontairement bas (1) plutôt que théoriquement
+généreux mais irréalisable.
+
+**Piège payé** : `Zone::poserUnGisement()` ne doit **jamais** écraser un
+contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
+`Rien` peut devenir `Ressource`. Sans cette garde, un gisement ajouté après
+coup (garantie de matériau, garantie de poisson) effaçait silencieusement le
+champ qu'une garantie précédente venait de poser sur la même case.
 
 **L'or n'entre que par le Marché** (`Game/Marche`), la dotation royale mise à
 part. Toute règle qui rendrait le Marché inatteignable fige la partie : c'est ce

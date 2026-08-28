@@ -86,19 +86,36 @@ final class StockDeLaVilleTest extends TestCase
         self::assertCount(0, $ville->getStock(), 'Un refus ne doit pas créer de ligne à zéro.');
     }
 
-    public function testLesRaccourcisDeLaBarreLisentBienLeStock(): void
+    public function testLeRaccourciDeLaBarreLitBienLeStock(): void
+    {
+        $ville = $this->ville();
+
+        $ville->crediterRessources([Ressource::Or->value => 50]);
+
+        self::assertSame(50, $ville->getOr());
+    }
+
+    /**
+     * Chaque ressource reste distincte : rien ne s'agrège sous un compteur
+     * générique, sans quoi le joueur ne saurait plus ce qu'il possède vraiment.
+     */
+    public function testLeStockAffichableNAgregeRien(): void
     {
         $ville = $this->ville();
 
         $ville->crediterRessources([
-            Ressource::Or->value => 50,
             Ressource::Roseaux->value => 20,
             Ressource::Calcaire->value => 10,
         ]);
 
-        self::assertSame(50, $ville->getOr());
-        self::assertSame(20, $ville->getBois());
-        self::assertSame(10, $ville->getPierre());
+        /** @var array<string, int> $lignes */
+        $lignes = [];
+        foreach ($ville->stockAffichable() as $ligne) {
+            $lignes[$ligne->getRessource()->value] = $ligne->getQuantite();
+        }
+
+        self::assertSame(20, $lignes[Ressource::Roseaux->value] ?? null);
+        self::assertSame(10, $lignes[Ressource::Calcaire->value] ?? null);
     }
 
     public function testLeStockAccueilleNimporteQuelleRessourceDuDocument(): void
