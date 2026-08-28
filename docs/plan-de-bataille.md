@@ -713,7 +713,7 @@ faussé toute mesure de distribution. Les tests emploient donc un générateur
 unique qui tire longuement, et deux graines distinctes pour le foyer et le
 profil — les partager aurait lié la taille de la famille à la compétence.
 
-#### 4.3 — L'offre d'emploi : poster, choisir, renvoyer
+#### 4.3 — L'offre d'emploi : poster, choisir, renvoyer  ✅
 
 **Seuls les chefs se recrutent par offre** (décision de la joueuse, conforme
 au doc 05 : « les chefs recrutent des travailleurs disponibles »). Les
@@ -731,6 +731,39 @@ n'embauche pas ses manœuvres un par un.
 - Traits « Pieux » et « Bagarreur » posés dès maintenant mais **sans effet**
   tant que la faveur divine (Phase 6) et le combat (Phase 10) n'existent pas —
   l'affichage doit le dire plutôt que de laisser croire à un bonus actif
+
+##### Livré
+
+`JobOffer` est **persistée**, ce qui contredit en apparence le lot 4.2 (« une
+candidature ne dure que le temps du choix »). C'est la contradiction qui rend
+le lot jouable : sans elle, recharger la page relancerait le tirage jusqu'à ce
+que le cinq étoiles sorte, et le choix entre deux ou trois candidats — le cœur
+du doc 03 — n'aurait plus aucun sens. `Candidat` reste un objet de valeur, mais
+il se sérialise dans l'offre qui le porte. **Retirer l'annonce** est alors la
+seule façon de relancer les dés, et elle passe par un renoncement explicite.
+
+Quatre choses que les documents ne tranchaient pas :
+
+- **Un bâtiment sans spécialité ne se dirige pas** — Résidence familiale,
+  Quartier d'habitation, Auberge. Le doc 03 ne leur en liste aucune ; la
+  famille les tient elle-même, leur poster une annonce n'aurait pas de sens.
+  C'est une déduction, pas une ligne de document.
+- **Le chef s'installe avec sa maisonnée, et repart avec elle.** Sans ce second
+  volet, embaucher puis renvoyer serait un moyen gratuit de peupler la ville,
+  bien moins cher que l'appel d'habitants — qu'il aurait rendu inutile.
+- **On n'embauche pas sans logement**, même verrou que l'appel d'habitants :
+  un chef arrive avec les siens. Les deux voies de peuplement passent donc par
+  le Quartier d'habitation.
+- **Une seule annonce à la fois par bâtiment.**
+
+**Formule avancée du lot 4.4** : `Building::nombreDeChefs()` implémente
+`arrondiSupérieur(niveau / 3)` (doc 01) dès maintenant. Sans plafond, une
+annonce aurait pu être postée indéfiniment sur le même bâtiment — le lot n'est
+pas cohérent sans elle.
+
+La règle d'affichage du doc 03 — « chiffré en interne, qualitatif à l'affichage »
+— est **vérifiée par un test d'écran** qui cherche la compétence de chaque
+candidat dans le HTML rendu, plutôt que laissée à la discipline du gabarit.
 
 #### 4.4 — Chefs et travailleurs des bâtiments
 

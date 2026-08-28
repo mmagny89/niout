@@ -251,6 +251,71 @@ final class VilleTest extends WebTestCase
         self::assertGreaterThan($population, $relue->getVille()->population());
     }
 
+    /**
+     * Le parcours complet d'un recrutement, jeton compris — et la règle
+     * d'affichage du doc 03 : le joueur voit des étoiles, jamais la
+     * compétence chiffrée.
+     */
+    public function testAfficherUneAnnoncePuisRetenirUnChef(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'recrutement@example.com');
+        $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier));
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::QuartierDHabitation));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $annonce = $crawler->filter(\sprintf('form[action="/partie/%d/ville/poster"]', $partie->getId()));
+        self::assertGreaterThan(0, $annonce->count(), 'Un Grenier doit pouvoir recevoir une annonce.');
+
+        $client->submit($annonce->first()->form());
+        $crawler = $client->followRedirect();
+
+        $etoiles = $crawler->filter('[aria-label*="étoile"]');
+        self::assertGreaterThanOrEqual(2, $etoiles->count(), 'Deux ou trois candidats se présentent.');
+
+        // Doc 03 : « chiffré en interne, qualitatif à l'affichage ». L'offre
+        // se relit depuis la base : celle en mémoire date d'avant la requête,
+        // qui a rejoué le noyau.
+        $offre = $this->relire($partie)->getVille()->offrePour(TypeDeBatiment::Grenier);
+        self::assertNotNull($offre);
+
+        foreach ($offre->candidats() as $candidat) {
+            self::assertStringNotContainsString(
+                \sprintf('>%d<', $candidat->competence),
+                $crawler->html(),
+                'La compétence chiffrée ne doit jamais être imprimée.',
+            );
+        }
+
+        $embauche = $crawler->filter(\sprintf('form[action="/partie/%d/ville/embaucher"]', $partie->getId()));
+        $client->submit($embauche->first()->form());
+        $crawler = $client->followRedirect();
+
+        self::assertSelectorTextContains('body', 'prendra son poste');
+
+        self::assertCount(1, $this->relire($partie)->getVille()->chefsDe(TypeDeBatiment::Grenier));
+    }
+
+    /**
+     * Relit une partie depuis la base. Chaque requête du client rejoue le
+     * noyau : l'objet d'avant n'appartient plus au gestionnaire courant, et
+     * ne voit donc rien de ce que la requête a écrit.
+     */
+    private function relire(\App\Entity\GameSave $partie): \App\Entity\GameSave
+    {
+        $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
+        $gestionnaire->clear();
+        $relue = $gestionnaire->find(\App\Entity\GameSave::class, $partie->getId());
+
+        self::assertNotNull($relue);
+
+        return $relue;
+    }
+
     private function lancer(User $joueur): \App\Entity\GameSave
     {
         return static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($joueur, 'Nakht');

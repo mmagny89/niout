@@ -261,6 +261,20 @@ Cinq pièges déjà payés, à ne pas refaire :
   le néant — sinon « ressource » augmente artificiellement et peut saturer de
   gisements les rares cases cultivables d'une petite carte.
 
+**Une offre d'emploi est persistée, une candidature non** (`JobOffer`,
+`Candidat`). L'offre fige son tirage : sans cela, recharger la page relancerait
+les dés jusqu'au cinq étoiles, et le choix entre deux ou trois candidats — le
+cœur du doc 03 — n'aurait plus de sens. Retirer l'annonce est la seule relance,
+et elle est explicite. **Seuls les chefs sont suivis un par un** (`Employee`) ;
+les travailleurs se puiseront dans le vivier d'actifs, comme la population se
+compte en nombres et non en individus.
+
+**Un chef arrive avec sa maisonnée et repart avec elle** (`City::laisserPartir()`,
+le pendant d'`accueillir()`). Sans le second volet, embaucher puis renvoyer
+peuplerait la ville gratuitement et rendrait l'appel d'habitants inutile. Les
+deux voies de peuplement butent d'ailleurs sur le même verrou :
+`manqueDeLogements()`.
+
 Les écrans de partie héritent de `templates/partie/_layout.html.twig`, qui porte
 la barre de jeu — compteurs, date pharaonique, passage de cycle. Un nouvel écran
 de partie doit en hériter plutôt que de `base.html.twig`.
