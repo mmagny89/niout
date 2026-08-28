@@ -8,6 +8,10 @@ Symfony.
 - **Contrainte** : rendu serveur, zéro React, zéro headless
 - **Source de conception** : Google Drive `Niout/`, docs 00–15 + sous-dossier `Sprites/` (18 planches)
 
+Les phases livrées sont résumées ici ; le détail des pièges déjà payés et des
+conventions de code qui en découlent vit dans [`CLAUDE.md`](../CLAUDE.md), pour
+éviter de le répéter à deux endroits.
+
 ---
 
 ## 1. Le jeu en un coup d'œil
@@ -67,38 +71,34 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | Entité | État | Rôle | Doc source |
 |---|---|---|---|
 | `User` | ✅ | Compte joueur — email, mot de passe, statut de vérification, rôles | — |
-| `GameSave` | ✅ | Une run : mode, mission en cours, cycle. Jusqu'à 5 actifs par `User`, supprimés avec lui | 00, 14 |
+| `GameSave` | ✅ | Une run : mode, mission en cours, cycle, statut (en cours/échouée) | 00, 14 |
 | `Family` | ✅ | Nom choisi au lancement (1 par `GameSave`) et renommée. Héritage et contacts commerciaux en Phase 9 | 13 |
-| `City` | ✅ | Nom, difficulté régionale, taille de grille, stock, carte, chantiers | 01, 02, 11 |
+| `City` | ✅ | Nom, difficulté régionale, taille de grille, stock, carte, chantiers, population | 01, 02, 11 |
 | `Building` | ✅ | Un bâtiment dressé : son type et son niveau | 01 |
 | `Chantier` | ✅ | Travaux en cours : niveau visé, durée, avancement | 01, 05 |
-| … (Phase 3+) | — | Carte, Medjaÿ, faveur divine, énigmes | 02–12 |
+| `Zone`, `Gisement` | ✅ | Une case de la carte d'exploration, ses filons | 02, 08 |
+| `Expedition` | ✅ | Un éclaireur en route vers une case | 04 |
+| `StockDeRessource` | ✅ | Une ligne du stock de la ville (ressource → quantité) | 08 |
+| … (Phase 5+) | — | Medjaÿ, faveur divine, énigmes | 03, 07, 10 |
 
-`Family` et `City` sont détenues par leur `GameSave` : l'abandon d'une partie,
-comme la purge d'un compte, les emporte en cascade.
+`Family`, `City` et tout ce qui s'y rattache (`Zone`, `Building`, `Chantier`,
+`Expedition`) sont détenus par leur `GameSave` : l'abandon d'une partie, comme
+la purge d'un compte, les emporte en cascade.
 
 **Couche de domaine.** Ce qui relève des règles du jeu plutôt que de la
 persistance vit dans `src/Game/` : catalogue des missions, dotation royale,
-lancement de partie. Ces classes ne sont jamais persistées — elles décrivent le
-contenu et les règles, pas l'état d'une partie.
+génération de carte, cycle agricole, population… Ces classes ne sont jamais
+persistées — elles décrivent le contenu et les règles, pas l'état d'une partie.
 
 ---
 
 ## 4. Phase 0 — Fondations techniques  ✅
 
-- [x] Dépôt git initialisé (branche `main`)
-- [x] Plan de bataille sauvegardé dans le projet (`docs/plan-de-bataille.md`)
-- [x] Stack Docker + squelette Symfony via `.claude/scripts/setup-symfony.sh --dedicated-server --run`
-- [x] `CLAUDE.md` du projet (conventions, commandes, pièges d'infrastructure)
-- [x] Thème Tailwind : palette et typographies de la direction artistique (doc 15) — ocre/sable/terre cuite, accents lapis-lazuli/or
-- [x] Gabarit Twig de base (`base.html.twig`)
-- [x] Configuration `symfony/mailer` — `null://null` en dev, emails lisibles dans le profiler
-- [x] Pipeline CI GitHub Actions : style, analyse statique, audit dépendances, tests
-- [x] `symfony/security-bundle` + entité `User`
-
-**Phase 0 terminée.**
-
-### Outillage qualité en place
+Dépôt git, stack Docker + squelette Symfony (généré par
+`.claude/scripts/setup-symfony.sh --dedicated-server --run`), authentification
+de base, thème Tailwind (doc 15 : ocre/sable/terre cuite, accents
+lapis-lazuli/or), pipeline CI GitHub Actions, outillage qualité. Terminée et
+stable depuis — rien à signaler.
 
 | Outil | Configuration | Commande |
 |---|---|---|
@@ -107,23 +107,13 @@ contenu et les règles, pas l'état d'une partie.
 | PHPUnit | Tests unitaires, d'intégration et fonctionnels | `php bin/phpunit` |
 | composer audit | Aucun avis de sécurité | `composer audit` |
 
-### Polices — décision
+**Polices** : Marcellus (titrage) et Alegreya Sans (texte), **self-hébergées**
+dans `app/assets/fonts/` (latin + latin-ext) — pas d'appel runtime à Google
+Fonts, pour ne pas transmettre l'IP du visiteur à un tiers.
 
-Les polices (**Marcellus** en titrage, **Alegreya Sans** en texte) sont
-**self-hébergées** dans `app/assets/fonts/`, sous-ensembles latin et latin-ext
-uniquement. Pas d'appel runtime à Google Fonts : le jeu vise un public français,
-et un tel appel transmettrait l'IP du visiteur à un tiers.
-
-### Versions effectivement installées (vérifiées le 2026-08-27)
-
-| Composant | Version |
-|---|---|
-| Symfony | 8.1.5 |
-| PHP | 8.4 |
-| FrankenPHP | 1.12.7 |
-| Tailwind CSS (CLI standalone) | 4.3.3 (`symfonycasts/tailwind-bundle` v1.0.0) |
-| PostgreSQL | 18 |
-| Ember (observabilité) | 1.6.0 |
+**Versions installées** (vérifiées le 2026-08-27) : Symfony 8.1.5 · PHP 8.4 ·
+FrankenPHP 1.12.7 · Tailwind CSS 4.3.3 (`symfonycasts/tailwind-bundle` v1.0.0)
+· PostgreSQL 18 · Ember 1.6.0.
 
 Le stack répond sur `https://localhost` (certificat auto-signé Caddy).
 
@@ -131,82 +121,36 @@ Le stack répond sur `https://localhost` (certificat auto-signé Caddy).
 
 ## 5. Phase 1 — Comptes et page d'accueil  ✅
 
-Trois pages, un compte fonctionnel.
-
-### Page de présentation (accueil)
-
-- [x] Pitch du jeu (doc 00 : gestion/aventure/RPG léger, Nouvel Empire, sans attente réelle)
-- [x] Mise en avant des deux modes (Campagne 10 missions / Aventure — Memphis)
-- [ ] Aperçu visuel à partir des planches déjà générées (dossier `Sprites/`) —
-      **non fait** : la page reste typographique. Reporté au découpage des sprites
-      (§7), pour ne pas servir un JPEG de 2 Mo en attendant
-- [x] Appels à l'action : « Créer un compte » / « Se connecter »
-- [x] Route publique, aucune authentification requise
-
-### Inscription
-
-- [x] Formulaire Symfony Form : email, mot de passe (+ confirmation), CSRF activé
-- [x] Validation serveur (email unique, robustesse du mot de passe)
-- [x] Hash argon2 via le hasher natif Symfony
-- [x] Connexion automatique après inscription — **le compte est utilisable tout de suite, sans blocage**
-- [x] Email de vérification envoyé à l'inscription (lien signé, `symfony/mailer`)
-- [x] Délai de grâce de **7 jours** pour valider ; passé ce délai, une commande
-  planifiée (`app:users:purge-unverified`, cron) **supprime définitivement** les
-  comptes non vérifiés
-- [x] Bandeau de rappel discret tant que le compte n'est pas vérifié, avec lien pour
-  renvoyer l'email
-
-### Connexion & compte
-
-- [x] Formulaire de connexion Symfony Security (email + mot de passe)
-- [x] Gestion de session, déconnexion
-- [x] **Mot de passe oublié** (inclus en Phase 1) : demande par email, lien de
-  réinitialisation signé et à expiration, formulaire de nouveau mot de passe
-- [x] Page compte minimale (email, statut de vérification, déconnexion) — prête à
-  lister les parties en cours une fois la Phase 2 posée
-
-### État : livrée
-
-Les trois pages fonctionnent, couvertes par 21 tests (5 unitaires, 16 fonctionnels).
+Trois pages, un compte fonctionnel : présentation publique, inscription
+(vérification d'email non bloquante, purge à 7 jours), connexion avec mot de
+passe oublié. Livrée, couverte par 21 tests (5 unitaires, 16 fonctionnels).
 
 Écarts assumés par rapport au plan initial :
 
-- **Tests fonctionnels en `WebTestCase` plutôt qu'en Behat.** Pour de la
-  plomberie d'authentification, l'outil natif Symfony couvre les mêmes parcours
-  sans machinerie supplémentaire. Behat garde son intérêt pour les scénarios de
-  jeu, où la lisibilité Gherkin profite à la relecture fonctionnelle.
-- **URL en français** (`/inscription`, `/connexion`, `/mot-de-passe-oublie`),
-  décidées tant qu'elles n'étaient pas publiques. Les *noms* de routes restent en
-  anglais (`app_register`…), car `security.yaml` les référence.
-- **Emails envoyés en synchrone.** La recette Symfony les route vers Messenger en
-  asynchrone, mais le stack ne fait tourner aucun worker : les messages
-  seraient restés en file sans qu'aucune erreur ne le signale. À rebasculer le
-  jour où un service worker est ajouté.
-- **Mot de passe durci à l'inscription** : le maker acceptait 6 caractères sans
-  contrôle de robustesse, alors que la réinitialisation en exigeait 12 avec
-  `PasswordStrength` et `NotCompromisedPassword`. Les deux sont désormais alignés.
-- **Case « conditions d'utilisation » retirée** du formulaire : elle renvoyait
-  vers des CGU inexistantes.
+- **Tests fonctionnels en `WebTestCase` plutôt qu'en Behat** — l'outil natif
+  Symfony couvre les mêmes parcours sans machinerie supplémentaire. Behat
+  garde son intérêt pour les scénarios de jeu, où la lisibilité Gherkin
+  profite à la relecture fonctionnelle.
+- **URL en français** (`/inscription`, `/connexion`, `/mot-de-passe-oublie`) ;
+  les *noms* de routes restent en anglais, référencés par `security.yaml`.
+- **Emails envoyés en synchrone** — la recette Symfony les route vers
+  Messenger, mais aucun worker ne tourne sur ce stack. À rebasculer le jour où
+  un service worker est ajouté.
+- **Mot de passe durci à l'inscription**, aligné sur les 12 caractères et les
+  contraintes déjà exigées à la réinitialisation.
 
 Point de sécurité laissé ouvert : le formulaire d'inscription révèle qu'une
-adresse possède déjà un compte (énumération). Comportement par défaut de Symfony
-et de la plupart des sites ; le masquer dégraderait l'inscription. Le flux de
-réinitialisation, lui, ne fuit rien.
-
-Dette identifiée pour la Phase 2 : la commande de purge retire les demandes de
-réinitialisation liées à un compte avant de le supprimer. **Quand `GameSave`
-arrivera, il faudra étendre ce nettoyage**, sinon la purge échouera sur les
-comptes ayant lancé une partie.
+adresse possède déjà un compte (énumération) — comportement par défaut de
+Symfony, le masquer dégraderait l'inscription. Le flux de réinitialisation, lui,
+ne fuit rien.
 
 ### Définition de « fini »
 
 Un visiteur découvre le jeu sur l'accueil, crée un compte (utilisable
 immédiatement), reçoit un email de vérification, se connecte, réinitialise son
 mot de passe si besoin, voit sa page compte. Parcours couverts de bout en bout
-par des tests fonctionnels `WebTestCase` (inscription, vérification, purge à
-7 jours, connexion, mot de passe oublié), formulaires accessibles (labels, focus
-visible), revue sécurité (CSRF, hashing, liens signés à expiration) passée avant
-merge.
+par des tests fonctionnels, formulaires accessibles (labels, focus visible),
+revue sécurité (CSRF, hashing, liens signés à expiration) passée avant merge.
 
 ---
 
@@ -220,6 +164,7 @@ vues, pas de la conception.
 - [x] **Phase 1** — Comptes et page d'accueil · §5
 - [x] **Phase 2** — Lancer une partie et bâtir · §6.1 · `01`, `05`, `13`
 - [ ] **Phase 3** — Carte, exploration et ressources · §6.2 · `02`, `04`, `06`, `08`
+      — 6 lots sur 7, seul le Port/pêche (3.6) reste à livrer
 - [ ] **Phase 4** — Population : recrutement, chefs et travailleurs · `01`, `03`
       — amorcée au lot 3.7 (habitants affichés, consommation de nourriture,
       échec par famine) ; recrutement, chefs et travailleurs restent entiers
@@ -237,494 +182,153 @@ Le document 15 (interface & direction artistique) est **transverse** : chaque
 phase l'utilise au fur et à mesure, la phase 12 ne concerne que l'intégration
 des images elles-mêmes.
 
-**Réordonnancement par rapport à la première version.** Les cycles (doc 05)
-remontent en Phase 2 : ils ne sont pas un système parmi d'autres mais le
-battement du jeu, et un chantier qui ne progresse pas n'est pas démontrable.
-Symétriquement, le combat (doc 03) redescend en Phase 10 : il est optionnel dans
-les boucles de jeu et n'a de sens qu'une fois les zones dangereuses posées.
+**Réordonnancements par rapport à la première version.** Les cycles (doc 05)
+sont montés de la Phase 5 initiale à la Phase 2 : ils ne sont pas un système
+parmi d'autres mais le battement du jeu, et un chantier qui ne progresse pas
+n'est pas démontrable. Le combat (doc 03), inversement, descend en Phase 10 :
+optionnel dans les boucles de jeu, il n'a de sens qu'une fois les zones
+dangereuses posées. Même logique pour la population (doc 01, 03) : sa brique
+minimale — compter les habitants, les nourrir, échouer sans nourriture — est
+montée au lot 3.7, le recrutement et les chefs restant en Phase 4.
 
 ---
 
 ### 6.1 Phase 2 — Lancer une partie et bâtir  ✅
 
-**Intention.** Livrer la plus petite tranche réellement *jouable* plutôt que
-tout le document 01 sans écoulement du temps : créer une partie, voir sa ville,
-lancer un chantier, déclencher un cycle, voir le chantier avancer puis s'achever.
-C'est ce qui valide l'architecture d'état par partie et la résolution de cycle —
-la fondation de tout le reste.
+**Intention.** Livrer la plus petite tranche réellement *jouable* : créer une
+partie, voir sa ville, lancer un chantier, déclencher un cycle, voir le
+chantier avancer puis s'achever. C'est ce qui valide l'architecture d'état par
+partie et la résolution de cycle — la fondation de tout le reste.
 
-À la fin de la phase, on doit pouvoir raconter : *« je crée une famille, le
-pharaon me dote, je lance la construction d'un grenier, j'avance de deux
-quinzaines, le grenier est debout. »*
+Livré : modèle de partie (`GameSave`, `Family`, `City`, plafond de 5 parties
+actives) ; parcours de création (mode, nom de famille, dotation royale) ; liste
+et gestion des parties (reprise avec récapitulatif d'état, abandon définitif) ;
+vue de ville en liste/vignettes avec les 12 bâtiments et leurs conditions de
+disponibilité ; cycles et chantiers (calendrier pharaonique, étapes de chantier
+nommées, accélération ×1,5 en Akhèt) ; stock minimal (or, bois, pierre) affiché
+en permanence dans la barre de jeu.
 
-#### 2.1 — Modèle de partie  ✅
+Hors périmètre à l'époque, couvert depuis en Phase 3 : carte, ressources
+produites, effets fonctionnels des bâtiments. Le Port et le Temple restaient
+hors d'atteinte (point d'eau, lin) jusqu'à la carte.
 
-- [x] `GameSave` : mode (campagne/aventure), mission ou règne courant, numéro de
-      cycle, date de création et de dernière ouverture
-- [x] `Family` : nom choisi par le joueur (défaut proposé : **Nakht**) et renommée,
-      avec ses cinq paliers (doc 13). **La trésorerie n'y est pas** : l'or est un
-      objectif de mission, donc lié à la ville — il rejoint le stock au lot 2.6
-- [x] `City` : nom de la ville, difficulté de la région
-- [x] Un compte porte **plusieurs `GameSave` actifs, plafonnés à 5** (décision §9)
-- [x] **Étendre `app:users:purge-unverified`** pour supprimer les parties d'un
-      compte purgé — dette identifiée en Phase 1, la clé étrangère bloquerait
-      sinon la suppression
+**Pièges rencontrés** — voir la liste consolidée dans
+[`CLAUDE.md`](../CLAUDE.md#où-mettre-le-code-du-jeu) : `or` mot réservé du SQL,
+signature des Voters en Symfony 8, avancement des chantiers en dixièmes plutôt
+qu'en flottants.
 
-#### 2.2 — Parcours « nouvelle partie »  ✅
+**Définition de « fini » (atteinte)** : parcours complet couvert de bout en
+bout par des tests fonctionnels — créer une partie → dotation créditée →
+lancer un chantier → déclencher les cycles → le bâtiment est opérationnel —
+plus des tests unitaires sur les formules (coût, durée, plafonds, bonus
+d'Akhèt). Les quatre portes qualité au vert, revue de sécurité sur les
+nouvelles routes (`PartieVoter`).
 
-- [x] Choix du mode : Campagne (démarre toujours à la mission 1, Avaris — l'ordre
-      des missions est imposé) ou Aventure (Memphis)
-- [x] Saisie du nom de famille, avec **Nakht** proposé par défaut (doc 09)
-- [x] En mode Aventure uniquement : choix de la difficulté (0 à 9) et de la taille
-      de grille (doc 14)
-- [x] Texte d'introduction citant le pharaon commanditaire et le contexte
-      historique (doc 09 — format texte simple, pas de cinématique)
-- [x] **Dotation royale** créditée au départ : `50 + 10 × difficulté` en or, plus
-      de quoi couvrir un premier bâtiment (doc 13)
-
-#### 2.3 — Liste et gestion des parties  ✅
-
-- [x] La page de compte liste les parties en cours (ville, mode, cycle atteint)
-- [x] Reprendre une partie, via un **récapitulatif d'état** avant de rendre la
-      main sur la ville. Il porte pour l'instant le cycle et le stock ; la saison
-      et les chantiers s'y ajouteront aux lots 2.4 et 2.5, quand ils existeront
-- [x] Abandonner une partie : **suppression définitive**, derrière une confirmation
-      explicite — action irréversible
-- [x] Refus de création au-delà de **5 parties**, avec un message qui invite à en
-      abandonner une
-
-#### 2.4 — Vue de la ville et bâtiments  ✅
-
-- [x] Vue en **liste/vignettes**, jamais de placement libre sur une grille (doc 15)
-- [x] Les 12 bâtiments du doc 01, avec leur condition de disponibilité
-      (le Port exige un point d'eau adjacent — donc indisponible tant que la carte
-      n'existe pas, ce qui est cohérent avec la Phase 3)
-- [x] Coûts de construction et de montée de niveau :
-      `coutBase × (1 + (N-1) × 0,4)`
-- [x] Plafonds de niveau : `min(niveauMaxBatiment, 5 + difficulté)`
-- [x] Fiche de bâtiment : niveau, effet courant, coût du niveau suivant
-- [x] La Résidence familiale est présente d'emblée, offerte avec la ville (doc 01)
-- [x] Chaque empêchement porte son motif, plutôt qu'un bâtiment grisé sans
-      explication
-
-**Deux bâtiments restent inaccessibles**, pour des dépendances assumées : le
-**Port** exige un point d'eau adjacent, qui n'existera qu'avec la carte (Phase 3),
-et le **Temple** réclame 5 lin en offrande, ressource agricole de la même phase.
-L'interface le dit explicitement au lieu de les masquer.
-
-#### 2.5 — Cycles et chantiers  ✅
-
-- [x] Bouton « Cycle suivant » — **la seule chose qui fait avancer le temps**
-- [x] Calendrier pharaonique : nom du mois affiché, saison courante (doc 05)
-- [x] Durée de chantier : `dureeBase + niveau`, `dureeBase` propre au bâtiment
-- [x] **Étapes de chantier nommées** avec leur info-bulle pédagogique — séchage
-      des briques, élévation des murs… (doc 01)
-- [x] Accélération ×1,5 pendant Akhèt (main-d'œuvre libérée par la crue)
-- [x] Le joueur reste libre d'agir entre deux cycles : aucun blocage
-
-#### 2.6 — Ressources minimales  ✅
-
-Strictement ce qu'exige la construction, le reste attend la Phase 3 :
-
-- [x] Stock de la ville : or, bois, pierre — **remonté au lot 2.2** : la dotation
-      royale n'avait nulle part où atterrir sans lui. Colonne `stock_or` et non
-      `or`, mot réservé du SQL
-- [x] Débit à la mise en chantier, refus si le stock est insuffisant — rien
-      n'est débité sur un refus
-- [x] Affichage permanent des compteurs (barre supérieure, doc 15) : or, bois,
-      pierre, date pharaonique et passage de cycle, sur **tous** les écrans de
-      partie — sauf l'écran d'abandon, où avancer le temps n'a pas de sens
-
-#### Hors périmètre, explicitement
-
-Carte et exploration, production de ressources, recrutement de chefs et de
-travailleurs, effets fonctionnels des bâtiments (un grenier construit ne stocke
-encore rien), craft, commerce, faveur divine, énigmes, objectifs de mission.
-
-Conséquence assumée : en fin de Phase 2, on **construit** sans encore
-**produire**. La dotation royale finance les premiers bâtiments, ce qui suffit à
-valider la boucle. La production arrive en Phase 3 avec la carte, qui en est la
-source.
-
-#### Définition de « fini »
-
-Parcours complet couvert de bout en bout par des tests fonctionnels : créer une
-partie → dotation créditée → lancer un chantier → déclencher les cycles → le
-bâtiment est opérationnel. Plus des tests unitaires sur les formules (coût,
-durée, plafonds, bonus d'Akhèt), qui sont le cœur calculatoire et l'endroit où
-une régression passerait le plus facilement inaperçue.
-
-Les quatre portes qualité au vert, revue de sécurité sur les nouvelles routes
-(une partie ne doit être lisible et modifiable que par son propriétaire — un
-**Voter** plutôt qu'un simple contrôle de rôle).
-
-#### Phase 2 — bilan
-
-**Livrée.** La boucle annoncée en intention est démontrable : créer une famille,
-recevoir la dotation, engager un chantier, déclencher des quinzaines, voir le
-bâtiment se dresser. Vérifiée en HTTP réel, pas seulement en tests.
-
-Écarts assumés par rapport au découpage initial :
-
-- Le **stock** est remonté du lot 2.6 au 2.2 : la dotation royale n'avait nulle
-  part où atterrir sans lui.
-- Le lot 2.4 livre le **catalogue** des bâtiments sans l'action de construire,
-  qui appartient au 2.5 avec les chantiers. Un bouton qui n'aurait rien fait
-  aurait été pire qu'une page sans bouton.
-- Le **récapitulatif de reprise** ne porte que le cycle et le stock. La saison
-  et les chantiers l'ont rejoint au lot 2.5.
-
-Trois pièges rencontrés, corrigés et documentés :
-
-- `or` est un **mot réservé du SQL**. Le `CREATE TABLE` passait, les `SELECT`
-  générés ensuite non. Colonne `stock_or`.
-- La signature des **Voters a changé en Symfony 8** : un paramètre `Vote` a été
-  ajouté à `voteOnAttribute()`, avec une erreur fatale opaque à la clé.
-- L'avancement des chantiers se compte en **dixièmes de cycle**, pas en
-  flottants : le facteur ×1,5 d'Akhèt aurait fini par laisser un chantier bloqué
-  à un cheveu de son terme.
-
-Deux bâtiments restent hors d'atteinte, en attendant la Phase 3 : le **Port**
-(point d'eau) et le **Temple** (lin). L'interface le dit au lieu de les masquer.
-
----
-
-#### Points tranchés
-
-| Question | Décision |
-|---|---|
-| Abandonner une partie | **Suppression définitive**, derrière une confirmation explicite |
-| Parties simultanées | **Plafonnées à 5** par compte |
-| Ordre des missions | **Imposé** : la campagne se joue de la mission 1 à la 10, sans choix de région |
-| Reprise de partie | **Récapitulatif** avant de rendre la main sur la ville |
-
-Deux conséquences à retenir :
-
-- L'ordre imposé des missions **simplifie le modèle** : un `GameSave` de campagne
-  porte un simple numéro de mission qui s'incrémente. Aucun écran de sélection
-  de région, aucune notion de région débloquée à gérer.
-- Le récapitulatif n'est **pas un journal d'événements**. Le jeu n'ayant aucun
-  temps réel, rien ne se produit pendant l'absence du joueur : un « depuis votre
-  dernière visite » serait toujours vide. Le récapitulatif porte donc sur
-  **l'état où la partie a été laissée** — cycle et saison en cours, chantiers
-  engagés avec les cycles restants, stock, et ce qui s'est résolu au dernier
-  cycle déclenché. C'est une reprise de contexte, pas une notification.
+Deux notes de conception qui ont guidé les choix suivants : l'ordre imposé des
+missions simplifie le modèle (`GameSave` de campagne ne porte qu'un numéro de
+mission incrémenté, aucune notion de région débloquée) ; le récapitulatif de
+reprise n'est **pas un journal d'événements** — le jeu n'ayant aucun temps
+réel, rien ne se produit pendant l'absence du joueur, donc le récapitulatif
+porte sur l'état où la partie a été laissée, pas sur ce qui s'est passé depuis.
 
 ---
 
 ### 6.2 Phase 3 — Carte, exploration et ressources  *(6 lots sur 7 — 3.6 restant)*
 
-**Intention.** Faire basculer la ville de la dépense à la production. Aujourd'hui
-elle consomme une dotation qui ne se renouvelle pas ; à la fin de cette phase,
-elle tire ses matériaux de son territoire et sa nourriture de ses champs.
+**Intention.** Faire basculer la ville de la dépense à la production. Elle
+tire désormais ses matériaux de son territoire et sa nourriture de ses champs,
+plutôt que de consommer une dotation qui ne se renouvelle pas.
 
-À la fin de la phase, on doit pouvoir raconter : *« j'envoie un éclaireur sur une
-case voisine, il y trouve de l'argile, je l'exploite, et cette argile alimente
-mes chantiers ; j'établis un champ, je bâtis le grenier, et la moisson tombe en
-Chémou. »*
+À la fin de la phase (3.6 excepté), on peut raconter : *« j'envoie un éclaireur
+sur une case voisine, il y trouve de l'argile, je l'exploite, et cette argile
+alimente mes chantiers ; j'établis un champ, je bâtis le grenier, et la
+moisson tombe en Chémou. Ma ville compte ses habitants et les nourrit à chaque
+quinzaine — sans vivres, elle s'affame et la partie peut y rester. »*
 
-C'est aussi la phase qui débloque les deux bâtiments aujourd'hui hors d'atteinte :
-le **Port** (point d'eau adjacent) et le **Temple** (lin en offrande).
+#### 3.1 — Généralisation du stock  ✅  *(prérequis)*
 
-#### 3.1 — Généralisation du stock  *(prérequis)*  ✅
-
-Fait en premier, avant que les ressources n'arrivent : la migration coûte peu
-aujourd'hui, beaucoup plus une fois des parties en cours.
-
-- [x] Remplacer les trois colonnes `stock_or`, `bois`, `pierre` par une table
-      `ressource → quantité`
-- [x] Énumération des ressources du doc 08 : minérales, agricoles, importées
-- [x] Migration des parties existantes sans perte
-- [x] `crediterRessources()` / `debiterRessources()` prennent une carte
-      ressource → quantité. **Leur signature a dû changer**, contrairement à ce
-      que ce plan annonçait : un contrat nommant `or`, `bois` et `pierre` ne
-      peut pas rester générique. Les appelants ont suivi, les chantiers n'ont
-      pas changé de comportement
-- [x] Un débit hors de moyens ne retire **rien**, pas même ce qui suffisait
+Les trois colonnes `stock_or`/`bois`/`pierre` sont devenues une table
+`ressource → quantité` (énumération du doc 08 : minérales, agricoles,
+importées), migrée sans perte. `crediterRessources()`/`debiterRessources()`
+prennent une carte ressource → quantité ; un débit hors de moyens ne retire
+**rien**, pas même ce qui suffisait.
 
 #### 3.2 — Génération de la carte  ✅
 
-- [x] `Zone` : position sur la grille, type de terrain, contenu, état de découverte
-- [x] Géographie cohérente avec l'Égypte réelle (doc 02) : Méditerranée en ligne
-      du haut, mer Rouge en colonne de droite, Nil en colonne sur un bord libre,
-      désert sur un bord libre ou dispersé, oasis à l'intérieur du désert
-- [x] Placement contraint de la ville : adjacente à un point d'eau s'il en existe
-      un, sinon sur une zone fertile — jamais en plein désert
-- [x] Tirage pondéré du contenu par difficulté (ressource / champ éligible /
-      événement / vide), selon le tableau du doc 02
-- [x] **Génération à la création de la partie** (décision) : une partie sans
-      territoire n'aurait pas de sens, et ça évite un état à moitié initialisé
-- [x] Instanciation de la première carte, le Delta du Nord en 3×3 (doc 06)
-- [x] Géographie des dix régions renseignée d'après les docs 02, 08 et 11
+`Zone` (position, terrain, contenu, découverte) peuplée par `GenerateurDeCarte`
+selon une géographie cohérente avec l'Égypte réelle (doc 02) : Méditerranée au
+nord, mer Rouge à l'est, Nil en colonne, désert sur un bord ou dispersé, oasis
+dans le désert. Tirage pondéré du contenu par difficulté. Génération **à la
+création de la partie** (décision) : une partie sans territoire n'aurait pas
+de sens. Première carte instanciée, le Delta du Nord en 3×3 (doc 06) ; les dix
+régions renseignées d'après les docs 02, 08, 11.
 
-**Un écart aux documents, tranché.** Le doc 02 ne pose le désert que sur **un
-bord**. Appliqué tel quel au Ouadi Hammamat ou au Sinaï, il produisait des cartes
-majoritairement fertiles — un camp minier entouré de champs, contraire à la
-description « désert dominant » du doc 11. Un attribut `desertDominant` ensable
-donc tout ce qui ne borde pas l'eau, pour les régions 2, 9 et 10. Une bande
-fertile survit le long du fleuve ou de la mer, sans quoi la ville n'aurait nulle
-part où s'installer.
-
-**Un invariant renforcé.** Le doc 02 exige que la ville touche l'eau et
-n'apparaisse « jamais en plein désert ». Les deux conditions se contredisaient
-sur une case de sable bordant le Nil : elle est désormais écartée. C'est un test
-d'invariant, rejoué sur vingt graines, qui l'a révélé.
+Deux écarts tranchés : un attribut `desertDominant` ensable les régions
+décrites « désert dominant » par le doc 11 (le doc 02 ne posait le désert que
+sur un bord, ce qui les rendait majoritairement fertiles) ; et une case de
+sable bordant le Nil est désormais exclue du placement de la ville, les deux
+règles du doc 02 (toucher l'eau, jamais en plein désert) s'y contredisant.
 
 #### 3.3 — Découpage des tuiles et écran de carte  ✅
 
-Ce lot **remonte de la Phase 12** : la carte se dessine avec les vraies tuiles,
-décision prise pour cette phase.
+Planche « tuiles » du Drive découpée en 8 tuiles isométriques (176 px de
+losange, cellule 189×206, posé tous les 87×70 px), fond détouré, servies via
+AssetMapper. Grille isométrique avec brouillard sur les cases non reconnues.
+Deux couches : les images (inertes) et les liens cliquables en `clip-path`,
+sans quoi les tuiles du premier plan capturaient les clics des cases
+derrière. Détail au clic rendu **côté serveur**, le jeu se jouant sans JS.
 
-- [x] Découper la planche « tuiles » du Drive : 8 tuiles isométriques en losange,
-      1408 × 768 pixels, soit des cellules de 352 × 384
-- [x] Détourer le fond sombre pour rendre les losanges transparents — sans quoi
-      ils ne peuvent pas se juxtaposer
-- [x] Servir les PNG via AssetMapper, comme les polices
-- [x] Grille **isométrique** : les tuiles se posent en losange, pas en carré
-- [x] Tuile de brouillard sur toute case non reconnue, marqueur de ville sur la
-      sienne
-- [x] Détail au clic sur une case reconnue — rendu **côté serveur** plutôt qu'en
-      JavaScript : le jeu se joue sans, et le lien reste partageable
-- [x] Commande `app:parties:generer-cartes-manquantes` : les parties lancées
-      avant le lot 3.2 n'avaient pas de territoire et seraient restées vides
+La carte est devenue **l'écran principal** d'une partie (décision prise en
+cours de lot) : on y arrive en reprenant une partie, et c'est en cliquant la
+tuile de la ville qu'on ouvre la liste de ses bâtiments — non l'inverse.
 
-**Trois obstacles rencontrés au découpage.** La tuile de brouillard, presque
-aussi sombre que le fond de la planche, se faisait dévorer par le détourage : son
-masque est repris de la tuile de désert, prisme de même forme. Les cellules sont
-conservées **entières** plutôt que recadrées, sans quoi les roseaux et les
-palmiers qui dépassent du losange décalaient la grille. Et la planche pèse un
-mégaoctet en pleine résolution : les tuiles sont ramenées à 176 px de losange,
-soit 344 Ko pour les huit.
+**Le prompt de la planche 13 demandait des tuiles carrées vues de dessus, à
+fond transparent** ; la planche livrée est isométrique sur fond opaque,
+conforme à la direction artistique générale mais pas au prompt. Le doc 15
+mériterait d'être corrigé sur ce point.
 
-**Géométrie retenue** : losange de 174 × 140 dans une cellule de 189 × 206, posé
-tous les 87 px en x et 70 px en y — la moitié de chaque dimension du losange. Les
-cases sont peintes par somme x+y croissante, sinon les roseaux d'une case passent
-derrière celle qu'ils devraient masquer.
+#### 3.4 — Reconnaissance  ✅
 
-**Deux couches, pas une.** Les tuiles se recouvrent : si chacune portait son
-propre lien, celles du premier plan captureraient les clics des cases situées
-derrière, ne laissant cliquable que le sommet de chaque losange. Les images
-forment donc une couche inerte, et une seconde couche de liens découpés en
-losange (`clip-path`) reçoit les clics. Les losanges pavant le plan sans se
-chevaucher, chaque point de la carte appartient à une seule case.
+Éclaireur : reconnaissance de toute case inconnue, plusieurs expéditions
+simultanées (une par case — la contrainte vient du coût, pas d'une limite
+arbitraire), progression au fil des cycles sans bloquer le joueur, bonus
+d'Akhèt sur les trajets empruntant le Nil (interprété comme : la destination
+est une case du fleuve). Le passage de quinzaine, jusque-là piloté par
+`Chantiers` seul, est remonté dans `PassageDeCycle` : chaque service avance ce
+qui le concerne sans rien persister, une seule écriture par quinzaine.
 
-**La carte devient l'écran principal d'une partie** (décision prise en cours de
-lot). On y arrive en reprenant une partie, la barre de jeu y ramène, et c'est en
-**cliquant la tuile de la ville** qu'on ouvre la liste de ses bâtiments — non
-l'inverse. Avancer le temps renvoie le joueur là où il se trouvait, la route de
-retour étant validée contre une liste blanche : une valeur soumise ne doit pas
-devenir un nom de route arbitraire.
+#### 3.5 — Ressources de zone, champs et cycle agricole  ✅
 
-#### 3.4 — Reconnaissance
+Ressources brutes du doc 08 posées selon la géologie réelle par région.
+Exploitation d'une case reconnue : la ressource alimente le stock. Champ
+établi sur zone fertile ou berge du Nil inondable ; **sans Grenier, un champ
+ne produit rien d'exploitable** (doc 01). Rendement saisonnier (doc 05), crue
+tirée en début d'année (faible ×0,7 / normale / forte ×1,3). Blé, orge et lin
+— le lin débloque le Temple.
 
-- [x] **Éclaireur** : reconnaissance de toute case inconnue, coût modeste
-- [x] Coût en **or et cycles** pour l'instant (décision) ; la part en provisions
-      s'ajoutera au lot 3.5, quand la nourriture existera
-- [x] **Plusieurs expéditions simultanées** (décision), une par case — la
-      contrainte vient naturellement du coût, pas d'une limite arbitraire
-- [x] L'expédition part et progresse au fil des cycles, sans bloquer le joueur —
-      même mécanique que les chantiers, déjà éprouvée au lot 2.5
-- [x] Bonus d'Akhèt sur les trajets empruntant le Nil, malus symétrique en Chémou
+Décisions structurantes actées pendant ce lot (certaines révisées depuis, voir
+lot 3.7) :
 
-Le passage d'une quinzaine était jusqu'ici piloté par `Chantiers`. Les
-expéditions avançant au même rythme, la responsabilité est remontée dans
-`PassageDeCycle` : chaque service fait progresser ce qui le concerne sans rien
-persister, et tout ce qui se dénoue dans la même quinzaine tient en une seule
-écriture.
-
-Le doc 04 accorde le bonus de crue aux trajets « empruntant le Nil » sans dire à
-quoi on les reconnaît. Interprétation retenue, à rediscuter si elle déçoit à
-l'usage : **une expédition emprunte le Nil quand sa destination est une case du
-fleuve**. Une case sous brouillard s'ouvre désormais au clic — il faut bien
-pouvoir y envoyer un éclaireur — mais son panneau ne livre ni terrain ni
-gisement, ce qu'un test verrouille.
-
-#### 3.5 — Ressources de zone, champs et cycle agricole
-
-- [x] Ressources brutes du doc 08, cohérentes avec la géologie réelle : argile et
-      roseaux dans le Delta, calcaire, grès, granite, cuivre, turquoise ailleurs
-- [x] Exploitation d'une case reconnue : la ressource alimente le stock, et les
-      chantiers y puisent
-- [x] Champ établi sur une zone fertile ou une zone du Nil inondable (doc 02)
-- [x] **Sans Grenier construit, un champ ne produit rien d'exploitable** (doc 01) :
-      la dépendance est le cœur de la mécanique, pas un détail
-- [x] Rendement suivant les saisons (doc 05) : nul en Akhèt, champs sous l'eau ;
-      croissant en Perèt ; pic de moisson en Chémou
-- [x] Qualité de la crue tirée en début d'année (faible ×0,7 / normale / forte
-      ×1,3), annoncée au joueur
-- [x] Blé, orge et lin — le lin **débloque le Temple**
-- [x] Provisions désormais payées en nourriture par les expéditions
-
-##### Bois et pierre : des familles, pas des ressources
-
-La question laissée ouverte depuis le lot 3.1 est tranchée. Le doc 01 chiffre
-tous ses bâtiments en `bois` et `pierre` ; le doc 08 ne connaît ni l'un ni
-l'autre, seulement des matériaux nommés. Prise au pied de la lettre, la
-contradiction rendait la **première mission injouable** : le Delta ne porte
-qu'argile, roseaux et calcaire, donc ni « bois » ni « pierre ».
-
-Décision : **un coût se paie avec n'importe quel matériau de la famille
-demandée**. Chaque région fournit le sien, ce qui est aussi la réalité
-historique — on bâtissait avec la pierre qu'on avait sous la main. Les coûts du
-doc 01 restent intacts, et les pierres nommées du doc 08 cessent d'être
-décoratives. Deux rattachements en découlent, tous deux appuyés sur le doc 01 :
-
-- **L'argile relève de la maçonnerie** (décision de la joueuse) : le doc 01
-  précise que la quasi-totalité des bâtiments sont en brique crue, faite du
-  limon du fleuve. Un grenier du Delta se bâtit en brique, un temple en
-  calcaire, et tous deux paient la même ligne.
-- **Les roseaux tiennent lieu de bois** : hors Levant, aucune région d'Égypte
-  n'a de bois d'œuvre, et le doc 01 décrit lui-même les toitures en troncs de
-  palmier et en **nattes** — donc en roseau.
-
-Un prélèvement puise **du plus abondant au plus rare**, sans quoi un grenier de
-brique crue pourrait engloutir le granite réservé au temple.
-
-##### À porter au game design : seul le Delta est autosuffisant
-
-Constat établi en écrivant ce lot, et verrouillé par un test qui échouera si une
-région change : sur les dix régions, **seul le Delta porte les deux familles**.
-Cinq n'ont que de la pierre, le Levant que du bois, et trois — Haute-Nubie, mer
-Rouge, Sinaï — ni l'une ni l'autre.
-
-La dotation royale comble le départ, en envoyant du cèdre et du calcaire là où
-la région ne produit rien. Mais elle ne finance pas une mission entière : **à
-partir de la région 2, le commerce de la Phase 5 devient une condition de
-jouabilité, pas un confort.** À trancher avant de livrer la mission 2 — soit en
-avançant la Phase 5, soit en dotant ces régions d'un matériau local.
-
-##### Valeurs inventées, à calibrer en playtest
-
-Aucun document ne les chiffre. Elles sont signalées comme telles dans le code :
-
-| Valeur | Retenue | Où |
-|---|---|---|
-| Récolte d'un champ par quinzaine, au pic | 10 | `RendementDesChamps` |
-| Extraction d'un gisement par quinzaine | 5, avant rareté régionale | `Recoltes` |
-| Provisions d'un éclaireur | 5 vivres | `RoleDExploration` |
-| Provisions de la dotation royale | 40 blé | `DotationRoyale` |
-
-Les provisions de départ ne sont pas un confort : sans elles, le joueur ne
-pourrait pas envoyer son premier éclaireur, donc jamais trouver la terre où
-semer. La boucle se refermait sur elle-même.
-
-##### Les quatre étapes d'un chantier sont toutes affichées
-
-Défaut relevé à l'usage : un Grenier de niveau 1 dure deux quinzaines pour
-quatre étapes, et l'écran n'en montrait qu'une à la fois — déduite du
-pourcentage d'avancement. Le joueur ne voyait donc jamais que les étapes 1 et 3.
-Le séchage des briques, qui porte l'explication de pourquoi aucun chantier ne
-dure moins d'une quinzaine, passait à la trappe.
-
-Les quatre étapes sont désormais rendues en permanence, marquées *terminée*, *en
-cours* ou *à venir*. Celles que la quinzaine va traverser portent leur
-explication ; les autres, leur seul intitulé. C'est ce que le doc 01 décrit par
-« les cycles sont répartis proportionnellement entre ces étapes ».
-
-Subtilité découverte en vérifiant en navigateur : la fenêtre « en cours » doit
-suivre la **vitesse réelle** du cycle. En Akhèt, la corvée fait avancer d'1,5
-cycle, donc la quinzaine franchit une étape de plus qu'annoncé — et cette
-étape-là n'apparaissait jamais. Un test parcourt maintenant chaque chantier de
-bout en bout, dans les trois saisons, et vérifie qu'aucune étape n'est escamotée.
-
-##### Déblocage : l'or, les maçonneries, les gisements multiples
-
-Une partie réelle s'est retrouvée sans issue au cycle 9. Le diagnostic, fait sur
-la base et non sur des suppositions, a trouvé trois causes distinctes.
-
-**1. L'or n'avait aucune source.** Ni gisement dans le Delta, ni commerce : la
-dotation royale en donnait 50 une fois pour toutes, et chaque bâtiment en
-consommait. Toute partie finissait donc figée. Le **Marché** est avancé de la
-Phase 5 dans sa forme minimale — la vente du surplus, sans achat, sans prix
-fluctuants, sans caravanes. C'est aussi ce qui donne enfin un sens à
-l'exploitation d'un gisement au-delà de la construction. Les prix locaux sont
-inventés (`PrixDuMarche`) : le doc 08 chiffre l'import et l'exotique, jamais le
-cours local.
-
-**2. Une seule maçonnerie pour toute la ville.** Le doc 01 donne à chaque
-bâtiment son « matériau dominant » : brique crue partout, pierre de taille pour
-le seul Temple et le Port. Confondre les deux rendait un grenier tributaire
-d'une carrière de calcaire. `FamilleDeMateriau` compte donc désormais trois
-familles — bois, brique crue, pierre de taille — et chaque coût sait dans
-laquelle il s'exprime. L'argile a été ajoutée aux régions fluviales 2, 5 et 7,
-que le doc 08 décrit pourtant comme en portant (« toutes régions proches du
-Nil »).
-
-**3. Un seul gisement par case** (décision de la joueuse). L'argile et les
-roseaux sont les deux matériaux dont rien ne tient lieu, et tous deux naissent
-de l'eau : ils se disputaient les rares berges d'une grille 3×3. Une case porte
-maintenant **jusqu'à deux gisements**, jamais deux fois le même — on ne trouve
-pas tout au même endroit, sans quoi explorer perdrait son intérêt. Chacun
-s'exploite pour lui-même. Trois colonnes de `zone` deviennent l'entité
-`Gisement`.
-
-La génération garantit désormais un gisement d'argile **et** un de roseaux en
-bordure d'eau, quand la région en porte : le limon des berges et les roseaux des
-marais, exactement là où on les trouvait. Trois invariants le verrouillent sur
-trente tirages.
-
-Dotation revue en conséquence : 35 bois, 30 argile, 50 or — de quoi dresser le
-Grenier **et** le Marché dès l'arrivée. Ce n'est pas une largesse : une partie
-qui n'atteindrait pas le Marché ne pourrait plus jamais gagner un or.
-
-##### Les familles de matériaux disparaissent : chaque coût nomme sa ressource
-
-Retour en arrière sur le point 2 ci-dessus (décision de la joueuse). Le
-compteur « Bois 35 » de la barre de jeu agrégeait en réalité les roseaux et le
-cèdre ; « Pierre » agrégeait calcaire, grès et granite. Le joueur ne pouvait
-donc jamais savoir ce qu'il possédait vraiment, ni distinguer une pénurie de
-roseaux d'une pénurie de cèdre.
-
-**`FamilleDeMateriau` est supprimée.** `CoutDeConstruction` ne porte plus de
-lignes « bois »/« pierre » mais des ressources nommées
-(`CoutDeConstruction::de(roseaux: 15, argile: 15, or: 15)` pour le Grenier) :
-plus aucune substitution. Conséquence assumée, conforme au doc 08 : une région
-qui ne porte pas un matériau ne peut rien bâtir qui en réclame, sans passer par
-le commerce — c'est ce qui donne son poids à la géographie régionale. Les
-quantités du doc 01 sont conservées telles quelles ; seul le nom du matériau
-change, avec le même principe qu'au point 2 : brique crue (roseaux + argile)
-pour presque tout, calcaire pour le seul Temple et le Port.
-
-`City::stockAffichable()` remplace les raccourcis `getBois()`/`getPierre()` :
-chaque ligne de stock non nulle, triée, l'or en tête — rien n'est agrégé. La
-barre de jeu et les écrans de récapitulatif listent désormais ce qu'ils
-trouvent dans le stock plutôt qu'un jeu de compteurs fixes.
-
-##### Un minimum de champs et de poisson, selon la région (décision de la joueuse)
-
-Deuxième demande du même échange : garantir un minimum de chaque ressource sur
-la carte, champs et poisson compris, « en fonction de la région ». Deux
-défauts trouvés en l'implémentant, tous deux sur la plus petite carte du jeu
-(Delta, 3×3, mission 1) :
-
-- **Contention entre garanties.** Matériaux vitaux, poisson et champs se
-  disputent les mêmes cases riveraines ; un minimum de 2 par catégorie s'est
-  révélé irréalisable — une carte est sortie sans un seul champ. Calibré à 1
-  (`CHAMPS_MINIMUM`, `POISSON_MINIMUM` dans `GenerateurDeCarte`), et les deux
-  matériaux vitaux sont désormais regroupés sur la même case quand c'est
-  possible plutôt que dispersés, pour laisser de la place au reste.
-- **Un gisement posé après coup effaçait un champ déjà garanti.**
-  `Zone::poserUnGisement()` écrasait inconditionnellement le contenu de la
-  case ; une carrière de calcaire ajoutée après la garantie de champs pouvait
-  ainsi reprendre silencieusement une case tout juste marquée cultivable. La
-  méthode ne fait plus remonter `Rien` vers `Ressource` que si le contenu était
-  encore vierge — un champ ou un événement déjà posés restent intacts.
-
-Un test rejoue exactement la géographie de la mission 1 sur 50 graines, en
-plus des invariants sur trente graines pour les autres régions.
-
-##### Deux ajustements d'ouverture de partie (décisions de la joueuse)
-
-- **La dotation royale couvre le Grenier**, pas seulement l'Entrepôt : sa part
-  de pierre passe de 10 à 15. Le Grenier coûte 15 bois, 15 pierre, 15 or au
-  niveau 1 (doc 01) et conditionne toute l'agriculture ; le laisser hors de
-  portée jusqu'à la première carrière rendait les champs sans destination.
-- **Reconnaître les abords immédiats de la ville ne coûte pas d'or** : les huit
-  cases adjacentes, en orthogonal comme en diagonale, se reconnaissent sans
-  bourse délier — on voit ses propres abords depuis les murs. Les vivres restent
-  dus, l'éclaireur mangeant même à une heure de marche. Effet de bord voulu :
-  une partie ne peut plus se retrouver bloquée sans issue faute d'or, ce qu'un
-  test verrouille.
+- **Chaque coût de construction nomme sa ressource réelle**, jamais un
+  générique « bois »/« pierre » — le doc 01 les chiffre en matériaux
+  génériques, mais un compteur agrégé cachait au joueur ce qu'il possédait
+  vraiment. Voir le détail dans `CLAUDE.md`.
+- **Le Marché est avancé de la Phase 5** dans sa forme minimale (vente du
+  surplus, prix inventés) : sans lui, l'or n'avait aucune source renouvelable
+  et toute partie finissait figée après la dotation initiale.
+- **Une case porte jusqu'à deux gisements**, jamais deux fois le même ; un
+  minimum de champs et de cases poissonneuses est garanti par région. Détail
+  et pièges dans `CLAUDE.md`.
+- **Seul le Delta est autosuffisant** en bois et pierre parmi les dix régions
+  (cinq n'ont que la pierre, le Levant que le bois, trois régions n'ont ni
+  l'un ni l'autre) : à partir de la région 2, le commerce (Phase 5) devient
+  une condition de jouabilité, pas un confort — à trancher avant la mission 2.
+- **Les quatre étapes d'un chantier sont désormais toutes rendues en
+  permanence** (terminée/en cours/à venir), pas seulement déduites du
+  pourcentage : un Grenier de deux quinzaines pour quatre étapes n'en montrait
+  qu'une à la fois, escamotant le séchage des briques.
+- **Reconnaître les abords de la ville ne coûte pas d'or** (rayon étendu et
+  entièrement gratuit depuis, voir lot 3.7).
 
 #### 3.6 — Points d'eau, Port et pêche
 
@@ -733,121 +337,93 @@ plus des invariants sur trente graines pour les autres régions.
 - [ ] Les cases d'eau cessent d'être un décor : elles portent du contenu comme
       les autres (doc 02)
 
-#### 3.7 — Ville et territoire, ajustements de la joueuse ✅
+#### 3.7 — Ville et territoire, ajustements de la joueuse  ✅
 
-Six demandes de la joueuse, formulées après coup sur la génération de carte,
-les champs et l'exploration — plus une amorce de la Phase 4 (population),
-remontée pour la même raison que les cycles en Phase 2 : compter les
-habitants et les nourrir n'a pas besoin du recrutement pour exister.
+Six demandes formulées après coup sur la génération de carte, les champs et
+l'exploration, plus une amorce de la Phase 4 (population) — remontée pour la
+même raison que les cycles en Phase 2 : compter les habitants et les nourrir
+n'a pas besoin du recrutement pour exister.
 
 - **Le Nil prime sur la Méditerranée et la mer Rouge** pour le placement de la
-  ville : c'est lui qui a fait naître les villes égyptiennes réelles.
+  ville.
 - **Un seul gisement non alimentaire de chaque matériau dans l'anneau des 8
-  cases autour de la ville** — la garantie de minimum s'y pose en priorité, et
-  y est plafonnée à un exemplaire, même par le tirage aléatoire, « pour éviter
-  d'avoir directement tout ». La garantie de champ minimum passe désormais
-  avant celle des matériaux vitaux (une case cultivable garde sa vocation même
-  si un gisement s'y ajoute ensuite, l'inverse est impossible) — sur la plus
-  petite carte du jeu (Delta, 3×3), un tirage malchanceux peut encore,
-  rarement, saturer les quelques cases fertiles avant qu'aucune garantie
-  n'intervienne : un risque déjà présent avant ce lot, légèrement réduit,
-  pas entièrement éliminé.
-- **Terre non cultivable** (`ContenuDeZone::TerreNonCultivable`) : une case
-  dont le terrain accepterait un champ mais que le tirage n'a pas retenue
-  reste identifiable comme telle, au lieu de se fondre dans le « rien »
-  générique — ce qui couvre aussi le fait que toutes les berges du Nil ne
-  sont pas exploitables.
-- **Les champs se resserrent autour de la ville** plutôt que de se disperser :
-  `garantirDesChamps()` consomme les cases les plus proches en premier, et le
-  poids du tirage aléatoire décroît avec la distance.
+  cases autour de la ville**, plafonné même par le tirage aléatoire — « pour
+  éviter d'avoir directement tout ». Piège et ordre de garantie détaillés dans
+  `CLAUDE.md`.
+- **Terre non cultivable** (`ContenuDeZone::TerreNonCultivable`) : une case qui
+  aurait pu porter un champ mais que le tirage n'a pas retenue reste
+  identifiable comme telle — couvre aussi le fait que toutes les berges du Nil
+  ne sont pas exploitables.
+- **Les champs se resserrent autour de la ville** plutôt que de se disperser.
 - **Un champ traverse quatre étapes nommées** — semis, pousse, récolte, repos
-  (`EtapeDeChamp`) — sur le modèle des étapes de chantier. Avoir un champ ne
+  (`EtapeDeChamp`), sur le modèle des étapes de chantier. Avoir un champ ne
   nourrit plus personne : seule l'étape « récolte » verse quelque chose au
-  stock. Un champ du Nil reste piloté par la saison (Perèt ne rend plus un
-  rendement croissant, mais rien jusqu'à la moisson de Chémou) ; un champ
-  terrestre (Fertile, Oasis) suit son propre cycle, indépendant de la saison
-  et de la crue (`CycleAgricoleTerrestre`, `Zone::quinzainesDepuisSemis`).
-- **Le rayon gratuit de l'éclaireur passe d'une case à deux** : toute case à
-  moins de trois cases de la ville se reconnaît **entièrement gratuitement**,
-  ni or ni vivres (décision de la joueuse, precisée après coup : les deux
-  soldes suivent désormais le même rayon,
-  `RoleDExploration::provisionsPourUneDistance()`). Au-delà, les deux sont dus.
+  stock, Nil comme terrestre. Un champ du Nil reste piloté par la saison
+  (Perèt ne rend plus rien, seul Chémou moissonne) ; un champ terrestre
+  (Fertile, Oasis) suit son propre cycle indépendant
+  (`CycleAgricoleTerrestre`, `Zone::quinzainesDepuisSemis`).
+- **Le rayon gratuit de l'éclaireur passe d'une case à deux, et devient
+  entièrement gratuit** — ni or ni vivres à moins de trois cases de la ville
+  (`RoleDExploration::coutPourUneDistance()` / `provisionsPourUneDistance()`).
+  Au-delà, les deux sont dus.
 
-**Amorce de la Phase 4 — population et subsistance.** Une ville affiche
-désormais ses habitants (`Population`, `City::population()`) : une famille
-fondatrice fixe (`Population::HABITANTS_DE_BASE`), plus un supplément par
-niveau de Quartier d'habitation — le recrutement, les chefs et les
-travailleurs restent entiers pour la Phase 4. Chaque quinzaine, la ville
-consomme de la nourriture selon sa population (`Subsistance`, après la
-récolte) ; à défaut de vivres suffisants, la famine s'accumule
-(`GameSave::$quinzainesDeFamine`) et, passé un seuil
-(`Subsistance::SEUIL_DE_FAMINE`, valeur inventée à calibrer), la partie
-bascule en échec (`StatutDePartie::Echouee`) — conservée et consultable,
-jamais supprimée (doc 00 : « chaque partie est une run complète »). Un
-nouvel attribut de vote, `PartieVoter::JOUER`, ferme les actions qui
-modifient l'état (cycle, chantier, vente, exploration, semis, exploitation)
-sur une partie échouée ; la lecture (`VOIR`) reste ouverte. La dotation
-royale couvre désormais un an complet de vivres pour la famille fondatrice
-plutôt qu'une réserve fixe, calculée sur `Population::HABITANTS_DE_BASE`.
+**Amorce de la Phase 4 — population et subsistance.** Une ville affiche ses
+habitants (`Population`) : une famille fondatrice fixe, plus un supplément par
+niveau de Quartier d'habitation. Chaque quinzaine, la ville consomme de la
+nourriture selon sa population (`Subsistance`, après la récolte) ; à défaut de
+vivres suffisants, la famine s'accumule et, passé un seuil, la partie bascule
+en échec (`StatutDePartie::Echouee`) — conservée et consultable, jamais
+supprimée (doc 00 : « chaque partie est une run complète »). Un nouvel
+attribut de vote, `PartieVoter::JOUER`, ferme les actions qui modifient l'état
+sur une partie échouée ; la lecture (`VOIR`) reste ouverte. La dotation royale
+couvre désormais un an complet de vivres pour la famille fondatrice plutôt
+qu'une réserve fixe.
 
 #### Hors périmètre, explicitement
 
-**Les rôles d'exploration autres que l'éclaireur.** L'émissaire suppose des PNJ,
-le chef d'expédition des zones lourdes, l'escorte des Medjaÿ — qui n'arrivent
-qu'en Phase 10. La première mission se joue en difficulté 0, **sans aucune zone
-à bandits** : l'éclaireur seul y suffit, et c'est ce que la phase livre.
+**Les rôles d'exploration autres que l'éclaireur.** L'émissaire suppose des
+PNJ, le chef d'expédition des zones lourdes, l'escorte des Medjaÿ — qui
+n'arrivent qu'en Phase 10. La première mission se joue en difficulté 0, sans
+aucune zone à bandits : l'éclaireur seul y suffit.
 
-Également hors périmètre : l'épuisement des gisements et la re-exploration, qui
-ne concernent que les régions de difficulté 4 et plus ; le commerce et le craft
-(Phase 5) ; les événements de zone et les énigmes (Phase 7).
+Également hors périmètre : l'épuisement des gisements et la re-exploration
+(régions de difficulté 4+) ; le commerce et le craft (Phase 5) ; les
+événements de zone et les énigmes (Phase 7) ; le recrutement, les chefs et les
+travailleurs (Phase 4).
 
 #### Définition de « fini »
 
 Parcours couvert de bout en bout : carte générée à la création de la partie →
 éclaireur envoyé → cycles déclenchés → case révélée → ressource exploitée →
-chantier financé par cette ressource. Plus un champ établi, un grenier bâti, et
-une moisson qui tombe en Chémou et pas en Akhèt.
+chantier financé par cette ressource. Plus un champ établi, un grenier bâti,
+une moisson qui tombe en Chémou et pas en Akhèt, et une ville qui nourrit ses
+habitants ou tombe en famine.
 
-Tests unitaires sur les points où une régression passerait inaperçue : les règles
-de placement géographique, le tirage pondéré, le rendement saisonnier. La
-génération étant semi-aléatoire, ses tests doivent porter sur des **invariants**
-(la ville touche toujours l'eau si l'eau existe, la grille fait toujours la
-bonne taille) plutôt que sur une carte attendue.
+Tests unitaires sur les points où une régression passerait inaperçue : les
+règles de placement géographique, le tirage pondéré, le rendement saisonnier,
+le cycle de subsistance. La génération étant semi-aléatoire, ses tests portent
+sur des **invariants** (la ville touche toujours l'eau si l'eau existe, la
+grille fait toujours la bonne taille) plutôt que sur une carte attendue.
 
 Les quatre portes qualité au vert, et une revue de sécurité sur les nouvelles
-routes — exploiter une case ou envoyer un éclaireur modifie l'état d'une partie
-et doit passer par le `PartieVoter`.
+routes — exploiter une case, semer, ou envoyer un éclaireur modifie l'état
+d'une partie et doit passer par le `PartieVoter`.
 
-#### Décisions actées pour cette phase
+### Valeurs inventées de la Phase 3, à calibrer en playtest
 
-| Question | Décision |
-|---|---|
-| Stock générique | **Oui, en premier** (lot 3.1), avant l'arrivée des ressources |
-| Génération de la carte | **À la création de la partie** |
-| Expéditions simultanées | **Plusieurs**, une par case ; le coût fait la contrainte |
-| Coût de l'éclaireur | **Or et cycles** au lot 3.4 ; provisions ajoutées au 3.5 |
-| Écran de carte | **Grille isométrique**, avec les tuiles du Drive |
+Aucun document ne les chiffre. Toutes signalées comme telles dans le code.
 
-#### Le point à surveiller : les tuiles sont isométriques
-
-La planche livrée contient **huit losanges isométriques** — Nil bordé de
-papyrus, mer, désert, champs irrigués, oasis, forêt de cèdres, brouillard gravé
-de hiéroglyphes, et un marqueur de ville avec son embarcadère.
-
-C'est fidèle à la direction artistique du doc 15 (« vue isométrique légère »),
-mais **le prompt de la planche 13 demandait des tuiles vues de dessus**. Le
-générateur a suivi la direction artistique plutôt que le prompt. Deux
-conséquences concrètes :
-
-- La carte ne peut pas être une simple grille CSS : les losanges se posent en
-  quinconce, avec un décalage d'une demi-tuile une ligne sur deux.
-- Les tuiles arrivent sur **fond sombre opaque**, alors que le prompt demandait
-  un fond transparent. Il faut les détourer avant de pouvoir les juxtaposer.
-
-Ni l'un ni l'autre n'est bloquant, mais les deux sont du travail réel, chiffré
-dans le lot 3.3 plutôt que découvert en cours de route. Le doc 15 mériterait
-d'être corrigé sur ce point — son prompt de planche 13 contredit sa propre
-direction artistique.
+| Valeur | Retenue | Où |
+|---|---|---|
+| Récolte d'un champ par quinzaine, à la récolte | 10 | `RendementDesChamps::RECOLTE_DE_REFERENCE` |
+| Extraction d'un gisement par quinzaine | 5, avant rareté régionale | `Recoltes::EXTRACTION_DE_REFERENCE` |
+| Durées du cycle agricole terrestre | semis 1 / pousse 3 / récolte 1 / repos 2 quinzaines | `CycleAgricoleTerrestre` |
+| Provisions d'un éclaireur (au-delà du rayon gratuit) | 5 vivres | `RoleDExploration::provisions()` |
+| Rayon gratuit de l'éclaireur | < 3 cases, or et vivres | `RoleDExploration` |
+| Habitants de base / par niveau de Quartier | 5 / +10 | `Population` |
+| Ration par habitant | 1 vivre/quinzaine | `Population::RATION_PAR_HABITANT` |
+| Seuil de famine avant échec de partie | 4 quinzaines consécutives | `Subsistance::SEUIL_DE_FAMINE` |
+| Dotation royale en vivres | population de base × ration × 25 quinzaines (≈125 blé) | `DotationRoyale` |
 
 ---
 
@@ -917,3 +493,10 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Abandon d'une partie | **Suppression définitive**, derrière confirmation |
 | Ordre des missions | **Imposé**, de la mission 1 à la 10 |
 | Reprise de partie | **Récapitulatif d'état** avant de rendre la main |
+| Coûts de construction | **Ressources nommées**, jamais de générique « bois »/« pierre » ; un coût se paie exactement avec ce qu'il nomme |
+| Gisements par case | **Jusqu'à deux**, jamais deux fois le même matériau |
+| Placement de la ville | **Le Nil en priorité** s'il existe, sinon tout point d'eau, sinon terre fertile — jamais en plein désert |
+| Gisements non alimentaires près de la ville | **Un seul exemplaire** dans l'anneau des 8 cases, plafonné même par le tirage aléatoire |
+| Cycle agricole | **Quatre étapes** (semis/pousse/récolte/repos) ; le Nil suit la saison, la terre suit son propre compteur ; aucune nourriture hors récolte |
+| Rayon gratuit de l'éclaireur | **< 3 cases** : entièrement gratuit, or et vivres compris ; au-delà, les deux sont dus |
+| Échec de partie | **Famine prolongée** (4 quinzaines) → partie « échouée », conservée et consultable, jamais supprimée |
