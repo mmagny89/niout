@@ -33,6 +33,20 @@ final readonly class GenerateurDeFoyer
      */
     public function pour(City $ville): Foyer
     {
+        ['adultes' => $adultes, 'agesDesEnfants' => $ages] = $this->composer();
+
+        return new Foyer($ville, $adultes, $ages);
+    }
+
+    /**
+     * La composition seule, sans ville à laquelle la rattacher : un candidat
+     * annonce le foyer qu'il amènerait, mais celui-ci ne s'installe qu'à
+     * l'embauche (lot 4.3).
+     *
+     * @return array{adultes: int, agesDesEnfants: list<int>}
+     */
+    public function composer(): array
+    {
         $enfants = $this->hasard->getInt(0, Population::ENFANTS_MAX_PAR_FOYER);
         $ages = [];
 
@@ -40,6 +54,6 @@ final readonly class GenerateurDeFoyer
             $ages[] = $this->hasard->getInt(0, Population::AGE_ADULTE_EN_QUINZAINES - 1);
         }
 
-        return new Foyer($ville, Population::ADULTES_PAR_FOYER, $ages);
+        return ['adultes' => Population::ADULTES_PAR_FOYER, 'agesDesEnfants' => $ages];
     }
 }
