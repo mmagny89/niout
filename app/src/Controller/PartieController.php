@@ -28,8 +28,11 @@ use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\RecrutementImpossible;
+use App\Game\Recrutements;
 use App\Game\Ressource;
 use App\Game\RoleDExploration;
+use App\Game\SpecialiteDeChef;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
 use App\Repository\GameSaveRepository;
@@ -116,8 +119,13 @@ final class PartieController extends AbstractController
      */
     #[Route('/{id}/ville', name: 'app_partie_ville', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function ville(GameSave $partie, CatalogueDeLaVille $catalogue, Marche $marche, AppelDHabitants $appels): Response
-    {
+    public function ville(
+        GameSave $partie,
+        CatalogueDeLaVille $catalogue,
+        Marche $marche,
+        AppelDHabitants $appels,
+        Recrutements $recrutements,
+    ): Response {
         $ville = $partie->getVille();
 
         return $this->render('partie/ville.html.twig', [
@@ -130,6 +138,7 @@ final class PartieController extends AbstractController
             'etal' => $ville->possede(TypeDeBatiment::Marche) ? $marche->etalPour($partie) : [],
             'palier' => $partie->getFamille()->palier(),
             'coutDUnAppel' => $appels->cout($partie),
+            'directions' => $this->directionsDesBatiments($partie, $recrutements),
         ]);
     }
 
@@ -163,6 +172,103 @@ final class PartieController extends AbstractController
         } catch (VenteImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Poste une offre pour diriger un bâtiment.
+     *
+     * Action libre (doc 05) : elle ne consomme pas de quinzaine et ne coûte
+     * rien. Elle fige en revanche son tirage de candidats, pour qu'un
+     * rechargement de page ne relance pas les dés.
+     */
+    #[Route('/{id}/ville/poster', name: 'app_partie_poster', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function poster(Request $request, GameSave $partie, Recrutements $recrutements): Response
+    {
+        if (!$this->isCsrfTokenValid('poster', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $type = TypeDeBatiment::tryFrom((string) $request->request->get('batiment'));
+
+        if (null === $type) {
+            throw $this->createNotFoundException('Bâtiment inconnu.');
+        }
+
+        try {
+            $recrutements->poster($partie, $type);
+        } catch (RecrutementImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Retient un candidat, ou retire l'annonce sans embaucher personne.
+     */
+    #[Route('/{id}/ville/embaucher', name: 'app_partie_embaucher', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function embaucher(Request $request, GameSave $partie, Recrutements $recrutements): Response
+    {
+        if (!$this->isCsrfTokenValid('embaucher', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $type = TypeDeBatiment::tryFrom((string) $request->request->get('batiment'));
+        $offre = null === $type ? null : $partie->getVille()->offrePour($type);
+
+        if (null === $offre) {
+            throw $this->createNotFoundException('Aucune annonce affichée pour ce bâtiment.');
+        }
+
+        if ($request->request->has('retirer')) {
+            $recrutements->retirer($offre);
+            $this->addFlash('succes', 'L\'annonce est retirée. Les candidats sont repartis.');
+
+            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        }
+
+        try {
+            $employe = $recrutements->embaucher($partie, $offre, $request->request->getInt('rang', -1));
+            $this->addFlash('succes', \sprintf(
+                'Votre nouveau chef %s s\'installe avec les siens. Il prendra son poste à la prochaine quinzaine.',
+                null !== $employe->getSpecialite() ? '('.mb_strtolower($employe->getSpecialite()->libelle()).')' : '',
+            ));
+        } catch (RecrutementImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Renvoie un chef. Sa maisonnée s'en va avec lui.
+     */
+    #[Route('/{id}/ville/renvoyer', name: 'app_partie_renvoyer', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function renvoyer(Request $request, GameSave $partie, Recrutements $recrutements): Response
+    {
+        if (!$this->isCsrfTokenValid('renvoyer', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $employe = null;
+
+        foreach ($partie->getVille()->getEmployes() as $candidat) {
+            if ($candidat->getId() === $request->request->getInt('employe')) {
+                $employe = $candidat;
+            }
+        }
+
+        if (null === $employe) {
+            throw $this->createNotFoundException('Ce chef n\'est pas à votre service.');
+        }
+
+        $recrutements->renvoyer($employe);
+        $this->addFlash('succes', 'Le chef et les siens ont quitté la ville.');
 
         return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
     }
@@ -525,6 +631,37 @@ final class PartieController extends AbstractController
         );
 
         return $batiments;
+    }
+
+    /**
+     * L'état du recrutement, bâtiment par bâtiment : qui le dirige, combien
+     * de postes restent, quelle annonce est affichée.
+     *
+     * Les trois bâtiments sans spécialité en sont écartés — Résidence
+     * familiale, Quartier d'habitation, Auberge : la famille les tient
+     * elle-même, leur proposer une annonce n'aurait aucun sens.
+     *
+     * @return list<array{batiment: Building, chefs: list<\App\Entity\Employee>, postesLibres: int, offre: ?\App\Entity\JobOffer}>
+     */
+    private function directionsDesBatiments(GameSave $partie, Recrutements $recrutements): array
+    {
+        $ville = $partie->getVille();
+        $directions = [];
+
+        foreach ($this->batimentsTriesParLibelle($ville) as $batiment) {
+            if ([] === SpecialiteDeChef::pour($batiment->getType())) {
+                continue;
+            }
+
+            $directions[] = [
+                'batiment' => $batiment,
+                'chefs' => $ville->chefsDe($batiment->getType()),
+                'postesLibres' => $recrutements->postesLibres($batiment),
+                'offre' => $ville->offrePour($batiment->getType()),
+            ];
+        }
+
+        return $directions;
     }
 
     /**

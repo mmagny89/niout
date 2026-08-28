@@ -80,6 +80,18 @@ class City
     private Collection $chantiers;
 
     /**
+     * @var Collection<int, JobOffer>
+     */
+    #[ORM\OneToMany(targetEntity: JobOffer::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $offres;
+
+    /**
+     * @var Collection<int, Employee>
+     */
+    #[ORM\OneToMany(targetEntity: Employee::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $employes;
+
+    /**
      * La population, en trois nombres et pas un de plus (décision de la
      * joueuse) : ceux qui travaillent, ceux qui grandissent, ceux qui ont
      * fini. Aucun individu n'est suivi — ce qui compte est de savoir combien
@@ -104,6 +116,8 @@ class City
         $this->stock = new ArrayCollection();
         $this->batiments = new ArrayCollection();
         $this->chantiers = new ArrayCollection();
+        $this->offres = new ArrayCollection();
+        $this->employes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -218,6 +232,27 @@ class City
         $this->actifs += $actifs;
         $this->enfants += $enfants;
         $this->anciens += $anciens;
+
+        return $this;
+    }
+
+    /**
+     * Une maisonnée quitte la ville — le pendant d'`accueillir()`, employé au
+     * renvoi d'un chef, qui repart avec les siens.
+     *
+     * La ville ne sait pas qui était qui : il faut donc trancher d'où les
+     * inactifs se retirent. **Sur les anciens d'abord, les enfants ensuite** —
+     * c'est ce qui préserve les bras de demain, un enfant devenant actif là où
+     * un ancien ne le redevient jamais. Prendre sur les enfants d'abord
+     * transformerait chaque renvoi en trou démographique différé.
+     */
+    public function laisserPartir(int $actifs, int $inactifs): static
+    {
+        $this->actifs = max(0, $this->actifs - $actifs);
+
+        $surLesAnciens = min($this->anciens, $inactifs);
+        $this->anciens -= $surLesAnciens;
+        $this->enfants = max(0, $this->enfants - ($inactifs - $surLesAnciens));
 
         return $this;
     }
@@ -584,6 +619,83 @@ class City
     public function getChantiers(): Collection
     {
         return $this->chantiers;
+    }
+
+    /**
+     * @return Collection<int, JobOffer>
+     */
+    public function getOffres(): Collection
+    {
+        return $this->offres;
+    }
+
+    public function ajouterOffre(JobOffer $offre): static
+    {
+        if (!$this->offres->contains($offre)) {
+            $this->offres->add($offre);
+        }
+
+        return $this;
+    }
+
+    public function retirerOffre(JobOffer $offre): static
+    {
+        $this->offres->removeElement($offre);
+
+        return $this;
+    }
+
+    public function offrePour(TypeDeBatiment $type): ?JobOffer
+    {
+        foreach ($this->offres as $offre) {
+            if ($offre->getType() === $type) {
+                return $offre;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return Collection<int, Employee>
+     */
+    public function getEmployes(): Collection
+    {
+        return $this->employes;
+    }
+
+    public function ajouterEmploye(Employee $employe): static
+    {
+        if (!$this->employes->contains($employe)) {
+            $this->employes->add($employe);
+        }
+
+        return $this;
+    }
+
+    public function retirerEmploye(Employee $employe): static
+    {
+        $this->employes->removeElement($employe);
+
+        return $this;
+    }
+
+    /**
+     * Les chefs d'un bâtiment donné, embauchés ou déjà à l'ouvrage.
+     *
+     * @return list<Employee>
+     */
+    public function chefsDe(TypeDeBatiment $type): array
+    {
+        $chefs = [];
+
+        foreach ($this->employes as $employe) {
+            if ($employe->getType() === $type) {
+                $chefs[] = $employe;
+            }
+        }
+
+        return $chefs;
     }
 
     public function ajouterChantier(Chantier $chantier): static

@@ -99,6 +99,20 @@ class Building
     }
 
     /**
+     * Combien de chefs ce bâtiment peut employer : `arrondiSupérieur(niveau / 3)`
+     * (doc 01), soit un aux niveaux 1 à 3, deux aux niveaux 4 à 6, trois
+     * au-delà.
+     *
+     * Cette formule appartient au lot 4.4 ; elle est avancée ici parce que
+     * sans plafond, une offre d'emploi pourrait être postée indéfiniment sur
+     * le même bâtiment.
+     */
+    public function nombreDeChefs(): int
+    {
+        return intdiv($this->niveau + 2, 3);
+    }
+
+    /**
      * Palier d'illustration, de 1 à 4 (doc 15). Plutôt qu'une image par niveau,
      * chaque bâtiment n'en a que quatre, proportionnels à son propre plafond.
      */
