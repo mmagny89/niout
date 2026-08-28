@@ -72,21 +72,21 @@ enum TypeDeBatiment: string
             // roseaux — le doc 01 décrit lui-même les toitures en troncs de
             // palmier et en nattes — et sa « pierre » devient de l'argile, la
             // brique crue dont il dit que presque toute la ville est faite.
-            self::QuartierDHabitation => CoutDeConstruction::de(or: 20, roseaux: 25, argile: 15),
-            self::Grenier => CoutDeConstruction::de(or: 15, roseaux: 15, argile: 15),
-            self::Entrepot => CoutDeConstruction::de(or: 15, roseaux: 20, argile: 10),
-            self::Marche => CoutDeConstruction::de(or: 15, roseaux: 15, argile: 5),
-            self::Forge => CoutDeConstruction::de(or: 30, roseaux: 15, argile: 25),
-            self::Atelier => CoutDeConstruction::de(or: 20, roseaux: 20, argile: 10),
-            self::MaisonDesScribes => CoutDeConstruction::de(or: 35, roseaux: 25, argile: 15),
-            self::Caserne => CoutDeConstruction::de(or: 40, roseaux: 20, argile: 30),
-            self::Auberge => CoutDeConstruction::de(or: 20, roseaux: 20, argile: 10),
+            self::QuartierDHabitation => CoutDeConstruction::de(deben: 20, roseaux: 25, argile: 15),
+            self::Grenier => CoutDeConstruction::de(deben: 15, roseaux: 15, argile: 15),
+            self::Entrepot => CoutDeConstruction::de(deben: 15, roseaux: 20, argile: 10),
+            self::Marche => CoutDeConstruction::de(deben: 15, roseaux: 15, argile: 5),
+            self::Forge => CoutDeConstruction::de(deben: 30, roseaux: 15, argile: 25),
+            self::Atelier => CoutDeConstruction::de(deben: 20, roseaux: 20, argile: 10),
+            self::MaisonDesScribes => CoutDeConstruction::de(deben: 35, roseaux: 25, argile: 15),
+            self::Caserne => CoutDeConstruction::de(deben: 40, roseaux: 20, argile: 30),
+            self::Auberge => CoutDeConstruction::de(deben: 20, roseaux: 20, argile: 10),
             // Les deux seuls bâtiments de pierre de taille (doc 01, colonne
             // « matériau dominant »). Le calcaire de Tourah remontait et
             // descendait réellement le fleuve : une région qui n'en porte pas
             // devra l'importer.
-            self::Temple => CoutDeConstruction::de(or: 10, roseaux: 10, calcaire: 30, lin: 5),
-            self::Port => CoutDeConstruction::de(or: 50, roseaux: 40, calcaire: 20),
+            self::Temple => CoutDeConstruction::de(deben: 10, roseaux: 10, calcaire: 30, lin: 5),
+            self::Port => CoutDeConstruction::de(deben: 50, roseaux: 40, calcaire: 20),
         };
     }
 

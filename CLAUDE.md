@@ -161,9 +161,23 @@ contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
 coup (garantie de matériau, garantie de poisson) effaçait silencieusement le
 champ qu'une garantie précédente venait de poser sur la même case.
 
-**L'or n'entre que par le Marché** (`Game/Marche`), la dotation royale mise à
-part. Toute règle qui rendrait le Marché inatteignable fige la partie : c'est ce
-que vérifie `DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`.
+**La monnaie est le deben, jamais l'or** (`Ressource::Deben`,
+`Ressource::estLaMonnaie()`). L'Égypte pharaonique n'a pas de monnaie frappée —
+elle n'apparaît que sous domination perse puis chez les Ptolémées ; le Nouvel
+Empire compte en deben, unité pondérale d'environ 91 g attestée par les ostraca
+de Deir el-Médineh. **L'or est un métal qu'on extrait** (mines du désert
+oriental et de Nubie, doc 08) et qu'on vend, au prix le plus élevé du jeu.
+Confondre les deux, comme le faisait le code jusqu'au lot 4.0, faisait de la
+mission 2 une carrière de monnaie.
+
+Conséquence pour toute migration future : une ligne de **stock** `or` était de
+la monnaie, un **gisement** `or` est une mine. Ne jamais convertir les deux
+ensemble — voir `Version20260828140000`.
+
+**La monnaie n'entre que par le Marché** (`Game/Marche`), la dotation royale
+mise à part. Toute règle qui rendrait le Marché inatteignable fige la partie :
+c'est ce que vérifie
+`DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`.
 
 **Un champ ne nourrit qu'à sa récolte** (`EtapeDeChamp::Recolte`), jamais
 pendant le semis, la pousse ou le repos. Un champ du Nil suit la saison
@@ -188,8 +202,10 @@ jouable sur une partie déjà terminée.
 Cinq pièges déjà payés, à ne pas refaire :
 
 - **`or` est un mot réservé du SQL.** Doctrine échappe les noms à la création de
-  table, jamais dans les `SELECT` qu'il génère ensuite : la colonne s'appelle
-  donc `stock_or`. Vérifier tout nom de colonne qui serait un mot-clé.
+  table, jamais dans les `SELECT` qu'il génère ensuite. La colonne fautive
+  n'existe plus — le lot 3.1 a remplacé les compteurs fixes par une table
+  `ressource → quantité`, où `or` n'est qu'une valeur — mais le piège reste
+  entier pour tout nouveau nom de colonne qui serait un mot-clé.
 - **Les Voters ont changé de signature en Symfony 8** : `voteOnAttribute()` prend
   un quatrième paramètre `?Vote $vote = null`. L'oublier produit une erreur
   fatale au chargement, qui fait échouer jusqu'à `make:migration`.

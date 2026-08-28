@@ -504,7 +504,7 @@ conception. Le critère n'est pas la fidélité au document mais l'équilibre, e
 le fait de **pousser le joueur à se servir des mécaniques du jeu**. Un système
 qu'on n'utilise jamais est un échec au même titre qu'un système qui bloque.
 
-#### 4.0 — Le deben : introduire la monnaie  *(prérequis)*
+#### 4.0 — Le deben : introduire la monnaie  ✅  *(prérequis)*
 
 **L'Égypte pharaonique n'a pas de monnaie frappée** — elle n'apparaît que sous
 domination perse, puis chez les Ptolémées. Les échanges du Nouvel Empire se
@@ -532,6 +532,23 @@ monnaie. La confusion se défait :
 `stock_or` et le mot réservé `or` du SQL. Cette colonne n'existe plus depuis
 que le lot 3.1 a généralisé le stock en table `ressource → quantité` — la
 leçon sur les mots réservés reste bonne, son exemple est périmé.
+
+##### Livré
+
+Le prix de l'or est fixé à **30 deben l'unité**, le plus élevé du jeu — le
+rapport réel de l'or au cuivre sous le Nouvel Empire était bien plus écrasant,
+la valeur est comprimée pour rester jouable comme le reste de `PrixDuMarche`.
+
+La migration `Version20260828140000` ne convertit **que le stock**, jamais les
+gisements : une ligne de stock `or` était de la monnaie, un gisement `or` est
+une mine. Aucun gisement d'or n'existait en base — la mission 2 n'étant pas
+atteignable — mais la distinction devait être écrite pour les migrations
+futures.
+
+Un test de rendu vérifie que la barre de jeu affiche bien deux compteurs
+distincts, la dotation en deben d'un côté et l'or extrait de l'autre
+(`VilleTest::testLaBarreDeJeuCompteEnDebenEtRangeLOrParmiLesMateriaux()`), et
+un autre que l'or se vend désormais au Marché comme n'importe quel métal.
 
 #### 4.1 — Foyers, âges et bras disponibles
 

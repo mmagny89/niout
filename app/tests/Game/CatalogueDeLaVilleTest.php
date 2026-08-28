@@ -29,7 +29,7 @@ final class CatalogueDeLaVilleTest extends TestCase
 
     public function testUnBatimentFinancableEstRealisable(): void
     {
-        // Entrepôt : 20 bois, 10 pierre, 15 or — exactement la dotation royale.
+        // Entrepôt : 20 roseaux, 10 argile, 15 deben — exactement la dotation royale.
         $offre = $this->offrePour($this->villeDotee(), TypeDeBatiment::Entrepot);
 
         self::assertTrue($offre->estRealisable());
@@ -38,10 +38,10 @@ final class CatalogueDeLaVilleTest extends TestCase
 
     public function testUnBatimentTropCherEstEmpecheAvecLeDetailDuManque(): void
     {
-        // Caserne : 20 bois, 30 argile, 40 or (doc 01). Cette ville-ci n'a que
+        // Caserne : 20 roseaux, 30 argile, 40 deben (doc 01). Cette ville-ci n'a que
         // 10 d'argile : il lui en manque 20, et le message doit le dire.
         $pauvre = (new City('Avaris', 0, 3))->crediterRessources([
-            Ressource::Or->value => 999,
+            Ressource::Deben->value => 999,
             Ressource::Roseaux->value => 999,
             Ressource::Argile->value => 10,
         ]);
@@ -147,7 +147,7 @@ final class CatalogueDeLaVilleTest extends TestCase
     private function villeRiche(): City
     {
         return (new City('Avaris', 0, 3))->crediterRessources([
-            Ressource::Or->value => 9999,
+            Ressource::Deben->value => 9999,
             Ressource::Roseaux->value => 9999,
             // Les deux maçonneries : la brique crue pour presque tout, la
             // pierre de taille pour le Temple et le Port.

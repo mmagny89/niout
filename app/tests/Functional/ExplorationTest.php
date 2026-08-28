@@ -22,11 +22,11 @@ final class ExplorationTest extends KernelTestCase
     {
         self::bootKernel();
         $partie = $this->lancerSurUneGrandeCarte('solde@example.com');
-        $orAvant = $partie->getVille()->getOr();
+        $debenAvant = $partie->getVille()->getDeben();
 
         $this->explorations()->envoyer($partie, $this->caseEloignee($partie), RoleDExploration::Eclaireur);
 
-        self::assertSame($orAvant - RoleDExploration::Eclaireur->cout(), $partie->getVille()->getOr());
+        self::assertSame($debenAvant - RoleDExploration::Eclaireur->cout(), $partie->getVille()->getDeben());
         self::assertCount(1, $partie->getVille()->getExpeditions());
     }
 
@@ -36,21 +36,21 @@ final class ExplorationTest extends KernelTestCase
      * diagonale. Faire payer le premier pas d'une partie neuve reviendrait à
      * taxer le joueur pour découvrir où il vient d'être envoyé.
      */
-    public function testReconnaitreLesAbordsDeLaVilleNeCoutePasDOr(): void
+    public function testReconnaitreLesAbordsDeLaVilleNeCoutePasDeDeben(): void
     {
         self::bootKernel();
         $partie = $this->lancerPartie('abords@example.com');
-        $orAvant = $partie->getVille()->getOr();
+        $debenAvant = $partie->getVille()->getDeben();
 
         $this->explorations()->envoyer($partie, $this->caseAdjacente($partie), RoleDExploration::Eclaireur);
 
-        self::assertSame($orAvant, $partie->getVille()->getOr());
+        self::assertSame($debenAvant, $partie->getVille()->getDeben());
         self::assertCount(1, $partie->getVille()->getExpeditions(), 'L\'expédition part bel et bien.');
     }
 
     /**
      * Une case à moins de trois cases de la ville ne coûte rien du tout — ni
-     * or ni vivres (décision de la joueuse) : assez proche pour qu'un
+     * deben ni vivres (décision de la joueuse) : assez proche pour qu'un
      * éclaireur y aille sans qu'on lui compte sa peine.
      */
     public function testLesAbordsNeCoutentPlusDeVivresNonPlus(): void
@@ -68,12 +68,12 @@ final class ExplorationTest extends KernelTestCase
         );
     }
 
-    public function testSansUnSeulOrOnPeutEncoreReconnaitreSesAbords(): void
+    public function testSansUnSeulDebenOnPeutEncoreReconnaitreSesAbords(): void
     {
         self::bootKernel();
         $partie = $this->lancerPartie('ruine@example.com');
         $ville = $partie->getVille();
-        $ville->debiterRessources([Ressource::Or->value => $ville->getOr()]);
+        $ville->debiterRessources([Ressource::Deben->value => $ville->getDeben()]);
 
         $this->explorations()->envoyer($partie, $this->caseAdjacente($partie), RoleDExploration::Eclaireur);
 
@@ -108,20 +108,20 @@ final class ExplorationTest extends KernelTestCase
         self::assertSame($avant - RoleDExploration::Eclaireur->provisions(), $partie->getVille()->getNourriture());
     }
 
-    public function testSansVivresAucunEclaireurNePartAuLoinEtLOrResteIntact(): void
+    public function testSansVivresAucunEclaireurNePartAuLoinEtLaMonnaieResteIntacte(): void
     {
         self::bootKernel();
         $partie = $this->lancerSurUneGrandeCarte('famine@example.com');
         $ville = $partie->getVille();
         $ville->debiterNourriture($ville->getNourriture());
-        $orAvant = $ville->getOr();
+        $debenAvant = $ville->getDeben();
 
         try {
             $this->explorations()->envoyer($partie, $this->caseEloignee($partie), RoleDExploration::Eclaireur);
             self::fail('L\'expédition aurait dû être refusée faute de vivres.');
         } catch (ExplorationImpossible $impossible) {
             self::assertStringContainsString('vivres', $impossible->getMessage());
-            self::assertSame($orAvant, $ville->getOr(), 'L\'or ne doit pas être prélevé pour rien.');
+            self::assertSame($debenAvant, $ville->getDeben(), 'La monnaie ne doit pas être prélevée pour rien.');
             self::assertCount(0, $ville->getExpeditions());
         }
     }
@@ -194,18 +194,18 @@ final class ExplorationTest extends KernelTestCase
         $this->explorations()->envoyer($partie, $centre, RoleDExploration::Eclaireur);
     }
 
-    public function testSansOrAucunEclaireurNePartAuLoinEtRienNEstDebite(): void
+    public function testSansDebenAucunEclaireurNePartAuLoinEtRienNEstDebite(): void
     {
         self::bootKernel();
         $partie = $this->lancerSurUneGrandeCarte('sans-le-sou@example.com');
         $ville = $partie->getVille();
-        $ville->debiterRessources([Ressource::Or->value => $ville->getOr()]);
+        $ville->debiterRessources([Ressource::Deben->value => $ville->getDeben()]);
 
         try {
             $this->explorations()->envoyer($partie, $this->caseEloignee($partie), RoleDExploration::Eclaireur);
             self::fail('L\'expédition aurait dû être refusée.');
         } catch (ExplorationImpossible) {
-            self::assertSame(0, $ville->getOr());
+            self::assertSame(0, $ville->getDeben());
             self::assertCount(0, $ville->getExpeditions());
         }
     }

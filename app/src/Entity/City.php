@@ -160,9 +160,9 @@ class City
      * Raccourcis vers ce que la barre de jeu affiche en permanence. Ils évitent
      * aux gabarits d'appeler quantite() avec une énumération.
      */
-    public function getOr(): int
+    public function getDeben(): int
     {
-        return $this->quantite(Ressource::Or);
+        return $this->quantite(Ressource::Deben);
     }
 
     /**
@@ -197,9 +197,10 @@ class City
     }
 
     /**
-     * Le stock trié pour l'affichage : chaque ressource sous son propre nom,
-     * l'or en tête. Rien n'est agrégé — un compteur « bois » qui additionnerait
-     * roseaux et cèdre cacherait au joueur ce qu'il possède réellement.
+     * Le stock trié pour l'affichage : chaque ressource sous son propre nom, la
+     * monnaie en tête. Rien n'est agrégé — un compteur « bois » qui
+     * additionnerait roseaux et cèdre cacherait au joueur ce qu'il possède
+     * réellement.
      *
      * @return list<StockDeRessource>
      */
@@ -208,17 +209,17 @@ class City
         $lignes = [];
 
         foreach ($this->stock as $ligne) {
-            if ($ligne->getQuantite() > 0 || Ressource::Or === $ligne->getRessource()) {
+            if ($ligne->getQuantite() > 0 || $ligne->getRessource()->estLaMonnaie()) {
                 $lignes[] = $ligne;
             }
         }
 
         usort($lignes, static function (StockDeRessource $a, StockDeRessource $b): int {
-            if (Ressource::Or === $a->getRessource()) {
+            if ($a->getRessource()->estLaMonnaie()) {
                 return -1;
             }
 
-            if (Ressource::Or === $b->getRessource()) {
+            if ($b->getRessource()->estLaMonnaie()) {
                 return 1;
             }
 

@@ -14,15 +14,15 @@ namespace App\Game;
  */
 final readonly class DotationRoyale
 {
-    private const int OR_DE_BASE = 50;
-    private const int OR_PAR_NIVEAU_DE_DIFFICULTE = 10;
+    private const int DEBEN_DE_BASE = 50;
+    private const int DEBEN_PAR_NIVEAU_DE_DIFFICULTE = 10;
 
     /**
      * De quoi couvrir le premier bâtiment, quelle que soit la région.
      *
      * Calibré pour couvrir **d'emblée le Grenier et le Marché** (15/15/15 et
      * 15/5/15 au niveau 1, doc 01), qui ouvrent les deux boucles du jeu : le
-     * Grenier rend l'agriculture utile, le Marché est la seule entrée d'or.
+     * Grenier rend l'agriculture utile, le Marché est la seule entrée de deben.
      *
      * Les couvrir tous les deux n'est pas une largesse mais une condition de
      * jouabilité : une partie qui n'atteindrait pas le Marché ne pourrait plus
@@ -48,7 +48,7 @@ final readonly class DotationRoyale
     private const int PROVISIONS = Population::HABITANTS_DE_BASE * Population::RATION_PAR_HABITANT * DateDeJeu::CYCLES_PAR_ANNEE;
 
     private function __construct(
-        public int $or,
+        public int $deben,
         public int $provisions,
         /** @var array<string, int> valeur de Ressource => quantité */
         private array $materiaux,
@@ -63,7 +63,7 @@ final readonly class DotationRoyale
     public function enRessources(): array
     {
         return [
-            Ressource::Or->value => $this->or,
+            Ressource::Deben->value => $this->deben,
             Ressource::Ble->value => $this->provisions,
             ...$this->materiaux,
         ];
@@ -76,7 +76,7 @@ final readonly class DotationRoyale
     public static function pour(int $difficulte): self
     {
         return new self(
-            or: self::OR_DE_BASE + self::OR_PAR_NIVEAU_DE_DIFFICULTE * $difficulte,
+            deben: self::DEBEN_DE_BASE + self::DEBEN_PAR_NIVEAU_DE_DIFFICULTE * $difficulte,
             provisions: self::PROVISIONS,
             materiaux: [
                 // Les deux matériaux de la brique crue et de sa toiture : ce

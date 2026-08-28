@@ -41,14 +41,14 @@ final readonly class CoutDeConstruction
      * Construit un coût à partir de ressources nommées — plus lisible, sur les
      * lignes du catalogue, que d'assembler un tableau à la main.
      */
-    public static function de(int $or = 0, int $roseaux = 0, int $argile = 0, int $calcaire = 0, int $lin = 0): self
+    public static function de(int $deben = 0, int $roseaux = 0, int $argile = 0, int $calcaire = 0, int $lin = 0): self
     {
         return new self([
             Ressource::Roseaux->value => $roseaux,
             Ressource::Argile->value => $argile,
             Ressource::Calcaire->value => $calcaire,
             Ressource::Lin->value => $lin,
-            Ressource::Or->value => $or,
+            Ressource::Deben->value => $deben,
         ]);
     }
 

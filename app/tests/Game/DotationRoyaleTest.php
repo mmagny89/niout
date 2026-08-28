@@ -15,11 +15,11 @@ use PHPUnit\Framework\TestCase;
 final class DotationRoyaleTest extends TestCase
 {
     #[DataProvider('dotationsAttendues')]
-    public function testLOrSuitLaFormuleDuDocument(int $difficulte, int $orAttendu): void
+    public function testLaMonnaieSuitLaFormuleDuDocument(int $difficulte, int $debenAttendu): void
     {
         $dotation = DotationRoyale::pour($difficulte);
 
-        self::assertSame($orAttendu, $dotation->or);
+        self::assertSame($debenAttendu, $dotation->deben);
     }
 
     /**
@@ -35,10 +35,10 @@ final class DotationRoyaleTest extends TestCase
 
     public function testLesMateriauxNeDependentPasDeLaDifficulte(): void
     {
-        // Seul l'or suit la difficulté (doc 13) : les matériaux, eux, sont
+        // Seule la monnaie suit la difficulté (doc 13) : les matériaux, eux, sont
         // calibrés sur les bâtiments d'ouverture, les mêmes partout.
-        $clemente = self::sansLOr(DotationRoyale::pour(0)->enRessources());
-        $rude = self::sansLOr(DotationRoyale::pour(9)->enRessources());
+        $clemente = self::sansLaMonnaie(DotationRoyale::pour(0)->enRessources());
+        $rude = self::sansLaMonnaie(DotationRoyale::pour(9)->enRessources());
 
         self::assertSame($clemente, $rude);
     }
@@ -100,9 +100,9 @@ final class DotationRoyaleTest extends TestCase
      *
      * @return array<string, int>
      */
-    private static function sansLOr(array $recu): array
+    private static function sansLaMonnaie(array $recu): array
     {
-        unset($recu[Ressource::Or->value]);
+        unset($recu[Ressource::Deben->value]);
 
         return $recu;
     }

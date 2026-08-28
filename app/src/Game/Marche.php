@@ -8,12 +8,12 @@ use App\Entity\GameSave;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * La vente au Marché : échanger son surplus contre de l'or (doc 01, doc 08).
+ * La vente au Marché : échanger son surplus contre des deben (doc 01, doc 08).
  *
  * Version minimale et volontairement incomplète — l'achat, les prix fluctuants
  * selon l'offre et la demande, les lots simultanés et les caravanes de
  * l'Entrepôt relèvent de la Phase 5. Seule la vente est avancée ici, parce
- * qu'elle règle un blocage de fond : sans elle, **l'or n'a aucune source**. La
+ * qu'elle règle un blocage de fond : sans elle, **la monnaie n'a aucune source**. La
  * dotation royale en donne une fois pour toutes, chaque bâtiment en consomme,
  * et toute partie finissait donc par se figer, faute de pouvoir en gagner.
  *
@@ -28,9 +28,9 @@ final readonly class Marche
     }
 
     /**
-     * Vend une quantité d'une ressource et crédite l'or correspondant.
+     * Vend une quantité d'une ressource et crédite les deben correspondants.
      *
-     * @return int l'or effectivement encaissé
+     * @return int les deben effectivement encaissés
      *
      * @throws VenteImpossible
      */
@@ -49,7 +49,7 @@ final readonly class Marche
         $prix = PrixDuMarche::pour($ressource);
 
         if (null === $prix) {
-            throw new VenteImpossible(\sprintf('L\'%s ne se négocie pas : c\'est la monnaie.', $ressource->libelle()));
+            throw new VenteImpossible(\sprintf('Le %s ne se négocie pas : c\'est la monnaie.', $ressource->libelle()));
         }
 
         if (!$ville->debiterRessources([$ressource->value => $quantite])) {
@@ -57,7 +57,7 @@ final readonly class Marche
         }
 
         $recette = $prix * $quantite;
-        $ville->crediterRessources([Ressource::Or->value => $recette]);
+        $ville->crediterRessources([Ressource::Deben->value => $recette]);
 
         $this->entityManager->flush();
 
@@ -66,7 +66,7 @@ final readonly class Marche
 
     /**
      * Ce que la ville peut mettre en vente : ses lignes de stock non vides qui
-     * ont un cours. L'or en est naturellement exclu.
+     * ont un cours. Le deben en est naturellement exclu : il est la monnaie.
      *
      * @return list<array{ressource: Ressource, quantite: int, prix: int}>
      */

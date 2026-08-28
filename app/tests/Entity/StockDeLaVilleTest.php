@@ -16,7 +16,7 @@ final class StockDeLaVilleTest extends TestCase
     {
         $ville = $this->ville();
 
-        self::assertSame(0, $ville->quantite(Ressource::Or));
+        self::assertSame(0, $ville->quantite(Ressource::Deben));
         self::assertCount(0, $ville->getStock(), 'Aucune ligne tant que rien n\'a été détenu.');
     }
 
@@ -90,9 +90,9 @@ final class StockDeLaVilleTest extends TestCase
     {
         $ville = $this->ville();
 
-        $ville->crediterRessources([Ressource::Or->value => 50]);
+        $ville->crediterRessources([Ressource::Deben->value => 50]);
 
-        self::assertSame(50, $ville->getOr());
+        self::assertSame(50, $ville->getDeben());
     }
 
     /**
