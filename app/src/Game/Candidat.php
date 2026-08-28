@@ -17,16 +17,14 @@ namespace App\Game;
  * peine de rendre au joueur une précision que le document lui refuse
  * délibérément. Pour l'affichage : `etoiles()` et `esperanceDeService()`.
  *
- * Deux exceptions assumées, toutes deux dans le document : le **salaire**,
- * déjà qualitatif par nature — un prix se lit tel quel —, et la **composition
- * du foyer**, qui décide de ce que le candidat coûtera à nourrir et de quand
- * ses enfants deviendront des bras.
+ * Deux exceptions assumées : le **salaire**, déjà qualitatif par nature — un
+ * prix se lit tel quel —, et la **maisonnée** qu'il amène, qui décide de ce
+ * qu'il coûtera à nourrir et des bras qu'il apporte.
  */
 final readonly class Candidat
 {
     /**
-     * @param list<TraitDeCandidat> $traits         un ou deux, parfois aucun
-     * @param list<int>             $agesDesEnfants en quinzaines
+     * @param list<TraitDeCandidat> $traits un ou deux, parfois aucun
      */
     public function __construct(
         public int $competence,
@@ -34,8 +32,8 @@ final readonly class Candidat
         public int $ancienneteProbable,
         public array $traits,
         public ?SpecialiteDeChef $specialite,
-        public int $adultes,
-        public array $agesDesEnfants,
+        public int $actifsAmenes,
+        public int $inactifsAmenes,
     ) {
     }
 
@@ -67,47 +65,22 @@ final readonly class Candidat
         };
     }
 
-    public function personnesDuFoyer(): int
+    /**
+     * Les habitants que ce candidat installerait — lui, les siens, ceux qui
+     * travaillent comme ceux qui sont à charge.
+     */
+    public function personnesAmenees(): int
     {
-        return $this->adultes + \count($this->agesDesEnfants);
+        return $this->actifsAmenes + $this->inactifsAmenes;
     }
 
     /**
-     * Ce que ce foyer mangera, en demi-rations — deux par adulte, une par
-     * enfant. Le joueur compare ainsi le coût réel de deux candidats à salaire
-     * égal.
+     * Ce que sa maisonnée mangera, en demi-rations : deux par actif, une par
+     * inactif. C'est ce qui permet au joueur de comparer le coût réel de deux
+     * candidats au même salaire.
      */
-    public function demiRationsDuFoyer(): int
+    public function demiRationsAmenees(): int
     {
-        return $this->adultes * 2 + \count($this->agesDesEnfants);
-    }
-
-    /**
-     * Les âges des enfants en années révolues, de l'aîné au plus jeune —
-     * l'ordre qui intéresse le joueur, puisque c'est l'aîné qui deviendra un
-     * bras le premier.
-     *
-     * @return list<int>
-     */
-    public function agesDesEnfantsEnAnnees(): array
-    {
-        $annees = array_map(Population::enAnnees(...), $this->agesDesEnfants);
-        rsort($annees);
-
-        return $annees;
-    }
-
-    /**
-     * Dans combien de quinzaines l'aîné entrera dans la vie active, ou null
-     * s'il n'y a pas d'enfant. C'est le chiffre qui fait d'une famille
-     * nombreuse un investissement plutôt qu'une charge.
-     */
-    public function prochainBras(): ?int
-    {
-        if ([] === $this->agesDesEnfants) {
-            return null;
-        }
-
-        return Population::AGE_ADULTE_EN_QUINZAINES - max($this->agesDesEnfants);
+        return $this->actifsAmenes * 2 + $this->inactifsAmenes;
     }
 }

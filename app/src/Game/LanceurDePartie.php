@@ -32,7 +32,6 @@ final readonly class LanceurDePartie
         private MissionCatalogue $missions,
         private GameSaveRepository $parties,
         private GenerateurDeCarte $carte,
-        private GenerateurDeFoyer $foyers,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
     ) {
@@ -88,10 +87,14 @@ final readonly class LanceurDePartie
         // initialisé.
         $this->carte->peupler($ville, $geographie);
 
-        // La famille fondatrice s'installe avant la dotation : c'est elle qui
-        // en fixe les vivres, le pharaon envoyant une année de rations pour
-        // le foyer qu'il expédie, pas pour un foyer moyen.
-        $ville->ajouterFoyer($this->foyers->pour($ville));
+        // Les volontaires que le pharaon a appelés s'installent avant la
+        // dotation : c'est leur nombre qui en fixe les vivres, une année de
+        // rations pour la population réellement envoyée.
+        $ville->accueillir(
+            Population::ACTIFS_AU_DEPART,
+            Population::ENFANTS_AU_DEPART,
+            Population::ANCIENS_AU_DEPART,
+        );
 
         $dotation = DotationRoyale::pour($ville->getDifficulte(), $ville->consommationDeNourriture());
         $ville->crediterRessources($dotation->enRessources());

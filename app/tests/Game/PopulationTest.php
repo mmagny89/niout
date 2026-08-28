@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Game;
 
-use App\Game\DateDeJeu;
 use App\Game\Population;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -68,24 +67,25 @@ final class PopulationTest extends TestCase
         yield 'deux adultes et six enfants' => [10, 5];
     }
 
-    public function testUnAgeSeLitEnAnneesRevolues(): void
+    public function testDesHabitantsSeLogentParMaisonneesEntamees(): void
     {
-        self::assertSame(0, Population::enAnnees(DateDeJeu::CYCLES_PAR_ANNEE - 1));
-        self::assertSame(1, Population::enAnnees(DateDeJeu::CYCLES_PAR_ANNEE));
-        self::assertSame(11, Population::enAnnees(Population::AGE_ADULTE_EN_QUINZAINES - 1));
+        self::assertSame(0, Population::foyersPour(0));
+        self::assertSame(1, Population::foyersPour(1), 'Un habitant seul occupe déjà un logement.');
+        self::assertSame(1, Population::foyersPour(5));
+        self::assertSame(2, Population::foyersPour(6));
+        self::assertSame(3, Population::foyersPour(11));
     }
 
     /**
-     * L'ordre de grandeur qui rend la Phase 4 jouable : une famille moyenne
-     * pèse cinq personnes et fournit deux bras.
+     * Les volontaires du pharaon : de quoi tenir quelques exploitations sans
+     * que la ville commence déjà repue.
      */
-    public function testUneFamilleVaDeDeuxAHuitPersonnes(): void
+    public function testLesVolontairesDuPharaonSontUneVilleCredible(): void
     {
-        $minimum = Population::ADULTES_PAR_FOYER;
-        $maximum = Population::ADULTES_PAR_FOYER + Population::ENFANTS_MAX_PAR_FOYER;
+        $habitants = Population::ACTIFS_AU_DEPART + Population::ENFANTS_AU_DEPART + Population::ANCIENS_AU_DEPART;
 
-        self::assertSame(2, $minimum);
-        self::assertSame(8, $maximum);
-        self::assertSame(5, intdiv($minimum + $maximum, 2), 'La moyenne visée, d\'après Kahun et Deir el-Médineh.');
+        self::assertSame(10, $habitants);
+        self::assertSame(2, Population::foyersPour($habitants), 'Deux maisonnées, que la Résidence seule ne logerait pas.');
+        self::assertGreaterThanOrEqual(2, Population::ACTIFS_AU_DEPART, 'Il faut de quoi tenir au moins un gisement.');
     }
 }

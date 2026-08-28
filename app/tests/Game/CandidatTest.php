@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Game;
 
 use App\Game\Candidat;
-use App\Game\Population;
 use App\Game\SpecialiteDeChef;
 use App\Game\TraitDeCandidat;
 use App\Game\TypeDeBatiment;
@@ -64,32 +63,27 @@ final class CandidatTest extends TestCase
         self::assertStringContainsString('partir', $this->candidat(anciennete: 10)->esperanceDeService());
     }
 
-    public function testLeFoyerAnnonceCeQuIlCouteraANourrir(): void
+    public function testLaMaisonneeAnnonceCeQuElleCouteraANourrir(): void
     {
-        $candidat = $this->candidat(agesDesEnfants: [25, 50]);
+        $candidat = $this->candidat(inactifs: 2);
 
-        self::assertSame(4, $candidat->personnesDuFoyer());
-        // Deux adultes à deux demi-rations, deux enfants à une : six.
-        self::assertSame(6, $candidat->demiRationsDuFoyer());
+        self::assertSame(4, $candidat->personnesAmenees());
+        // Deux actifs à deux demi-rations, deux inactifs à une : six.
+        self::assertSame(6, $candidat->demiRationsAmenees());
     }
 
     /**
-     * Ce qui fait d'une famille nombreuse un investissement plutôt qu'une
-     * charge : l'aîné devient un bras avant les autres, et le joueur doit
-     * pouvoir le voir avant de choisir.
+     * Deux candidats au même salaire ne coûtent pas la même chose : celui qui
+     * arrive avec six bouches à charge pèse deux fois plus sur le grenier.
      */
-    public function testLAineAnnonceQuandIlDeviendraUnBras(): void
+    public function testDeuxCandidatsAuMemeSalaireNontPasLeMemeCout(): void
     {
-        $ainePresqueAdulte = Population::AGE_ADULTE_EN_QUINZAINES - 10;
-        $candidat = $this->candidat(agesDesEnfants: [5, $ainePresqueAdulte, 100]);
+        $seul = $this->candidat(inactifs: 0);
+        $charge = $this->candidat(inactifs: 6);
 
-        self::assertSame(10, $candidat->prochainBras());
-        self::assertSame([11, 4, 0], $candidat->agesDesEnfantsEnAnnees(), 'De l\'aîné au plus jeune.');
-    }
-
-    public function testUnCandidatSansEnfantNAnnonceAucunBrasAVenir(): void
-    {
-        self::assertNull($this->candidat()->prochainBras());
+        self::assertSame(4, $seul->demiRationsAmenees());
+        self::assertSame(10, $charge->demiRationsAmenees());
+        self::assertSame($seul->salaire, $charge->salaire);
     }
 
     /**
@@ -186,10 +180,7 @@ final class CandidatTest extends TestCase
         ], $agissantes);
     }
 
-    /**
-     * @param list<int> $agesDesEnfants
-     */
-    private function candidat(int $competence = 50, int $anciennete = 20, array $agesDesEnfants = []): Candidat
+    private function candidat(int $competence = 50, int $anciennete = 20, int $inactifs = 0): Candidat
     {
         return new Candidat(
             competence: $competence,
@@ -197,8 +188,8 @@ final class CandidatTest extends TestCase
             ancienneteProbable: $anciennete,
             traits: [],
             specialite: null,
-            adultes: Population::ADULTES_PAR_FOYER,
-            agesDesEnfants: $agesDesEnfants,
+            actifsAmenes: 2,
+            inactifsAmenes: $inactifs,
         );
     }
 }

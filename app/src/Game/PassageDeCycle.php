@@ -20,7 +20,7 @@ final readonly class PassageDeCycle
         private Chantiers $chantiers,
         private Explorations $explorations,
         private Recoltes $recoltes,
-        private Foyers $foyers,
+        private Demographie $demographie,
         private Subsistance $subsistance,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
@@ -40,10 +40,6 @@ final readonly class PassageDeCycle
             ...$this->explorations->avancerDUnCycle($partie),
             ...$this->chantiers->avancerDUnCycle($partie, $saison),
             ...$this->recoltes->avancerDUnCycle($partie),
-            // Les enfants vieillissent avant qu'on ne compte les bouches : un
-            // enfant qui atteint douze ans dans cette quinzaine mange dès
-            // celle-ci une ration entière.
-            ...$this->foyers->avancerDUnCycle($partie),
             // Après la récolte, jamais avant : la ville mange ce que la
             // quinzaine vient d'apporter.
             ...$this->subsistance->avancerDUnCycle($partie),
@@ -51,12 +47,19 @@ final readonly class PassageDeCycle
 
         $partie->avancerDUnCycle();
 
-        // L'année qui s'ouvre apporte sa crue, annoncée avant qu'on ait à
-        // semer : c'est un aléa qu'on subit, pas une surprise de moisson.
+        // Tout ce qui se compte à l'année se résout ici, une fois la bascule
+        // franchie — et pas au premier cycle d'une partie, où la ville vient
+        // tout juste d'arriver.
         if ($partie->dateDeJeu()->ouvreUneAnnee()) {
+            // La crue est annoncée avant qu'on ait à semer : c'est un aléa
+            // qu'on subit, pas une surprise de moisson.
             $crue = $this->crues->tirer();
             $partie->annoncerLaCrue($crue);
             $evenements[] = \sprintf('La crue de cette année est %s. %s', $crue->libelle(), $crue->presage());
+
+            // Puis le bilan des habitants : qui entre dans la vie active, qui
+            // s'en retire, qui s'éteint.
+            $evenements = [...$evenements, ...$this->demographie->bilanDeLAnnee($partie)];
         }
 
         $this->entityManager->flush();

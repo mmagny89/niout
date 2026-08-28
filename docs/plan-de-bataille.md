@@ -550,115 +550,79 @@ distincts, la dotation en deben d'un côté et l'or extrait de l'autre
 (`VilleTest::testLaBarreDeJeuCompteEnDebenEtRangeLOrParmiLesMateriaux()`), et
 un autre que l'or se vend désormais au Marché comme n'importe quel métal.
 
-#### 4.1 — Foyers, âges et bras disponibles  ✅
+#### 4.1 — Habitants, actifs, inactifs  ✅
 
-Le lot 3.7 a posé la population sans consulter les documents ; la conversation
-qui ouvre cette phase l'a révisée deux fois. Le modèle retenu :
+Le lot 3.7 avait posé la population sans consulter les documents ; une première
+version de ce lot a suivi chaque maisonnée et l'âge de chacun de ses enfants.
+La joueuse a tranché pour l'inverse : **aucune granularité fine**. Le modèle
+retenu tient en trois nombres.
 
-- **La ville héberge des familles**, pas des employés isolés. Le doc 02 compte
-  un vivier en familles (`nbFamillesDisponibles`), le doc 01 chiffre la
-  capacité du Quartier en familles
-- **Une famille compte de 2 à 8 personnes**, moyenne 5 — l'ordre de grandeur
-  des listes de maisonnées des papyrus de Kahun et du village de Deir
-  el-Médineh. Sa composition : **deux adultes et de zéro à six enfants**
-- **Chaque personne porte un âge**, et vieillit avec les quinzaines. Un enfant
-  devient adulte à l'âge réel de travailler, autour de douze ans
-- **Tous les adultes travaillent, sans distinction de sexe.** Ce n'est pas une
-  simplification mais la position historiquement juste : les Égyptiennes
-  filaient et tissaient — le textile était massivement féminin, dans les
-  ateliers des temples comme à la maison —, moulaient le grain, brassaient,
-  participaient aux gros travaux agricoles, et exerçaient des métiers attestés
-  (chanteuse d'Amon, musicienne, sage-femme, nourrice, « supérieure des
-  tisserandes »). Elles pouvaient posséder, hériter, contracter et divorcer,
-  autonomie inhabituelle pour l'époque
-- **Un enfant mange une demi-ration**, un adulte une ration pleine (décision
-  de la joueuse) : une famille moyenne pèse donc ~3,5 vivres par quinzaine et
-  fournit ~2 bras
-- **Le Quartier d'habitation est un plafond** exprimé en familles
-  (`20 × niveau`, doc 01), jamais une source d'habitants. Il se combine au
-  vivier régional `nbFamillesDisponibles = 20 - 1,5 × difficulté` (doc 02)
-
-##### Les âges sont réels — et c'est jouable, à une condition
-
-Décision de la joueuse : **pas de compression du temps**, un enfant met une
-douzaine d'années à devenir adulte, soit ~300 quinzaines. J'avais présenté ce
-choix comme condamnant le mécanisme à l'invisibilité en campagne. C'est faux
-**si l'on stocke un âge et non un simple drapeau enfant/adulte** :
-
-- une famille qui arrive avec un enfant de onze ans donne un bras dans
-  ~25 quinzaines — une année de jeu, parfaitement observable en campagne ;
-- une famille de nourrissons est un investissement à très long terme, qui ne
-  paiera qu'en mode Aventure, joué sur plusieurs règnes.
-
-L'âge devient donc un **critère de choix à l'embauche** au même titre que la
-compétence : un chef accompagné de grands enfants vaut mieux qu'un chef à la
-nichée en bas âge. C'est ce qui rend le réalisme jouable ici — mais il faut
-des âges, pas des catégories.
-
-**Hors périmètre** : le vieillissement des adultes, la mortalité et les
-naissances. Douze ans de jeu ne suffisent pas à faire mourir qui que ce soit ;
-la question se reposera au mode Aventure (Phase 11), qui traverse des règnes.
-
-Ce lot **remplace** `Game/Population.php` tel qu'écrit au lot 3.7, dont la
-formule (`5 + 10 × niveau de Quartier`) était fausse sur les trois plans à la
-fois : mauvaise source, mauvaise unité, mauvais sens.
+- **La ville compte des habitants, des actifs et des inactifs** — ces derniers
+  étant les enfants et les anciens réunis. Aucun individu n'est suivi : ce qui
+  importe est de savoir combien de bras la ville a et combien de bouches.
+- **Le bilan se fait une fois l'an**, pas à chaque quinzaine : des enfants
+  entrent dans la vie active, des actifs passent la main, et la mort prend sa
+  part. Une année compte 25 quinzaines, ce qui laisse au joueur le temps de
+  voir venir.
+- **Un actif mange une ration, un inactif une demi-ration.**
+- **Le Quartier d'habitation plafonne, il ne peuple pas** (`20 × niveau`
+  maisonnées, doc 01), et l'écran doit dire au joueur quand il manque des
+  logements pour faire venir du monde.
+- **Le pharaon envoie des volontaires** s'installer avec la famille du joueur :
+  c'est ainsi que la ville s'ouvre. Ensuite, faire venir des habitants devient
+  une action du joueur, adossée à la renommée — et impossible sans logement.
 
 ##### Livré
 
-`Foyer` porte deux adultes comptés et une liste d'**âges d'enfants en
-quinzaines** — l'unité dans laquelle le temps avance, pour n'avoir aucun reste
-à traîner d'un cycle à l'autre. Les adultes, eux, ne sont pas datés : rien
-dans cette phase ne dépend de leur âge, ni vieillissement ni mortalité, et une
-date de naissance n'aurait produit que de la donnée morte.
+Quatre actifs, cinq enfants et un ancien à l'ouverture, soit dix habitants pour
+deux maisonnées — que la seule Résidence familiale ne loge pas : le joueur
+manque de logements dès la première quinzaine, ce qui rend le Quartier
+d'habitation immédiatement lisible comme un besoin.
 
-Deux choix d'implémentation qui découlent de règles du projet :
+Trois choix d'implémentation qui découlent de règles du projet :
 
+- **Chaque personne est tirée séparément** plutôt qu'un pourcentage appliqué à
+  un total. C'est ce qui permet de rester en entiers sans traîner de reliquat
+  d'une année sur l'autre — un taux de 3 % sur douze actifs ne donnerait sinon
+  jamais rien — et la variance qui en résulte est juste : certaines années sont
+  plus dures que d'autres.
+- **C'est `PassageDeCycle` qui décide du moment du bilan**, pas `Demographie`.
+  Lui faire vérifier la date lui-même le faisait tomber dès le premier cycle
+  d'une partie, où la ville vient tout juste d'arriver — `ouvreUneAnnee()` est
+  vrai au cycle 1.
 - **La consommation se compte en demi-rations**, converties une seule fois à
-  l'échelle de la ville et arrondies au supérieur. Arrondir foyer par foyer
-  ferait manger un enfant isolé gratuitement ; arrondir vers le bas ferait
-  nourrir une partie des habitants pour rien. C'est l'application directe de
-  la règle « aucune valeur de jeu ne se compare en flottants ».
-- **La dotation royale s'adosse à la famille envoyée** : `DotationRoyale::pour()`
-  prend désormais la consommation du foyer fondateur et verse une année
-  complète de ses rations. Le pharaon ne dote pas une population moyenne mais
-  celle qu'il expédie — un couple avec six enfants part avec plus de grain.
+  l'échelle de la ville et arrondies au supérieur. Arrondir groupe par groupe
+  ferait manger un inactif isolé gratuitement.
 
-La migration installe une famille fondatrice dans chaque ville existante :
-**deux adultes sans enfant**, composition fixe et non tirée au sort, parce
-qu'une migration doit produire le même résultat à chaque exécution et qu'on
-n'invente pas rétroactivement des enfants à une famille déjà installée.
+**Vérifié sur vingt ans de simulation** plutôt que postulé : la population
+passe de 10 à 7 habitants pendant que les actifs montent de 4 à 6, les enfants
+mûrissant plus vite que les anciens ne s'éteignent. C'est une pression lente,
+pas un effondrement — mais **personne ne naît**, et une ville laissée à
+elle-même finit donc par s'éteindre. C'est le prix assumé du choix de faire de
+l'immigration une action du joueur ; à resurveiller si le mode Aventure allonge
+franchement les parties.
 
-##### À reprendre : la démographie, si elle va plus loin
+La migration donne aux parties en cours la même troupe de volontaires qu'aux
+nouvelles. C'est une **réparation, pas une invention** : ce contingent fait
+partie des conditions de départ, et une ville créée avant la règle ne l'a
+jamais reçu. Recopier à la place les deux adultes de l'ancienne table lui
+aurait laissé une population incapable de croître.
 
-Deux prolongements soulevés par la joueuse après la livraison, à trancher
-avant d'écrire quoi que ce soit — probablement au mode Aventure (Phase 11),
-seul contexte où douze ans de jeu s'écoulent vraiment.
+##### Ce que ce modèle abandonne
 
-**Donner un âge aux adultes.** Le lot ne les date pas, faute d'usage. Mais
-l'argument qui compte n'est pas le coût d'une migration future : c'est que
-l'information est **détruite au moment précis où on la connaît**. Un enfant qui
-franchit la majorité a exactement douze ans, et `vieillirDUneQuinzaine()`
-l'oublie en incrémentant un compteur. Reporter la décision revient donc à
-devoir réinventer des âges plus tard, jamais à les retrouver. Le passage de
-`adultes: int` à une liste d'âges est petit — une quinzaine de lignes — et se
-fait proprement tant que les parties en cours se comptent sur les doigts.
+Le suivi des âges permettait à un candidat d'annoncer « deux enfants bientôt en
+âge de travailler », et faisait de l'âge un critère d'embauche à côté de la
+compétence. Ce signal disparaît : un candidat annonce désormais des actifs et
+des inactifs, sans dire quand ces derniers deviendront des bras. C'est le prix
+de la simplicité demandée, et il se paie sur la richesse du choix à l'embauche.
 
-**Un enfant devenu adulte fonde son propre foyer.** Mécanique juste, et qui
-donne enfin un mordant au plafond du Quartier d'habitation : la ville
-grandirait toute seule et se heurterait à son logement, pas seulement à ses
-embauches. Reste à décider ce qui arrive au jeune adulte quand il n'y a plus
-de place — il reste chez ses parents, ou il quitte la ville.
+##### À reprendre plus tard
 
-**Le piège à ne pas manquer : la mortalité sans natalité est un cliquet.** Si
-les adultes vieillissent et meurent sans que personne ne naisse, toute ville
-finit vide, et d'autant plus vite que la partie est longue — c'est-à-dire
-exactement dans le mode où ces règles auraient un sens. Les trois pièces
-tiennent ensemble ou pas du tout : âges des adultes, naissances, décès.
-
-**La règle simple demandée**, en attendant : `bras = Σ adultes`, sans
-approximation nécessaire. En ordre de grandeur, un foyer donne **2 bras à son
-arrivée** et jusqu'à **5** une fois tous ses enfants devenus adultes — soit,
-sur une mission de campagne, un gain de l'ordre d'un bras par foyer accueilli.
+- **Faire venir des habitants** est une fonctionnalité à part entière — adossée
+  à la renommée, peut-être à des ressources offertes, et bornée par le
+  logement. Elle mérite son lot.
+- **Les naissances**, si la ville doit pouvoir se maintenir seule sur une
+  longue partie. Sans elles, l'immigration est la seule source de population.
 
 #### 4.2 — Le candidat : compétence, traits, spécialité  ✅
 
@@ -670,9 +634,9 @@ de l'état. Les valeurs viennent du doc 03.
 - Salaire demandé — voir le calibrage du lot 4.6, qui s'écarte du doc 03
 - Ancienneté probable de base = **20 quinzaines**, affichée en libellé
   (« devrait rester longtemps » / « risque de partir bientôt »)
-- **Taille du foyer** qui l'accompagne, tirée entre 2 et 8 (lot 4.1) — une
+- **La maisonnée** qu'il amène : deux actifs et de zéro à six inactifs — une
   information que le joueur doit voir avant de choisir, puisqu'elle décide de
-  ce que le candidat coûtera à nourrir
+  ce que le candidat coûtera à nourrir et des bras qu'il apporte
 - **Huit traits** : Travailleur acharné, Économe, Fidèle, Ambitieux, Croyant,
   Bagarreur, Expérimenté, Novice, avec leurs effets chiffrés du doc 03
 - Tirage des traits : **45 % aucun, 40 % un seul, 15 % deux**, chacun des huit
@@ -703,6 +667,11 @@ Trois choses que le document laissait implicites et qu'il a fallu trancher :
   « Novice », et il reste dans l'ordre de grandeur voulu.
 - **Trois bâtiments n'ont aucune spécialité** — Résidence familiale, Quartier
   d'habitation, Auberge —, le doc 03 n'en listant pas pour eux.
+
+**Révisé avec le lot 4.1** : le candidat annonçait d'abord l'âge de chacun de
+ses enfants, ce qui faisait de l'âge un critère d'embauche. Le passage de la
+population aux compteurs agrégés a supprimé ce signal — il annonce désormais
+des actifs et des inactifs, sans dire quand ceux-ci deviendront des bras.
 
 La distribution des traits est vérifiée sur 400 tirages plutôt que postulée :
 46,8 % sans trait, 38,2 % avec un, 15,0 % avec deux, pour des taux visés de
@@ -1089,10 +1058,12 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Poisson | **Renouvelable** — la seule ressource du jeu qui ne s'épuise jamais, sans quoi un Port coûteux deviendrait un piège |
 | Monnaie | Le **deben**, unité de compte pondérale du Nouvel Empire — l'Égypte pharaonique n'a pas de monnaie frappée. L'**or** redevient un métal qu'on extrait et qu'on vend |
 | Population | **Un nombre de personnes**, somme des foyers résidents ; le Quartier d'habitation en est le **plafond**, exprimé en familles (`20 × niveau`), jamais la source |
-| Composition d'une famille | **2 adultes et 0 à 6 enfants** (2 à 8 personnes, moyenne 5, d'après Kahun et Deir el-Médineh). **Tous les adultes travaillent, sans distinction de sexe** : les Égyptiennes filaient, tissaient, brassaient, moissonnaient, et exerçaient des métiers attestés |
-| Âge et croissance | Chaque personne porte un **âge réel** et vieillit ; on devient adulte vers douze ans. Un âge, jamais une catégorie — c'est ce qui rend la croissance observable en campagne pour les grands enfants |
-| Ce qu'on recrute | **Des chefs seulement**, qui s'installent avec leur famille ; les ouvriers se puisent dans le vivier d'adultes déjà résidents |
-| Ration alimentaire | **1 vivre par adulte, une demi-ration par enfant**, par quinzaine |
+| Granularité de la population | **Trois nombres, jamais des individus** : habitants, actifs, inactifs (enfants et anciens). Aucun âge n'est suivi |
+| Bilan démographique | **Une fois l'an**, pas à chaque quinzaine : des enfants entrent dans la vie active, des actifs passent la main, la mort prend sa part. **Personne ne naît** — repeupler est une action du joueur |
+| Qui travaille | **Tous les actifs, sans distinction de sexe** : les Égyptiennes filaient, tissaient, brassaient, moissonnaient, et exerçaient des métiers attestés |
+| Ce qu'on recrute | **Des chefs seulement**, qui s'installent avec leur maisonnée ; les ouvriers se puisent parmi les actifs déjà résidents |
+| Arrivée d'habitants | Les **volontaires du pharaon** à l'ouverture, puis une **action du joueur** adossée à la renommée — et impossible sans logement disponible |
+| Ration alimentaire | **1 vivre par actif, une demi-ration par inactif**, par quinzaine |
 | Salariés du territoire | **1 par champ, 2 par gisement, 1 par pêcherie** : rien ne s'exploite tout seul. Le niveau du Grenier, de l'Entrepôt et du Port augmente équipage **et** rendement de l'exploitation qu'il gouverne |
 | Poste vacant | **Tout tourne au moins à moitié**, bâtiments comme exploitations — aucune impasse possible, et l'emploi devient un investissement plutôt qu'une taxe |
 | Salaires impayés | Le poste **s'arrête**, puis mécontentement et départs — même mécanisme que la famine |

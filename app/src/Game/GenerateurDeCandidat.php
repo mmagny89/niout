@@ -49,8 +49,16 @@ final readonly class GenerateurDeCandidat
     private const int CHANCE_AUCUN_TRAIT = 45;
     private const int CHANCE_UN_TRAIT = 40;
 
+    /**
+     * La maisonnée qu'un candidat amène : deux actifs — lui et son conjoint —
+     * et de zéro à six personnes à charge, enfants ou aïeuls. Deux à huit
+     * habitants pour une moyenne de cinq, l'ordre de grandeur des listes de
+     * maisonnées de Kahun et de Deir el-Médineh.
+     */
+    public const int ACTIFS_AMENES = 2;
+    public const int INACTIFS_AMENES_MAX = 6;
+
     public function __construct(
-        private GenerateurDeFoyer $foyers = new GenerateurDeFoyer(),
         private Randomizer $hasard = new Randomizer(),
     ) {
     }
@@ -63,7 +71,6 @@ final readonly class GenerateurDeCandidat
     {
         $competence = $this->hasard->getInt(self::COMPETENCE_MIN, self::COMPETENCE_MAX);
         $traits = $this->tirerLesTraits();
-        $foyer = $this->foyers->composer();
 
         return new Candidat(
             // La compétence et le salaire se calculent l'un et l'autre sur les
@@ -74,8 +81,8 @@ final readonly class GenerateurDeCandidat
             ancienneteProbable: max(1, $this->moduler(self::ANCIENNETE_DE_BASE, $traits, 'anciennete')),
             traits: $traits,
             specialite: $this->tirerLaSpecialite($batiment),
-            adultes: $foyer['adultes'],
-            agesDesEnfants: $foyer['agesDesEnfants'],
+            actifsAmenes: self::ACTIFS_AMENES,
+            inactifsAmenes: $this->hasard->getInt(0, self::INACTIFS_AMENES_MAX),
         );
     }
 

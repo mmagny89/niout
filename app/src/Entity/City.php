@@ -80,13 +80,19 @@ class City
     private Collection $chantiers;
 
     /**
-     * Les maisonnées installées. La ville n'en compte qu'une à l'arrivée — la
-     * famille fondatrice —, les autres s'y ajoutant au fil des embauches.
-     *
-     * @var Collection<int, Foyer>
+     * La population, en trois nombres et pas un de plus (décision de la
+     * joueuse) : ceux qui travaillent, ceux qui grandissent, ceux qui ont
+     * fini. Aucun individu n'est suivi — ce qui compte est de savoir combien
+     * de bras la ville a, et combien de bouches.
      */
-    #[ORM\OneToMany(targetEntity: Foyer::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $foyers;
+    #[ORM\Column]
+    private int $actifs = 0;
+
+    #[ORM\Column]
+    private int $enfants = 0;
+
+    #[ORM\Column]
+    private int $anciens = 0;
 
     public function __construct(string $nom, int $difficulte, int $tailleGrille)
     {
@@ -98,7 +104,6 @@ class City
         $this->stock = new ArrayCollection();
         $this->batiments = new ArrayCollection();
         $this->chantiers = new ArrayCollection();
-        $this->foyers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -175,93 +180,106 @@ class City
         return $this->quantite(Ressource::Deben);
     }
 
-    /**
-     * @return Collection<int, Foyer>
-     */
-    public function getFoyers(): Collection
+    public function getActifs(): int
     {
-        return $this->foyers;
+        return $this->actifs;
     }
 
-    public function ajouterFoyer(Foyer $foyer): static
+    public function getEnfants(): int
     {
-        if (!$this->foyers->contains($foyer)) {
-            $this->foyers->add($foyer);
-        }
+        return $this->enfants;
+    }
+
+    public function getAnciens(): int
+    {
+        return $this->anciens;
+    }
+
+    /**
+     * Ceux qui ne travaillent pas : les enfants d'un côté, les anciens de
+     * l'autre. Le joueur ne voit que ce total.
+     */
+    public function getInactifs(): int
+    {
+        return $this->enfants + $this->anciens;
+    }
+
+    public function population(): int
+    {
+        return $this->actifs + $this->enfants + $this->anciens;
+    }
+
+    /**
+     * Installe des habitants — les volontaires du pharaon au départ, puis ceux
+     * que le joueur fera venir.
+     */
+    public function accueillir(int $actifs, int $enfants, int $anciens): static
+    {
+        $this->actifs += $actifs;
+        $this->enfants += $enfants;
+        $this->anciens += $anciens;
 
         return $this;
     }
 
     /**
-     * Le nombre d'habitants : la somme des personnes de tous les foyers, jamais
-     * une formule dérivée d'un bâtiment.
+     * Applique le bilan d'une année : des enfants entrent dans la vie active,
+     * des actifs passent la main, et la mort prend sa part (`Demographie`).
      */
-    public function population(): int
-    {
-        $personnes = 0;
+    public function appliquerLeBilanDeLAnnee(
+        int $enfantsDevenusActifs,
+        int $actifsDevenusAnciens,
+        int $decesEnfants,
+        int $decesActifs,
+        int $decesAnciens,
+    ): static {
+        $this->enfants = max(0, $this->enfants - $enfantsDevenusActifs - $decesEnfants);
+        $this->actifs = max(0, $this->actifs + $enfantsDevenusActifs - $actifsDevenusAnciens - $decesActifs);
+        $this->anciens = max(0, $this->anciens + $actifsDevenusAnciens - $decesAnciens);
 
-        foreach ($this->foyers as $foyer) {
-            $personnes += $foyer->personnes();
-        }
-
-        return $personnes;
+        return $this;
     }
 
     /**
-     * Les bras que la ville peut mettre au travail — tous ses adultes. Rien
-     * n'en consomme encore : les postes arrivent avec les chefs et les
-     * exploitations (lots 4.4 et 4.5).
-     */
-    public function brasDisponibles(): int
-    {
-        $bras = 0;
-
-        foreach ($this->foyers as $foyer) {
-            $bras += $foyer->getAdultes();
-        }
-
-        return $bras;
-    }
-
-    /**
-     * Ce que la ville mange par quinzaine : une ration par adulte, une
-     * demi-ration par enfant. Le total se calcule en demi-rations et ne se
+     * Ce que la ville mange par quinzaine : une ration par actif, une
+     * demi-ration par inactif. Le total se calcule en demi-rations et ne se
      * convertit qu'ici, une seule fois — voir `Population`.
      */
     public function consommationDeNourriture(): int
     {
-        $demiRations = 0;
-
-        foreach ($this->foyers as $foyer) {
-            $demiRations += $foyer->demiRations();
-        }
-
-        return Population::vivresPourDemiRations($demiRations);
+        return Population::vivresPourDemiRations($this->actifs * 2 + $this->getInactifs());
     }
 
     /**
-     * Combien de familles la ville peut héberger : celles du Quartier
-     * d'habitation (`20 × niveau`, doc 01), plus la famille fondatrice que la
-     * Résidence familiale loge d'emblée.
+     * Combien de maisonnées la ville peut loger : celles du Quartier
+     * d'habitation (`20 × niveau`, doc 01), plus celle du joueur, que la
+     * Résidence familiale abrite d'emblée.
      */
-    public function capaciteEnFamilles(): int
+    public function capaciteEnFoyers(): int
     {
         $quartier = $this->batimentDeType(TypeDeBatiment::QuartierDHabitation);
 
         return 1 + Population::FAMILLES_PAR_NIVEAU_DE_QUARTIER * (null === $quartier ? 0 : $quartier->getNiveau());
     }
 
-    /**
-     * Reste-t-il de la place pour une famille de plus ? Le vivier régional
-     * (`Population::famillesDisponibles()`) borne l'autre extrémité : on ne
-     * peut loger que des familles qui existent.
-     */
-    public function peutAccueillirUnFoyer(): bool
+    public function foyersOccupes(): int
     {
-        return $this->foyers->count() < min(
-            $this->capaciteEnFamilles(),
-            Population::famillesDisponibles($this->difficulte),
-        );
+        return Population::foyersPour($this->population());
+    }
+
+    /**
+     * Combien de maisonnées la ville pourrait encore loger. Zéro veut dire
+     * qu'il faut bâtir avant d'espérer un habitant de plus — c'est le
+     * diagnostic que l'écran doit rendre lisible.
+     */
+    public function foyersLibres(): int
+    {
+        return max(0, $this->capaciteEnFoyers() - $this->foyersOccupes());
+    }
+
+    public function manqueDeLogements(): bool
+    {
+        return 0 === $this->foyersLibres();
     }
 
     /**
