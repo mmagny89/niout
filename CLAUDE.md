@@ -148,7 +148,12 @@ garantit aussi un minimum de champs et de cases poissonneuses par région
 (`GenerateurDeCarte::CHAMPS_MINIMUM`, `POISSON_MINIMUM`) — sur la plus petite
 carte du jeu (Delta, 3×3), matériaux, champs et poisson se disputent les mêmes
 cases, d'où un minimum volontairement bas (1) plutôt que théoriquement
-généreux mais irréalisable.
+généreux mais irréalisable. Les garanties de matériaux privilégient l'anneau
+des 8 cases autour de la ville, **un seul exemplaire de chaque matériau non
+alimentaire** dans cet anneau (décision de la joueuse — éviter d'avoir
+directement tout à portée) ; une case fertile ou une berge du Nil qui n'a pas
+tiré de champ reste marquée `ContenuDeZone::TerreNonCultivable`, distincte du
+« rien » générique.
 
 **Piège payé** : `Zone::poserUnGisement()` ne doit **jamais** écraser un
 contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
@@ -160,7 +165,19 @@ champ qu'une garantie précédente venait de poser sur la même case.
 part. Toute règle qui rendrait le Marché inatteignable fige la partie : c'est ce
 que vérifie `DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`.
 
-Trois pièges déjà payés, à ne pas refaire :
+**Un champ ne nourrit qu'à sa récolte** (`EtapeDeChamp::Recolte`), jamais
+pendant le semis, la pousse ou le repos. Un champ du Nil suit la saison
+(`RendementDesChamps` — Akhèt et Perèt rendent 0, seul Chémou moissonne) ; un
+champ terrestre (Fertile, Oasis) suit son propre compteur, indépendant de la
+saison (`CycleAgricoleTerrestre`, `Zone::quinzainesDepuisSemis`).
+
+**Toute route qui modifie l'état d'une partie doit utiliser
+`PartieVoter::JOUER`**, pas `VOIR` : `JOUER` refuse en plus une partie
+`StatutDePartie::Echouee` (famine prolongée, `Subsistance`). `VOIR` ne
+vérifie que la propriété — une action mutante gardée par `VOIR` seul resterait
+jouable sur une partie déjà terminée.
+
+Cinq pièges déjà payés, à ne pas refaire :
 
 - **`or` est un mot réservé du SQL.** Doctrine échappe les noms à la création de
   table, jamais dans les `SELECT` qu'il génère ensuite : la colonne s'appelle
@@ -171,6 +188,19 @@ Trois pièges déjà payés, à ne pas refaire :
 - **Aucune valeur de jeu ne se compare en flottants.** L'avancement des chantiers
   se compte en dixièmes de cycle, parce que le facteur ×1,5 de la crue finirait
   par laisser un chantier bloqué à un cheveu de son terme.
+- **L'ordre des garanties de génération compte**
+  (`GenerateurDeCarte::garantirLesMinimums()`) : garantir les champs **avant**
+  les matériaux vitaux, jamais après — une case cultivable garde sa vocation
+  même si un gisement s'y ajoute ensuite (les deux coexistent), l'inverse est
+  impossible (`Zone::poserUnContenu()` efface les gisements). Dans l'autre
+  ordre, les garanties de matériaux pouvaient consommer les rares terres
+  cultivables d'une petite carte avant que celle des champs ne s'exécute.
+- **Un poids de tirage réduit doit être redistribué, jamais simplement retiré**
+  (`GenerateurDeCarte::tirerParmi()`) : le total du tirage rétrécirait sinon,
+  gonflant mécaniquement la part des autres options. En pondérant le poids
+  « champ » par la distance à la ville, le poids perdu rejoint « vide », pas
+  le néant — sinon « ressource » augmente artificiellement et peut saturer de
+  gisements les rares cases cultivables d'une petite carte.
 
 Les écrans de partie héritent de `templates/partie/_layout.html.twig`, qui porte
 la barre de jeu — compteurs, date pharaonique, passage de cycle. Un nouvel écran
