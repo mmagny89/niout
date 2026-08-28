@@ -34,16 +34,14 @@
                 De quoi engager les premiers travaux. Elle vous est accordée quel que soit
                 votre passé.
             </p>
-            <dl class="mt-4 grid grid-cols-3 gap-4 text-center" data-chiffres>
-                {% set stock = [
-                    { libelle: 'Or', valeur: partie.ville.or },
-                    { libelle: 'Bois', valeur: partie.ville.bois },
-                    { libelle: 'Pierre', valeur: partie.ville.pierre },
-                ] %}
-                {% for ressource in stock %}
+            {# Chaque ressource reçue apparaît sous son propre nom : la
+               dotation donne des roseaux et de l'argile nommément, jamais un
+               « bois » ou une « pierre » génériques. #}
+            <dl class="mt-4 grid grid-cols-2 gap-4 text-center sm:grid-cols-4" data-chiffres>
+                {% for ligne in partie.ville.stockAffichable %}
                     <div>
-                        <dt class="text-xs uppercase tracking-wide text-encre-500">{{ ressource.libelle }}</dt>
-                        <dd class="font-display text-2xl text-terre-600">{{ ressource.valeur }}</dd>
+                        <dt class="text-xs uppercase tracking-wide text-encre-500">{{ ligne.ressource.libelle|capitalize }}</dt>
+                        <dd class="font-display text-2xl text-terre-600">{{ ligne.quantite }}</dd>
                     </div>
                 {% endfor %}
             </dl>

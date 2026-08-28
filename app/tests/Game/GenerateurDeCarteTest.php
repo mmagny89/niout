@@ -393,6 +393,122 @@ final class GenerateurDeCarteTest extends TestCase
         ));
     }
 
+    /**
+     * Toute carte porte un minimum de champs et de poisson, en fonction de la
+     * région : sans terre à semer ni eau à pêcher, le Grenier et le Port
+     * resteraient des bâtiments sans objet.
+     */
+    public function testUneRegionAvecEauEtTerreGarantitChampsEtPoisson(): void
+    {
+        $delta = new GeographieDeRegion(
+            nil: true,
+            mediterranee: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::Calcaire],
+        );
+
+        for ($graine = 1; $graine <= 20; ++$graine) {
+            $ville = new City('Avaris', 0, 4);
+            $this->generer($ville, $delta, $graine);
+
+            $champs = 0;
+            $poissonneuses = 0;
+
+            foreach ($ville->getZones() as $zone) {
+                if (ContenuDeZone::ChampEligible === $zone->getContenu()) {
+                    ++$champs;
+                }
+
+                if (null !== $zone->gisementDe(Ressource::Poisson)) {
+                    ++$poissonneuses;
+                }
+            }
+
+            self::assertGreaterThanOrEqual(1, $champs, \sprintf('Aucun champ, graine %d.', $graine));
+            self::assertGreaterThanOrEqual(1, $poissonneuses, \sprintf('Aucun poisson, graine %d.', $graine));
+        }
+    }
+
+    /**
+     * Une région sans eau ne peut évidemment porter aucun poisson : la garantie
+     * ne doit rien inventer qui n'ait pas de sens géographique.
+     */
+    public function testUneRegionSansEauNePorteJamaisDePoisson(): void
+    {
+        $sansEau = new GeographieDeRegion(desert: true, oasis: true, ressourcesDeZone: [Ressource::Argile]);
+
+        for ($graine = 1; $graine <= 10; ++$graine) {
+            $ville = new City('Test', 5, 4);
+            $this->generer($ville, $sansEau, $graine);
+
+            foreach ($ville->getZones() as $zone) {
+                self::assertNull($zone->gisementDe(Ressource::Poisson), \sprintf('Graine %d.', $graine));
+            }
+        }
+    }
+
+    /**
+     * Chaque ressource de la région apparaît au moins une fois sur la carte —
+     * pas seulement les deux matériaux vitaux.
+     */
+    public function testChaqueRessourceDeLaRegionApparaitAuMoinsUneFois(): void
+    {
+        $region = new GeographieDeRegion(
+            nil: true,
+            desert: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::Gres, Ressource::Calcaire, Ressource::Granite],
+        );
+
+        for ($graine = 1; $graine <= 15; ++$graine) {
+            $ville = new City('Thèbes', 4, 5);
+            $this->generer($ville, $region, $graine);
+
+            foreach ($region->ressourcesDeZone as $materiau) {
+                $trouve = false;
+
+                foreach ($ville->getZones() as $zone) {
+                    if (null !== $zone->gisementDe($materiau)) {
+                        $trouve = true;
+                        break;
+                    }
+                }
+
+                self::assertTrue($trouve, \sprintf('%s absent, graine %d.', $materiau->libelle(), $graine));
+            }
+        }
+    }
+
+    /**
+     * Régression : sur le Delta (3×3, la plus petite carte du jeu, mission 1),
+     * matériaux, poisson et champs se disputaient les mêmes cases riveraines.
+     * Une carte est déjà sortie sans un seul champ. Ce test rejoue exactement
+     * la géographie de la mission 1, sur un grand nombre de graines.
+     */
+    public function testLaMission1NeSortJamaisSansChampNiPoisson(): void
+    {
+        $delta = (new MissionCatalogue())->get(1)->geographie;
+
+        for ($graine = 1; $graine <= 50; ++$graine) {
+            $ville = new City('Avaris', 0, 3);
+            $this->generer($ville, $delta, $graine);
+
+            $champs = 0;
+            $poisson = 0;
+
+            foreach ($ville->getZones() as $zone) {
+                if (ContenuDeZone::ChampEligible === $zone->getContenu()) {
+                    ++$champs;
+                }
+
+                if (null !== $zone->gisementDe(Ressource::Poisson)) {
+                    ++$poisson;
+                }
+            }
+
+            self::assertGreaterThanOrEqual(1, $champs, \sprintf('Aucun champ sur le Delta, graine %d.', $graine));
+            self::assertGreaterThanOrEqual(1, $poisson, \sprintf('Aucun poisson sur le Delta, graine %d.', $graine));
+        }
+    }
+
     private function generer(City $ville, GeographieDeRegion $geographie, ?int $graine = null): void
     {
         $hasard = null === $graine ? new Randomizer() : new Randomizer(new Mt19937($graine));

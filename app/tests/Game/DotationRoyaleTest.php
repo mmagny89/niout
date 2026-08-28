@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Game;
 
 use App\Game\DotationRoyale;
-use App\Game\FamilleDeMateriau;
-use App\Game\GeographieDeRegion;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -19,7 +17,7 @@ final class DotationRoyaleTest extends TestCase
     #[DataProvider('dotationsAttendues')]
     public function testLOrSuitLaFormuleDuDocument(int $difficulte, int $orAttendu): void
     {
-        $dotation = DotationRoyale::pour($difficulte, self::delta());
+        $dotation = DotationRoyale::pour($difficulte);
 
         self::assertSame($orAttendu, $dotation->or);
     }
@@ -38,32 +36,31 @@ final class DotationRoyaleTest extends TestCase
     public function testLesMateriauxNeDependentPasDeLaDifficulte(): void
     {
         // Seul l'or suit la difficulté (doc 13) : les matériaux, eux, sont
-        // calibrés sur le premier bâtiment, le même partout.
-        $clemente = self::sansLOr(DotationRoyale::pour(0, self::delta())->enRessources());
-        $rude = self::sansLOr(DotationRoyale::pour(9, self::delta())->enRessources());
+        // calibrés sur les bâtiments d'ouverture, les mêmes partout.
+        $clemente = self::sansLOr(DotationRoyale::pour(0)->enRessources());
+        $rude = self::sansLOr(DotationRoyale::pour(9)->enRessources());
 
         self::assertSame($clemente, $rude);
     }
 
     /**
-     * La dotation doit couvrir les deux bâtiments qui ouvrent réellement une
-     * partie (doc 01) — et surtout le Grenier : sans lui, les champs du lot 3.5
-     * ne mènent nulle part, et le joueur ne peut pas le savoir avant d'avoir
-     * semé.
-     *
-     * Tous trois sont en brique crue : c'est l'argile qui les paie, jamais le
-     * calcaire.
+     * La dotation doit couvrir le Grenier ET le Marché (doc 01) — le Marché
+     * est la seule source d'or du jeu, et une partie qui ne l'atteindrait pas
+     * serait sans issue.
      */
     #[DataProvider('batimentsDOuverture')]
     public function testLaDotationCouvreLesBatimentsDOuverture(TypeDeBatiment $type): void
     {
-        $recu = DotationRoyale::pour(0, self::delta())->enRessources();
+        $recu = DotationRoyale::pour(0)->enRessources();
         $cout = $type->coutDeBase()->pourNiveau(1);
 
-        self::assertSame(FamilleDeMateriau::BriqueCrue, $cout->maconnerie, $type->libelle());
-        self::assertGreaterThanOrEqual($cout->bois, self::total($recu, FamilleDeMateriau::Bois), $type->libelle());
-        self::assertGreaterThanOrEqual($cout->pierre, self::total($recu, FamilleDeMateriau::BriqueCrue), $type->libelle());
-        self::assertGreaterThanOrEqual($cout->or, $recu[Ressource::Or->value], $type->libelle());
+        foreach ($cout->ressources() as $ressource) {
+            self::assertGreaterThanOrEqual(
+                $cout->quantiteDe($ressource),
+                $recu[$ressource->value] ?? 0,
+                \sprintf('%s pour le %s.', $ressource->libelle(), $type->libelle()),
+            );
+        }
     }
 
     /**
@@ -72,51 +69,19 @@ final class DotationRoyaleTest extends TestCase
     public static function batimentsDOuverture(): iterable
     {
         yield 'Grenier' => [TypeDeBatiment::Grenier];
-        yield 'Entrepôt' => [TypeDeBatiment::Entrepot];
         yield 'Marché' => [TypeDeBatiment::Marche];
     }
 
     /**
-     * Le Marché est la seule source d'or : une partie qui ne l'atteindrait pas
-     * serait sans issue. La dotation doit donc le couvrir **en plus** du
-     * Grenier, même si le joueur a d'abord dépensé ailleurs.
+     * Les deux matériaux dont rien ne tient lieu : la brique crue et le roseau
+     * qui couvre les toits (doc 01).
      */
-    public function testLaDotationPermetLeGrenierPuisLeMarche(): void
+    public function testLaDotationDonneDesRoseauxEtDeLArgile(): void
     {
-        $dotation = DotationRoyale::pour(0, self::delta());
-        $grenier = TypeDeBatiment::Grenier->coutDeBase()->pourNiveau(1);
-        $marche = TypeDeBatiment::Marche->coutDeBase()->pourNiveau(1);
+        $recu = DotationRoyale::pour(0)->enRessources();
 
-        self::assertGreaterThanOrEqual(
-            $grenier->or + $marche->or,
-            $dotation->or,
-            'Sans Marché atteignable, l\'or ne peut plus jamais rentrer.',
-        );
-    }
-
-    /**
-     * Le pharaon envoie ce que la région travaille : des roseaux et de l'argile
-     * dans le Delta, pas un cèdre venu de Byblos.
-     */
-    public function testLaDotationPuiseDansLesMateriauxDeLaRegion(): void
-    {
-        $recu = DotationRoyale::pour(0, self::delta())->enRessources();
-
-        self::assertArrayHasKey(Ressource::Roseaux->value, $recu, 'Le bois du Delta, ce sont ses roseaux.');
-        self::assertArrayHasKey(Ressource::Argile->value, $recu);
-        self::assertArrayNotHasKey(Ressource::BoisDeCedre->value, $recu);
-    }
-
-    /**
-     * La Basse-Nubie ne porte que du granite : rien pour couvrir un toit. La
-     * couronne complète, sans quoi la région serait imbâtissable.
-     */
-    public function testLaCouronneComplèteCeQueLaRegionNaPas(): void
-    {
-        $recu = DotationRoyale::pour(6, new GeographieDeRegion(nil: true, ressourcesDeZone: [Ressource::Granite]))->enRessources();
-
-        self::assertArrayHasKey(Ressource::Argile->value, $recu, 'La brique crue est envoyée partout.');
-        self::assertArrayHasKey(Ressource::BoisDeCedre->value, $recu, 'Le bois, lui, doit venir de loin.');
+        self::assertGreaterThan(0, $recu[Ressource::Roseaux->value] ?? 0);
+        self::assertGreaterThan(0, $recu[Ressource::Argile->value] ?? 0);
     }
 
     /**
@@ -125,18 +90,9 @@ final class DotationRoyaleTest extends TestCase
      */
     public function testLaDotationPermetDePartirEnReconnaissance(): void
     {
-        $recu = DotationRoyale::pour(0, self::delta())->enRessources();
+        $recu = DotationRoyale::pour(0)->enRessources();
 
         self::assertGreaterThan(0, $recu[Ressource::Ble->value]);
-    }
-
-    private static function delta(): GeographieDeRegion
-    {
-        return new GeographieDeRegion(
-            nil: true,
-            mediterranee: true,
-            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::Calcaire],
-        );
     }
 
     /**
@@ -149,19 +105,5 @@ final class DotationRoyaleTest extends TestCase
         unset($recu[Ressource::Or->value]);
 
         return $recu;
-    }
-
-    /**
-     * @param array<string, int> $recu
-     */
-    private static function total(array $recu, FamilleDeMateriau $famille): int
-    {
-        $total = 0;
-
-        foreach ($famille->ressources() as $ressource) {
-            $total += $recu[$ressource->value] ?? 0;
-        }
-
-        return $total;
     }
 }

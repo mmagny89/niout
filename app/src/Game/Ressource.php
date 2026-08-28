@@ -12,9 +12,10 @@ namespace App\Game;
  * distinction ne change rien au stock lui-même : n'importe laquelle peut être
  * achetée ou vendue (principe de commerce universel).
  *
- * Il n'existe volontairement pas de ressource « bois » ni « pierre » : les
- * matériaux génériques du doc 01 sont des **familles**, pas des lignes de
- * stock. Voir FamilleDeMateriau, qui porte la démonstration.
+ * Il n'existe volontairement pas de ressource « bois » ni « pierre ». Les
+ * matériaux génériques du doc 01 n'ont aucune existence en jeu : chaque coût
+ * nomme le matériau qu'il réclame — des roseaux, de l'argile, du calcaire —, et
+ * rien ne se substitue à rien. Voir CoutDeConstruction.
  */
 enum Ressource: string
 {
@@ -111,17 +112,14 @@ enum Ressource: string
     }
 
     /**
-     * La famille de matériaux à laquelle cette ressource appartient, si elle
-     * bâtit. L'or n'en a pas : il se paie tel quel.
+     * Ressources dont une ville ne peut pas se passer : elles paient tous les
+     * bâtiments d'ouverture (doc 01). La génération de carte en garantit un
+     * gisement dans chaque région qui en porte.
+     *
+     * @return list<self>
      */
-    public function familleDeMateriau(): ?FamilleDeMateriau
+    public static function materiauxVitaux(): array
     {
-        foreach (FamilleDeMateriau::cases() as $famille) {
-            if ($famille->contient($this)) {
-                return $famille;
-            }
-        }
-
-        return null;
+        return [self::Roseaux, self::Argile];
     }
 }

@@ -7,9 +7,15 @@ namespace App\Game;
 /**
  * Le coût d'un niveau de bâtiment (doc 01).
  *
- * Le lin apparaît dans le seul coût du Temple, sous forme d'offrande. C'est une
- * ressource agricole, qui n'existera qu'avec les champs en Phase 3 : d'ici là,
- * un bâtiment qui en réclame reste inconstructible.
+ * **Chaque ligne nomme sa ressource**, sans famille ni substitution : un
+ * grenier se paie en roseaux et en argile, pas en « bois » et en « pierre ».
+ * Le doc 01 chiffre ses bâtiments dans ces deux matériaux génériques, mais le
+ * doc 08 ne connaît que des matériaux nommés — et un compteur qui agrège les
+ * roseaux et le cèdre sous « bois » cache au joueur ce qu'il possède réellement.
+ *
+ * Conséquence assumée : une région qui ne porte pas un matériau ne peut pas
+ * bâtir ce qui en réclame sans passer par le commerce. C'est ce qui donne son
+ * poids à la géographie.
  */
 final readonly class CoutDeConstruction
 {
@@ -18,18 +24,32 @@ final readonly class CoutDeConstruction
      */
     private const float FACTEUR_DE_PROGRESSION = 0.4;
 
-    public function __construct(
-        public int $bois = 0,
-        public int $pierre = 0,
-        public int $or = 0,
-        public int $lin = 0,
-        /**
-         * La maçonnerie dans laquelle s'exprime la ligne « pierre » : brique
-         * crue pour presque toute la ville, pierre de taille pour le Temple et
-         * le Port (doc 01, colonne « matériau dominant »).
-         */
-        public FamilleDeMateriau $maconnerie = FamilleDeMateriau::BriqueCrue,
-    ) {
+    /**
+     * @var array<string, int> valeur de Ressource => quantité, lignes nulles exclues
+     */
+    private array $lignes;
+
+    /**
+     * @param array<string, int> $lignes valeur de Ressource => quantité
+     */
+    public function __construct(array $lignes = [])
+    {
+        $this->lignes = array_filter($lignes, static fn (int $quantite): bool => $quantite > 0);
+    }
+
+    /**
+     * Construit un coût à partir de ressources nommées — plus lisible, sur les
+     * lignes du catalogue, que d'assembler un tableau à la main.
+     */
+    public static function de(int $or = 0, int $roseaux = 0, int $argile = 0, int $calcaire = 0, int $lin = 0): self
+    {
+        return new self([
+            Ressource::Roseaux->value => $roseaux,
+            Ressource::Argile->value => $argile,
+            Ressource::Calcaire->value => $calcaire,
+            Ressource::Lin->value => $lin,
+            Ressource::Or->value => $or,
+        ]);
     }
 
     /**
@@ -38,39 +58,61 @@ final readonly class CoutDeConstruction
     public function pourNiveau(int $niveau): self
     {
         $multiplicateur = 1 + ($niveau - 1) * self::FACTEUR_DE_PROGRESSION;
+        $lignes = [];
 
-        return new self(
-            bois: (int) ceil($this->bois * $multiplicateur),
-            pierre: (int) ceil($this->pierre * $multiplicateur),
-            or: (int) ceil($this->or * $multiplicateur),
-            lin: (int) ceil($this->lin * $multiplicateur),
-            maconnerie: $this->maconnerie,
-        );
+        foreach ($this->lignes as $valeur => $quantite) {
+            $lignes[$valeur] = (int) ceil($quantite * $multiplicateur);
+        }
+
+        return new self($lignes);
     }
 
     public function estGratuit(): bool
     {
-        return 0 === $this->bois && 0 === $this->pierre && 0 === $this->or && 0 === $this->lin;
+        return [] === $this->lignes;
+    }
+
+    public function quantiteDe(Ressource $ressource): int
+    {
+        return $this->lignes[$ressource->value] ?? 0;
     }
 
     /**
-     * Détail affichable, libellés en toutes lettres. Les lignes nulles sont
-     * exclues : inutile de montrer ce qu'on ne réclame pas.
+     * Le coût prêt à être débité d'un stock.
      *
-     * Le bois et la maçonnerie s'y affichent sous leur nom de famille, car
-     * c'est bien ce qui est exigé : n'importe quelle pierre de taille fait
-     * l'affaire pour un temple (voir FamilleDeMateriau). C'est le stock, lui,
-     * qui nomme le calcaire.
+     * @return array<string, int> valeur de Ressource => quantité
+     */
+    public function enRessources(): array
+    {
+        return $this->lignes;
+    }
+
+    /**
+     * Les ressources que ce coût réclame.
+     *
+     * @return list<Ressource>
+     */
+    public function ressources(): array
+    {
+        return array_map(
+            static fn (string $valeur): Ressource => Ressource::from($valeur),
+            array_keys($this->lignes),
+        );
+    }
+
+    /**
+     * Détail affichable, libellés en toutes lettres.
      *
      * @return array<string, int> libellé => quantité
      */
     public function detail(): array
     {
-        return array_filter([
-            FamilleDeMateriau::Bois->libelle() => $this->bois,
-            $this->maconnerie->libelle() => $this->pierre,
-            Ressource::Or->libelle() => $this->or,
-            Ressource::Lin->libelle() => $this->lin,
-        ]);
+        $detail = [];
+
+        foreach ($this->lignes as $valeur => $quantite) {
+            $detail[Ressource::from($valeur)->libelle()] = $quantite;
+        }
+
+        return $detail;
     }
 }

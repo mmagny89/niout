@@ -25,16 +25,15 @@ final class ChantiersTest extends KernelTestCase
         $ville = $partie->getVille();
         $orAvant = $ville->getOr();
 
-        $boisAvant = $ville->getBois();
-        $argileAvant = $ville->getArgile();
+        $roseauxAvant = $ville->quantite(Ressource::Roseaux);
+        $argileAvant = $ville->quantite(Ressource::Argile);
 
         $this->chantiers()->lancer($partie, TypeDeBatiment::Entrepot);
 
-        // Entrepôt niveau 1 : 20 bois, 10 argile, 15 or (doc 01). L'Entrepôt
-        // est en brique crue : c'est l'argile qu'il consomme, jamais le calcaire.
+        // Entrepôt niveau 1 : 20 roseaux, 10 argile, 15 or (doc 01).
         self::assertSame($orAvant - 15, $ville->getOr());
-        self::assertSame($boisAvant - 20, $ville->getBois());
-        self::assertSame($argileAvant - 10, $ville->getArgile());
+        self::assertSame($roseauxAvant - 20, $ville->quantite(Ressource::Roseaux));
+        self::assertSame($argileAvant - 10, $ville->quantite(Ressource::Argile));
         self::assertCount(1, $ville->getChantiers());
     }
 
@@ -111,7 +110,7 @@ final class ChantiersTest extends KernelTestCase
         $ville = $partie->getVille();
 
         // On vide les réserves d'argile : la Caserne en réclame 30.
-        $ville->debiterRessources([Ressource::Argile->value => $ville->getArgile()]);
+        $ville->debiterRessources([Ressource::Argile->value => $ville->quantite(Ressource::Argile)]);
         $orAvant = $ville->getOr();
 
         try {

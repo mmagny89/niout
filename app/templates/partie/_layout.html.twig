@@ -13,20 +13,29 @@
                     {{ partie.ville.nom }}
                 </a>
 
+                {# Chaque matériau garde son nom propre : un compteur générique
+                   « bois » qui agrégerait roseaux et cèdre cacherait au joueur
+                   ce qu'il possède réellement. Or et vivres restent des
+                   compteurs à part — le second est une somme délibérée (blé,
+                   orge, dattes, poisson), c'est ce qui paie une expédition
+                   quel que soit le vivre en réserve. #}
                 <dl class="flex flex-wrap gap-x-5 gap-y-1 text-sm" data-chiffres>
-                    {% set compteurs = [
-                        { libelle: 'Or', valeur: partie.ville.or },
-                        { libelle: 'Bois', valeur: partie.ville.bois },
-                        { libelle: 'Argile', valeur: partie.ville.argile },
-                        { libelle: 'Pierre', valeur: partie.ville.pierre },
-                        { libelle: 'Vivres', valeur: partie.ville.nourriture },
-                    ] %}
-                    {% for compteur in compteurs %}
-                        <div class="flex items-baseline gap-1.5">
-                            <dt class="text-encre-500">{{ compteur.libelle }}</dt>
-                            <dd class="text-encre-900">{{ compteur.valeur }}</dd>
-                        </div>
+                    <div class="flex items-baseline gap-1.5">
+                        <dt class="text-encre-500">Or</dt>
+                        <dd class="text-encre-900">{{ partie.ville.or }}</dd>
+                    </div>
+                    {% for ligne in partie.ville.stockAffichable %}
+                        {% if ligne.ressource.value != 'or' and not ligne.ressource.estNourriture %}
+                            <div class="flex items-baseline gap-1.5">
+                                <dt class="text-encre-500">{{ ligne.ressource.libelle|capitalize }}</dt>
+                                <dd class="text-encre-900">{{ ligne.quantite }}</dd>
+                            </div>
+                        {% endif %}
                     {% endfor %}
+                    <div class="flex items-baseline gap-1.5">
+                        <dt class="text-encre-500">Vivres</dt>
+                        <dd class="text-encre-900">{{ partie.ville.nourriture }}</dd>
+                    </div>
                 </dl>
             </div>
 

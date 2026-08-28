@@ -8,7 +8,6 @@ use App\Entity\Building;
 use App\Entity\City;
 use App\Game\CatalogueDeLaVille;
 use App\Game\DotationRoyale;
-use App\Game\GeographieDeRegion;
 use App\Game\OffreDeConstruction;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
@@ -110,13 +109,7 @@ final class CatalogueDeLaVilleTest extends TestCase
      */
     private function villeDotee(): City
     {
-        return (new City('Avaris', 0, 3))->crediterRessources(
-            DotationRoyale::pour(0, new GeographieDeRegion(
-                nil: true,
-                mediterranee: true,
-                ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::Calcaire],
-            ))->enRessources(),
-        );
+        return (new City('Avaris', 0, 3))->crediterRessources(DotationRoyale::pour(0)->enRessources());
     }
 
     private function villeRiche(): City

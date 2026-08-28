@@ -29,7 +29,7 @@ final readonly class DotationRoyale
      * jamais gagner un or, et se figerait au deuxième bâtiment. La marge
      * au-delà laisse le droit à une dépense malheureuse.
      */
-    private const int BOIS = 35;
+    private const int ROSEAUX = 35;
     private const int ARGILE = 30;
 
     /**
@@ -41,12 +41,6 @@ final readonly class DotationRoyale
      * premier éclaireur — donc jamais trouver la terre où semer.
      */
     private const int PROVISIONS = 40;
-
-    /**
-     * Ce que la couronne envoie quand la région ne produit pas elle-même de
-     * bois : le cèdre du Levant, que l'État faisait réellement venir de Byblos.
-     */
-    private const Ressource BOIS_DE_SECOURS = Ressource::BoisDeCedre;
 
     private function __construct(
         public int $or,
@@ -71,35 +65,20 @@ final readonly class DotationRoyale
     }
 
     /**
-     * Le pharaon envoie de préférence ce que la région travaille elle-même —
-     * les roseaux du Delta plutôt qu'un cèdre venu de Byblos. Il complète
-     * seulement là où la région ne produit rien de la famille voulue.
+     * Le pharaon envoie de quoi ouvrir la partie, les mêmes matériaux partout :
+     * roseaux et argile, dont sont faits tous les bâtiments de départ.
      */
-    public static function pour(int $difficulte, GeographieDeRegion $geographie): self
+    public static function pour(int $difficulte): self
     {
         return new self(
             or: self::OR_DE_BASE + self::OR_PAR_NIVEAU_DE_DIFFICULTE * $difficulte,
             provisions: self::PROVISIONS,
             materiaux: [
-                self::materiauLocal($geographie, FamilleDeMateriau::Bois, self::BOIS_DE_SECOURS)->value => self::BOIS,
-                // Toujours de l'argile, jamais du calcaire : les bâtiments qui
-                // ouvrent une partie sont tous en brique crue (doc 01).
+                // Les deux matériaux de la brique crue et de sa toiture : ce
+                // dont tous les bâtiments d'ouverture sont faits (doc 01).
+                Ressource::Roseaux->value => self::ROSEAUX,
                 Ressource::Argile->value => self::ARGILE,
             ],
         );
-    }
-
-    private static function materiauLocal(
-        GeographieDeRegion $geographie,
-        FamilleDeMateriau $famille,
-        Ressource $defaut,
-    ): Ressource {
-        foreach ($geographie->ressourcesDeZone as $ressource) {
-            if ($famille->contient($ressource)) {
-                return $ressource;
-            }
-        }
-
-        return $defaut;
     }
 }

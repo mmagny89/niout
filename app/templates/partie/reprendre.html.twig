@@ -20,11 +20,15 @@
             <h2 class="text-lg text-encre-900">Où vous en êtes</h2>
 
             <dl class="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-4" data-chiffres>
+                {# Un récapitulatif tient sur peu de cases : l'or et les vivres
+                   sont les deux ressources universelles, à toujours montrer.
+                   Le détail matériau par matériau vit dans la barre de jeu,
+                   une fois la partie reprise. #}
                 {% set indicateurs = [
                     { libelle: 'Cycle', valeur: partie.cycle },
                     { libelle: 'Or', valeur: partie.ville.or },
-                    { libelle: 'Bois', valeur: partie.ville.bois },
-                    { libelle: 'Pierre', valeur: partie.ville.pierre },
+                    { libelle: 'Vivres', valeur: partie.ville.nourriture },
+                    { libelle: 'Bâtiments', valeur: partie.ville.batiments|length },
                 ] %}
                 {% for indicateur in indicateurs %}
                     <div>

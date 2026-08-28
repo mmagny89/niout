@@ -6,6 +6,7 @@ namespace App\Tests\Entity;
 
 use App\Entity\Building;
 use App\Entity\City;
+use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -69,8 +70,8 @@ final class BuildingTest extends TestCase
         $cout = $batiment->coutDeLaMonteeDeNiveau();
 
         self::assertNotNull($cout);
-        // Niveau 2 : 15 × 1,4 = 21.
-        self::assertSame(21, $cout->bois);
+        // Roseaux niveau 2 : 15 × 1,4 = 21.
+        self::assertSame(21, $cout->quantiteDe(Ressource::Roseaux));
     }
 
     #[DataProvider('paliersVisuels')]

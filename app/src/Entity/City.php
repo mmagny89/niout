@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Game\CoutDeConstruction;
-use App\Game\FamilleDeMateriau;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use App\Repository\CityRepository;
@@ -165,21 +164,6 @@ class City
         return $this->quantite(Ressource::Or);
     }
 
-    public function getBois(): int
-    {
-        return $this->quantiteDeFamille(FamilleDeMateriau::Bois);
-    }
-
-    public function getArgile(): int
-    {
-        return $this->quantiteDeFamille(FamilleDeMateriau::BriqueCrue);
-    }
-
-    public function getPierre(): int
-    {
-        return $this->quantiteDeFamille(FamilleDeMateriau::Pierre);
-    }
-
     /**
      * Tout ce que la ville a de mangeable, toutes ressources confondues : c'est
      * là-dessus que se paient les provisions d'une expédition (doc 04).
@@ -198,18 +182,35 @@ class City
     }
 
     /**
-     * Ce que la ville possède dans une famille de matériaux, toutes pierres ou
-     * tous bois confondus (voir FamilleDeMateriau).
+     * Le stock trié pour l'affichage : chaque ressource sous son propre nom,
+     * l'or en tête. Rien n'est agrégé — un compteur « bois » qui additionnerait
+     * roseaux et cèdre cacherait au joueur ce qu'il possède réellement.
+     *
+     * @return list<StockDeRessource>
      */
-    public function quantiteDeFamille(FamilleDeMateriau $famille): int
+    public function stockAffichable(): array
     {
-        $total = 0;
+        $lignes = [];
 
-        foreach ($famille->ressources() as $ressource) {
-            $total += $this->quantite($ressource);
+        foreach ($this->stock as $ligne) {
+            if ($ligne->getQuantite() > 0 || Ressource::Or === $ligne->getRessource()) {
+                $lignes[] = $ligne;
+            }
         }
 
-        return $total;
+        usort($lignes, static function (StockDeRessource $a, StockDeRessource $b): int {
+            if (Ressource::Or === $a->getRessource()) {
+                return -1;
+            }
+
+            if (Ressource::Or === $b->getRessource()) {
+                return 1;
+            }
+
+            return $a->getRessource()->libelle() <=> $b->getRessource()->libelle();
+        });
+
+        return $lignes;
     }
 
     /**
@@ -253,59 +254,12 @@ class City
     }
 
     /**
-     * Prélève dans une famille de matériaux, **du plus abondant au plus rare**.
-     *
-     * L'ordre n'est pas cosmétique : sans lui, un grenier de brique crue
-     * pourrait engloutir le granite que le joueur gardait pour son temple. On
-     * dépense donc le commun avant le précieux, ce qu'aucun joueur n'aurait
-     * envie de faire à la main à chaque chantier.
-     *
-     * L'appelant a vérifié les moyens : cette méthode ne refuse rien.
-     */
-    private function prelever(FamilleDeMateriau $famille, int $quantite): void
-    {
-        $lignes = [];
-
-        foreach ($famille->ressources() as $ressource) {
-            $disponible = $this->quantite($ressource);
-
-            if ($disponible > 0) {
-                $lignes[] = [$ressource, $disponible];
-            }
-        }
-
-        usort($lignes, static fn (array $a, array $b): int => $b[1] <=> $a[1]);
-
-        foreach ($lignes as [$ressource, $disponible]) {
-            if ($quantite <= 0) {
-                return;
-            }
-
-            $pris = min($quantite, $disponible);
-            $this->ligneDe($ressource)->retirer($pris);
-            $quantite -= $pris;
-        }
-    }
-
-    /**
-     * Débite un coût de construction : l'or et le lin au nom, le bois et la
-     * pierre par famille. Tout ou rien, comme debiterRessources().
+     * Débite un coût de construction. Chaque ligne nomme sa ressource : le
+     * débit est donc un débit ordinaire, tout ou rien.
      */
     public function payer(CoutDeConstruction $cout): bool
     {
-        if ([] !== $this->manquesPour($cout)) {
-            return false;
-        }
-
-        $this->debiterRessources([
-            Ressource::Or->value => $cout->or,
-            Ressource::Lin->value => $cout->lin,
-        ]);
-
-        $this->prelever(FamilleDeMateriau::Bois, $cout->bois);
-        $this->prelever($cout->maconnerie, $cout->pierre);
-
-        return true;
+        return $this->debiterRessources($cout->enRessources());
     }
 
     /**
@@ -318,16 +272,12 @@ class City
     {
         $manques = [];
 
-        $exigences = [
-            [Ressource::Or->libelle(), $cout->or, $this->getOr()],
-            [Ressource::Lin->libelle(), $cout->lin, $this->quantite(Ressource::Lin)],
-            [FamilleDeMateriau::Bois->libelle(), $cout->bois, $this->getBois()],
-            [$cout->maconnerie->libelle(), $cout->pierre, $this->quantiteDeFamille($cout->maconnerie)],
-        ];
+        foreach ($cout->enRessources() as $valeur => $exige) {
+            $ressource = Ressource::from($valeur);
+            $possede = $this->quantite($ressource);
 
-        foreach ($exigences as [$libelle, $exige, $possede]) {
             if ($exige > $possede) {
-                $manques[] = \sprintf('%d %s', $exige - $possede, $libelle);
+                $manques[] = \sprintf('%d %s', $exige - $possede, $ressource->libelle());
             }
         }
 

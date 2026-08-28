@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Game;
 
 use App\Game\CoutDeConstruction;
+use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -47,15 +48,15 @@ final class TypeDeBatimentTest extends TestCase
 
     public function testLeCoutSuitLaProgressionDuDocument(): void
     {
-        // Grenier : 15 bois, 15 pierre, 15 or au niveau 1 (doc 01).
+        // Grenier : 15 roseaux, 15 argile, 15 or au niveau 1 (doc 01).
         $base = TypeDeBatiment::Grenier->coutDeBase();
-        self::assertSame(15, $base->bois);
+        self::assertSame(15, $base->quantiteDe(Ressource::Roseaux));
 
         // coutNiveau(N) = coutBase × (1 + (N - 1) × 0,4)
         // Niveau 2 : 15 × 1,4 = 21
-        self::assertSame(21, $base->pourNiveau(2)->bois);
+        self::assertSame(21, $base->pourNiveau(2)->quantiteDe(Ressource::Roseaux));
         // Niveau 3 : 15 × 1,8 = 27
-        self::assertSame(27, $base->pourNiveau(3)->bois);
+        self::assertSame(27, $base->pourNiveau(3)->quantiteDe(Ressource::Roseaux));
     }
 
     public function testLeCoutDuPremierNiveauEstLeCoutDeBase(): void
@@ -70,7 +71,7 @@ final class TypeDeBatimentTest extends TestCase
     {
         $avecLin = array_filter(
             TypeDeBatiment::cases(),
-            static fn (TypeDeBatiment $t): bool => $t->coutDeBase()->lin > 0,
+            static fn (TypeDeBatiment $t): bool => $t->coutDeBase()->quantiteDe(Ressource::Lin) > 0,
         );
 
         self::assertSame([TypeDeBatiment::Temple], array_values($avecLin));
@@ -97,7 +98,7 @@ final class TypeDeBatimentTest extends TestCase
     {
         $detail = TypeDeBatiment::Grenier->coutDeBase()->detail();
 
-        self::assertArrayHasKey('bois', $detail);
-        self::assertArrayNotHasKey('lin', $detail, 'Le Grenier ne réclame pas de lin.');
+        self::assertArrayHasKey(Ressource::Roseaux->libelle(), $detail);
+        self::assertArrayNotHasKey(Ressource::Lin->libelle(), $detail, 'Le Grenier ne réclame pas de lin.');
     }
 }

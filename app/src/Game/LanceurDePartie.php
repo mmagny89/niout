@@ -86,7 +86,7 @@ final readonly class LanceurDePartie
         // pas de sens, et l'engendrer plus tard laisserait un état à moitié
         // initialisé.
         $this->carte->peupler($ville, $geographie);
-        $dotation = DotationRoyale::pour($ville->getDifficulte(), $geographie);
+        $dotation = DotationRoyale::pour($ville->getDifficulte());
         $ville->crediterRessources($dotation->enRessources());
 
         // La crue de la première année est déjà jouée quand le joueur arrive :
