@@ -171,6 +171,14 @@ pendant le semis, la pousse ou le repos. Un champ du Nil suit la saison
 champ terrestre (Fertile, Oasis) suit son propre compteur, indépendant de la
 saison (`CycleAgricoleTerrestre`, `Zone::quinzainesDepuisSemis`).
 
+**Le poisson est la seule ressource renouvelable** (`Ressource::estRenouvelable()`,
+décision de la joueuse) : `Gisement::extraire()` rend son plein sans décompter
+et `estEpuise()` reste faux à jamais. Un Port coûte 50 or, 40 roseaux et
+20 calcaire ; une pêcherie tarissable en aurait fait un piège sur une carte
+qui ne porte qu'une case d'eau poissonneuse. Il se pêche depuis un Port, ne se
+creuse jamais (`Exploitations::exploiter()`), et l'interface écrit
+« inépuisable » là où les autres gisements affichent leurs unités restantes.
+
 **Toute route qui modifie l'état d'une partie doit utiliser
 `PartieVoter::JOUER`**, pas `VOIR` : `JOUER` refuse en plus une partie
 `StatutDePartie::Echouee` (famine prolongée, `Subsistance`). `VOIR` ne

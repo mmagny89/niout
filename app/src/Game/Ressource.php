@@ -112,6 +112,20 @@ enum Ressource: string
     }
 
     /**
+     * Ressources qui se reconstituent d'elles-mêmes : on y puise sans jamais
+     * les entamer (décision de la joueuse).
+     *
+     * Le poisson est le seul cas, et c'est ce qui donne au Port sa valeur
+     * durable : une carrière finit par se vider, une pêcherie non. Un Port
+     * coûte 50 or, 40 roseaux et 20 calcaire — le rendre inutile au bout de
+     * quarante quinzaines en aurait fait un piège plutôt qu'un choix.
+     */
+    public function estRenouvelable(): bool
+    {
+        return self::Poisson === $this;
+    }
+
+    /**
      * Ressources dont une ville ne peut pas se passer : elles paient tous les
      * bâtiments d'ouverture (doc 01). La génération de carte en garantit un
      * gisement dans chaque région qui en porte.

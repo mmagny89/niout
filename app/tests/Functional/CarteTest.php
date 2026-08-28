@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
+use App\Entity\Building;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Entity\Zone;
 use App\Game\ContenuDeZone;
 use App\Game\Culture;
 use App\Game\LanceurDePartie;
+use App\Game\Ressource;
+use App\Game\TypeDeBatiment;
 use App\Game\TypeDeTerrain;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -60,6 +63,52 @@ final class CarteTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('#case', 'Semis');
+    }
+
+    /**
+     * La case poissonneuse dit ce qui la bloque tant que le Port n'est pas
+     * dressé, puis propose les filets une fois qu'il l'est. Le rendu réel est
+     * la seule façon de vérifier la branche Twig qui distingue les deux.
+     */
+    public function testUneCasePoissonneuseAttendLePortPuisProposeLesFilets(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'filets@example.com');
+        $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+
+        $zone = null;
+        foreach ($ville->getZones() as $candidate) {
+            if (!$candidate->porteLaVille()) {
+                $zone = $candidate;
+                break;
+            }
+        }
+        self::assertInstanceOf(Zone::class, $zone);
+
+        $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
+
+        // Vidée en deux temps : la carte générée a pu poser du poisson ici, et
+        // Doctrine insérerait le nouveau filon avant d'avoir supprimé l'ancien.
+        $zone->definirTerrain(TypeDeTerrain::Mediterranee)->poserUnContenu(ContenuDeZone::Rien)->decouvrir();
+        $gestionnaire->flush();
+        $zone->poserUnGisement(Ressource::Poisson, 200);
+        $gestionnaire->flush();
+
+        $url = \sprintf('/partie/%d/carte?zone=%d-%d', $partie->getId(), $zone->getX(), $zone->getY());
+
+        $client->request('GET', $url);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('#case', 'Il faudra un Port');
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Port));
+        $gestionnaire->flush();
+
+        $client->request('GET', $url);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('#case', 'Jeter les filets');
+        // Un banc se reconstitue : afficher un compteur figé tromperait.
+        self::assertSelectorTextContains('#case', 'inépuisable');
     }
 
     public function testUneCarteNeuveNeMontreQueLaVilleEtDuBrouillard(): void

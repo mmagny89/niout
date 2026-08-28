@@ -32,17 +32,16 @@ mois par mois et saison par saison.
 **Carte et territoire** — une carte isométrique générée à la création de la
 partie (Nil, Méditerranée, mer Rouge, désert, oasis selon la région), révélée
 case par case par des éclaireurs. Une case reconnue peut porter un gisement à
-exploiter ou un champ à semer ; les champs traversent quatre étapes — semis,
-pousse, récolte, repos — et ne nourrissent qu'à la récolte, sur le Nil comme
-en terre. La ville affiche ses habitants et les nourrit à chaque quinzaine :
-sans vivres suffisantes, la famine s'installe et peut mener la partie à
-l'échec.
+exploiter, une eau à pêcher une fois le Port dressé, ou un champ à semer ; les
+champs traversent quatre étapes — semis, pousse, récolte, repos — et ne
+nourrissent qu'à la récolte, sur le Nil comme en terre. La ville affiche ses
+habitants et les nourrit à chaque quinzaine : sans vivres suffisantes, la
+famine s'installe et peut mener la partie à l'échec.
 
 La boucle de jeu tient donc debout de bout en bout : fonder, doter, bâtir,
-explorer, produire, nourrir sa population. Restent le Port et la pêche, le
-commerce, le recrutement, les Medjaÿ, la faveur divine et les énigmes —
-feuille de route détaillée dans
-[`docs/plan-de-bataille.md`](docs/plan-de-bataille.md).
+explorer, produire, nourrir sa population. Restent le commerce et l'artisanat,
+le recrutement, les Medjaÿ, la faveur divine et les énigmes — feuille de route
+détaillée dans [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md).
 
 ## Stack
 

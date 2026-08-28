@@ -197,6 +197,9 @@ final class PartieController extends AbstractController
                 : null,
             'cultures' => Culture::cases(),
             'aUnGrenier' => $ville->possede(TypeDeBatiment::Grenier),
+            // Sans Port, aucune barque n'appareille : la case poissonneuse
+            // s'affiche, mais le bouton laisse la place au motif.
+            'aUnPort' => $ville->possede(TypeDeBatiment::Port),
         ]);
     }
 

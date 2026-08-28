@@ -55,8 +55,13 @@ final readonly class Recoltes
         $ville = $partie->getVille();
         $rendu = $this->extractionParGisement($ville->getDifficulte());
 
-        /** @var array<string, int> $recolte */
-        $recolte = [];
+        // Deux paniers, pour deux gestes distincts : on creuse une carrière,
+        // on ne creuse pas un banc de poisson. Le stock, lui, ne fait pas la
+        // différence — seul le message adressé au joueur la fait.
+        /** @var array<string, int> $extraction */
+        $extraction = [];
+        /** @var array<string, int> $peche */
+        $peche = [];
         $epuises = [];
 
         foreach ($ville->getZones() as $zone) {
@@ -65,11 +70,15 @@ final readonly class Recoltes
                     continue;
                 }
 
+                $ressource = $gisement->getRessource();
                 $extrait = $gisement->extraire($rendu);
-                $valeur = $gisement->getRessource()->value;
 
                 if ($extrait > 0) {
-                    $recolte[$valeur] = ($recolte[$valeur] ?? 0) + $extrait;
+                    if (Ressource::Poisson === $ressource) {
+                        $peche[$ressource->value] = ($peche[$ressource->value] ?? 0) + $extrait;
+                    } else {
+                        $extraction[$ressource->value] = ($extraction[$ressource->value] ?? 0) + $extrait;
+                    }
                 }
 
                 if ($gisement->estEpuise()) {
@@ -83,13 +92,19 @@ final readonly class Recoltes
             }
         }
 
-        if ([] === $recolte) {
-            return $epuises;
+        $messages = [];
+
+        if ([] !== $extraction) {
+            $ville->crediterRessources($extraction);
+            $messages[] = $this->enoncer('Les gisements ont livré', $extraction);
         }
 
-        $ville->crediterRessources($recolte);
+        if ([] !== $peche) {
+            $ville->crediterRessources($peche);
+            $messages[] = $this->enoncer('La pêche a rapporté', $peche);
+        }
 
-        return [$this->enoncer('Les gisements ont livré', $recolte), ...$epuises];
+        return [...$messages, ...$epuises];
     }
 
     /**
