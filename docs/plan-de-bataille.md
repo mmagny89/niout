@@ -628,7 +628,39 @@ La migration installe une famille fondatrice dans chaque ville existante :
 qu'une migration doit produire le même résultat à chaque exécution et qu'on
 n'invente pas rétroactivement des enfants à une famille déjà installée.
 
-#### 4.2 — Le candidat : compétence, traits, spécialité
+##### À reprendre : la démographie, si elle va plus loin
+
+Deux prolongements soulevés par la joueuse après la livraison, à trancher
+avant d'écrire quoi que ce soit — probablement au mode Aventure (Phase 11),
+seul contexte où douze ans de jeu s'écoulent vraiment.
+
+**Donner un âge aux adultes.** Le lot ne les date pas, faute d'usage. Mais
+l'argument qui compte n'est pas le coût d'une migration future : c'est que
+l'information est **détruite au moment précis où on la connaît**. Un enfant qui
+franchit la majorité a exactement douze ans, et `vieillirDUneQuinzaine()`
+l'oublie en incrémentant un compteur. Reporter la décision revient donc à
+devoir réinventer des âges plus tard, jamais à les retrouver. Le passage de
+`adultes: int` à une liste d'âges est petit — une quinzaine de lignes — et se
+fait proprement tant que les parties en cours se comptent sur les doigts.
+
+**Un enfant devenu adulte fonde son propre foyer.** Mécanique juste, et qui
+donne enfin un mordant au plafond du Quartier d'habitation : la ville
+grandirait toute seule et se heurterait à son logement, pas seulement à ses
+embauches. Reste à décider ce qui arrive au jeune adulte quand il n'y a plus
+de place — il reste chez ses parents, ou il quitte la ville.
+
+**Le piège à ne pas manquer : la mortalité sans natalité est un cliquet.** Si
+les adultes vieillissent et meurent sans que personne ne naisse, toute ville
+finit vide, et d'autant plus vite que la partie est longue — c'est-à-dire
+exactement dans le mode où ces règles auraient un sens. Les trois pièces
+tiennent ensemble ou pas du tout : âges des adultes, naissances, décès.
+
+**La règle simple demandée**, en attendant : `bras = Σ adultes`, sans
+approximation nécessaire. En ordre de grandeur, un foyer donne **2 bras à son
+arrivée** et jusqu'à **5** une fois tous ses enfants devenus adultes — soit,
+sur une mission de campagne, un gain de l'ordre d'un bras par foyer accueilli.
+
+#### 4.2 — Le candidat : compétence, traits, spécialité  ✅
 
 Règles pures, dans `src/Game/`, sans rien de persisté — c'est du contenu, pas
 de l'état. Les valeurs viennent du doc 03.
@@ -652,6 +684,35 @@ de l'état. Les valeurs viennent du doc 03.
 - **Pas de nom** (décision de la joueuse) : un PNJ se désigne par son poste et
   ses statistiques. La question se reposera quand les écrans montreront
   plusieurs employés d'un même bâtiment
+
+##### Livré
+
+`Candidat` n'est jamais persisté : une candidature ne dure que le temps du
+choix, seul le foyer embauché survit (lot 4.3). Sa compétence reste accessible
+au moteur — les calculs de production en auront besoin au lot 4.8 — mais le
+docblock interdit explicitement à tout gabarit de l'imprimer : c'est là que se
+joue le « chiffré en interne, qualitatif à l'affichage ».
+
+Trois choses que le document laissait implicites et qu'il a fallu trancher :
+
+- **La compétence est bornée après application des traits.** Un
+  « Expérimenté » à 95 passerait sinon à 118, hors du barème d'étoiles.
+- **Les traits étendent la fourchette de salaire** au-delà de la formule de
+  base : mesuré sur 400 tirages, 3 à 16 deben pour une moyenne de 8,4, quand
+  la formule seule donne 4 à 14. C'est l'effet cumulé d'« Expérimenté » et de
+  « Novice », et il reste dans l'ordre de grandeur voulu.
+- **Trois bâtiments n'ont aucune spécialité** — Résidence familiale, Quartier
+  d'habitation, Auberge —, le doc 03 n'en listant pas pour eux.
+
+La distribution des traits est vérifiée sur 400 tirages plutôt que postulée :
+46,8 % sans trait, 38,2 % avec un, 15,0 % avec deux, pour des taux visés de
+45 / 40 / 15.
+
+**Un piège de méthode évité** : semer un `Mt19937` par candidat avec des
+entiers consécutifs produit des premiers tirages corrélés, ce qui aurait
+faussé toute mesure de distribution. Les tests emploient donc un générateur
+unique qui tire longuement, et deux graines distinctes pour le foyer et le
+profil — les partager aurait lié la taille de la famille à la compétence.
 
 #### 4.3 — L'offre d'emploi : poster, choisir, renvoyer
 
