@@ -158,9 +158,14 @@
                                 </button>
                                 <span class="ml-3 text-sm text-encre-500" data-chiffres>
                                     {# Les cases à moins de trois cases de la
-                                       ville se reconnaissent sans bourse délier. #}
-                                    {{ coutDeReconnaissance > 0 ? coutDeReconnaissance ~ ' or' : 'sans frais' }}
-                                    · {{ provisionsDeReconnaissance }} vivres
+                                       ville se reconnaissent entièrement
+                                       gratuitement — ni or ni vivres. #}
+                                    {% if coutDeReconnaissance == 0 and provisionsDeReconnaissance == 0 %}
+                                        gratuit
+                                    {% else %}
+                                        {{ coutDeReconnaissance > 0 ? coutDeReconnaissance ~ ' or' : 'sans frais' }}
+                                        · {{ provisionsDeReconnaissance }} vivres
+                                    {% endif %}
                                     · {{ dureeDeReconnaissance }} cycle{{ dureeDeReconnaissance > 1 ? 's' : '' }}
                                 </span>
                             </form>

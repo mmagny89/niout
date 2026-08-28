@@ -768,8 +768,10 @@ habitants et les nourrir n'a pas besoin du recrutement pour exister.
   terrestre (Fertile, Oasis) suit son propre cycle, indépendant de la saison
   et de la crue (`CycleAgricoleTerrestre`, `Zone::quinzainesDepuisSemis`).
 - **Le rayon gratuit de l'éclaireur passe d'une case à deux** : toute case à
-  moins de trois cases de la ville se reconnaît sans frais d'or ; les vivres
-  restent dues à toute distance.
+  moins de trois cases de la ville se reconnaît **entièrement gratuitement**,
+  ni or ni vivres (décision de la joueuse, precisée après coup : les deux
+  soldes suivent désormais le même rayon,
+  `RoleDExploration::provisionsPourUneDistance()`). Au-delà, les deux sont dus.
 
 **Amorce de la Phase 4 — population et subsistance.** Une ville affiche
 désormais ses habitants (`Population`, `City::population()`) : une famille

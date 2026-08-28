@@ -48,7 +48,12 @@ final class ExplorationTest extends KernelTestCase
         self::assertCount(1, $partie->getVille()->getExpeditions(), 'L\'expédition part bel et bien.');
     }
 
-    public function testLesAbordsCoutentQuandMemeDesVivres(): void
+    /**
+     * Une case à moins de trois cases de la ville ne coûte rien du tout — ni
+     * or ni vivres (décision de la joueuse) : assez proche pour qu'un
+     * éclaireur y aille sans qu'on lui compte sa peine.
+     */
+    public function testLesAbordsNeCoutentPlusDeVivresNonPlus(): void
     {
         self::bootKernel();
         $partie = $this->lancerPartie('abords-vivres@example.com');
@@ -57,9 +62,9 @@ final class ExplorationTest extends KernelTestCase
         $this->explorations()->envoyer($partie, $this->caseAdjacente($partie), RoleDExploration::Eclaireur);
 
         self::assertSame(
-            $avant - RoleDExploration::Eclaireur->provisions(),
+            $avant,
             $partie->getVille()->getNourriture(),
-            'L\'éclaireur mange, même à une heure de marche.',
+            'Une case à moins de trois cases de la ville ne coûte rien, pas même des vivres.',
         );
     }
 
@@ -75,31 +80,44 @@ final class ExplorationTest extends KernelTestCase
         self::assertCount(1, $ville->getExpeditions(), 'Une partie ne doit jamais se retrouver bloquée sans issue.');
     }
 
-    /**
-     * On ne part pas explorer les mains vides (doc 04) : c'est ce qui donne à
-     * la nourriture un usage avant même qu'il y ait une population à nourrir.
-     */
-    public function testEnvoyerUnEclaireurEntameLesVivres(): void
+    public function testSansUnSeulVivreOnPeutEncoreReconnaitreSesAbords(): void
     {
         self::bootKernel();
-        $partie = $this->lancerPartie('vivres@example.com');
+        $partie = $this->lancerPartie('affame@example.com');
+        $ville = $partie->getVille();
+        $ville->debiterNourriture($ville->getNourriture());
+
+        $this->explorations()->envoyer($partie, $this->caseAdjacente($partie), RoleDExploration::Eclaireur);
+
+        self::assertCount(1, $ville->getExpeditions(), 'Les abords ne coûtent pas de vivres : la famine ne doit pas bloquer la partie.');
+    }
+
+    /**
+     * On ne part pas explorer les mains vides (doc 04) : c'est ce qui donne à
+     * la nourriture un usage avant même qu'il y ait une population à nourrir —
+     * mais seulement au-delà du rayon gratuit.
+     */
+    public function testEnvoyerUnEclaireurAuLoinEntameLesVivres(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerSurUneGrandeCarte('vivres@example.com');
         $avant = $partie->getVille()->getNourriture();
 
-        $this->explorations()->envoyer($partie, $this->caseInconnue($partie), RoleDExploration::Eclaireur);
+        $this->explorations()->envoyer($partie, $this->caseEloignee($partie), RoleDExploration::Eclaireur);
 
         self::assertSame($avant - RoleDExploration::Eclaireur->provisions(), $partie->getVille()->getNourriture());
     }
 
-    public function testSansVivresAucunEclaireurNePartEtLOrResteIntact(): void
+    public function testSansVivresAucunEclaireurNePartAuLoinEtLOrResteIntact(): void
     {
         self::bootKernel();
-        $partie = $this->lancerPartie('famine@example.com');
+        $partie = $this->lancerSurUneGrandeCarte('famine@example.com');
         $ville = $partie->getVille();
         $ville->debiterNourriture($ville->getNourriture());
         $orAvant = $ville->getOr();
 
         try {
-            $this->explorations()->envoyer($partie, $this->caseInconnue($partie), RoleDExploration::Eclaireur);
+            $this->explorations()->envoyer($partie, $this->caseEloignee($partie), RoleDExploration::Eclaireur);
             self::fail('L\'expédition aurait dû être refusée faute de vivres.');
         } catch (ExplorationImpossible $impossible) {
             self::assertStringContainsString('vivres', $impossible->getMessage());
