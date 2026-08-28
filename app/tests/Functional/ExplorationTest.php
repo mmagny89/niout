@@ -225,11 +225,11 @@ final class ExplorationTest extends KernelTestCase
     }
 
     /**
-     * Une case inconnue qui touche la ville — reconnaissance gratuite.
+     * Une case inconnue proche de la ville — reconnaissance gratuite.
      */
     private function caseAdjacente(GameSave $partie): Zone
     {
-        return $this->caseInconnueADistance($partie, static fn (int $distance): bool => 1 === $distance);
+        return $this->caseInconnueADistance($partie, static fn (int $distance): bool => $distance < 3);
     }
 
     /**
@@ -237,7 +237,7 @@ final class ExplorationTest extends KernelTestCase
      */
     private function caseEloignee(GameSave $partie): Zone
     {
-        return $this->caseInconnueADistance($partie, static fn (int $distance): bool => $distance > 1);
+        return $this->caseInconnueADistance($partie, static fn (int $distance): bool => $distance >= 3);
     }
 
     private function caseInconnueADistance(GameSave $partie, callable $critere): Zone
