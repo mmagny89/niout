@@ -42,19 +42,21 @@ final readonly class Explorations
             throw new ExplorationImpossible('Une expédition est déjà en route vers cette case.');
         }
 
-        $cout = $this->coutVers($partie, $destination, $role);
+        $distance = $this->distanceVers($partie, $destination);
+        $cout = $role->coutPourUneDistance($distance);
+        $provisions = $role->provisionsPourUneDistance($distance);
 
-        if ($ville->getNourriture() < $role->provisions()) {
-            throw new ExplorationImpossible(\sprintf('Il vous faut %d de vivres pour envoyer un %s. Vos réserves n\'en comptent que %d.', $role->provisions(), mb_strtolower($role->libelle()), $ville->getNourriture()));
+        if ($ville->getNourriture() < $provisions) {
+            throw new ExplorationImpossible(\sprintf('Il vous faut %d de vivres pour envoyer un %s. Vos réserves n\'en comptent que %d.', $provisions, mb_strtolower($role->libelle()), $ville->getNourriture()));
         }
 
         if (!$ville->debiterRessources([Ressource::Or->value => $cout])) {
             throw new ExplorationImpossible(\sprintf('Il vous faut %d or pour envoyer un %s.', $cout, mb_strtolower($role->libelle())));
         }
 
-        // L'or est déjà retiré ; les vivres sont garantis par le contrôle
+        // L'or est déjà retiré ; les vivres sont garanties par le contrôle
         // ci-dessus, donc ce débit ne peut plus échouer.
-        $ville->debiterNourriture($role->provisions());
+        $ville->debiterNourriture($provisions);
 
         $expedition = new Expedition($ville, $destination, $role, $this->dureeVers($partie, $destination));
         $ville->ajouterExpedition($expedition);
@@ -106,12 +108,21 @@ final readonly class Explorations
     }
 
     /**
-     * Solde dû pour reconnaître cette case — nul à moins de trois cases de la
-     * ville. Exposé pour que l'écran annonce le vrai prix avant l'envoi.
+     * Solde en or dû pour reconnaître cette case — nul à moins de trois cases
+     * de la ville. Exposé pour que l'écran annonce le vrai prix avant l'envoi.
      */
     public function coutVers(GameSave $partie, Zone $destination, RoleDExploration $role): int
     {
         return $role->coutPourUneDistance($this->distanceVers($partie, $destination));
+    }
+
+    /**
+     * Vivres dus pour reconnaître cette case — nuls dans le même rayon que
+     * `coutVers()` : une case proche ne coûte rien du tout.
+     */
+    public function provisionsVers(GameSave $partie, Zone $destination, RoleDExploration $role): int
+    {
+        return $role->provisionsPourUneDistance($this->distanceVers($partie, $destination));
     }
 
     private function distanceVers(GameSave $partie, Zone $destination): int

@@ -188,7 +188,10 @@ final class PartieController extends AbstractController
             'coutDeReconnaissance' => null !== $detaillee
                 ? $explorations->coutVers($partie, $detaillee, RoleDExploration::Eclaireur)
                 : null,
-            'provisionsDeReconnaissance' => RoleDExploration::Eclaireur->provisions(),
+            // Même logique que le coût en or : nul à moins de trois cases.
+            'provisionsDeReconnaissance' => null !== $detaillee
+                ? $explorations->provisionsVers($partie, $detaillee, RoleDExploration::Eclaireur)
+                : RoleDExploration::Eclaireur->provisions(),
             'dureeDeReconnaissance' => null !== $detaillee && !$detaillee->estDecouverte()
                 ? $explorations->dureeVers($partie, $detaillee)
                 : null,

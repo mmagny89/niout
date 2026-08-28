@@ -53,14 +53,15 @@ enum RoleDExploration: string
     }
 
     /**
-     * Solde réellement dû pour une case à cette distance de la ville.
+     * Solde en or réellement dû pour une case à cette distance de la ville.
      *
      * **Les cases à moins de trois cases de la ville se reconnaissent
-     * gratuitement**, en orthogonal comme en diagonale : assez proche pour
-     * qu'un éclaireur y aille sans qu'on lui compte sa peine. Faire payer le
-     * premier pas d'une partie neuve reviendrait à taxer le joueur pour
-     * découvrir où il vient d'être envoyé. Les vivres, eux, restent dus —
-     * l'éclaireur mange, même à une heure de marche.
+     * entièrement gratuitement**, en orthogonal comme en diagonale : assez
+     * proche pour qu'un éclaireur y aille sans qu'on lui compte sa peine, ni
+     * en or ni en vivres (décision de la joueuse). Faire payer le premier pas
+     * d'une partie neuve reviendrait à taxer le joueur pour découvrir où il
+     * vient d'être envoyé. Au-delà, l'expédition coûte les deux à la fois —
+     * voir `provisionsPourUneDistance()`.
      */
     public function coutPourUneDistance(int $distance): int
     {
@@ -81,6 +82,17 @@ enum RoleDExploration: string
             self::Emissaire => 10,
             self::ChefDExpedition => 20,
         };
+    }
+
+    /**
+     * Vivres réellement dus pour une case à cette distance de la ville — nuls
+     * dans le même rayon gratuit que `coutPourUneDistance()` : une case à
+     * moins de trois cases de la ville ne coûte rien du tout, ni en or ni en
+     * vivres (décision de la joueuse).
+     */
+    public function provisionsPourUneDistance(int $distance): int
+    {
+        return $distance < 3 ? 0 : $this->provisions();
     }
 
     /**
