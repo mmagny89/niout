@@ -170,55 +170,69 @@
                                 </span>
                             </form>
                         {% endif %}
-                    {% elseif zoneDetaillee.porteUnGisement %}
-                        {# Une case porte jusqu'à deux gisements : chacun s'ouvre
-                           pour lui-même, l'argile sans engager les roseaux. #}
-                        <ul class="mt-4 space-y-3 list-none p-0">
-                            {% for gisement in zoneDetaillee.gisements %}
-                                <li class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-                                    <span class="text-sm text-encre-900">
-                                        <strong>{{ gisement.ressource.libelle }}</strong>
-                                        <span class="text-encre-500" data-chiffres>· {{ gisement.quantiteRestante }} unités</span>
-                                    </span>
+                    {% else %}
+                        {# Gisements et champ ne s'excluent pas : une berge du
+                           Nil peut être à la fois poissonneuse et cultivable.
+                           Les deux actions s'affichent donc côte à côte, là où
+                           un enchaînement `elseif` masquait la seconde. #}
+                        {% if zoneDetaillee.porteUnGisement %}
+                            {# Une case porte jusqu'à deux gisements : chacun s'ouvre
+                               pour lui-même, l'argile sans engager les roseaux. #}
+                            <ul class="mt-4 space-y-3 list-none p-0">
+                                {% for gisement in zoneDetaillee.gisements %}
+                                    {% set estPoisson = gisement.ressource.value == 'poisson' %}
+                                    <li class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+                                        <span class="text-sm text-encre-900">
+                                            <strong>{{ gisement.ressource.libelle }}</strong>
+                                            <span class="text-encre-500" data-chiffres>
+                                                {# Un banc de poisson se reconstitue :
+                                                   afficher un compteur qui ne bouge
+                                                   jamais tromperait le joueur. #}
+                                                · {{ estPoisson ? 'inépuisable' : gisement.quantiteRestante ~ ' unités' }}
+                                            </span>
+                                        </span>
 
-                                    {% if not partie.estEnCours %}
-                                        <span class="text-sm text-encre-500">Partie échouée.</span>
-                                    {% elseif gisement.ressource.value == 'poisson' %}
-                                        <span class="text-sm text-encre-500">Il faudra un Port pour pêcher ici.</span>
-                                    {% elseif gisement.estEpuise %}
-                                        <span class="text-sm text-encre-500">Filon épuisé.</span>
-                                    {% elseif gisement.estExploitee %}
-                                        <span class="text-sm text-encre-500">Extraction en cours.</span>
-                                    {% else %}
-                                        <form method="post" action="{{ path('app_partie_exploiter', {id: partie.id}) }}" class="ml-auto">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('exploiter') }}">
-                                            <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
-                                            <input type="hidden" name="ressource" value="{{ gisement.ressource.value }}">
-                                            <button type="submit"
-                                                    class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
-                                                Ouvrir une carrière
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% elseif zoneDetaillee.accepteUnChamp and not zoneDetaillee.porteUnChamp and partie.estEnCours %}
-                        <form method="post" action="{{ path('app_partie_semer', {id: partie.id}) }}" class="mt-5 flex flex-wrap items-center gap-3">
-                            <input type="hidden" name="_token" value="{{ csrf_token('semer') }}">
-                            <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
-                            <label for="culture" class="text-sm text-encre-600">Semer</label>
-                            <select id="culture" name="culture"
-                                    class="rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900">
-                                {% for culture in cultures %}
-                                    <option value="{{ culture.value }}">{{ culture.libelle }}</option>
+                                        {% if not partie.estEnCours %}
+                                            <span class="text-sm text-encre-500">Partie échouée.</span>
+                                        {% elseif gisement.estEpuise %}
+                                            <span class="text-sm text-encre-500">Filon épuisé.</span>
+                                        {% elseif gisement.estExploitee %}
+                                            <span class="text-sm text-encre-500">{{ estPoisson ? 'Pêche en cours.' : 'Extraction en cours.' }}</span>
+                                        {% elseif estPoisson and not aUnPort %}
+                                            <span class="text-sm text-encre-500">Il faudra un Port pour pêcher ici.</span>
+                                        {% else %}
+                                            <form method="post" action="{{ path('app_partie_exploiter', {id: partie.id}) }}" class="ml-auto">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('exploiter') }}">
+                                                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                                                <input type="hidden" name="ressource" value="{{ gisement.ressource.value }}">
+                                                <button type="submit"
+                                                        class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                                    {{ estPoisson ? 'Jeter les filets' : 'Ouvrir une carrière' }}
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </li>
                                 {% endfor %}
-                            </select>
-                            <button type="submit"
-                                    class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
-                                Établir un champ
-                            </button>
-                        </form>
+                            </ul>
+                        {% endif %}
+
+                        {% if zoneDetaillee.accepteUnChamp and not zoneDetaillee.porteUnChamp and partie.estEnCours %}
+                            <form method="post" action="{{ path('app_partie_semer', {id: partie.id}) }}" class="mt-5 flex flex-wrap items-center gap-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token('semer') }}">
+                                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                                <label for="culture" class="text-sm text-encre-600">Semer</label>
+                                <select id="culture" name="culture"
+                                        class="rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900">
+                                    {% for culture in cultures %}
+                                        <option value="{{ culture.value }}">{{ culture.libelle }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit"
+                                        class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                    Établir un champ
+                                </button>
+                            </form>
+                        {% endif %}
                     {% endif %}
                 </article>
             {% else %}

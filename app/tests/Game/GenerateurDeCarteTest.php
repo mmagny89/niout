@@ -519,6 +519,45 @@ final class GenerateurDeCarteTest extends TestCase
     }
 
     /**
+     * Les cases d'eau ne sont pas un décor : elles passent par le même tirage
+     * de contenu que la terre ferme (doc 02). La garantie de poisson suffirait
+     * à en peupler une ; ce qu'on vérifie ici, c'est que le **tirage** les
+     * atteint aussi — donc qu'une case d'eau peut porter autre chose que le
+     * seul banc garanti.
+     */
+    public function testLesCasesDEauPortentDuContenuCommeLesAutres(): void
+    {
+        $delta = new GeographieDeRegion(
+            nil: true,
+            mediterranee: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux],
+        );
+
+        $contenusRencontres = [];
+
+        for ($graine = 1; $graine <= 40; ++$graine) {
+            $ville = new City('Avaris', 0, 5);
+            $this->generer($ville, $delta, $graine);
+
+            foreach ($ville->getZones() as $zone) {
+                if ($zone->getTerrain()->estUnPointDEau()) {
+                    $contenusRencontres[$zone->getContenu()->value] = true;
+                }
+            }
+        }
+
+        // Un événement sur une case d'eau ne peut venir que du tirage : aucune
+        // garantie n'en pose. Sa présence prouve que l'eau est traitée comme
+        // le reste de la carte.
+        self::assertArrayHasKey(
+            ContenuDeZone::Evenement->value,
+            $contenusRencontres,
+            'Les cases d\'eau ne reçoivent jamais d\'événement : elles restent un décor.',
+        );
+        self::assertArrayHasKey(ContenuDeZone::Ressource->value, $contenusRencontres);
+    }
+
+    /**
      * Une région sans eau ne peut évidemment porter aucun poisson : la garantie
      * ne doit rien inventer qui n'ait pas de sens géographique.
      */

@@ -163,8 +163,7 @@ vues, pas de la conception.
 - [x] **Phase 0** — Fondations techniques · §4
 - [x] **Phase 1** — Comptes et page d'accueil · §5
 - [x] **Phase 2** — Lancer une partie et bâtir · §6.1 · `01`, `05`, `13`
-- [ ] **Phase 3** — Carte, exploration et ressources · §6.2 · `02`, `04`, `06`, `08`
-      — 6 lots sur 7, seul le Port/pêche (3.6) reste à livrer
+- [x] **Phase 3** — Carte, exploration et ressources · §6.2 · `02`, `04`, `06`, `08`
 - [ ] **Phase 4** — Population : recrutement, chefs et travailleurs · `01`, `03`
       — amorcée au lot 3.7 (habitants affichés, consommation de nourriture,
       échec par famine) ; recrutement, chefs et travailleurs restent entiers
@@ -233,17 +232,21 @@ porte sur l'état où la partie a été laissée, pas sur ce qui s'est passé de
 
 ---
 
-### 6.2 Phase 3 — Carte, exploration et ressources  *(6 lots sur 7 — 3.6 restant)*
+### 6.2 Phase 3 — Carte, exploration et ressources  ✅
 
 **Intention.** Faire basculer la ville de la dépense à la production. Elle
 tire désormais ses matériaux de son territoire et sa nourriture de ses champs,
 plutôt que de consommer une dotation qui ne se renouvelle pas.
 
-À la fin de la phase (3.6 excepté), on peut raconter : *« j'envoie un éclaireur
-sur une case voisine, il y trouve de l'argile, je l'exploite, et cette argile
-alimente mes chantiers ; j'établis un champ, je bâtis le grenier, et la
-moisson tombe en Chémou. Ma ville compte ses habitants et les nourrit à chaque
-quinzaine — sans vivres, elle s'affame et la partie peut y rester. »*
+À la fin de la phase, on peut raconter : *« j'envoie un éclaireur sur une case
+voisine, il y trouve de l'argile, je l'exploite, et cette argile alimente mes
+chantiers ; j'établis un champ, je bâtis le grenier, et la moisson tombe en
+Chémou. Je dresse le Port sur ma berge et j'y jette les filets. Ma ville
+compte ses habitants et les nourrit à chaque quinzaine — sans vivres, elle
+s'affame et la partie peut y rester. »*
+
+Les douze bâtiments du doc 01 sont désormais tous atteignables : le Temple par
+le lin (lot 3.5), le Port par la berge (lot 3.6).
 
 #### 3.1 — Généralisation du stock  ✅  *(prérequis)*
 
@@ -330,12 +333,38 @@ lot 3.7) :
 - **Reconnaître les abords de la ville ne coûte pas d'or** (rayon étendu et
   entièrement gratuit depuis, voir lot 3.7).
 
-#### 3.6 — Points d'eau, Port et pêche
+#### 3.6 — Points d'eau, Port et pêche  ✅
 
-- [ ] Le Port devient constructible dès qu'un point d'eau jouxte la ville
-- [ ] Pêche sur les cases d'eau reconnues, une fois le Port dressé
-- [ ] Les cases d'eau cessent d'être un décor : elles portent du contenu comme
-      les autres (doc 02)
+- [x] Le Port devient constructible dès qu'un point d'eau jouxte la ville —
+      seule la géographie peut encore l'empêcher. La contrainte est appliquée
+      côté serveur : `Chantiers::lancer()` passe par le catalogue, un POST
+      direct ne la contourne pas.
+- [x] Pêche sur les cases d'eau reconnues, une fois le Port dressé
+      (`Exploitations::exploiter()`). Le poisson nourrit la population et se
+      vend au Marché : le Port devient une alternative aux champs, pas un
+      ornement.
+- [x] Les cases d'eau portent du contenu comme les autres (doc 02) — c'était
+      **déjà le cas** depuis le lot 3.2, le tirage ne les ayant jamais
+      exclues. Vérifié plutôt que réimplémenté, par un test qui exige qu'une
+      case d'eau puisse porter un événement : aucune garantie n'en pose, sa
+      présence prouve donc que le tirage atteint bien l'eau.
+
+**Le poisson est la seule ressource renouvelable du jeu** (décision de la
+joueuse, `Ressource::estRenouvelable()`) : un banc se reconstitue d'une
+quinzaine à l'autre, son compteur ne descend jamais. Un Port coûte 50 or,
+40 roseaux et 20 calcaire ; le laisser s'épuiser au bout d'une quarantaine de
+quinzaines en aurait fait un piège plutôt qu'un choix, d'autant qu'une petite
+carte peut n'avoir qu'une seule case poissonneuse. L'interface affiche
+« inépuisable » là où les autres gisements affichent leurs unités restantes.
+
+**Le niveau du Port ne change rien encore** : comme le Grenier, il est binaire.
+Les effets de niveau restent hors périmètre jusqu'à ce que le commerce naval
+(Phase 5) donne une raison de le monter.
+
+**Un défaut d'affichage corrigé au passage.** Une berge du Nil peut être à la
+fois poissonneuse et cultivable ; le gabarit enchaînait gisements et champ en
+`elseif`, si bien que la seconde action disparaissait dès que la première
+s'affichait. Les deux coexistent désormais.
 
 #### 3.7 — Ville et territoire, ajustements de la joueuse  ✅
 
@@ -386,18 +415,26 @@ PNJ, le chef d'expédition des zones lourdes, l'escorte des Medjaÿ — qui
 n'arrivent qu'en Phase 10. La première mission se joue en difficulté 0, sans
 aucune zone à bandits : l'éclaireur seul y suffit.
 
-Également hors périmètre : l'épuisement des gisements et la re-exploration
-(régions de difficulté 4+) ; le commerce et le craft (Phase 5) ; les
-événements de zone et les énigmes (Phase 7) ; le recrutement, les chefs et les
-travailleurs (Phase 4).
+Également hors périmètre : la re-exploration (régions de difficulté 4+) ; le
+commerce naval et le craft (Phase 5) ; les événements de zone et les énigmes
+(Phase 7) ; le recrutement, les chefs et les travailleurs (Phase 4).
+
+**Une incohérence connue, laissée en l'état.** Le doc 02 réserve l'épuisement
+des gisements aux régions de difficulté 4 et plus, et
+`PoidsDeTirage::gisementsEpuisables()` existe pour le dire — mais elle n'est
+appelée nulle part : dans les faits, tout gisement non renouvelable se vide,
+quelle que soit la région. Sans conséquence à ce stade (200 unités au Delta,
+soit une quarantaine de quinzaines), à trancher quand les régions difficiles
+arriveront : soit brancher la méthode, soit la supprimer et acter que tout
+s'épuise.
 
 #### Définition de « fini »
 
 Parcours couvert de bout en bout : carte générée à la création de la partie →
 éclaireur envoyé → cycles déclenchés → case révélée → ressource exploitée →
 chantier financé par cette ressource. Plus un champ établi, un grenier bâti,
-une moisson qui tombe en Chémou et pas en Akhèt, et une ville qui nourrit ses
-habitants ou tombe en famine.
+une moisson qui tombe en Chémou et pas en Akhèt, un Port dressé sur la berge
+qui ouvre la pêche, et une ville qui nourrit ses habitants ou tombe en famine.
 
 Tests unitaires sur les points où une régression passerait inaperçue : les
 règles de placement géographique, le tirage pondéré, le rendement saisonnier,
@@ -500,3 +537,5 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Cycle agricole | **Quatre étapes** (semis/pousse/récolte/repos) ; le Nil suit la saison, la terre suit son propre compteur ; aucune nourriture hors récolte |
 | Rayon gratuit de l'éclaireur | **< 3 cases** : entièrement gratuit, or et vivres compris ; au-delà, les deux sont dus |
 | Échec de partie | **Famine prolongée** (4 quinzaines) → partie « échouée », conservée et consultable, jamais supprimée |
+| Port | Constructible **dès qu'un point d'eau jouxte la ville**, sans autre condition ; il débloque la pêche, son niveau ne change rien encore |
+| Poisson | **Renouvelable** — la seule ressource du jeu qui ne s'épuise jamais, sans quoi un Port coûteux deviendrait un piège |

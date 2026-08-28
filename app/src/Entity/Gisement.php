@@ -74,9 +74,13 @@ class Gisement
         return $this->quantiteRestante;
     }
 
+    /**
+     * Une ressource renouvelable ne s'épuise jamais : un banc de poisson se
+     * reconstitue, une carrière non (`Ressource::estRenouvelable()`).
+     */
     public function estEpuise(): bool
     {
-        return 0 === $this->quantiteRestante;
+        return !$this->ressource->estRenouvelable() && 0 === $this->quantiteRestante;
     }
 
     public function estExploitee(): bool
@@ -94,9 +98,16 @@ class Gisement
     /**
      * Prélève sur le filon, sans jamais descendre sous zéro. Renvoie ce qui a
      * effectivement été extrait, qui peut être moindre que demandé sur la fin.
+     *
+     * Une ressource renouvelable rend toujours son plein : le banc de poisson
+     * se reconstitue d'une quinzaine à l'autre, son compteur ne bouge pas.
      */
     public function extraire(int $quantite): int
     {
+        if ($this->ressource->estRenouvelable()) {
+            return $quantite;
+        }
+
         $extrait = min($quantite, $this->quantiteRestante);
         $this->quantiteRestante -= $extrait;
 
@@ -104,10 +115,15 @@ class Gisement
     }
 
     /**
-     * Désignation courte, pour les messages destinés au joueur.
+     * Désignation courte, pour les messages destinés au joueur. On ne creuse
+     * pas un banc de poisson : le mot suit la chose.
      */
     public function libelle(): string
     {
-        return \sprintf('gisement de %s', $this->ressource->libelle());
+        return \sprintf(
+            '%s de %s',
+            Ressource::Poisson === $this->ressource ? 'banc' : 'gisement',
+            $this->ressource->libelle(),
+        );
     }
 }

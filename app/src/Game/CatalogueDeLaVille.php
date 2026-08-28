@@ -47,15 +47,13 @@ final readonly class CatalogueDeLaVille
             return $this->verifierLesMoyens($ville, $type, $existant, $cout);
         }
 
-        // Le Port n'a de sens qu'au bord de l'eau (doc 01). La carte sait déjà
-        // répondre, mais la pêche qui justifie le bâtiment arrive au lot 3.6 :
-        // le laisser bâtir maintenant donnerait un quai sans usage.
-        if ($type->exigeUnPointDEau()) {
+        // Le Port n'a de sens qu'au bord de l'eau (doc 01) : seule la
+        // géographie peut désormais l'empêcher, la pêche qu'il débloque
+        // existant depuis le lot 3.6.
+        if ($type->exigeUnPointDEau() && !$ville->jouxteUnPointDEau()) {
             return OffreDeConstruction::empechee(
                 $type, null, $type->coutDeBase(),
-                $ville->jouxteUnPointDEau()
-                    ? 'Votre ville borde bien l\'eau. La pêche et le commerce naval arrivent au prochain lot.'
-                    : 'Exige un point d\'eau adjacent à la ville.',
+                'Exige un point d\'eau adjacent à la ville.',
             );
         }
 

@@ -6,11 +6,13 @@ namespace App\Tests\Game;
 
 use App\Entity\Building;
 use App\Entity\City;
+use App\Entity\Zone;
 use App\Game\CatalogueDeLaVille;
 use App\Game\DotationRoyale;
 use App\Game\OffreDeConstruction;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
+use App\Game\TypeDeTerrain;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -58,6 +60,19 @@ final class CatalogueDeLaVilleTest extends TestCase
         self::assertFalse($offre->estRealisable());
         self::assertNotNull($offre->empechement);
         self::assertStringContainsString('point d\'eau', $offre->empechement);
+    }
+
+    /**
+     * Seule la géographie peut désormais empêcher le Port : la pêche qu'il
+     * débloque existe depuis le lot 3.6, il n'y a plus de raison de le retenir
+     * sur une ville qui borde bien l'eau et qui en a les moyens.
+     */
+    public function testLePortEstConstructibleQuandLaVilleBordeLEau(): void
+    {
+        $offre = $this->offrePour($this->villeAuBordDuNil(), TypeDeBatiment::Port);
+
+        self::assertTrue($offre->estRealisable(), $offre->empechement ?? '');
+        self::assertNull($offre->empechement);
     }
 
     public function testLeTempleEstEmpecheFauteDeLin(): void
@@ -110,6 +125,23 @@ final class CatalogueDeLaVilleTest extends TestCase
     private function villeDotee(): City
     {
         return (new City('Avaris', 0, 3))->crediterRessources(DotationRoyale::pour(0)->enRessources());
+    }
+
+    /**
+     * Une ville riche dont la case jouxte le fleuve — la seule condition que
+     * le Port pose encore.
+     */
+    private function villeAuBordDuNil(): City
+    {
+        $ville = $this->villeRiche();
+
+        $centre = new Zone($ville, 1, 1, TypeDeTerrain::Fertile);
+        $centre->yPlacerLaVille();
+
+        $ville->ajouterZone($centre);
+        $ville->ajouterZone(new Zone($ville, 1, 0, TypeDeTerrain::Nil));
+
+        return $ville;
     }
 
     private function villeRiche(): City
