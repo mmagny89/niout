@@ -252,9 +252,26 @@ final class VilleTest extends WebTestCase
     }
 
     /**
+     * Le doc 03 veut la compétence « chiffrée en interne, qualitative à
+     * l'affichage ». Chercher la valeur dans le HTML rendu serait instable —
+     * une compétence de 20 à 100 et un rendement de 50 à 100 se croisent, et
+     * le test passerait ou non selon le tirage. C'est donc une **assertion de
+     * structure** : le gabarit ne doit nommer `competence` nulle part, comme
+     * `ConnexionTest` vérifie la présence de l'attribut CSRF plutôt que son
+     * effet.
+     */
+    public function testLeGabaritDeLaVilleNImprimeJamaisLaCompetenceChiffree(): void
+    {
+        $gabarit = file_get_contents(\dirname(__DIR__, 2).'/templates/partie/ville.html.twig');
+
+        self::assertIsString($gabarit);
+        self::assertStringNotContainsString('.competence', $gabarit);
+    }
+
+    /**
      * Le parcours complet d'un recrutement, jeton compris — et la règle
-     * d'affichage du doc 03 : le joueur voit des étoiles, jamais la
-     * compétence chiffrée.
+     * d'affichage du doc 03 : le joueur voit des étoiles pour juger un
+     * candidat.
      */
     public function testAfficherUneAnnoncePuisRetenirUnChef(): void
     {
@@ -276,20 +293,6 @@ final class VilleTest extends WebTestCase
 
         $etoiles = $crawler->filter('[aria-label*="étoile"]');
         self::assertGreaterThanOrEqual(2, $etoiles->count(), 'Deux ou trois candidats se présentent.');
-
-        // Doc 03 : « chiffré en interne, qualitatif à l'affichage ». L'offre
-        // se relit depuis la base : celle en mémoire date d'avant la requête,
-        // qui a rejoué le noyau.
-        $offre = $this->relire($partie)->getVille()->offrePour(TypeDeBatiment::Grenier);
-        self::assertNotNull($offre);
-
-        foreach ($offre->candidats() as $candidat) {
-            self::assertStringNotContainsString(
-                \sprintf('>%d<', $candidat->competence),
-                $crawler->html(),
-                'La compétence chiffrée ne doit jamais être imprimée.',
-            );
-        }
 
         $embauche = $crawler->filter(\sprintf('form[action="/partie/%d/ville/embaucher"]', $partie->getId()));
         $client->submit($embauche->first()->form());

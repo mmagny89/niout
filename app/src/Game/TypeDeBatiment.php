@@ -128,7 +128,11 @@ enum TypeDeBatiment: string
             self::ResidenceFamiliale => 0,
             self::Grenier, self::Entrepot, self::Temple, self::MaisonDesScribes => 1,
             self::QuartierDHabitation, self::Marche, self::Forge, self::Atelier, self::Auberge => 2,
-            self::Caserne, self::Port => 3,
+            self::Caserne => 3,
+            // Le doc 01 en donne trois. **Un seul** (décision de la joueuse) :
+            // un chef et un homme suffisent à tenir un quai, et à trois
+            // l'équipage du Port mangeait tout ce que la pêche rapportait.
+            self::Port => 1,
         };
     }
 

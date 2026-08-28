@@ -111,6 +111,12 @@ final readonly class Recoltes
      * La moisson. Sans Grenier, elle n'a nulle part où aller : les champs
      * existent, ils travaillent, mais rien n'entre au stock (doc 01).
      *
+     * **Le Grenier ne conserve qu'à hauteur de ce qu'il a de bras** (décision
+     * de la joueuse : « un bâtiment sans chef fonctionne mais partiellement,
+     * il ne stocke que la moitié de ce qui est produit »). Le rendement
+     * s'applique à ce qui entre, pas à ce que les champs donnent : les épis
+     * ont poussé, c'est leur conservation qui manque de monde.
+     *
      * @return list<string>
      */
     private function moissonner(GameSave $partie): array
@@ -168,11 +174,36 @@ final readonly class Recoltes
             return [];
         }
 
-        $ville->crediterRessources($recolte);
+        $rendement = Effectifs::rendementDe($ville, TypeDeBatiment::Grenier, $partie->getCycle());
+        $conserve = [];
+        $perdu = false;
+
+        foreach ($recolte as $ressource => $quantite) {
+            $garde = intdiv($quantite * $rendement, Effectifs::RENDEMENT_PLEIN);
+
+            if ($garde < $quantite) {
+                $perdu = true;
+            }
+
+            if ($garde > 0) {
+                $conserve[$ressource] = $garde;
+            }
+        }
+
+        if ([] === $conserve) {
+            return ['Faute de bras au Grenier, rien de ce qui a été moissonné n\'a pu être rentré.'];
+        }
+
+        $ville->crediterRessources($conserve);
 
         $verbe = Saison::Chemou === $date->saison ? 'La moisson rentre' : 'Les champs ont donné';
+        $messages = [$this->enoncer($verbe, $conserve)];
 
-        return [$this->enoncer($verbe, $recolte)];
+        if ($perdu) {
+            $messages[] = 'Le Grenier manque de bras : une part de la récolte s\'est perdue faute d\'être rentrée à temps.';
+        }
+
+        return $messages;
     }
 
     /**
