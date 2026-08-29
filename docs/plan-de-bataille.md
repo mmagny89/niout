@@ -167,7 +167,7 @@ vues, pas de la conception.
 - [x] **Phase 3** — Carte, exploration et ressources · §6.2 · `02`, `04`, `06`, `08`
 - [x] **Phase 4** — Population : recrutement, chefs et travailleurs · §6.3 ·
       `01`, `03`, `02`, `05`, `13`
-- [ ] **Phase 5** — Artisanat et commerce · `08`, `12`
+- [ ] **Phase 5** — Artisanat et commerce · §6.4 · `08`, `12`, `01`
 - [ ] **Phase 6** — Faveur divine et événements · `07`
 - [ ] **Phase 7** — Énigmes, enquêtes et fil rouge · `10`
 - [ ] **Phase 8** — Campagne : les 10 missions et leurs objectifs · `09`, `11`
@@ -747,6 +747,256 @@ peut juger : mener une partie sur une année complète au navigateur et
 constater qu'une ville correctement gérée ne meurt ni de faim ni de faillite.
 Les calibrages sont mesurés pièce par pièce ; leur composition sur une partie
 entière ne l'est pas encore.
+
+---
+
+
+### 6.4 Phase 5 — Artisanat et commerce
+
+**Sources** : docs `08` (ressources, recettes, prix, rivaux), `12` (routes
+commerciales par mission), `01` (Atelier, Forge, Entrepôt, Port, capacités de
+stockage).
+
+**Intention.** La ville sait produire des matières premières et les vendre au
+Marché local. Elle ne sait ni les **transformer**, ni aller chercher ce que sa
+région ne porte pas. C'est le blocage identifié dès le lot 3.5 : **seul le
+Delta est autosuffisant** en matériaux parmi les dix régions ; à partir de la
+mission 2, le commerce cesse d'être un confort pour devenir une condition de
+jouabilité.
+
+À la fin de la phase, on doit pouvoir raconter : *« mon argile part à
+l'Atelier, où trois potiers en tirent des jarres pendant deux quinzaines.
+J'ouvre une route vers Byblos en y envoyant une première caravane, j'annonce
+que j'achète du cèdre à douze deben et que je vends mon lin à cinq. Trois
+quinzaines plus tard, un navire entre au port avec le cèdre ; le mien est
+reparti chargé de lin. »*
+
+**Le principe de commerce universel du doc 08** structure toute la phase :
+n'importe quelle ressource peut être achetée ou vendue, quelle que soit sa
+catégorie. Le Marché et l'Entrepôt sont des points d'échange généralistes, pas
+des catalogues fermés. La catégorie ne dit qu'une chose : **où l'obtenir sans
+commercer**.
+
+#### 5.0 — Les ressources fabriquées  *(prérequis)*
+
+Dix ressources de plus dans `Ressource`, avec leurs prix (doc 08) : poterie,
+pain, bière, vannerie, papyrus, sandales, tissus pour l'Atelier ; outils et
+armes pour la Forge ; bijoux, statuettes et vases pour le craft de luxe.
+
+Aucune n'est trouvable sur la carte : elles n'existent que par le craft ou par
+l'import. `Ressource` gagne donc de quoi le dire — une ressource fabriquée ne
+doit jamais pouvoir être tirée par `GenerateurDeCarte`, et l'invariant mérite
+son test.
+
+**Prix à établir** : le doc 08 chiffre les matières premières mais **pas les
+objets fabriqués**. Ils s'en déduisent : un objet doit valoir nettement plus
+que la somme de ses ingrédients, sans quoi personne ne fabriquerait rien. Le
+rapport est à calibrer, et c'est le premier arbitrage économique de la phase.
+
+#### 5.1 — Capacité de stockage : plafonner sans périmer *(décision de la joueuse)*
+
+Le stock est illimité depuis le lot 3.1. Il cesse de l'être : le **Grenier
+plafonne les denrées** et l'**Entrepôt les matériaux et objets** (doc 01), le
+plafond suivant leur niveau.
+
+**Le surplus est perdu à l'entrée, il ne se dégrade pas** (décision de la
+joueuse) : une récolte qui déborde ne rentre pas, mais ce qui est en réserve y
+reste indéfiniment. La péremption progressive du doc 01 est écartée — c'est un
+système d'inventaire à part entière, et le plafond suffit à donner un effet aux
+niveaux.
+
+**Le piège à éviter** : un plafond qui fait silencieusement disparaître une
+moisson est le genre de règle qu'un joueur subit sans comprendre. L'écran doit
+annoncer la saturation **avant** qu'elle ne coûte quelque chose, et le passage
+de cycle doit dire ce qui a été perdu.
+
+**À vérifier avant d'écrire** : la dotation royale d'ouverture ne doit pas
+dépasser le plafond de départ, sans quoi le pharaon ferait un cadeau dont une
+partie s'évaporerait à la première quinzaine.
+
+#### 5.2 — L'Atelier : des ordres de fabrication  *(décision de la joueuse)*
+
+**Fabriquer prend du temps et consomme plusieurs ressources** — la joueuse a
+tranché contre un craft instantané à un seul ingrédient : « fabriquer plusieurs
+pièces sur un cycle, avec plusieurs ressources ».
+
+- Le joueur lance un **ordre de fabrication** : une recette, une quantité. Les
+  ressources sont **débitées à l'engagement**, comme un chantier — on ne
+  réserve pas, on paie.
+- L'ordre occupe l'Atelier pendant plusieurs quinzaines, et les pièces
+  entrent au stock **à l'achèvement**, jamais avant. C'est la même règle que
+  les champs : rien ne rentre hors de la récolte.
+- Le **niveau de l'Atelier** débloque les recettes (doc 08 : poterie et pain
+  au niveau 1, tissus au niveau 4) **et** élargit la taille d'un ordre.
+- Les **ouvriers de l'Atelier** décident du rythme : la règle du demi-rendement
+  s'applique, un Atelier désert produit deux fois plus lentement.
+
+**Écart assumé au doc 08** : ses recettes ne portent qu'un seul ingrédient —
+poterie = 5 argile, pain = 5 blé. La joueuse en veut de vraies, à plusieurs
+matières. Elles sont donc à réécrire sur une base historique : une poterie
+demande de l'argile **et** de la paille de dégraissant, du pain demande du blé
+**et** du combustible. Le document sera à mettre à jour en conséquence.
+
+**Un arbitrage à surveiller** : transformer doit rapporter davantage que
+vendre la matière brute, **et** immobiliser l'Atelier doit avoir un coût
+d'opportunité. Si l'un des deux manque, le craft devient soit inutile, soit
+évident.
+
+#### 5.3 — La Forge : outils et armes
+
+Même mécanique que l'Atelier — ordres de fabrication, déblocage par niveau —
+sur une matière que le Delta ne porte pas : le **cuivre**. La Forge est donc le
+premier bâtiment dont la production **dépend du commerce**, ce qui en fait la
+démonstration du lot suivant.
+
+Les armes n'ont aucun usage avant la Phase 10 (Medjaÿ, combat) ; les outils
+non plus tant que rien ne les consomme. **Les deux se vendent**, ce qui suffit
+à les rendre utiles — mais l'interface doit dire que leur usage propre viendra
+plus tard, comme elle le fait déjà pour les traits et les spécialités
+endormis.
+
+#### 5.4 — Les partenaires commerciaux
+
+Contenu pur, non persisté (`src/Game/`), tiré du doc 12 : chaque mission a ses
+routes attestées, terrestres, fluviales et maritimes.
+
+Un partenaire porte un nom, une **distance en quinzaines**, un type de route,
+ce qu'il **vend** et ce qu'il **achète**. Byblos vend du cèdre et achète du
+lin ; Pount vend de l'encens et de la myrrhe et n'achète presque rien, la
+région étant un point de transit.
+
+Chaque partenaire porte aussi une **fourchette de prix acceptables** par
+ressource — c'est elle qui donne un sens au prix que le joueur affiche
+(lot 5.6). Ces fourchettes sont à inventer : le doc 08 pose les prix locaux et
+une majoration d'import de ×1,5, jamais une marge de négociation.
+
+**Les distances sont à inventer** aussi : le doc 12 nomme les routes sans les
+chiffrer. Elles doivent rester lisibles — Byblos plus loin que Memphis, Pount
+plus loin que tout.
+
+#### 5.5 — Ouvrir une route
+
+**Ouvrir une route, c'est envoyer une première caravane** (décision de la
+joueuse) : le geste déclare à une cité qu'on est prêt à commercer avec elle.
+Il coûte 100 deben par voie terrestre, 150 par voie maritime (doc 12, l'or y
+devenant le deben) et prend le temps du trajet.
+
+- Les routes **terrestres** passent par l'**Entrepôt**, les routes
+  **maritimes et fluviales** par le **Port** (doc 12). Sans le bâtiment, la
+  route n'est pas ouvrable.
+- Le **volume échangeable par quinzaine** suit le niveau du bâtiment :
+  `10 × niveau` pour une caravane, `15 × niveau` pour un navire (doc 12).
+- Une route reste ouverte une fois payée.
+
+**Hors périmètre, et c'est une dépendance à énoncer** : l'**héritage
+commercial inter-missions** du doc 12 (−20 % sur l'ouverture d'une route déjà
+exploitée) suppose que la campagne enchaîne réellement ses missions. Elle n'en
+compte qu'une jouable aujourd'hui. Écrire l'héritage maintenant serait écrire
+du code que rien n'exerce.
+
+#### 5.6 — Annoncer ce qu'on vend et ce qu'on achète
+
+Le cœur de la décision du joueur, et ce qui distingue ce commerce d'un robinet.
+
+Sur une route ouverte, le joueur pose des **ordres permanents** : « je vends du
+lin à 5 deben », « j'achète du cèdre jusqu'à 12 ». Chacun porte une ressource,
+un sens, un prix et une quantité maximale par convoi.
+
+**Le prix est le levier, et le seul.** Chaque partenaire a sa fourchette : trop
+gourmand à la vente, personne n'achète ; trop pingre à l'achat, rien n'arrive.
+Généreux, les convois se pressent. C'est ce qui rend le commerce **jouable
+plutôt que subi** — le joueur ne clique pas « échanger », il tient un étal et
+en fixe les prix.
+
+Un ordre de vente ne part que si le stock suit ; un ordre d'achat ne se conclut
+que si la bourse suit. Ni l'un ni l'autre ne doit **jamais** vider la ville
+sans prévenir : la limite par convoi existe pour ça.
+
+#### 5.7 — Le trafic : caravanes et navires en chemin
+
+La résolution, à chaque quinzaine, sur le modèle des expéditions du lot 3.4 —
+même forme, même absence de persistance dans le service.
+
+- **Nos convois partent** chargés de ce que nos ordres de vente proposent et
+  que le partenaire accepte à ce prix.
+- **Les leurs arrivent** avec ce que nos ordres d'achat réclament, et
+  repartent avec ce qu'ils nous prennent.
+- Chacun met le **temps de la distance** à l'aller comme au retour. Un convoi
+  en chemin est visible, et le joueur voit ce qu'il transporte et quand il
+  arrive.
+
+**Le point à ne pas rater** : un convoi parti est un engagement pris. Si le
+stock a fondu entre le départ et l'arrivée, c'est trop tard — la marchandise
+est partie avec lui, débitée au départ. Débiter à l'arrivée permettrait de
+vendre deux fois la même chose.
+
+#### 5.8 — Le craft de luxe
+
+Second jeu de recettes de l'Atelier, débloqué non par l'Atelier mais par
+l'**Entrepôt au niveau 8** (docs 01 et 08) : bijoux, statuettes, vases. Il
+réclame des matières que la région ne porte pas, et n'est donc atteignable
+qu'une fois le commerce établi — c'est la progression économique voulue par le
+doc 08, artisanat courant puis artisanat de prestige.
+
+À écrire **en dernier**, parce qu'il ne démontre rien tant que les routes ne
+livrent pas.
+
+#### 5.9 — Les chefs de l'Atelier, de la Forge et de l'Entrepôt
+
+Sept spécialités dorment depuis le lot 4.8 faute d'un système d'accueil :
+Potier, Papyrussier, Vannier, Tisserand, Brasseur, Armurier, Outilleur, plus
+le Négociateur et le Logisticien de l'Entrepôt. Elles se réveillent ici.
+
+Elles passent par le canal existant — la **qualité de direction**
+(`EffetDeChef`) —, jamais par un multiplicateur de plus. Le Négociateur élargit
+la fourchette de prix acceptée par les partenaires, le Logisticien raccourcit
+les trajets (doc 03).
+
+**L'invariant du lot 4.5 s'applique** : avant d'ajouter un facteur à une
+production, vérifier ce qui s'y applique déjà.
+
+#### Hors périmètre, explicitement
+
+- **Les marchands rivaux** (doc 08) : reportés en bloc après les enquêtes
+  (Phase 7, doc 10), décision de la joueuse. L'une de leurs trois issues est
+  une enquête ; écrire le système sans elle reviendrait à le réécrire ensuite.
+- **La péremption du surplus** (doc 01) : le lot 5.1 plafonne sans dégrader.
+- **L'héritage commercial inter-missions** (doc 12) : suppose une campagne qui
+  enchaîne ses missions, ce qui relève de la Phase 8.
+- **L'usage des armes et des outils** : Phase 10 pour les unes, indéfini pour
+  les autres. Ils se vendent, c'est tout, et l'interface le dit.
+- **Le kite**, dixième du deben : sans objet tant que les prix restent entiers.
+
+#### Points tranchés avec la joueuse
+
+| Question | Décision |
+|---|---|
+| Le craft est-il instantané ? | **Non** : un ordre de fabrication produit plusieurs pièces sur plusieurs quinzaines, à partir de **plusieurs ressources** |
+| Comment commerce-t-on à distance ? | On **ouvre une route en envoyant une première caravane**, on annonce **ce qu'on vend et achète et à quel prix**, puis les convois vont et viennent au rythme de la distance |
+| Les rivaux commerciaux ? | **Reportés** après les enquêtes |
+| Le stockage est-il limité ? | **Oui, plafonné** par le Grenier et l'Entrepôt — mais **rien ne se périme** |
+
+#### Définition de « fini »
+
+Parcours de bout en bout : lancer un ordre de fabrication à l'Atelier → le voir
+occuper des quinzaines → récupérer les pièces → ouvrir une route vers une cité
+→ annoncer un prix d'achat et un prix de vente → voir partir un convoi chargé
+et en voir arriver un autre → fabriquer avec une matière que la région ne porte
+pas.
+
+Tests unitaires sur les recettes, les plafonds de stock, les fourchettes de
+prix et les volumes de convoi. Les allers-retours de convois se testent comme
+les expéditions : sur des invariants — un convoi arrive toujours, un ordre ne
+vend jamais plus que le stock, un prix hors fourchette ne conclut rien.
+
+**Une vérification d'équilibrage** que les tests ne peuvent pas juger : mener
+une partie jusqu'à ce que le commerce soit rentable, et constater que
+transformer vaut mieux que vendre brut sans que le craft écrase la vente
+directe. C'est le même exercice que pour le calibrage du lot 4.6.
+
+Les quatre portes qualité au vert, et une revue de sécurité : ouvrir une route,
+poser un ordre, lancer une fabrication modifient l'état d'une partie et doivent
+passer par `PartieVoter::JOUER`.
 
 ---
 
