@@ -151,7 +151,6 @@ final readonly class Explorations
 
         return match ($zone->getContenu()) {
             ContenuDeZone::ChampEligible => \sprintf('%s : de la terre cultivable.', $lieu),
-            ContenuDeZone::TerreNonCultivable => \sprintf('%s : fertile, mais pas cultivable.', $lieu),
             ContenuDeZone::Evenement => \sprintf('%s : quelque chose s\'y trame.', $lieu),
             default => \sprintf('%s : rien de notable.', $lieu),
         };

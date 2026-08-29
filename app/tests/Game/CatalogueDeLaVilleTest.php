@@ -38,19 +38,21 @@ final class CatalogueDeLaVilleTest extends TestCase
 
     public function testUnBatimentTropCherEstEmpecheAvecLeDetailDuManque(): void
     {
-        // Caserne : 20 roseaux, 30 argile, 40 deben (doc 01). Cette ville-ci n'a que
-        // 10 d'argile : il lui en manque 20, et le message doit le dire.
+        // Caserne : 20 argile, 15 roseaux, 10 bois local à la fondation
+        // (doc 01). Cette ville-ci n'a que 5 d'argile : il lui en manque 15, et
+        // le message doit le dire.
         $pauvre = (new City('Avaris', 0, 3))->crediterRessources([
             Ressource::Deben->value => 999,
             Ressource::Roseaux->value => 999,
-            Ressource::Argile->value => 10,
+            Ressource::BoisLocal->value => 999,
+            Ressource::Argile->value => 5,
         ]);
 
         $offre = $this->offrePour($pauvre, TypeDeBatiment::Caserne);
 
         self::assertFalse($offre->estRealisable());
         self::assertNotNull($offre->empechement);
-        self::assertStringContainsString('20 argile', $offre->empechement);
+        self::assertStringContainsString('15 argile', $offre->empechement);
     }
 
     public function testLePortEstEmpecheFauteDeCarte(): void
@@ -153,6 +155,9 @@ final class CatalogueDeLaVilleTest extends TestCase
             // pierre de taille pour le Temple et le Port.
             Ressource::Argile->value => 9999,
             Ressource::Calcaire->value => 9999,
+            // Le bois de charpente : acacia et sycomore, que tout bâtiment
+            // réclame depuis le doc 01 révisé.
+            Ressource::BoisLocal->value => 9999,
         ]);
     }
 }

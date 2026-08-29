@@ -39,6 +39,8 @@ final readonly class PrixDuMarche
             // Matériaux communs, ramassés sur les berges.
             Ressource::Argile->value => 1,
             Ressource::Roseaux->value => 1,
+            // Deux deben : plus qu'un roseau, très loin du cèdre à dix (doc 08).
+            Ressource::BoisLocal->value => 2,
             // Vivres et textile.
             Ressource::Ble->value => 2,
             Ressource::Orge->value => 2,

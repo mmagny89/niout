@@ -28,6 +28,14 @@ enum Ressource: string
     case Argile = 'argile';
     case Or = 'or';
     case Roseaux = 'roseaux';
+    /**
+     * Acacia, sycomore, palmier (doc 08) — le bois qui pousse le long du Nil,
+     * bon pour une charpente modeste, une porte ou un cadre à mouler les
+     * briques. **À ne pas confondre avec le cèdre**, qui vient du Levant et
+     * qu'on réserve au prestige : l'Égypte manque de bois de qualité, pas de
+     * bois.
+     */
+    case BoisLocal = 'bois_local';
     case Calcaire = 'calcaire';
     case Albatre = 'albatre';
     case Gres = 'gres';
@@ -64,6 +72,7 @@ enum Ressource: string
             self::Argile => 'argile',
             self::Or => 'or',
             self::Roseaux => 'roseaux',
+            self::BoisLocal => 'bois local',
             self::Calcaire => 'calcaire',
             self::Albatre => 'albâtre',
             self::Gres => 'grès',
@@ -159,6 +168,6 @@ enum Ressource: string
      */
     public static function materiauxVitaux(): array
     {
-        return [self::Roseaux, self::Argile];
+        return [self::Roseaux, self::Argile, self::BoisLocal];
     }
 }

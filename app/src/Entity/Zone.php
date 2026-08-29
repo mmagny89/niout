@@ -198,6 +198,26 @@ class Zone
         return $this;
     }
 
+    /**
+     * Marque la case cultivable **sans toucher à ses gisements**.
+     *
+     * Un champ et une carrière coexistent volontiers sur une même case — c'est
+     * déjà ce que fait `poserUnGisement()`, qui n'écrase jamais une terre
+     * cultivable. Cette méthode est l'autre sens du même principe, réservée à
+     * la garantie de champs : sur une petite carte dont toutes les terres
+     * fertiles ont tiré un gisement, `poserUnContenu()` les effacerait pour
+     * poser le champ, et détruirait la garantie de matériau qui suit. Une ville
+     * doit pouvoir semer, sans que ce soit au prix de son argile.
+     */
+    public function rendreCultivable(): static
+    {
+        if ($this->terrain->accepteUnChamp()) {
+            $this->contenu = ContenuDeZone::ChampEligible;
+        }
+
+        return $this;
+    }
+
     public function estDecouverte(): bool
     {
         return $this->decouverte;

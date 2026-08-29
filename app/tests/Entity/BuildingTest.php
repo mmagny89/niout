@@ -70,8 +70,10 @@ final class BuildingTest extends TestCase
         $cout = $batiment->coutDeLaMonteeDeNiveau();
 
         self::assertNotNull($cout);
-        // Roseaux niveau 2 : 15 × 1,4 = 21.
-        self::assertSame(21, $cout->quantiteDe(Ressource::Roseaux));
+        // Roseaux niveau 2 : 10 × 1,4 = 14. Et le deben apparaît, qui était
+        // nul à la fondation.
+        self::assertSame(14, $cout->quantiteDe(Ressource::Roseaux));
+        self::assertSame(8, $cout->quantiteDe(Ressource::Deben));
     }
 
     #[DataProvider('paliersVisuels')]

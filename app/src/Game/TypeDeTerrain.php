@@ -19,6 +19,16 @@ enum TypeDeTerrain: string
     case Desert = 'desert';
     case Oasis = 'oasis';
     case Fertile = 'fertile';
+    /**
+     * La « terre classique » du doc 02 : ni cultivée ni désert, ces
+     * broussailles et taillis où poussent d'eux-mêmes acacias et sycomores.
+     *
+     * Elle remplace l'ancienne « terre fertile non cultivable », qui n'était
+     * qu'une case fertile que le tirage n'avait pas retenue — un manque plutôt
+     * qu'un lieu. C'est désormais un terrain à part entière, avec sa ressource
+     * caractéristique : le bois local.
+     */
+    case TerreClassique = 'terre_classique';
     case Foret = 'foret';
 
     public function libelle(): string
@@ -30,6 +40,9 @@ enum TypeDeTerrain: string
             self::Desert => 'Désert',
             self::Oasis => 'Oasis',
             self::Fertile => 'Terre fertile',
+            // Le doc 02 la nomme « terre classique » ; le joueur, lui, doit
+            // voir de quoi il s'agit.
+            self::TerreClassique => 'Terre broussailleuse',
             self::Foret => 'Forêt de cèdres',
         };
     }
@@ -46,6 +59,9 @@ enum TypeDeTerrain: string
     /**
      * Terrain où un champ peut être établi (doc 02). Le Nil en fait partie :
      * la crue y laisse le limon sur lequel on cultivait réellement.
+     *
+     * **La terre classique n'en est jamais** — c'est ce qui la distingue
+     * structurellement de la terre fertile, et non un simple degré de moins.
      */
     public function accepteUnChamp(): bool
     {
@@ -63,6 +79,7 @@ enum TypeDeTerrain: string
             self::Desert => 'desert',
             self::Oasis => 'oasis',
             self::Fertile => 'fertile',
+            self::TerreClassique => 'terre_classique',
             self::Foret => 'foret',
         };
     }

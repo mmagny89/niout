@@ -27,13 +27,17 @@ final class ChantiersTest extends KernelTestCase
 
         $roseauxAvant = $ville->quantite(Ressource::Roseaux);
         $argileAvant = $ville->quantite(Ressource::Argile);
+        $boisAvant = $ville->quantite(Ressource::BoisLocal);
 
         $this->chantiers()->lancer($partie, TypeDeBatiment::Entrepot);
 
-        // Entrepôt niveau 1 : 20 roseaux, 10 argile, 15 or (doc 01).
-        self::assertSame($debenAvant - 15, $ville->getDeben());
-        self::assertSame($roseauxAvant - 20, $ville->quantite(Ressource::Roseaux));
-        self::assertSame($argileAvant - 10, $ville->quantite(Ressource::Argile));
+        // Entrepôt, fondation : 15 argile, 15 roseaux, 10 bois local et
+        // **aucun deben** (doc 01 révisé) — la brique crue d'un premier niveau
+        // ne s'achetait pas, elle se façonnait.
+        self::assertSame($debenAvant, $ville->getDeben());
+        self::assertSame($roseauxAvant - 15, $ville->quantite(Ressource::Roseaux));
+        self::assertSame($argileAvant - 15, $ville->quantite(Ressource::Argile));
+        self::assertSame($boisAvant - 10, $ville->quantite(Ressource::BoisLocal));
         self::assertCount(1, $ville->getChantiers());
     }
 
