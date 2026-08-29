@@ -172,8 +172,9 @@ final class CandidatTest extends TestCase
             static fn (SpecialiteDeChef $specialite): bool => $specialite->agitDeja(),
         ));
 
+        // L'Acheteur du Marché n'y figure pas : rien ne s'achète encore
+        // (Phase 5), et l'annoncer comme actif mentirait au joueur.
         self::assertSame([
-            SpecialiteDeChef::MarcheAcheteur,
             SpecialiteDeChef::MarcheVendeur,
             SpecialiteDeChef::GrenierGestionnaire,
             SpecialiteDeChef::PortPecheur,

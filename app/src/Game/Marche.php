@@ -75,7 +75,14 @@ final readonly class Marche
             throw new VenteImpossible(\sprintf('Vous n\'avez pas %d %s à vendre.', $quantite, $ressource->libelle()));
         }
 
-        $recette = $prix * $quantite;
+        // Ce que vaut le Marché : ses bras et la compétence de ceux qui les
+        // dirigent (lot 4.8). Un Marché désert écoule à moitié prix — le
+        // plancher de 50 % vaut ici comme partout ; un Marché tenu par un bon
+        // Vendeur dépasse le plein tarif.
+        $recette = intdiv(
+            $prix * $quantite * EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Marche, $partie->getCycle()),
+            Effectifs::RENDEMENT_PLEIN,
+        );
         $ville->crediterRessources([Ressource::Deben->value => $recette]);
 
         if ($recette >= self::RECETTE_DUN_GROS_CONTRAT) {

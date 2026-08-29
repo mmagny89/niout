@@ -165,10 +165,8 @@ vues, pas de la conception.
 - [x] **Phase 1** — Comptes et page d'accueil · §5
 - [x] **Phase 2** — Lancer une partie et bâtir · §6.1 · `01`, `05`, `13`
 - [x] **Phase 3** — Carte, exploration et ressources · §6.2 · `02`, `04`, `06`, `08`
-- [ ] **Phase 4** — Population : recrutement, chefs et travailleurs · §6.3 ·
-      `01`, `03`, `02`, `05`, `13` — **lots 4.0 à 4.7 livrés** ; reste le
-      lot 4.8 (effets de la compétence) et la vérification d'équilibrage en
-      conditions réelles
+- [x] **Phase 4** — Population : recrutement, chefs et travailleurs · §6.3 ·
+      `01`, `03`, `02`, `05`, `13`
 - [ ] **Phase 5** — Artisanat et commerce · `08`, `12`
 - [ ] **Phase 6** — Faveur divine et événements · `07`
 - [ ] **Phase 7** — Énigmes, enquêtes et fil rouge · `10`
@@ -473,6 +471,8 @@ le calibrage du lot 4.6.
 | Famine — mécontentement, puis échec | 4 puis 12 quinzaines | `Subsistance` |
 | Mécontentement — seuil, malus, plafond | 2 quinzaines, −30 %, 12 | `Mecontentement` |
 | Départ d'un chef | `100 / ancienneté` % par quinzaine, doublé si mécontentement | `DepartsNaturels` |
+| Facteur de compétence d'un chef | `90 + compétence × 0,4` (98 % à 130 %) | `EffetDeChef` |
+| Bonus du Gestionnaire du Grenier | +15 % | `EffetDeChef::BONUS_GESTIONNAIRE` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,
@@ -481,7 +481,7 @@ document ne dit rien.
 
 ---
 
-### 6.3 Phase 4 — Population : recrutement, chefs et travailleurs  *(4.0 à 4.7 ✅)*
+### 6.3 Phase 4 — Population : recrutement, chefs et travailleurs  ✅
 
 **Sources** : docs `01` (chefs/travailleurs, effets de niveau), `03`
 (recrutement, stats, traits, spécialités), `02` (familles disponibles,
@@ -517,7 +517,7 @@ au même titre qu'un système qui bloque.
 | 4.5 | Équipages du territoire et bâtiment gouvernant | ✅ |
 | 4.6 | Salaires, masse salariale et calibrage de la phase | ✅ |
 | 4.7 | Départs naturels, mécontentement, famine à deux paliers | ✅ |
-| 4.8 | Ce que la compétence d'un chef change | à faire |
+| 4.8 | Ce que la compétence d'un chef change | ✅ |
 
 #### Les règles qui en sortent
 
@@ -632,9 +632,7 @@ coûte 39). Le poste de dépense principal du jeu cesse d'être la construction
 pour devenir l'emploi — cohérent avec la phase et historiquement défendable,
 mais à voir plutôt qu'à subir.
 
-#### 4.8 — Ce que la compétence d'un chef change réellement
-
-Seul lot restant de la phase.
+#### 4.8 — Ce que la compétence d'un chef change réellement  ✅
 
 Le doc 01 pose que « la compétence d'un chef influence la production du
 bâtiment ». Encore faut-il que le bâtiment produise quelque chose : la plupart
@@ -653,8 +651,50 @@ Les spécialités des autres bâtiments sont **générées** dès maintenant (un
 candidat est un profil complet, doc 03) mais restent **inertes** jusqu'à leur
 phase. L'interface doit l'annoncer clairement.
 
-**Attention à l'invariant** : ce lot ajoute un multiplicateur de plus à des
-productions qui en portent déjà. Vérifier ce qui s'y applique avant d'écrire.
+##### Livré
+
+**La compétence n'a créé aucun multiplicateur nouveau** — c'était le risque
+annoncé du lot. Elle passe par la *qualité de direction* d'un bâtiment, aux
+côtés de son effectif : `qualité = rendement d'effectif × facteur du chef`,
+et c'est cette qualité qui module le bonus accordé aux exploitations. Un
+facteur de plus sur la base aurait refait tomber la chaîne sous le « tout
+tourne au moins à moitié ».
+
+Le facteur vaut `90 + compétence × 0,4`, soit **98 % à 20 de compétence et
+130 % à 100** (valeurs inventées). L'invariant qui en découle et qu'il ne faut
+pas défaire : **un mauvais chef reste meilleur que pas de chef**. Un bâtiment
+désert tourne au plancher de 50 % ; le pire des chefs, son équipe au complet,
+rend 98 %. Sans cela, embaucher au hasard serait un risque de faire pire que
+rien, et le joueur n'oserait plus.
+
+**Le Marché trouve enfin son effet de personnel** : ses prix suivent sa
+qualité de direction. Un Marché désert écoule à moitié prix, ce qui fait du
+chef du Marché exactement ce que le calibrage du lot 4.6 annonçait — il
+**double les prix de vente**.
+
+Mesuré sur une vente de dix calcaire, contre 4 à 14 deben de salaire :
+
+| Direction du Marché | Recette | Gain |
+|---|---|---|
+| Aucun chef | 15 deben | — |
+| Chef ★ (compétence 20) | 32 deben | +17 |
+| Chef ★★★ (compétence 60) | 37 deben | +22 |
+| Chef ★★★★★ (compétence 100) | 42 deben | +27 |
+
+L'embauche se défend donc toujours au Marché, même mal servie par le tirage —
+peut-être un peu trop : c'est le logement, la nourriture et la masse salariale
+qui la bornent, pas la rentabilité. À surveiller en playtest.
+
+**Une correction au passage** : l'Acheteur du Marché était annoncé comme
+agissant alors que **rien ne s'achète encore** (l'achat vient en Phase 5). Il
+rejoint les spécialités endormies, que l'interface signale désormais
+explicitement — pour les chefs en poste comme pour les candidats qu'on compare.
+
+**Une limite mesurée, à connaître** : aux ordres de grandeur actuels, l'arrondi
+entier peut avaler une spécialité. Sur une pêche de référence de 10 unités,
+l'écart de +20 % du Pêcheur disparaît si le Port est en sous-effectif. Le
+signal existe, il n'est pas toujours visible — c'est un argument pour relever
+les références plutôt que les bonus, si le playtest le confirme.
 
 #### Hors périmètre, explicitement
 
@@ -702,11 +742,11 @@ Tests unitaires sur les formules du doc, qui sont le cœur calculatoire ;
 tirages aléatoires testés sur des **invariants et des distributions**, jamais
 sur un résultat attendu.
 
-**Reste à faire avant de clore la phase** : le lot 4.8, et une vérification
-d'équilibrage en conditions réelles — mener une partie sur une année complète
-au navigateur et constater qu'une ville correctement gérée ne meurt ni de faim
-ni de faillite, et qu'embaucher reste avantageux. C'est le seul moyen de
-valider le calibrage du lot 4.6, qu'aucun test unitaire ne peut juger.
+**Reste une vérification en conditions réelles**, qu'aucun test unitaire ne
+peut juger : mener une partie sur une année complète au navigateur et
+constater qu'une ville correctement gérée ne meurt ni de faim ni de faillite.
+Les calibrages sont mesurés pièce par pièce ; leur composition sur une partie
+entière ne l'est pas encore.
 
 ---
 
@@ -803,6 +843,8 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Dotation royale | Un an de vivres **et** un an de salaires : le pharaon finance le démarrage, pas la suite |
 | Famine | **Deux paliers** : mécontentement à 4 quinzaines (production ralentie, départs anticipés, renommée en baisse — doc 02), échec seulement à 12 |
 | Départ d'un chef | **Tiré à chaque quinzaine** sur son ancienneté annoncée ; il repart avec sa maisonnée, comme au renvoi |
+| Effet d'un chef | Il module la **qualité de direction** du bâtiment, aux côtés de l'effectif — jamais un multiplicateur de plus sur la base. **Un mauvais chef reste meilleur que pas de chef** |
+| Spécialités sans système d'accueil | **Tirées et affichées, mais inertes**, et l'interface le dit — promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment du choix |
 | Affichage des PNJ | **Chiffré en interne, qualitatif à l'écran** (doc 03) : étoiles et libellés, jamais de compétence brute. Le salaire fait exception, déjà qualitatif par nature |
 | Noms des PNJ | **Aucun pour l'instant** : un employé se désigne par son poste, comme dans les documents |
 | Chiffres de conception | **Provisoires par nature**, dans les documents comme dans le code. Ils se rectifient au fil de la conception ; le critère est l'équilibre et le fait de **pousser le joueur à se servir des mécaniques**, pas la fidélité au document |
