@@ -14,7 +14,35 @@ namespace App\Game;
  */
 final readonly class DotationRoyale
 {
-    private const int DEBEN_DE_BASE = 50;
+    /**
+     * Les quatre bâtiments que le pharaon finance d'emblée (décision de la
+     * joueuse). Ils ouvrent chacun une boucle du jeu, et l'ensemble suffit à
+     * « faire rouler la ville » :
+     *
+     * - le **Quartier d'habitation** loge les volontaires envoyés, sans quoi
+     *   la ville manque de logements dès la première quinzaine et ne peut ni
+     *   croître ni embaucher ;
+     * - le **Grenier** rend l'agriculture utile — sans lui, un champ travaille
+     *   pour rien ;
+     * - le **Marché** est la seule entrée de deben du jeu ;
+     * - l'**Entrepôt** ouvrira les routes commerciales (Phase 5).
+     *
+     * Champs et carrières, eux, ne coûtent rien à ouvrir : les matériaux
+     * vitaux sont garantis dans l'anneau des huit cases autour de la ville
+     * (`GenerateurDeCarte`), et les reconnaître y est gratuit. Rien ne
+     * s'oppose donc à ce que la ville produise dès la première quinzaine.
+     */
+    private const array BATIMENTS_DOUVERTURE = [
+        TypeDeBatiment::QuartierDHabitation,
+        TypeDeBatiment::Grenier,
+        TypeDeBatiment::Marche,
+        TypeDeBatiment::Entrepot,
+    ];
+
+    /**
+     * Marge en deben par niveau de difficulté : une mission plus rude appelle
+     * un soutien plus consistant, sans quoi elle ne serait pas viable.
+     */
     private const int DEBEN_PAR_NIVEAU_DE_DIFFICULTE = 10;
 
     /**
@@ -34,21 +62,6 @@ final readonly class DotationRoyale
             * Salaires::SALAIRE_DUN_TRAVAILLEUR
             * DateDeJeu::CYCLES_PAR_ANNEE;
     }
-
-    /**
-     * De quoi couvrir le premier bâtiment, quelle que soit la région.
-     *
-     * Calibré pour couvrir **d'emblée le Grenier et le Marché** (15/15/15 et
-     * 15/5/15 au niveau 1, doc 01), qui ouvrent les deux boucles du jeu : le
-     * Grenier rend l'agriculture utile, le Marché est la seule entrée de deben.
-     *
-     * Les couvrir tous les deux n'est pas une largesse mais une condition de
-     * jouabilité : une partie qui n'atteindrait pas le Marché ne pourrait plus
-     * jamais gagner un or, et se figerait au deuxième bâtiment. La marge
-     * au-delà laisse le droit à une dépense malheureuse.
-     */
-    private const int ROSEAUX = 35;
-    private const int ARGILE = 30;
 
     private function __construct(
         public int $deben,
@@ -73,8 +86,16 @@ final readonly class DotationRoyale
     }
 
     /**
-     * Le pharaon envoie de quoi ouvrir la partie, les mêmes matériaux partout :
-     * roseaux et argile, dont sont faits tous les bâtiments de départ.
+     * Le pharaon envoie de quoi ouvrir la partie — exactement de quoi dresser
+     * les quatre bâtiments d'ouverture, **calculé sur leurs coûts réels**
+     * plutôt que recopié. Un coût qui changerait dans le catalogue changerait
+     * la dotation avec lui ; l'inverse laisserait une partie bloquée sans
+     * qu'aucun test ne le dise.
+     *
+     * La dotation ne laisse **aucune marge en matériaux** : elle couvre les
+     * quatre bâtiments et rien de plus. Une dépense malheureuse ne bloque pas
+     * pour autant — roseaux et argile sont garantis autour de la ville, et
+     * les rouvrir ne coûte rien.
      *
      * **Les vivres, eux, dépendent de la famille qu'il envoie** : une année
      * complète de rations pour ce foyer-là, calculée sur sa consommation
@@ -88,15 +109,32 @@ final readonly class DotationRoyale
      */
     public static function pour(int $difficulte, int $consommationParQuinzaine): self
     {
+        $ouverture = self::coutDesBatimentsDouverture();
+        $deben = $ouverture[Ressource::Deben->value] ?? 0;
+        unset($ouverture[Ressource::Deben->value]);
+
         return new self(
-            deben: self::DEBEN_DE_BASE + self::DEBEN_PAR_NIVEAU_DE_DIFFICULTE * $difficulte + self::anneeDeSalaires(),
+            deben: $deben + self::anneeDeSalaires() + self::DEBEN_PAR_NIVEAU_DE_DIFFICULTE * $difficulte,
             provisions: $consommationParQuinzaine * DateDeJeu::CYCLES_PAR_ANNEE,
-            materiaux: [
-                // Les deux matériaux de la brique crue et de sa toiture : ce
-                // dont tous les bâtiments d'ouverture sont faits (doc 01).
-                Ressource::Roseaux->value => self::ROSEAUX,
-                Ressource::Argile->value => self::ARGILE,
-            ],
+            materiaux: $ouverture,
         );
+    }
+
+    /**
+     * Ce que coûtent, ensemble, les quatre bâtiments d'ouverture au niveau 1.
+     *
+     * @return array<string, int> valeur de Ressource => quantité
+     */
+    public static function coutDesBatimentsDouverture(): array
+    {
+        $total = [];
+
+        foreach (self::BATIMENTS_DOUVERTURE as $type) {
+            foreach ($type->coutDeBase()->enRessources() as $valeur => $quantite) {
+                $total[$valeur] = ($total[$valeur] ?? 0) + $quantite;
+            }
+        }
+
+        return $total;
     }
 }
