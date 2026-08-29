@@ -48,22 +48,92 @@ final class TypeDeBatimentTest extends TestCase
 
     public function testLeCoutSuitLaProgressionDuDocument(): void
     {
-        // Grenier : 15 roseaux, 15 argile, 15 or au niveau 1 (doc 01).
+        // Grenier : 15 argile, 10 roseaux, 8 bois local à la fondation (doc 01).
         $base = TypeDeBatiment::Grenier->coutDeBase();
-        self::assertSame(15, $base->quantiteDe(Ressource::Roseaux));
+        self::assertSame(10, $base->quantiteDe(Ressource::Roseaux));
 
-        // coutNiveau(N) = coutBase × (1 + (N - 1) × 0,4)
-        // Niveau 2 : 15 × 1,4 = 21
-        self::assertSame(21, $base->pourNiveau(2)->quantiteDe(Ressource::Roseaux));
-        // Niveau 3 : 15 × 1,8 = 27
-        self::assertSame(27, $base->pourNiveau(3)->quantiteDe(Ressource::Roseaux));
+        // Les matériaux : coutFondation × (1 + (N - 1) × 0,4).
+        self::assertSame(14, $base->pourNiveau(2)->quantiteDe(Ressource::Roseaux), '10 × 1,4');
+        self::assertSame(18, $base->pourNiveau(3)->quantiteDe(Ressource::Roseaux), '10 × 1,8');
+    }
+
+    /**
+     * **La fondation ne coûte pas de deben, l'amélioration si** (doc 01
+     * révisé). La brique crue d'un premier niveau relevait de matériaux locaux
+     * et d'une main-d'œuvre familiale ; le deben ne rétribuait qu'un
+     * savoir-faire spécialisé, donc ce qui s'ajoute en montant de niveau.
+     */
+    public function testLaFondationNeCoutePasDeDeben(): void
+    {
+        foreach (TypeDeBatiment::constructibles() as $type) {
+            if (\in_array($type, [TypeDeBatiment::Temple, TypeDeBatiment::Port], true)) {
+                continue;
+            }
+
+            self::assertSame(
+                0,
+                $type->coutDeBase()->quantiteDe(Ressource::Deben),
+                \sprintf('%s ne doit rien coûter en deben à la fondation.', $type->libelle()),
+            );
+        }
+    }
+
+    /**
+     * Les deux exceptions du document : le Temple pour son rituel de dédicace,
+     * le Port pour l'assemblage de ses pontons par des spécialistes.
+     */
+    public function testSeulsLeTempleEtLePortPaientDesLaFondation(): void
+    {
+        $payants = array_values(array_filter(
+            TypeDeBatiment::constructibles(),
+            static fn (TypeDeBatiment $t): bool => $t->coutDeBase()->quantiteDe(Ressource::Deben) > 0,
+        ));
+
+        self::assertSame([TypeDeBatiment::Temple, TypeDeBatiment::Port], $payants);
+    }
+
+    /**
+     * Le deben suit sa propre loi — `debenFondation + debenParNiveau × (N-1)` —
+     * et non celle des matériaux. Les deux ne croissent pas ensemble : les
+     * matériaux avec la taille du bâtiment, le deben avec le savoir-faire
+     * qu'on achète pour le raffiner.
+     */
+    public function testLeDebenCroitLineairementAvecLeNiveau(): void
+    {
+        $grenier = TypeDeBatiment::Grenier->coutDeBase();
+
+        self::assertSame(0, $grenier->pourNiveau(1)->quantiteDe(Ressource::Deben));
+        self::assertSame(8, $grenier->pourNiveau(2)->quantiteDe(Ressource::Deben));
+        self::assertSame(16, $grenier->pourNiveau(3)->quantiteDe(Ressource::Deben));
+    }
+
+    /**
+     * Le bois local remplace le « bois » générique du document : tous les
+     * bâtiments en réclament, aucun ne demande de cèdre — celui-ci s'importe
+     * du Levant et se réserve au prestige.
+     */
+    public function testChaqueBatimentReclameDuBoisLocalEtJamaisDuCedre(): void
+    {
+        foreach (TypeDeBatiment::constructibles() as $type) {
+            self::assertGreaterThan(
+                0,
+                $type->coutDeBase()->quantiteDe(Ressource::BoisLocal),
+                \sprintf('%s se charpente bien avec quelque chose.', $type->libelle()),
+            );
+            self::assertSame(0, $type->coutDeBase()->quantiteDe(Ressource::BoisDeCedre));
+        }
     }
 
     public function testLeCoutDuPremierNiveauEstLeCoutDeBase(): void
     {
         foreach (TypeDeBatiment::constructibles() as $type) {
             $base = $type->coutDeBase();
-            self::assertEquals($base, $base->pourNiveau(1));
+
+            self::assertSame(
+                $base->enRessources(),
+                $base->pourNiveau(1)->enRessources(),
+                $type->libelle(),
+            );
         }
     }
 

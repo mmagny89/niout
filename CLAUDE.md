@@ -133,12 +133,35 @@ constructeur public quand ils rendent un invariant impossible à violer.
 **Chaque ressource reste distincte, jamais agrégée.** Il n'existe ni ressource
 `Bois` ni `Pierre` — le doc 01 chiffre ses bâtiments dans ces matériaux
 génériques, mais chaque coût nomme désormais le matériau réel qu'il réclame
-(`CoutDeConstruction::de(roseaux: …, argile: …)`) : un grenier coûte des
-roseaux et de l'argile, un temple du calcaire. Rien ne se substitue à rien —
+(`CoutDeConstruction::de(roseaux: …, argile: …, boisLocal: …)`) : un grenier
+coûte des roseaux, de l'argile et du bois local, un temple du calcaire. **Le
+bois local et le cèdre sont deux ressources distinctes** — l'un se ramasse au
+bord du Nil (acacia, sycomore), l'autre s'importe du Levant à cinq fois le
+prix ; les agréger sous « bois » cacherait au joueur ce qu'il possède. Rien ne se substitue à rien —
 une région qui ne porte pas un matériau doit l'importer (commerce, Phase 5).
 Ne jamais réintroduire un compteur générique ni une famille de matériaux : un
 « bois » qui agrégerait roseaux et cèdre cacherait au joueur ce qu'il possède
 réellement, ce qui a été le défaut corrigé ici.
+
+**Trois matériaux sont vitaux**, pas deux (`Ressource::materiauxVitaux()`) :
+roseaux, argile et **bois local**, dont tout bâtiment réclame depuis le doc 01
+révisé. Chacun a sa garantie de génération, et celle du bois local lui est
+propre — il ne pousse que sur la terre broussailleuse et, plus rarement, sur
+la terre fertile, jamais dans le sable ; la garantie générique l'aurait planté
+en plein désert.
+
+**La « terre classique » du doc 02 est un terrain, pas un contenu**
+(`TypeDeTerrain::TerreClassique`, affichée « Terre broussailleuse »). Elle
+remplace l'ancien `ContenuDeZone::TerreNonCultivable`, qui n'était qu'une case
+fertile que le tirage n'avait pas retenue — un manque déguisé en contenu. Elle
+ne se cultive **jamais**, et ne se sème que dans les régions bordées par le Nil.
+
+**La fondation d'un bâtiment ne coûte pas de deben, l'amélioration si** (doc 01
+révisé) : la brique crue d'un premier niveau relevait de matériaux locaux et
+d'une main-d'œuvre familiale. Deux exceptions, qui paient dès la fondation — le
+Temple (rituel de dédicace) et le Port (pontons). Les matériaux croissent en
+`× (1 + (N-1) × 0,4)`, le deben en `debenParNiveau × (N-1)` : **deux lois
+distinctes**, à ne pas réunifier.
 
 **Une case porte jusqu'à deux gisements** (`Zone::GISEMENTS_MAX`), jamais deux
 fois le même. À un seul, l'argile et les roseaux — les deux matériaux dont rien

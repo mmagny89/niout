@@ -67,26 +67,27 @@ enum TypeDeBatiment: string
         return match ($this) {
             // Bâtiment de départ, offert avec la ville.
             self::ResidenceFamiliale => new CoutDeConstruction(),
-            // Les quantités du doc 01 sont reprises telles quelles ; seuls les
-            // matériaux sont nommés. Le « bois » de son tableau devient des
-            // roseaux — le doc 01 décrit lui-même les toitures en troncs de
-            // palmier et en nattes — et sa « pierre » devient de l'argile, la
-            // brique crue dont il dit que presque toute la ville est faite.
-            self::QuartierDHabitation => CoutDeConstruction::de(deben: 20, roseaux: 25, argile: 15),
-            self::Grenier => CoutDeConstruction::de(deben: 15, roseaux: 15, argile: 15),
-            self::Entrepot => CoutDeConstruction::de(deben: 15, roseaux: 20, argile: 10),
-            self::Marche => CoutDeConstruction::de(deben: 15, roseaux: 15, argile: 5),
-            self::Forge => CoutDeConstruction::de(deben: 30, roseaux: 15, argile: 25),
-            self::Atelier => CoutDeConstruction::de(deben: 20, roseaux: 20, argile: 10),
-            self::MaisonDesScribes => CoutDeConstruction::de(deben: 35, roseaux: 25, argile: 15),
-            self::Caserne => CoutDeConstruction::de(deben: 40, roseaux: 20, argile: 30),
-            self::Auberge => CoutDeConstruction::de(deben: 20, roseaux: 20, argile: 10),
-            // Les deux seuls bâtiments de pierre de taille (doc 01, colonne
-            // « matériau dominant »). Le calcaire de Tourah remontait et
-            // descendait réellement le fleuve : une région qui n'en porte pas
-            // devra l'importer.
-            self::Temple => CoutDeConstruction::de(deben: 10, roseaux: 10, calcaire: 30, lin: 5),
-            self::Port => CoutDeConstruction::de(deben: 50, roseaux: 40, calcaire: 20),
+            // Les quantités viennent du tableau de fondation du doc 01 révisé,
+            // reprises telles quelles. Le « bois » générique de l'ancienne
+            // version y a laissé place au **bois local** nommé — acacia,
+            // sycomore, palmier —, distinct du cèdre importé : l'Égypte manque
+            // de bois de qualité, pas de bois.
+            self::QuartierDHabitation => CoutDeConstruction::de(debenParNiveau: 10, roseaux: 15, boisLocal: 10, argile: 20),
+            self::Grenier => CoutDeConstruction::de(debenParNiveau: 8, roseaux: 10, boisLocal: 8, argile: 15),
+            self::Entrepot => CoutDeConstruction::de(debenParNiveau: 8, roseaux: 15, boisLocal: 10, argile: 15),
+            self::Marche => CoutDeConstruction::de(debenParNiveau: 8, roseaux: 10, boisLocal: 5, argile: 10),
+            self::Forge => CoutDeConstruction::de(debenParNiveau: 15, roseaux: 10, boisLocal: 8, argile: 20),
+            self::Atelier => CoutDeConstruction::de(debenParNiveau: 10, roseaux: 10, boisLocal: 8, argile: 15),
+            self::MaisonDesScribes => CoutDeConstruction::de(debenParNiveau: 18, roseaux: 15, boisLocal: 10, argile: 15),
+            self::Caserne => CoutDeConstruction::de(debenParNiveau: 20, roseaux: 15, boisLocal: 10, argile: 20),
+            self::Auberge => CoutDeConstruction::de(debenParNiveau: 10, roseaux: 10, boisLocal: 8, argile: 15),
+            // Les deux seuls à payer du deben dès la fondation (doc 01) : le
+            // Temple pour son rituel de dédicace, le Port pour l'assemblage de
+            // ses pontons par des spécialistes. Le calcaire de Tourah remontait
+            // et descendait réellement le fleuve : une région qui n'en porte
+            // pas devra l'importer.
+            self::Temple => CoutDeConstruction::de(deben: 10, debenParNiveau: 15, boisLocal: 5, argile: 10, calcaire: 20, lin: 5),
+            self::Port => CoutDeConstruction::de(deben: 10, debenParNiveau: 20, roseaux: 15, boisLocal: 20, calcaire: 10),
         };
     }
 

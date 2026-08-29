@@ -246,28 +246,143 @@ final class GenerateurDeCarteTest extends TestCase
     }
 
     /**
-     * Une case qui aurait pu porter un champ mais n'en tire pas un doit rester
-     * identifiable comme telle (« terre fertile, non cultivable ») plutôt que
-     * de se fondre dans le « rien » générique du désert ou de la mer.
+     * La terre broussailleuse remplace l'ancienne « terre fertile non
+     * cultivable » : ce n'est plus un manque — une case fertile que le tirage
+     * n'a pas retenue — mais un terrain à part entière, qui ne se cultive
+     * jamais et porte le bois local (doc 02).
      */
-    public function testUneTerreFertileSansChampEstMarqueeNonCultivable(): void
+    public function testLaTerreBroussailleuseApparaitEtNeSeCultiveJamais(): void
     {
         $trouvee = false;
 
         for ($graine = 1; $graine <= 30 && !$trouvee; ++$graine) {
             $ville = new City('Avaris', 0, 5);
-            $this->generer($ville, new GeographieDeRegion(nil: true, ressourcesDeZone: [Ressource::Argile]), $graine);
+            $this->generer($ville, new GeographieDeRegion(nil: true, ressourcesDeZone: [Ressource::Argile, Ressource::BoisLocal]), $graine);
 
             foreach ($ville->getZones() as $zone) {
-                if (ContenuDeZone::TerreNonCultivable === $zone->getContenu()) {
-                    self::assertTrue($zone->getTerrain()->accepteUnChamp());
+                if (TypeDeTerrain::TerreClassique === $zone->getTerrain()) {
+                    self::assertFalse($zone->getTerrain()->accepteUnChamp());
                     $trouvee = true;
                     break;
                 }
             }
         }
 
-        self::assertTrue($trouvee, 'Aucune terre non cultivable rencontrée en 30 graines.');
+        self::assertTrue($trouvee, 'Aucune terre broussailleuse rencontrée en 30 graines.');
+    }
+
+    /**
+     * **Une case fertile survit toujours**, quoi qu'en dise le tirage : sur une
+     * petite carte dont presque tout est déjà pris par le fleuve et le désert,
+     * tout convertir en broussailles priverait la région de sa seule terre
+     * cultivable, et une ville sans champ possible ne se nourrit pas.
+     */
+    public function testLaConversionEnBroussaillesLaisseToujoursUneTerreCultivable(): void
+    {
+        for ($graine = 1; $graine <= 40; ++$graine) {
+            $ville = new City('Avaris', 0, 3);
+            $this->generer($ville, new GeographieDeRegion(nil: true, ressourcesDeZone: [Ressource::Argile, Ressource::BoisLocal]), $graine);
+
+            $cultivables = 0;
+            foreach ($ville->getZones() as $zone) {
+                if ($zone->getTerrain()->accepteUnChamp()) {
+                    ++$cultivables;
+                }
+            }
+
+            self::assertGreaterThan(0, $cultivables, \sprintf('Graine %d : aucune terre cultivable.', $graine));
+        }
+    }
+
+    /**
+     * **Les trois matériaux vitaux sont garantis**, et le bois local en fait
+     * désormais partie : depuis le doc 01 révisé, aucun bâtiment ne se dresse
+     * sans lui. Une carte qui n'en porterait pas serait imbâtissable de bout
+     * en bout — le défaut déjà payé sur l'argile et les roseaux.
+     */
+    public function testChaqueCartePorteLesTroisMateriauxVitaux(): void
+    {
+        $region = new GeographieDeRegion(
+            nil: true,
+            mediterranee: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::BoisLocal, Ressource::Calcaire],
+        );
+
+        for ($graine = 1; $graine <= 60; ++$graine) {
+            $ville = new City('Avaris', 0, 3);
+            $this->generer($ville, $region, $graine);
+
+            foreach (Ressource::materiauxVitaux() as $materiau) {
+                $trouve = false;
+
+                foreach ($ville->getZones() as $zone) {
+                    if (null !== $zone->gisementDe($materiau)) {
+                        $trouve = true;
+                        break;
+                    }
+                }
+
+                self::assertTrue($trouve, \sprintf('Graine %d : pas de %s.', $graine, $materiau->libelle()));
+            }
+        }
+    }
+
+    /**
+     * **La garantie de champ doit aboutir**, y compris sur une petite carte
+     * dont toutes les terres cultivables ont tiré un gisement. Une région sans
+     * le moindre champ possible ne nourrit pas sa ville — et la dotation
+     * royale promet précisément qu'une ville neuve puisse semer.
+     */
+    public function testChaqueCartePorteAuMoinsUneTerreCultivableLibre(): void
+    {
+        $region = new GeographieDeRegion(
+            nil: true,
+            mediterranee: true,
+            ressourcesDeZone: [Ressource::Argile, Ressource::Roseaux, Ressource::BoisLocal, Ressource::Calcaire],
+        );
+
+        for ($graine = 1; $graine <= 60; ++$graine) {
+            $ville = new City('Avaris', 0, 3);
+            $this->generer($ville, $region, $graine);
+
+            $cultivables = 0;
+            foreach ($ville->getZones() as $zone) {
+                if (!$zone->porteLaVille() && $zone->accepteUnChamp()) {
+                    ++$cultivables;
+                }
+            }
+
+            self::assertGreaterThan(0, $cultivables, \sprintf('Graine %d : rien à semer.', $graine));
+        }
+    }
+
+    /**
+     * Le bois local ne pousse pas dans le sable (doc 02, doc 08) : il est la
+     * ressource caractéristique de la terre broussailleuse, et n'apparaît
+     * qu'à titre secondaire sur une terre cultivée.
+     */
+    public function testLeBoisLocalNePousseQueSurLaTerreEtJamaisDansLeSable(): void
+    {
+        for ($graine = 1; $graine <= 40; ++$graine) {
+            $ville = new City('Avaris', 0, 5);
+            $this->generer(
+                $ville,
+                new GeographieDeRegion(nil: true, desert: true, ressourcesDeZone: [Ressource::Argile, Ressource::BoisLocal]),
+                $graine,
+            );
+
+            foreach ($ville->getZones() as $zone) {
+                if (null === $zone->gisementDe(Ressource::BoisLocal)) {
+                    continue;
+                }
+
+                self::assertContains(
+                    $zone->getTerrain(),
+                    [TypeDeTerrain::TerreClassique, TypeDeTerrain::Fertile],
+                    \sprintf('Du bois local sur %s (graine %d).', $zone->getTerrain()->libelle(), $graine),
+                );
+            }
+        }
     }
 
     /**
