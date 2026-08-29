@@ -7,7 +7,7 @@
        174 × 140 px dans une cellule de 189 × 206 : le pas vaut donc la moitié
        de chaque dimension. Un pas plus grand écarterait les tuiles, et
        l'épaisseur du prisme masquerait mal les marches ainsi créées. #}
-    {% set cellule = { largeur: 189, hauteur: 206 } %}
+    {% set cellule = { largeur: 174, hauteur: 185 } %}
     {% set pas = { x: 87, y: 70 } %}
     {% set cote = ville.tailleGrille %}
     {% set origineX = (cote - 1) * pas.x %}
@@ -59,7 +59,7 @@
                               top: {{ (zone.x + zone.y) * pas.y }}px;
                               width: {{ cellule.largeur }}px;
                               height: {{ cellule.hauteur }}px;
-                              clip-path: polygon(48.68% 17.96%, 94.71% 51.94%, 48.68% 85.92%, 2.65% 51.94%);"
+                              clip-path: polygon(50% 15%, 100% 52%, 50% 89%, 0% 52%);"
                        {{ zone.porteLaVille ? 'title="Entrer dans la ville"' : '' }}
                        aria-label="{{ zone.porteLaVille
                            ? 'Entrer dans ' ~ ville.nom
