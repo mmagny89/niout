@@ -205,7 +205,16 @@
                                     {{ '★★★★★'|slice(0, chef.etoiles) }}{{ '☆☆☆☆☆'|slice(0, 5 - chef.etoiles) }}
                                 </span>
                                 <span class="text-sm text-encre-600">
-                                    {{ chef.specialite ? chef.specialite.libelle : 'Sans spécialité' }}
+                                    {% if chef.specialite %}
+                                        {{ chef.specialite.libelle }}
+                                        {% if chef.specialite.agitDeja %}
+                                            <span class="text-encre-500">— {{ chef.specialite.description }}</span>
+                                        {% else %}
+                                            <span class="text-encre-500">(sans effet pour l'instant)</span>
+                                        {% endif %}
+                                    {% else %}
+                                        Sans spécialité
+                                    {% endif %}
                                 </span>
                                 <span class="text-sm text-encre-500" data-chiffres>{{ chef.salaire }} deben la quinzaine</span>
 
@@ -238,7 +247,14 @@
                                                 {{ '★★★★★'|slice(0, candidat.etoiles) }}{{ '☆☆☆☆☆'|slice(0, 5 - candidat.etoiles) }}
                                             </span>
                                             <span class="text-sm text-encre-600">
-                                                {{ candidat.specialite ? candidat.specialite.libelle : 'Sans spécialité' }}
+                                                {% if candidat.specialite %}
+                                                    {{ candidat.specialite.libelle }}
+                                                    {% if not candidat.specialite.agitDeja %}
+                                                        <span class="text-encre-500">(sans effet pour l'instant)</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    Sans spécialité
+                                                {% endif %}
                                             </span>
                                             <span class="text-sm text-encre-500" data-chiffres>
                                                 {{ candidat.salaire }} deben · {{ candidat.personnesAmenees }} personnes amenées

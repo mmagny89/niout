@@ -270,6 +270,15 @@ d'employés** (décision de la joueuse) : embaucher est un investissement, pas
 une taxe. Un chef pas encore en poste ne réclame rien, et les chefs sortent du
 vivier de bras — ils ne s'encadrent pas eux-mêmes.
 
+**Un chef ne crée jamais un multiplicateur de plus** (`EffetDeChef`) : sa
+compétence module la **qualité de direction** d'un bâtiment, aux côtés de son
+effectif, et c'est cette qualité qui pèse sur les productions. Deux invariants
+à ne pas défaire — **un mauvais chef reste meilleur que pas de chef** (98 %
+contre le plancher de 50 % d'un bâtiment désert), et **une spécialité sans
+système d'accueil reste inerte et le dit** (`SpecialiteDeChef::agitDeja()`),
+promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment
+même où il compare des candidats.
+
 **Le mécontentement a deux causes et un seul mécanisme** (`Mecontentement`) :
 la faim et les salaires impayés mènent à la même colère, comptée une fois. Il
 monte et se résorbe d'un cran par quinzaine — symétrie délibérée, qui interdit

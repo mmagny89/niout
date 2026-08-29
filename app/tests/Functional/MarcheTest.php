@@ -33,7 +33,10 @@ final class MarcheTest extends KernelTestCase
 
         $recette = $this->marche()->vendre($partie, Ressource::Calcaire, 10);
 
-        self::assertSame(10 * PrixDuMarche::pour(Ressource::Calcaire), $recette);
+        // Un Marché sans personne écoule à moitié prix (lot 4.8) : le plancher
+        // de 50 % vaut ici comme partout. Le chef du Marché double donc les
+        // prix de vente, ce qui est exactement le calibrage voulu.
+        self::assertSame(intdiv(10 * PrixDuMarche::pour(Ressource::Calcaire), 2), $recette);
         self::assertSame($debenAvant + $recette, $ville->getDeben());
         self::assertSame(0, $ville->quantite(Ressource::Calcaire));
     }
@@ -89,7 +92,7 @@ final class MarcheTest extends KernelTestCase
 
         $recette = $this->marche()->vendre($partie, Ressource::Or, 4);
 
-        self::assertSame(4 * PrixDuMarche::pour(Ressource::Or), $recette);
+        self::assertSame(intdiv(4 * PrixDuMarche::pour(Ressource::Or), 2), $recette, 'Marché sans chef : moitié prix.');
         self::assertSame($debenAvant + $recette, $ville->getDeben());
         self::assertSame(0, $ville->quantite(Ressource::Or));
     }

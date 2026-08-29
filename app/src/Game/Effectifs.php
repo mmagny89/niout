@@ -231,11 +231,10 @@ final readonly class Effectifs
      * Ce que le niveau du bâtiment gouvernant ajoute au rendement, en
      * centièmes. Cent quand il n'est pas dressé : aucun bonus, aucun malus.
      *
-     * `$rendementDuBatiment` module ce **bonus**, jamais la base — et c'est ce
-     * qui donne enfin un effet au personnel d'un bâtiment (lot 4.4), resté
-     * sans emploi depuis que le lot 4.5 a retiré son double comptage sur le
-     * stockage. Un Grenier bien tenu fait mieux rendre ses champs ; un Grenier
-     * désert les laisse à eux-mêmes.
+     * `$qualiteDeDirection` module ce **bonus**, jamais la base — et c'est ce
+     * qui donne un effet au personnel d'un bâtiment (lot 4.4) comme à la
+     * compétence de ses chefs (lot 4.8). Un Grenier bien tenu et bien dirigé
+     * fait mieux rendre ses champs ; un Grenier désert les laisse à eux-mêmes.
      *
      * Moduler le bonus plutôt que la base est délibéré : c'est la seule façon
      * de faire compter le personnel d'un bâtiment **sans** multiplier deux
@@ -244,11 +243,11 @@ final readonly class Effectifs
      */
     public static function bonusDeNiveauEnCentiemes(
         int $niveauGouvernant,
-        int $rendementDuBatiment = self::RENDEMENT_PLEIN,
+        int $qualiteDeDirection = self::RENDEMENT_PLEIN,
     ): int {
         $bonus = self::BONUS_PAR_NIVEAU_GOUVERNANT * max(0, $niveauGouvernant - 1);
 
-        return self::RENDEMENT_PLEIN + intdiv($bonus * $rendementDuBatiment, self::RENDEMENT_PLEIN);
+        return self::RENDEMENT_PLEIN + intdiv($bonus * $qualiteDeDirection, self::RENDEMENT_PLEIN);
     }
 
     /**
@@ -273,12 +272,10 @@ final readonly class Effectifs
 
         $repartition = [];
 
-        $batiments = self::repartir($ville, $cycle);
-
         foreach (self::exploitations($ville) as $cle => $exploitation) {
             $gouvernant = self::batimentGouvernant($exploitation['ressource']);
             $niveau = self::niveauDuGouvernant($ville, $exploitation['ressource']);
-            $rendementDuGouvernant = $batiments[$gouvernant->value]['rendement'] ?? self::RENDEMENT_PLEIN;
+            $qualite = EffetDeChef::qualiteDeDirection($ville, $gouvernant, $cycle);
             $requis = self::equipageRequis($exploitation['ressource'], $niveau);
             $affectes = min($requis, max(0, $bras));
             $bras -= $affectes;
@@ -290,7 +287,7 @@ final readonly class Effectifs
                 'affectes' => $affectes,
                 'rendement' => intdiv(
                     self::rendementEnCentiemes($affectes, $requis)
-                        * self::bonusDeNiveauEnCentiemes($niveau, $rendementDuGouvernant),
+                        * self::bonusDeNiveauEnCentiemes($niveau, $qualite),
                     self::RENDEMENT_PLEIN,
                 ),
             ];

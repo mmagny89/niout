@@ -131,9 +131,11 @@ enum SpecialiteDeChef: string
      */
     public function agitDeja(): bool
     {
+        // L'Acheteur du Marché en est écarté : **rien ne s'achète encore**
+        // (l'achat vient en Phase 5), et l'annoncer comme actif mentirait au
+        // joueur sur ce qu'il paie.
         return \in_array($this, [
             self::GrenierGestionnaire,
-            self::MarcheAcheteur,
             self::MarcheVendeur,
             self::PortPecheur,
         ], true);
