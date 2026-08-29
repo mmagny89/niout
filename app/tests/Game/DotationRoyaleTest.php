@@ -38,13 +38,16 @@ final class DotationRoyaleTest extends TestCase
      */
     public static function dotationsAttendues(): iterable
     {
-        // 50 + 10 × difficulté (doc 13), plus l'année de salaires que le
-        // pharaon avance depuis le lot 4.6 — 4 bras × 1 deben × 25 quinzaines.
+        // Ce que réclament les quatre bâtiments d'ouverture, plus l'année de
+        // salaires que le pharaon avance (lot 4.6), plus 10 par niveau de
+        // difficulté — une mission plus rude appelle un soutien plus consistant.
+        $ouverture = DotationRoyale::coutDesBatimentsDouverture()[Ressource::Deben->value];
         $salaires = Population::ACTIFS_AU_DEPART * Salaires::SALAIRE_DUN_TRAVAILLEUR * DateDeJeu::CYCLES_PAR_ANNEE;
+        $base = $ouverture + $salaires;
 
-        yield 'Delta, la plus clémente' => [0, 50 + $salaires];
-        yield 'difficulté moyenne' => [5, 100 + $salaires];
-        yield 'Sinaï, la plus rude' => [9, 140 + $salaires];
+        yield 'Delta, la plus clémente' => [0, $base];
+        yield 'difficulté moyenne' => [5, $base + 50];
+        yield 'Sinaï, la plus rude' => [9, $base + 90];
     }
 
     public function testLesMateriauxNeDependentPasDeLaDifficulte(): void
@@ -58,9 +61,8 @@ final class DotationRoyaleTest extends TestCase
     }
 
     /**
-     * La dotation doit couvrir le Grenier ET le Marché (doc 01) — le Marché
-     * est la seule source d'or du jeu, et une partie qui ne l'atteindrait pas
-     * serait sans issue.
+     * Chacun des quatre bâtiments d'ouverture doit être à portée dès la
+     * première quinzaine (décision de la joueuse).
      */
     #[DataProvider('batimentsDOuverture')]
     public function testLaDotationCouvreLesBatimentsDOuverture(TypeDeBatiment $type): void
@@ -82,8 +84,53 @@ final class DotationRoyaleTest extends TestCase
      */
     public static function batimentsDOuverture(): iterable
     {
+        yield 'Quartier d\'habitation' => [TypeDeBatiment::QuartierDHabitation];
         yield 'Grenier' => [TypeDeBatiment::Grenier];
         yield 'Marché' => [TypeDeBatiment::Marche];
+        yield 'Entrepôt' => [TypeDeBatiment::Entrepot];
+    }
+
+    /**
+     * **L'invariant du lot** (décision de la joueuse) : les quatre bâtiments
+     * d'ouverture doivent pouvoir être dressés **ensemble**, pas seulement
+     * chacun de son côté. C'est ce qui fait rouler la ville dès la première
+     * quinzaine — elle loge ses volontaires, conserve sa moisson, vend son
+     * surplus et pourra commercer.
+     *
+     * Les vérifier un par un ne dirait rien : quatre bâtiments à portée
+     * séparément peuvent parfaitement être hors d'atteinte cumulés.
+     */
+    public function testLesQuatreBatimentsDOuvertureSeDressentEnsemble(): void
+    {
+        $recu = DotationRoyale::pour(0, self::CONSOMMATION_DE_REFERENCE)->enRessources();
+
+        foreach (DotationRoyale::coutDesBatimentsDouverture() as $valeur => $quantite) {
+            self::assertGreaterThanOrEqual(
+                $quantite,
+                $recu[$valeur] ?? 0,
+                \sprintf('%s pour les quatre bâtiments réunis.', Ressource::from($valeur)->libelle()),
+            );
+        }
+    }
+
+    /**
+     * La dotation ne laisse **aucune marge en matériaux** : elle couvre les
+     * quatre bâtiments, et rien de plus. Une largesse ferait de la carrière un
+     * ornement pendant les premières quinzaines, alors qu'elle est censée être
+     * la première chose qu'on ouvre.
+     */
+    public function testLaDotationNeDonneRienAuDelaDesQuatreBatiments(): void
+    {
+        $recu = DotationRoyale::pour(0, self::CONSOMMATION_DE_REFERENCE)->enRessources();
+        $ouverture = DotationRoyale::coutDesBatimentsDouverture();
+
+        foreach ($ouverture as $valeur => $quantite) {
+            if (Ressource::Deben->value === $valeur) {
+                continue;
+            }
+
+            self::assertSame($quantite, $recu[$valeur] ?? 0, Ressource::from($valeur)->libelle());
+        }
     }
 
     /**

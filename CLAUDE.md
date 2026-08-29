@@ -175,9 +175,17 @@ la monnaie, un **gisement** `or` est une mine. Ne jamais convertir les deux
 ensemble — voir `Version20260828140000`.
 
 **La monnaie n'entre que par le Marché** (`Game/Marche`), la dotation royale
-mise à part. Toute règle qui rendrait le Marché inatteignable fige la partie :
-c'est ce que vérifie
-`DotationRoyaleTest::testLaDotationPermetLeGrenierPuisLeMarche()`.
+mise à part. Toute règle qui rendrait le Marché inatteignable fige la partie.
+
+**La dotation royale se calcule sur les coûts réels des quatre bâtiments
+d'ouverture** — Quartier d'habitation, Grenier, Marché, Entrepôt — jamais sur
+des nombres recopiés (`DotationRoyale::coutDesBatimentsDouverture()`). Un coût
+qui changerait dans le catalogue changerait la dotation avec lui ; l'inverse
+laisserait une partie bloquée sans qu'aucun test ne le dise. Elle ne laisse
+**aucune marge en matériaux** : les quatre bâtiments, et rien de plus.
+`OuvertureDePartieTest` garde l'invariant de bout en bout — dotation, coûts du
+catalogue et garanties de génération de carte doivent s'accorder, et chacun
+peut être juste de son côté sans que l'ensemble le soit.
 
 **La population se compte en trois nombres, jamais en individus** (décision de
 la joueuse) : `City::$actifs`, `$enfants`, `$anciens`. Aucun habitant n'est
