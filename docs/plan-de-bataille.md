@@ -112,7 +112,7 @@ vues, pas de la conception.
 | **3** | Carte, exploration et ressources | `02`, `04`, `06`, `08` | ✅ |
 | **4** | Population : recrutement, chefs et travailleurs | `01`, `02`, `03`, `05`, `13` | ✅ |
 | **5** | Artisanat et commerce | `08`, `12`, `01` | ✅ |
-| **6** | Faveur divine et événements | `07` | à cadrer |
+| **6** | Faveur divine et événements | `07` | planifiée |
 | **7** | Énigmes, enquêtes et fil rouge | `10` | à cadrer |
 | **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | à cadrer |
 | **9** | Renommée, héritage et succession familiale | `13` | à cadrer |
@@ -138,9 +138,13 @@ montée au lot 3.7, le recrutement et les chefs restant en Phase 4.
 
 ## 5. Les phases, dans l'ordre
 
-Les cinq premières sont livrées et résumées ici. Le détail des pièges déjà
-payés et des conventions qui en découlent vit dans [`CLAUDE.md`](../CLAUDE.md) ;
+Les six premières (Phases 0 à 5) sont livrées et résumées ici : intention,
+lots, règles qui en sortent, pièges payés, ce qu'elles laissent ouvert. Le
+détail des conventions qui en découlent vit dans [`CLAUDE.md`](../CLAUDE.md) ;
 l'historique complet est dans les messages de commit.
+
+**La Phase 6 est cadrée et pas encore écrite** : elle garde le format détaillé,
+lot par lot, jusqu'à sa livraison — comme la Phase 5 avant elle.
 
 ### 5.1 Phase 0 — Fondations techniques  ✅
 
@@ -373,527 +377,330 @@ les prix restent en nombres entiers de deben.
 
 ---
 
-### 5.6 Phase 5 — Artisanat et commerce  *(livrée)*
+### 5.6 Phase 5 — Artisanat et commerce  ✅
 
 **Sources** : docs `08` (ressources, recettes, prix, rivaux), `12` (routes
-commerciales par mission), `01` (Atelier, Forge, Entrepôt, Port, capacités de
-stockage).
+commerciales par mission), `01` (Atelier, Forge, Entrepôt, Port, stockage).
 
-**Intention.** La ville sait produire des matières premières et les vendre au
-Marché local. Elle ne sait ni les **transformer**, ni aller chercher ce que sa
-région ne porte pas. C'est le blocage identifié dès le lot 3.5 : **seul le
-Delta est autosuffisant** en matériaux parmi les dix régions ; à partir de la
+**Intention.** La ville savait produire des matières premières et les vendre au
+Marché local ; elle ne savait ni les **transformer**, ni aller chercher ce que
+sa région ne porte pas. C'est le blocage identifié dès le lot 3.5 : **seul le
+Delta est autosuffisant** en matériaux parmi les dix régions — à partir de la
 mission 2, le commerce cesse d'être un confort pour devenir une condition de
 jouabilité.
 
-À la fin de la phase, on doit pouvoir raconter : *« mon argile part à
-l'Atelier, où trois potiers en tirent des jarres pendant deux quinzaines.
-J'ouvre une route vers Byblos en y envoyant une première caravane, j'annonce
-que j'achète du cèdre à douze deben et que je vends mon lin à cinq. Trois
-quinzaines plus tard, un navire entre au port avec le cèdre ; le mien est
-reparti chargé de lin. »*
+À la fin de la phase, on peut raconter : *« mon argile part à l'Atelier, où
+trois potiers en tirent des jarres pendant deux quinzaines. J'ouvre une route
+vers Byblos en y envoyant une première caravane, j'annonce que j'achète du
+cèdre à douze deben et que je vends mon lin à cinq. Trois quinzaines plus tard,
+un navire entre au port avec le cèdre ; le mien est reparti chargé de lin. »*
 
 **Le principe de commerce universel du doc 08** structure toute la phase :
-n'importe quelle ressource peut être achetée ou vendue, quelle que soit sa
-catégorie. Le Marché et l'Entrepôt sont des points d'échange généralistes, pas
-des catalogues fermés. La catégorie ne dit qu'une chose : **où l'obtenir sans
-commercer**.
-
-#### 5.0 — Les ressources fabriquées  ✅  *(prérequis)*
-
-Dix ressources de plus dans `Ressource`, avec leurs prix (doc 08) : poterie,
-pain, bière, vannerie, papyrus, sandales, tissus pour l'Atelier ; outils et
-armes pour la Forge ; bijoux, statuettes et vases pour le craft de luxe.
-
-Aucune n'est trouvable sur la carte : elles n'existent que par le craft ou par
-l'import. `Ressource` gagne donc de quoi le dire — une ressource fabriquée ne
-doit jamais pouvoir être tirée par `GenerateurDeCarte`, et l'invariant mérite
-son test.
-
-**Prix à établir** : le doc 08 chiffre les matières premières mais **pas les
-objets fabriqués**. Ils s'en déduisent : un objet doit valoir nettement plus
-que la somme de ses ingrédients, sans quoi personne ne fabriquerait rien. Le
-rapport est à calibrer, et c'est le premier arbitrage économique de la phase.
-
-##### Livré
-
-Douze ressources, et non dix : sept à l'Atelier, deux à la Forge, trois au
-craft de luxe.
-
-**La marge de transformation est de 165 %** — un objet vaut environ deux tiers
-de plus que la matière et le deben qu'on y met. En deçà, personne ne
-fabriquerait : vendre brut irait aussi vite sans immobiliser l'Atelier. Au-delà,
-vendre brut n'aurait plus jamais de sens et la moitié du commerce
-disparaîtrait. Le chiffre n'est pas posé au jugé mais **mesuré sur les dix
-recettes du doc 08** : de 159 % à 171 %, moyenne 165 %.
-
-Deux décisions prises en écrivant :
-
-- **Le pain et la bière nourrissent.** Ce sont les deux formes sous lesquelles
-  l'Égypte consommait réellement son grain, et les ostraca de Deir el-Médineh
-  paient les ouvriers en pains et en cruches, pas en épis. Une ville pourra
-  donc manger ce qu'elle fabrique — sans quoi cuire du pain produirait un
-  objet immangeable, ce qui serait absurde.
-- **La Forge n'est chiffrée nulle part** par le doc 08, ni ses recettes ni ses
-  prix. Outils et armes sont comptés sur quatre à cinq cuivres, l'arme
-  demandant plus de travail que l'outil.
-
-**Un test à refaire au lot 5.2** : la marge est vérifiée contre une copie des
-recettes du doc 08, inline dans le test. Le lot 5.2 les réécrit à plusieurs
-ingrédients (décision de la joueuse) — le coût de production changera, et le
-test devra s'adosser au vrai catalogue plutôt qu'à cette copie. La marge devra
-tenir malgré tout.
-
-#### 5.1 — Capacité de stockage : plafonner sans périmer  ✅  *(décision de la joueuse)*
-
-Le stock est illimité depuis le lot 3.1. Il cesse de l'être : le **Grenier
-plafonne les denrées** et l'**Entrepôt les matériaux et objets** (doc 01), le
-plafond suivant leur niveau.
-
-**Le surplus est perdu à l'entrée, il ne se dégrade pas** (décision de la
-joueuse) : une récolte qui déborde ne rentre pas, mais ce qui est en réserve y
-reste indéfiniment. La péremption progressive du doc 01 est écartée — c'est un
-système d'inventaire à part entière, et le plafond suffit à donner un effet aux
-niveaux.
-
-**Le piège à éviter** : un plafond qui fait silencieusement disparaître une
-moisson est le genre de règle qu'un joueur subit sans comprendre. L'écran doit
-annoncer la saturation **avant** qu'elle ne coûte quelque chose, et le passage
-de cycle doit dire ce qui a été perdu.
-
-**À vérifier avant d'écrire** : la dotation royale d'ouverture ne doit pas
-dépasser le plafond de départ, sans quoi le pharaon ferait un cadeau dont une
-partie s'évaporerait à la première quinzaine.
-
-##### Livré
-
-**Deux réserves, jamais une seule** : le Grenier tient les vivres, l'Entrepôt
-les matériaux et les objets. Chacune a une **réserve de base** — la Résidence
-familiale a ses propres jarres — que le niveau du bâtiment élève : 100 par
-niveau de Grenier (doc 01), 150 par niveau d'Entrepôt (inventé, le document
-décrivant sa capacité sans jamais la chiffrer).
-
-**Le deben n'est pas stocké.** La monnaie n'occupe ni grenier ni entrepôt et
-n'a donc aucun plafond : c'est ce qui fait de la vente l'issue au surplus, une
-valeur qui ne déborde jamais. Sans cette exception, le plafond aurait bloqué la
-seule sortie qu'il est censé pousser à prendre.
-
-**Les ressources d'une même réserve se partagent son plafond** : ranger des
-roseaux, c'est autant de moins pour l'argile. Un compteur par ressource
-n'aurait donné aucune raison de monter l'Entrepôt, et personne ne l'aurait
-surveillé.
-
-**Le plafonnement est fait dans `City::crediterRessources()`**, seul point
-d'entrée du stock, pour qu'aucun chemin ne puisse l'oublier. `surplusRefuse()`
-dit **avant** de créditer ce qui restera dehors — c'est sur cette promesse que
-le passage de cycle annonce la perte.
-
-**Calibrage mesuré**, la vérification que le lot réclamait :
-
-| | Plafond | Dotation | Saturation à deux carrières |
-|---|---|---|---|
-| Sans bâtiment | 250 / 250 | 70 % / 57 % | 7 quinzaines |
-| Grenier et Entrepôt 1 | 350 / 400 | — | 10 quinzaines |
-| Niveau 5 | 750 / 1000 | — | 25 quinzaines |
-
-La dotation tient avec de la marge — **et la marge compte autant que le
-plafond** : une réserve qui la contiendrait au ras ferait démarrer la ville
-saturée, et le joueur perdrait sa première extraction avant d'avoir compris
-qu'il a un plafond. Une première version calibrée à 150 faisait exactement
-cela, à 95 % dès la première quinzaine.
-
-**Le piège est traité des deux côtés** : la barre de jeu affiche chaque réserve
-avec son plafond et vire au rouge à 85 %, et le passage de cycle dit ce qui a
-débordé. Prévenir avant, constater après.
-
-#### 5.2 — L'Atelier : des ordres de fabrication  ✅  *(décision de la joueuse)*
-
-**Fabriquer prend du temps et consomme plusieurs ressources** — la joueuse a
-tranché contre un craft instantané à un seul ingrédient : « fabriquer plusieurs
-pièces sur un cycle, avec plusieurs ressources ».
-
-- Le joueur lance un **ordre de fabrication** : une recette, une quantité. Les
-  ressources sont **débitées à l'engagement**, comme un chantier — on ne
-  réserve pas, on paie.
-- L'ordre occupe l'Atelier pendant plusieurs quinzaines, et les pièces
-  entrent au stock **à l'achèvement**, jamais avant. C'est la même règle que
-  les champs : rien ne rentre hors de la récolte.
-- Le **niveau de l'Atelier** débloque les recettes (doc 08 : poterie et pain
-  au niveau 1, tissus au niveau 4) **et** élargit la taille d'un ordre.
-- Les **ouvriers de l'Atelier** décident du rythme : la règle du demi-rendement
-  s'applique, un Atelier désert produit deux fois plus lentement.
-
-**Écart assumé au doc 08** : ses recettes ne portent qu'un seul ingrédient —
-poterie = 5 argile, pain = 5 blé. La joueuse en veut de vraies, à plusieurs
-matières. Elles sont donc à réécrire sur une base historique : une poterie
-demande de l'argile **et** de la paille de dégraissant, du pain demande du blé
-**et** du combustible. Le document sera à mettre à jour en conséquence.
-
-**Un arbitrage à surveiller** : transformer doit rapporter davantage que
-vendre la matière brute, **et** immobiliser l'Atelier doit avoir un coût
-d'opportunité. Si l'un des deux manque, le craft devient soit inutile, soit
-évident.
-
-##### Livré
-
-**Les sept recettes sont réécrites**, chacune sur ce que l'artisanat égyptien
-réclamait. Le **bois local** revient dans la plupart : c'est le combustible et
-l'outil de l'atelier — le four du potier, celui du boulanger, le métier du
-tisserand. Et **la bière se fait avec du pain** : des pains d'orge à peine
-cuits, émiettés et mis à fermenter, ce que montrent les modèles funéraires et
-que confirment les analyses de résidus. C'est la seule recette qui en consomme
-une autre, et l'ordre des niveaux le permet toujours.
-
-| Recette | Un lot | Deben | Pièces | Niveau | Quinzaines |
-|---|---|---|---|---|---|
-| Poterie | 8 argile + 3 bois local | 3 | 4 | 1 | 1 |
-| Pain | 10 blé + 2 bois local | 2 | 5 | 1 | 1 |
-| Bière | 8 orge + 3 pain | 3 | 4 | 2 | 1 |
-| Vannerie | 8 roseaux + 2 lin | 2 | 4 | 2 | 1 |
-| Papyrus | 12 roseaux + 3 blé | 4 | 3 | 3 | 2 |
-| Sandales | 6 roseaux + 3 lin | 2 | 4 | 3 | 1 |
-| Tissus | 10 lin + 2 bois local | 5 | 3 | 4 | 2 |
-
-**Les prix du lot 5.0 sont recalculés**, comme ce lot l'avait annoncé : un lot
-rend plusieurs pièces, ce qui amortit le deben et fait baisser le prix
-unitaire — la poterie passe de 12 à 7, les tissus de 60 à 27. La marge de
-transformation reste à 165 %, et **le test s'adosse désormais au vrai
-catalogue** : un ingrédient ajouté ou une quantité changée le fait tomber.
-
-**Les deux arbitrages sont mesurés**, pas supposés :
-
-| Recette | Matière brute | Objets | Gain | Par quinzaine |
-|---|---|---|---|---|
-| Papyrus | 18 | 36 | 14 | **7** |
-| Poterie | 14 | 28 | 11 | 11 |
-| Tissus | 44 | 81 | 32 | 16 |
-| Bière | 43 | 76 | 30 | **30** |
-
-Transformer rapporte toujours plus que vendre la matière — un test le vérifie
-recette par recette. Et le gain à la quinzaine va du simple au quadruple selon
-ce qu'on fabrique : choisir quoi mettre à l'ouvrage est un vrai choix, d'autant
-que **l'Atelier ne tient qu'un ordre à la fois** — c'est un lieu, pas une file
-d'attente, et tisser c'est ne pas cuire.
-
-**Le rythme vient des bras**, par le canal habituel (`EffetDeChef`) : un
-Atelier désert met deux fois plus de temps, sans jamais s'arrêter.
-
-**Un déséquilibre à surveiller** : le papyrus rapporte quatre fois moins que la
-bière à la quinzaine. Il trouvera son usage avec la Maison des scribes
-(Phase 7) ; d'ici là, rien ne pousse à en fabriquer.
-
-#### 5.3 — La Forge : outils et armes  ✅
-
-Même mécanique que l'Atelier — ordres de fabrication, déblocage par niveau —
-sur une matière que le Delta ne porte pas : le **cuivre**. La Forge est donc le
-premier bâtiment dont la production **dépend du commerce**, ce qui en fait la
-démonstration du lot suivant.
-
-Les armes n'ont aucun usage avant la Phase 10 (Medjaÿ, combat) ; les outils
-non plus tant que rien ne les consomme. **Les deux se vendent**, ce qui suffit
-à les rendre utiles — mais l'interface doit dire que leur usage propre viendra
-plus tard, comme elle le fait déjà pour les traits et les spécialités
-endormis.
-
-##### Livré
-
-**Un seul mécanisme, deux lieux.** Le service du lot 5.2 est généralisé plutôt
-que dupliqué : c'est la recette qui dit où elle se travaille
-(`Recette::batiment()`), et l'Atelier comme la Forge partagent ordres, lots,
-déblocage par niveau et rythme donné par les bras. Deux services auraient été
-deux fois la même chose, avec deux occasions de diverger.
-
-La règle « un seul ouvrage à la fois » devient donc **un par bâtiment** :
-l'Atelier et la Forge travaillent de front, ce sont deux lieux.
-
-| Recette | Un lot | Deben | Pièces | Niveau | Quinzaines |
-|---|---|---|---|---|---|
-| Outils | 6 cuivre + 3 bois local | 5 | 3 | 1 | 1 |
-| Armes | 8 cuivre + 3 bois local + 2 lin | 8 | 3 | 2 | 2 |
-
-Une lame de cuivre et son manche pour l'outil ; pour l'arme, la hache
-égyptienne — lame, hampe de bois, liens de lin.
-
-**Ce qui rend la Forge intéressante, et fragile** : à 32 et 47 deben la pièce,
-elle rapporte plus que tout ce que fait l'Atelier — 37 deben la quinzaine pour
-les outils, contre 30 pour la meilleure recette de l'Atelier. Mais **le Delta
-ne porte pas de cuivre**. Avec la majoration d'import du doc 08 (×1,5), le
-cuivre passe de 8 à 12 et la marge des outils tombe de 165 % à ~116 % : la
-Forge n'est vraiment payante que si l'on négocie bien son cuivre. C'est
-exactement ce que le lot suivant doit rendre possible.
-
-**L'interface dit que l'usage viendra** (`Recette::produitDortEnAttendantSonUsage()`),
-comme elle le fait déjà des traits et des spécialités endormis.
-
-#### 5.4 — Les partenaires commerciaux  ✅
-
-Contenu pur, non persisté (`src/Game/`), tiré du doc 12 : chaque mission a ses
-routes attestées, terrestres, fluviales et maritimes.
-
-Un partenaire porte un nom, une **distance en quinzaines**, un type de route,
-ce qu'il **vend** et ce qu'il **achète**. Byblos vend du cèdre et achète du
-lin ; Pount vend de l'encens et de la myrrhe et n'achète presque rien, la
-région étant un point de transit.
-
-Chaque partenaire porte aussi une **fourchette de prix acceptables** par
-ressource — c'est elle qui donne un sens au prix que le joueur affiche
-(lot 5.6). Ces fourchettes sont à inventer : le doc 08 pose les prix locaux et
-une majoration d'import de ×1,5, jamais une marge de négociation.
-
-**Les distances sont à inventer** aussi : le doc 12 nomme les routes sans les
-chiffrer. Elles doivent rester lisibles — Byblos plus loin que Memphis, Pount
-plus loin que tout.
-
-##### Livré
-
-Dix-neuf partenaires sur les dix missions, toutes routes attestées : le Chemin
-d'Horus, le Bahr Yousef, le Ouadi Hammamat, le Darb el-Arbain. Distances de 2 à
-8 quinzaines — le fleuve est court, Pount est au bout du monde.
-
-**Les fourchettes se déduisent, elles ne se tabulent pas.** Dix partenaires par
-vingt-cinq ressources feraient cinq cents nombres à tenir à jour, dont aucun ne
-dirait rien de plus que la règle qui les engendre. Deux constantes suffisent :
-
-- un partenaire paie **jusqu'à 140 %** du cours local pour ce qu'il veut — c'est
-  ce qui rend l'export intéressant, et ce qui laisse au joueur de quoi se
-  tromper en demandant trop ;
-- il réclame **au moins 150 %** pour ce qu'il vend : la majoration d'import du
-  doc 08, qui paie le transport.
-
-L'écart entre les deux est l'espace de négociation du lot 5.6.
-
-**Un invariant posé et testé** : un partenaire ne vend jamais ce qu'il achète.
-Sans cette règle, une route deviendrait une machine à arbitrer — acheter et
-revendre à la même cité sans rien produire.
-
-#### 5.5 — Ouvrir une route  ✅
-
-**Ouvrir une route, c'est envoyer une première caravane** (décision de la
-joueuse) : le geste déclare à une cité qu'on est prêt à commercer avec elle.
-Il coûte 100 deben par voie terrestre, 150 par voie maritime (doc 12, l'or y
-devenant le deben) et prend le temps du trajet.
-
-- Les routes **terrestres** passent par l'**Entrepôt**, les routes
-  **maritimes et fluviales** par le **Port** (doc 12). Sans le bâtiment, la
-  route n'est pas ouvrable.
-- Le **volume échangeable par quinzaine** suit le niveau du bâtiment :
-  `10 × niveau` pour une caravane, `15 × niveau` pour un navire (doc 12).
-- Une route reste ouverte une fois payée.
-
-**Hors périmètre, et c'est une dépendance à énoncer** : l'**héritage
-commercial inter-missions** du doc 12 (−20 % sur l'ouverture d'une route déjà
-exploitée) suppose que la campagne enchaîne réellement ses missions. Elle n'en
-compte qu'une jouable aujourd'hui. Écrire l'héritage maintenant serait écrire
-du code que rien n'exerce.
-
-##### Livré
-
-Le geste est celui que la joueuse voulait : **on paie, le convoi part, et la
-route n'existe qu'à son arrivée** — deux quinzaines pour Memphis, huit pour
-Pount. L'ouverture s'annonce une fois, au moment où la caravane touche au but.
-
-**La géographie pèse une fois de plus** : une ville sans quai ne commerce que
-par la piste, l'Entrepôt armant les caravanes et le Port les navires (doc 12).
-Le niveau de ces bâtiments décide de ce qu'un convoi porte — `10 × niveau` ou
-`15 × niveau` —, ce qui leur donne un effet de niveau supplémentaire.
-
-Seule la **clé** du partenaire est persistée : nom, distance, ce qu'il vend et
-achète restent du contenu de référence, hors base.
-
-**Un détail d'implémentation qui vaut d'être noté** :
-`RouteCommerciale::avancerDUnCycle()` rend vrai **au moment précis où la route
-s'ouvre**, et une seule fois. Comparer un avant et un après aurait marché
-aussi, mais aurait laissé PHPStan croire la seconde vérification impossible —
-et surtout aurait invité un double message.
-
-#### 5.6 — Annoncer ce qu'on vend et ce qu'on achète  ✅
-
-Le cœur de la décision du joueur, et ce qui distingue ce commerce d'un robinet.
-
-Sur une route ouverte, le joueur pose des **ordres permanents** : « je vends du
-lin à 5 deben », « j'achète du cèdre jusqu'à 12 ». Chacun porte une ressource,
-un sens, un prix et une quantité maximale par convoi.
-
-**Le prix est le levier, et le seul.** Chaque partenaire a sa fourchette : trop
-gourmand à la vente, personne n'achète ; trop pingre à l'achat, rien n'arrive.
-Généreux, les convois se pressent. C'est ce qui rend le commerce **jouable
-plutôt que subi** — le joueur ne clique pas « échanger », il tient un étal et
-en fixe les prix.
-
-Un ordre de vente ne part que si le stock suit ; un ordre d'achat ne se conclut
-que si la bourse suit. Ni l'un ni l'autre ne doit **jamais** vider la ville
-sans prévenir : la limite par convoi existe pour ça.
-
-##### Livré
-
-**Un étal, pas un bouton d'échange.** Le joueur affiche ses conditions et
-attend ; un ordre reste posé jusqu'à ce qu'on le retire, et **ne débite rien** :
-c'est une annonce, pas une transaction. Les convois l'exécuteront (lot 5.7).
-
-**Le prix décide de l'empressement du partenaire**, donc du volume qui bouge à
-chaque convoi. C'est ce qui fait du prix un vrai levier plutôt qu'un curseur à
-pousser au maximum :
-
-| Vendre du lin à Byblos (cours 4) | Empressement | Unités | Recette |
-|---|---|---|---|
-| 4 deben | 100 % | 30 | 120 |
-| 5 deben | 82 % | 24 | 120 |
-| 6 deben | 63 % | 18 | 108 |
-| 9 deben | 0 % | 0 | 0 |
-
-**L'arbitrage est situationnel**, et c'est ce qui le rend intéressant : à
-recette égale, vendre plus cher économise du stock. Une ville dont les réserves
-débordent (lot 5.1) brade pour écouler ; une ville qui n'a qu'un peu de rare
-vend cher, le convoi n'étant alors pas la contrainte.
-
-**Un calibrage corrigé en cours de route** : le plafond de vente était à 140 %
-du cours, ce qui ne laissait au lin — coté 4 — que deux prix entiers possibles.
-Le levier n'existait pas pour les matières bon marché. Porté à **200 %**, chaque
-ressource a une vraie plage. C'est aussi ce qui rend l'export préférable au
-Marché local (~130 % avec un bon chef), la contrepartie étant réelle : une route
-coûte 100 à 150 deben, prend le temps du trajet, et ne porte qu'un convoi par
-quinzaine.
-
-**L'écran montre la fourchette et l'empressement avant l'engagement** : le
-joueur vise, il ne devine pas. Un empressement sous 40 % s'affiche en rouge.
-
-#### 5.7 — Le trafic : caravanes et navires en chemin  ✅
-
-La résolution, à chaque quinzaine, sur le modèle des expéditions du lot 3.4 —
-même forme, même absence de persistance dans le service.
-
-- **Nos convois partent** chargés de ce que nos ordres de vente proposent et
-  que le partenaire accepte à ce prix.
-- **Les leurs arrivent** avec ce que nos ordres d'achat réclament, et
-  repartent avec ce qu'ils nous prennent.
-- Chacun met le **temps de la distance** à l'aller comme au retour. Un convoi
-  en chemin est visible, et le joueur voit ce qu'il transporte et quand il
-  arrive.
-
-**Le point à ne pas rater** : un convoi parti est un engagement pris. Si le
-stock a fondu entre le départ et l'arrivée, c'est trop tard — la marchandise
-est partie avec lui, débitée au départ. Débiter à l'arrivée permettrait de
-vendre deux fois la même chose.
-
-##### Livré
-
-**L'engagement est symétrique** : on débite au départ ce qu'on engage — la
-marchandise pour une vente, les deben pour un achat — et l'on reçoit au retour.
-Retirer une annonce n'annule pas ce qui roule : on ne rappelle pas une caravane
-partie il y a trois quinzaines. Le convoi porte d'ailleurs **sa propre copie**
-de l'échange plutôt qu'un lien vers l'ordre, précisément pour cela.
-
-**Un seul convoi en chemin par ressource et par route** : la caravane doit
-revenir avant que la suivante ne parte. C'est ce qui donne son poids à la
-distance — Memphis échange toutes les quatre quinzaines, Byblos toutes les dix,
-Pount toutes les seize, quelle que soit la générosité du prix. La distance
-décide de la **fréquence**, le prix et le niveau du bâtiment du **volume**.
-
-**Un piège déjà connu, repayé sous une autre forme** : supprimer un convoi
-rentré pour en insérer un neuf dans la même quinzaine fait insérer Doctrine
-avant de supprimer, et la contrainte d'unicité saute — le même défaut que celui
-payé sur les gisements. La parade retenue n'est pas un flush intermédiaire mais
-le **réemploi de la caravane**, qui décharge et repart : c'est aussi ce qui se
-passe vraiment.
-
-**Deux pièges de test**, l'un et l'autre instructifs : le blé est un vivre, et
-la ville en mange à chaque quinzaine — mesurer une vente de blé mesure aussi
-son dîner. Et une caravane rentrée repart aussitôt, donc une boucle « jusqu'au
-retour » encaisse plusieurs fois : les tests comptent désormais exactement
-l'aller-retour.
-
-#### 5.8 — Le craft de luxe  ✅
-
-Trois recettes de prestige — bijoux (or + turquoise), statuettes (cèdre +
-ivoire), vases (albâtre + cuivre) —, débloquées non par l'Atelier mais par
-l'**Entrepôt au niveau 8** (`Recette::deblocageSupplementaire()`, docs 01
-et 08). Aucune des six matières ne pousse dans le Delta : le luxe n'est
-atteignable qu'une fois le commerce établi, ce qui est exactement la
-progression du doc 08 — artisanat courant, puis artisanat de prestige.
-
-Les prix suivent la même marge de transformation que le reste (×1,65) et
-culminent à 205 deben la pièce de bijouterie, le plus haut cours du jeu.
-`FabricationTest` vérifie les deux verrous : l'Atelier seul ne suffit pas,
-et une partie du Delta ne peut pas y arriver par sa carte.
-
-#### 5.9 — Les chefs de l'Atelier, de la Forge et de l'Entrepôt  ✅
-
-Les neuf spécialités qui dormaient depuis le lot 4.8 se réveillent, toutes par
-le canal existant — la **qualité de direction** (`EffetDeChef`) —, jamais par
-un multiplicateur de plus.
-
-Sept passent par la production : Potier, Papyrussier, Vannier, Tisserand,
-Brasseur, Armurier, Outilleur ajoutent `BONUS_DATELIER` (+20 %) **sur leur
-propre ouvrage seulement** (`SpecialiteDeChef::favorise()`). Un Brasseur ne
-fait pas de meilleurs papyrus : c'est ce qui donne un sens au choix entre deux
-candidats.
-
-Deux agissent hors production, et c'est pourquoi elles passent par
-`EffetDeChef::chefSpecialise()` plutôt que par la qualité de direction :
-le **Négociateur** élargit de 25 centièmes la fourchette des partenaires
-(on vend plus cher, on achète moins cher), le **Logisticien** retire un quart
-au trajet, **jamais sous une quinzaine** — une route reste une route, et la
-distance doit continuer de décider de la fréquence des convois.
-
-**Un test mal conçu, corrigé** : mesurer l'effet d'une spécialité en comptant
-les quinzaines d'un ordre ne distingue pas 134 % de 114 %, puisqu'elles se
-comptent en entiers. Le contrôle porte sur la qualité de direction elle-même,
-et la durée ne sert plus qu'à vérifier qu'un atelier mieux dirigé n'est jamais
-plus lent.
-
-#### Hors périmètre, explicitement
+n'importe quelle ressource peut être achetée ou vendue. Le Marché et l'Entrepôt
+sont des points d'échange généralistes, pas des catalogues fermés. La catégorie
+d'une ressource ne dit qu'une chose : **où l'obtenir sans commercer**.
+
+| Lot | Contenu | |
+|---|---|---|
+| 5.0 | Les douze ressources fabriquées, et leurs prix | ✅ |
+| 5.1 | Capacité de stockage : plafonner sans périmer | ✅ |
+| 5.2 | L'Atelier : des ordres de fabrication | ✅ |
+| 5.3 | La Forge : outils et armes | ✅ |
+| 5.4 | Les partenaires commerciaux et leurs fourchettes | ✅ |
+| 5.5 | Ouvrir une route en y envoyant une caravane | ✅ |
+| 5.6 | L'étal : annoncer ce qu'on vend et ce qu'on achète | ✅ |
+| 5.7 | Le trafic : caravanes et navires en chemin | ✅ |
+| 5.8 | Le craft de luxe, débloqué par l'Entrepôt | ✅ |
+| 5.9 | Les chefs de l'Atelier, de la Forge et de l'Entrepôt | ✅ |
+
+**Les règles qui en sortent**
+
+- **Rien de fabriqué ne se trouve sur une carte.** La poterie, les outils et les
+  bijoux n'existent que par le travail ou par l'import ; aucune région ne les
+  déclare en ressource de zone.
+- **Un objet vaut environ 165 % de ce qu'il coûte à produire.** En deçà,
+  personne ne fabriquerait ; au-delà, vendre brut n'aurait plus jamais de sens.
+  Toute recette ajoutée doit tenir cette marge, et c'est mesuré.
+- **Le stock est plafonné, jamais périssable.** Le Grenier tient les vivres,
+  l'Entrepôt les matériaux et les objets ; le surplus ne rentre pas, ce qui est
+  rangé y reste. **Le deben n'a aucun plafond** — sinon le plafond bloquerait la
+  vente, seule issue qu'il pousse à prendre.
+- **Fabriquer prend du temps et plusieurs matières.** Les matières sont débitées
+  à l'engagement, les pièces n'entrent qu'à l'achèvement, et **un seul ordre à
+  la fois par bâtiment** : c'est ce qui donne son coût d'opportunité au craft.
+- **L'Atelier et la Forge partagent tout** — un seul service, c'est la recette
+  qui dit où elle se travaille.
+- **Une route s'ouvre en y envoyant une caravane** : on paie, le convoi part, la
+  route n'existe qu'à son arrivée. Le type de route décide du bâtiment —
+  Entrepôt pour les pistes, Port pour tout ce qui flotte.
+- **Le commerce est un étal, pas un bouton d'échange.** Un ordre ne débite rien,
+  c'est une annonce ; les convois l'exécutent. **Le prix décide de l'empressement
+  du partenaire**, donc du volume qui bouge — c'est ce qui en fait un levier
+  plutôt qu'un curseur à pousser au maximum.
+- **Un convoi parti est un engagement pris** : on débite au départ ce qu'on
+  engage, on reçoit au retour, et le convoi porte **sa propre copie** de
+  l'échange — retirer une annonce n'annule pas ce qui roule.
+- **Les fourchettes se déduisent** du cours (200 % à la vente, 150 % à l'achat),
+  jamais d'une table par partenaire ; et **un partenaire ne vend jamais ce qu'il
+  achète**, sans quoi une route serait une machine à arbitrer.
+- **Le luxe se débloque par l'Entrepôt, pas par l'Atelier** : le prestige n'est
+  atteignable qu'une fois le commerce établi.
+- **Une spécialité d'atelier ne vaut que sur son propre ouvrage**, et passe par
+  la qualité de direction. Le Négociateur et le Logisticien font exception —
+  leur effet n'est pas une production.
+
+**Pièges payés pendant la phase**
+
+- **Doctrine insère avant de supprimer.** Remplacer une caravane rentrée par une
+  neuve dans la même quinzaine faisait sauter la contrainte d'unicité : une
+  caravane **repart** plutôt qu'elle n'est recréée. Le piège des gisements,
+  repayé.
+- **Des plafonds de stock trop bas** (150) faisaient démarrer la ville à 95 % de
+  saturation, la dotation valant déjà 143. Portés à 250.
+- **Un plafond de vente à 140 %** ne laissait au lin que deux prix entiers
+  possibles — un levier sans amplitude n'est pas un levier. Porté à 200 %.
+- **Mesurer une vente de blé mesure aussi le dîner de la ville**, et une
+  caravane rentrée repart aussitôt : deux tests faux avant d'être justes.
+- **Compter les quinzaines ne mesure pas la qualité d'un chef** : elles sont
+  entières, et n'y distinguent pas 134 % de 114 %.
+
+**Calibrages vérifiés plutôt que postulés**
+
+- **La marge de transformation**, sur les douze recettes : chacune reste au
+  voisinage de 165 %, et le test tombe si une recette ajoutée s'en écarte.
+- **La courbe d'empressement** d'un partenaire : le prix annoncé change bien le
+  volume qui bouge, et l'écran le montre **avant** l'engagement.
+- **Le trajet d'un convoi** vaut exactement deux fois la distance, mesuré et non
+  supposé.
+
+**Ce que la phase laisse ouvert**
 
 - **Les marchands rivaux** (doc 08) : reportés en bloc après les enquêtes
-  (Phase 7, doc 10), décision de la joueuse. L'une de leurs trois issues est
-  une enquête ; écrire le système sans elle reviendrait à le réécrire ensuite.
-- **La péremption du surplus** (doc 01) : le lot 5.1 plafonne sans dégrader.
+  (Phase 7), décision de la joueuse — l'une de leurs trois issues est une
+  enquête.
+- **La péremption du surplus** (doc 01) : écartée, on plafonne sans dégrader.
 - **L'héritage commercial inter-missions** (doc 12) : suppose une campagne qui
-  enchaîne ses missions, ce qui relève de la Phase 8.
+  enchaîne ses missions, donc la Phase 8.
 - **L'usage des armes et des outils** : Phase 10 pour les unes, indéfini pour
   les autres. Ils se vendent, c'est tout, et l'interface le dit.
 - **Le kite**, dixième du deben : sans objet tant que les prix restent entiers.
+- **La vérification d'équilibrage en conditions réelles** — mener une partie sur
+  une année complète au navigateur — reste due, comme à la fin de la Phase 4.
 
-#### Points tranchés avec la joueuse
+**Points tranchés avec la joueuse**
 
 | Question | Décision |
 |---|---|
-| Le craft est-il instantané ? | **Non** : un ordre de fabrication produit plusieurs pièces sur plusieurs quinzaines, à partir de **plusieurs ressources** |
-| Comment commerce-t-on à distance ? | On **ouvre une route en envoyant une première caravane**, on annonce **ce qu'on vend et achète et à quel prix**, puis les convois vont et viennent au rythme de la distance |
+| Le craft est-il instantané ? | **Non** : un ordre produit plusieurs pièces sur plusieurs quinzaines, à partir de plusieurs ressources |
+| Comment commerce-t-on à distance ? | On **ouvre une route en envoyant une première caravane**, on annonce ses prix, puis les convois vont et viennent au rythme de la distance |
 | Les rivaux commerciaux ? | **Reportés** après les enquêtes |
 | Le stockage est-il limité ? | **Oui, plafonné** par le Grenier et l'Entrepôt — mais **rien ne se périme** |
 
+---
+
+### 5.7 Phase 6 — Faveur divine et événements  *(à faire)*
+
+**Sources** : doc `07` (panthéon, paliers, offrandes, épidémies), doc `01`
+(Temple : « le nombre de dieux honorés croît avec le niveau »), doc `03`
+(trait « Pieux », spécialité « Dévot »).
+
+**Intention.** Le Temple existe, se construit, se monte en niveau — et ne sert
+à rien. Un trait de candidat et une spécialité de chef sont tirés, affichés,
+et **annoncent eux-mêmes qu'ils ne font rien** (`TraitDeCandidat::agitDeja()`).
+Cette phase leur donne leur système d'accueil.
+
+Elle apporte au jeu ce qui lui manque le plus après cinq phases d'économie :
+**une variable que le joueur choisit d'alimenter sans contrepartie immédiate**.
+Tout le reste se calcule — un Grenier rapporte tant, un convoi rapporte tant.
+Une offrande est un pari, et c'est ce qui la rend intéressante.
+
+À la fin de la phase, on doit pouvoir raconter : *« la crue s'annonce faible ;
+je porte dix deben à Hâpi pendant la fête d'Opet, où l'offrande compte double.
+L'année suivante, la crue est bonne. J'ai négligé Sekhmet trois saisons durant,
+et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
+
+| Lot | Contenu |
+|---|---|
+| 6.0 | Le panthéon : huit divinités, leurs domaines, l'échelle de faveur |
+| 6.1 | Le Temple : offrir, et ce que le niveau autorise |
+| 6.2 | La négligence : décroissance vers le neutre, jamais en dessous |
+| 6.3 | Ce que la faveur change réellement, branché sur l'existant |
+| 6.4 | Les fêtes calendaires attestées |
+| 6.5 | Bénédictions et malédictions ponctuelles |
+| 6.6 | Les épidémies |
+| 6.7 | Le trait « Pieux » et la spécialité « Dévot » se réveillent |
+
+#### 6.0 — Le panthéon et l'échelle de faveur
+
+Huit divinités, chacune avec un domaine (doc 07) : **Amon-Rê** (renommée),
+**Hâpi** (crue), **Osiris** (récolte), **Ptah** (chantiers), **Sobek** (pêche et
+navigation), **Sekhmet** (épidémies), **Isis** (blessures au combat), **Thot**
+(énigmes).
+
+Répartition état / contenu, comme partout ailleurs : `Game/Divinite.php` porte
+le nom, le domaine et l'effet — jamais persistés ; une nouvelle entité ne
+persiste que la **clé** de la divinité et la valeur de faveur, sur le modèle de
+`RouteCommerciale` qui ne garde que la clé de son partenaire.
+
+Échelle de 0 à 100, départ à 50, quatre paliers (`PalierDeFaveur`, sur le modèle
+de `PalierDeRenommee`) : Hostile 0-24, Neutre 25-49, Favorable 50-79, Dévoué
+80-100. **Une faveur non cultivée n'est jamais un malus** — il faut avoir fait
+descendre un dieu sous 25 pour être puni, ce qui demande de la négligence
+prolongée ou une quête ratée, pas de l'inaction au démarrage.
+
+#### 6.1 — Le Temple : offrir, et ce que le niveau autorise
+
+Un écran de Temple, hérité de `_layout.html.twig` comme tout écran de partie :
+la liste des divinités, leur palier, ce que chacune promet, et le geste
+d'offrande. Route mutante, donc `PartieVoter::JOUER`.
+
+**Le niveau du Temple est la seule limite** (doc 01, doc 07 : « sans plafond
+arbitraire indépendant ») : il fixe **combien de divinités** peuvent dépasser le
+palier Neutre en même temps, et **jusqu'où** la faveur peut monter. Un Temple de
+niveau 1 permet de soigner un dieu, pas huit — ce qui fait de la répartition des
+offrandes une stratégie plutôt qu'une liste de courses.
+
+Le doc 07 chiffre `5 points pour 10 or` ; l'or est devenu un métal au lot 4.0,
+donc **10 deben**. **À recalibrer** : 10 deben, c'est le quart d'une quinzaine
+de salaires — porter un dieu de 50 à 80 coûterait 60 deben, une saison et demie
+de masse salariale. Le barème se fixe après mesure, comme au lot 4.6, et la
+question à trancher est de savoir si l'on peut offrir **en ressources** aussi
+bien qu'en deben. Le doc le prévoit (« or ou équivalent en ressources ») et cela
+donnerait un débouché au surplus que le plafond de stock refuse — à confirmer
+avec la joueuse.
+
+#### 6.2 — La négligence
+
+Dans le passage de cycle, après les salaires : au bout de cinq quinzaines sans
+offrande, une divinité perd un point par quinzaine, **et s'arrête au palier
+Neutre** (doc 07 : « décroissance lente et naturelle, pas de chute punitive »).
+Seuls une quête ratée ou un événement font descendre plus bas.
+
+C'est symétrique du mécontentement du lot 4.7, et il faut la même vigilance :
+vérifier qu'une ville qui décroche peut **remonter** — un dieu hostile ne doit
+jamais empêcher de produire de quoi lui faire une offrande.
+
+#### 6.3 — Ce que la faveur change
+
+Le lot central, et le plus exposé. **L'invariant du lot 4.5 s'applique
+entièrement** : avant de brancher un effet, vérifier ce qui multiplie déjà cette
+production. Trois cas se présentent, et ils ne se traitent pas pareil.
+
+**Ce qui a déjà un multiplicateur** — les récoltes (qualité de crue), les
+chantiers (facteur de saison), les productions (qualité de direction). Un
+palier n'y ajoute **pas un facteur de plus** : il déplace la valeur qui alimente
+le facteur existant. Hâpi favorable ne multiplie pas la récolte, il **améliore
+d'un cran le tirage de la crue** ; Ptah ne multiplie pas l'avancement, il
+s'ajoute au facteur de saison déjà en place.
+
+**Ce qui n'a pas encore de multiplicateur** — la renommée (Amon-Rê), la pêche et
+la sécurité des convois (Sobek). Ceux-là peuvent recevoir un effet propre.
+
+**Ce qui n'a pas encore de système** — Thot attend les énigmes (Phase 7), Isis
+attend le combat (Phase 10). Ils sont dans le panthéon, offrables, et **le
+disent en toutes lettres à l'écran**, exactement comme `SpecialiteDeChef::agitDeja()`.
+Promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment
+même où il choisit à qui donner.
+
+#### 6.4 — Les fêtes calendaires
+
+Deux fêtes réellement attestées, et le calendrier du jeu les porte déjà :
+la **fête d'Opet** aux 2ᵉ et 3ᵉ mois de l'inondation — Menhèt et Hout-Herou,
+soit les quinzaines 3 à 6 de l'année — dédiée à Amon-Rê, et la **Belle Fête de
+la Vallée** au 10ᵉ mois, Khent-khéti. Offrir pendant sa fête vaut davantage
+(doc 07 : +10 points).
+
+C'est le premier contenu du jeu qui donne une raison de **regarder la date**
+pour autre chose que la saison agricole. La barre de jeu affiche déjà le mois
+pharaonique ; elle devra signaler la fête en cours.
+
+#### 6.5 — Bénédictions et malédictions
+
+Symétriques (doc 07) : un palier Dévoué ouvre une chance d'événement favorable
+ponctuel, un palier Hostile prolongé une chance d'événement défavorable. Ils
+tirent sur le `Randomizer` semé de la partie, comme la crue et les candidats,
+et se racontent dans le journal de cycle.
+
+**Une malédiction ne détruit jamais définitivement** — c'est la ligne de conduite
+du projet depuis le doc 03 : elle retarde, elle coûte, elle n'efface pas.
+
+#### 6.6 — Les épidémies
+
+Le doc 07 les rattache à Sekhmet, et l'ancrage est solide : ses prêtres, les
+*ouabou-Sekhmet*, étaient les médecins de l'Égypte — la déesse qui envoie la
+maladie est aussi celle qui la guérit.
+
+**Deux causes cumulables** : Sekhmet hostile, et la surpopulation — une ville
+au-delà de la capacité de son Quartier d'habitation. La seconde referme une
+boucle laissée ouverte au lot 4.1 : le manque de logement empêchait les
+naissances, il aura désormais aussi un coût quand la ville déborde par
+l'embauche.
+
+**Effet** : 20 à 40 % des bras indisponibles pendant 2 à 4 quinzaines —
+**malades, jamais morts**. Techniquement, c'est un retrait temporaire du vivier
+d'actifs, ce qui fait baisser le rendement d'effectif **par le canal existant**,
+sans multiplicateur nouveau. Vérifier alors que le plancher de 50 % tient
+toujours, et que la ville ne bascule pas en famine du seul fait d'une fièvre :
+c'est le risque de calibrage de ce lot.
+
+**Guérison** : Sekhmet favorable ou dévouée réduit la durée de moitié, et une
+offrande dédiée pendant l'épidémie en retire une quinzaine. C'est l'un des rares
+endroits où le joueur peut **agir pendant** un événement plutôt que le subir.
+
+#### 6.7 — Le trait « Pieux » et la spécialité « Dévot »
+
+Deux dormeurs se réveillent : le trait « Pieux » d'un chef, et la spécialité
+« Dévot » du Temple, qui « attire davantage la faveur d'une divinité ». Le
+Dévot passe par le canal des chefs, comme le Négociateur du lot 5.9 : son effet
+n'étant pas une production, il se lit par `EffetDeChef::chefSpecialise()`.
+
+Une fois ce lot posé, **il ne restera que « Bagarreur »** en trait sans effet,
+et il attend le combat de la Phase 10.
+
+#### Hors périmètre, explicitement
+
+- **Les quêtes de temple** (doc 07 : +15 en réussite, -10 en échec) : elles
+  supposent le système de quêtes de la campagne, Phase 8.
+- **Les choix moraux** alignés ou contraires à un domaine : ils supposent la
+  narration du fil rouge, Phase 7.
+- **Isis et Thot** restent offrables mais inertes, et le disent.
+- **Les divinités au-delà des huit** : le doc les laisse ouvertes, on s'en tient
+  aux huit attestées.
+
+#### À trancher avec la joueuse
+
+| Question | Enjeu |
+|---|---|
+| Peut-on offrir **en ressources** autant qu'en deben ? | Le doc le prévoit ; cela donnerait un débouché au surplus que le plafond de stock refuse |
+| Le barème de 10 deben pour 5 points tient-il ? | 60 deben pour porter un dieu de Neutre à Dévoué, contre 39 de salaires par quinzaine — à mesurer avant de figer |
+| Une malédiction peut-elle faire échouer une partie ? | La ligne du projet dit non ; le doc ne tranche pas |
+
 #### Définition de « fini »
 
-Parcours de bout en bout : lancer un ordre de fabrication à l'Atelier → le voir
-occuper des quinzaines → récupérer les pièces → ouvrir une route vers une cité
-→ annoncer un prix d'achat et un prix de vente → voir partir un convoi chargé
-et en voir arriver un autre → fabriquer avec une matière que la région ne porte
-pas.
+Parcours de bout en bout : construire un Temple → voir les huit divinités et
+leurs paliers → offrir à Hâpi → voir la faveur monter et le palier changer →
+passer une année sans offrir et voir la faveur redescendre au neutre, pas plus
+bas → offrir pendant Opet et constater le gain renforcé → traverser une
+épidémie et l'écourter par une offrande à Sekhmet.
 
-Tests unitaires sur les recettes, les plafonds de stock, les fourchettes de
-prix et les volumes de convoi. Les allers-retours de convois se testent comme
-les expéditions : sur des invariants — un convoi arrive toujours, un ordre ne
-vend jamais plus que le stock, un prix hors fourchette ne conclut rien.
+Tests sur les invariants, jamais sur des tirages attendus : la faveur reste
+bornée à 0-100, la négligence ne descend jamais sous Neutre, le nombre de
+divinités au-dessus du neutre ne dépasse jamais ce que le Temple autorise, une
+épidémie finit toujours, et **la chaîne alimentaire ne descend jamais sous la
+moitié** — le test du lot 4.5, qui doit rester vert avec une épidémie en cours.
 
-**Une vérification d'équilibrage** que les tests ne peuvent pas juger : mener
-une partie jusqu'à ce que le commerce soit rentable, et constater que
-transformer vaut mieux que vendre brut sans que le craft écrase la vente
-directe. C'est le même exercice que pour le calibrage du lot 4.6.
-
-Les quatre portes qualité au vert, et une revue de sécurité : ouvrir une route,
-poser un ordre, lancer une fabrication modifient l'état d'une partie et doivent
-passer par `PartieVoter::JOUER`.
+Les quatre portes qualité au vert, et toute route qui offre, guérit ou modifie
+une faveur passe par `PartieVoter::JOUER`.
 
 ---
 
-### 5.7 Phases 6 à 12 — à cadrer
+### 5.8 Phases 7 à 12 — à cadrer
 
 Chacune traduit un document déjà spécifié ; le cadrage technique se fera à son
 tour, comme pour les précédentes.
 
 | Phase | Sujet | Ce qu'elle apporte |
 |---|---|---|
-| **6** — Faveur divine et événements (`07`) | Offrandes au Temple, divinités favorisées, bénédictions | Réveille le trait « Croyant » et la spécialité Dévot, tous deux posés mais inertes |
 | **7** — Énigmes, enquêtes et fil rouge (`10`) | Maison des scribes, clés de lecture, enquêtes | Prérequis des marchands rivaux du doc 08, reportés de la Phase 5 |
 | **8** — Campagne (`09`, `11`) | Les 10 missions, leurs objectifs, l'enchaînement | Prérequis de l'héritage commercial inter-missions (doc 12) |
 | **9** — Renommée et héritage (`13`) | Succession familiale, carnet de contacts | La renommée existe déjà et bouge ; c'est l'héritage entre parties qui manque |
