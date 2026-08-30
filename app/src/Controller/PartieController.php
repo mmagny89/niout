@@ -225,14 +225,23 @@ final class PartieController extends AbstractController
             $modeDivin->combler($partie);
             $this->addFlash('succes', 'Les réserves sont de nouveau pleines.');
 
-            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+            return $this->redirectToRoute($this->routeDeRetour($request), ['id' => $partie->getId()]);
+        }
+
+        if ($partie->estEnModeDivin() && $request->request->has('brouillard')) {
+            $levees = $modeDivin->leverLeBrouillard($partie);
+            $this->addFlash('succes', 0 === $levees
+                ? 'La carte était déjà entièrement reconnue.'
+                : \sprintf('Le brouillard se lève sur %d case%s.', $levees, $levees > 1 ? 's' : ''));
+
+            return $this->redirectToRoute($this->routeDeRetour($request), ['id' => $partie->getId()]);
         }
 
         $this->addFlash('succes', $modeDivin->basculer($partie)
             ? 'Cette partie devient une partie d\'essai : un million de chaque ressource, aucun plafond.'
             : 'Cette partie retrouve les règles ordinaires. Ce qui a été donné reste.');
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->redirectToRoute($this->routeDeRetour($request), ['id' => $partie->getId()]);
     }
 
     /**
