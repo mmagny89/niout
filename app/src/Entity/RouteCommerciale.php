@@ -57,6 +57,12 @@ class RouteCommerciale
     #[ORM\OneToMany(targetEntity: OrdreCommercial::class, mappedBy: 'route', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $ordres;
 
+    /**
+     * @var Collection<int, Convoi>
+     */
+    #[ORM\OneToMany(targetEntity: Convoi::class, mappedBy: 'route', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $convois;
+
     public function __construct(City $ville, string $partenaire, TypeDeRoute $route, int $distanceEnQuinzaines)
     {
         $this->ville = $ville;
@@ -64,6 +70,42 @@ class RouteCommerciale
         $this->route = $route;
         $this->quinzainesAvantOuverture = $distanceEnQuinzaines;
         $this->ordres = new ArrayCollection();
+        $this->convois = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection<int, Convoi>
+     */
+    public function getConvois(): Collection
+    {
+        return $this->convois;
+    }
+
+    public function ajouterConvoi(Convoi $convoi): static
+    {
+        if (!$this->convois->contains($convoi)) {
+            $this->convois->add($convoi);
+        }
+
+        return $this;
+    }
+
+    public function retirerConvoi(Convoi $convoi): static
+    {
+        $this->convois->removeElement($convoi);
+
+        return $this;
+    }
+
+    public function convoiPour(\App\Game\Ressource $ressource): ?Convoi
+    {
+        foreach ($this->convois as $convoi) {
+            if ($convoi->getRessource() === $ressource) {
+                return $convoi;
+            }
+        }
+
+        return null;
     }
 
     /**

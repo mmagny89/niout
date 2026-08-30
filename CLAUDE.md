@@ -186,6 +186,16 @@ contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
 coup (garantie de matériau, garantie de poisson) effaçait silencieusement le
 champ qu'une garantie précédente venait de poser sur la même case.
 
+**Un convoi parti est un engagement pris** (`Convoi`) : on débite **au départ**
+ce qu'on engage — la marchandise pour une vente, les deben pour un achat — et
+l'on reçoit au retour. Débiter à l'arrivée permettrait de vendre deux fois la
+même chose. Le convoi porte **sa propre copie** de l'échange, jamais un lien
+vers l'ordre : retirer une annonce n'annule pas ce qui roule. **Un seul convoi
+par ressource et par route**, et une caravane rentrée **repart plutôt que d'être
+recréée** — supprimer puis réinsérer dans la même quinzaine fait sauter la
+contrainte d'unicité, Doctrine insérant avant de supprimer (le piège des
+gisements, repayé).
+
 **Le commerce est un étal, pas un bouton d'échange** (`OrdreCommercial`,
 décision de la joueuse) : le joueur annonce ce qu'il vend et achète, à quel
 prix, et attend. **Un ordre ne débite rien** — c'est une annonce, les convois

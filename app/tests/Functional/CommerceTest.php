@@ -23,6 +23,11 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 final class CommerceTest extends KernelTestCase
 {
     /**
+     * Memphis est à deux quinzaines : un aller-retour en coûte quatre.
+     */
+    private const int DISTANCE_DE_MEMPHIS = 2;
+
+    /**
      * **Ouvrir, c'est envoyer une première caravane** : on paie, elle part, et
      * la route n'existe qu'à son arrivée.
      */
@@ -298,6 +303,187 @@ final class CommerceTest extends KernelTestCase
             self::assertGreaterThanOrEqual($ligne['plancher'], $ligne['plafond']);
             self::assertNull($ligne['ordre'], 'Rien n\'est encore annoncé.');
         }
+    }
+
+    /**
+     * **Un convoi parti est un engagement pris** : la marchandise quitte les
+     * réserves au départ, pas à l'arrivée. Débiter à l'arrivée permettrait de
+     * vendre deux fois la même chose — partir, puis tout écouler au Marché
+     * avant que la caravane n'atteigne son but.
+     */
+    public function testCeQuiPartEstDebiteAuDepartEtRapporteAuRetour(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecRouteOuverte('engagement@example.com');
+        $ville = $partie->getVille();
+        // La poterie, que Memphis achète aussi, ne se mange pas : le blé
+        // fausserait la mesure, la ville en consommant à chaque quinzaine.
+        $ville->crediterRessources([Ressource::Poterie->value => 300]);
+
+        $this->commerce()->poserUnOrdre($partie, 'memphis', Ressource::Poterie, SensDEchange::Vendre, 8, 10);
+
+        $poterieAvant = $ville->quantite(Ressource::Poterie);
+        $debenAvant = $ville->getDeben();
+        $this->cycle()->passer($partie);
+
+        $convoi = $ville->routeVers('memphis')?->convoiPour(Ressource::Poterie);
+        self::assertNotNull($convoi, 'Un convoi doit être parti.');
+        self::assertSame($poterieAvant - $convoi->getQuantite(), $ville->quantite(Ressource::Poterie), 'La marchandise est partie avec lui.');
+        self::assertSame($debenAvant, $ville->getDeben(), 'Rien n\'est encaissé avant le retour.');
+
+        $attendu = $convoi->valeur();
+
+        // Exactement l'aller-retour : au-delà, la caravane repartirait et
+        // encaisserait une seconde fois.
+        for ($i = 0; $i < 2 * self::DISTANCE_DE_MEMPHIS; ++$i) {
+            $this->cycle()->passer($partie);
+        }
+
+        self::assertSame($debenAvant + $attendu, $ville->getDeben());
+    }
+
+    /**
+     * À l'achat, c'est la bourse qu'on engage : les deben partent, la
+     * marchandise revient.
+     */
+    public function testUnAchatEngageLaBourseEtRameneLaMarchandise(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecRouteOuverte('achat@example.com');
+        $ville = $partie->getVille();
+
+        $this->commerce()->poserUnOrdre($partie, 'memphis', Ressource::Calcaire, SensDEchange::Acheter, 20, 10);
+
+        $debenAvant = $ville->getDeben();
+        $calcaireAvant = $ville->quantite(Ressource::Calcaire);
+        $this->cycle()->passer($partie);
+
+        $convoi = $ville->routeVers('memphis')?->convoiPour(Ressource::Calcaire);
+        self::assertNotNull($convoi);
+        self::assertSame($debenAvant - $convoi->valeur(), $ville->getDeben(), 'La bourse est engagée au départ.');
+        self::assertSame($calcaireAvant, $ville->quantite(Ressource::Calcaire), 'Rien n\'arrive avant le retour.');
+
+        $quantite = $convoi->getQuantite();
+
+        for ($i = 0; $i < 2 * self::DISTANCE_DE_MEMPHIS; ++$i) {
+            $this->cycle()->passer($partie);
+        }
+
+        self::assertSame($calcaireAvant + $quantite, $ville->quantite(Ressource::Calcaire));
+    }
+
+    /**
+     * **Un seul convoi en chemin par ressource** : la caravane doit revenir
+     * avant que la suivante ne parte. C'est ce qui donne son poids à la
+     * distance — une cité lointaine commerce rarement, quelle que soit sa
+     * générosité.
+     */
+    public function testUnSeulConvoiEnCheminParRessource(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecRouteOuverte('un-convoi@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Ble->value => 500]);
+
+        $this->commerce()->poserUnOrdre($partie, 'memphis', Ressource::Ble, SensDEchange::Vendre, 2, 10);
+
+        for ($i = 0; $i < 3; ++$i) {
+            $this->cycle()->passer($partie);
+        }
+
+        self::assertCount(1, $ville->routeVers('memphis')?->getConvois() ?? []);
+    }
+
+    /**
+     * Une caravane rentrée repart chargée à neuf : le commerce est un flux,
+     * pas un coup unique.
+     */
+    public function testUneCaravaneRentreeRepart(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecRouteOuverte('flux@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Ble->value => 500]);
+
+        $this->commerce()->poserUnOrdre($partie, 'memphis', Ressource::Ble, SensDEchange::Vendre, 2, 10);
+
+        $retours = 0;
+        for ($i = 0; $i < 20; ++$i) {
+            foreach ($this->cycle()->passer($partie) as $evenement) {
+                if (str_contains($evenement, 'vendus')) {
+                    ++$retours;
+                }
+            }
+        }
+
+        self::assertGreaterThanOrEqual(2, $retours, 'La caravane doit repartir après chaque retour.');
+    }
+
+    /**
+     * **Rien ne part sans de quoi l'honorer** : ni le stock ni la bourse ne
+     * descendent sous zéro, un ordre permanent ne vidant jamais la ville sans
+     * prévenir.
+     */
+    public function testRienNePartSansDeQuoiLHonorer(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecRouteOuverte('sans-stock@example.com');
+        $ville = $partie->getVille();
+        $ville->debiterRessources([Ressource::Ble->value => $ville->quantite(Ressource::Ble)]);
+
+        $this->commerce()->poserUnOrdre($partie, 'memphis', Ressource::Ble, SensDEchange::Vendre, 2, 10);
+        $this->cycle()->passer($partie);
+
+        self::assertNull($ville->routeVers('memphis')?->convoiPour(Ressource::Ble));
+        self::assertSame(0, $ville->quantite(Ressource::Ble));
+    }
+
+    /**
+     * Un prix hors fourchette ne conclut rien : aucun convoi ne part, et rien
+     * n'est débité pour autant.
+     */
+    public function testUnPrixHorsFourchetteNeFaitPartirAucunConvoi(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecRouteOuverte('trop-cher@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Poterie->value => 300]);
+
+        $this->commerce()->poserUnOrdre($partie, 'memphis', Ressource::Poterie, SensDEchange::Vendre, 999, 10);
+
+        $avant = $ville->quantite(Ressource::Poterie);
+        $this->cycle()->passer($partie);
+
+        self::assertNull($ville->routeVers('memphis')?->convoiPour(Ressource::Poterie));
+        self::assertSame($avant, $ville->quantite(Ressource::Poterie));
+    }
+
+    /**
+     * Retirer une annonce n'annule pas ce qui est déjà en route : on ne
+     * rappelle pas une caravane partie il y a trois quinzaines.
+     */
+    public function testRetirerUnOrdreNAnnulePasUnConvoiDejaParti(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecRouteOuverte('rappel@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Ble->value => 300]);
+
+        $ordre = $this->commerce()->poserUnOrdre($partie, 'memphis', Ressource::Ble, SensDEchange::Vendre, 2, 10);
+        $this->cycle()->passer($partie);
+
+        $route = $ville->routeVers('memphis');
+        self::assertNotNull($route?->convoiPour(Ressource::Ble));
+
+        $this->commerce()->retirerUnOrdre($ordre);
+        $debenAvant = $ville->getDeben();
+
+        for ($i = 0; $i < 20; ++$i) {
+            $this->cycle()->passer($partie);
+        }
+
+        self::assertGreaterThan($debenAvant, $ville->getDeben(), 'Le convoi parti est allé au bout.');
+        self::assertCount(0, $route->getConvois(), 'Et rien n\'est reparti derrière.');
     }
 
     private function villeAvecRouteOuverte(string $email): GameSave

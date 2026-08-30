@@ -484,6 +484,24 @@
                             {% if offre.route.estOuverte %}
                                 <p class="mt-3 text-sm text-encre-900">Route ouverte.</p>
 
+                                {# Ce qui est en chemin. Un convoi parti est un
+                                   engagement pris : sa marchandise a déjà quitté
+                                   les réserves, ou ses deben la caisse. #}
+                                {% set enChemin = offre.route.convois|filter(c => not c.estRentre) %}
+                                {% if enChemin|length > 0 %}
+                                    <ul class="mt-3 space-y-1 list-none p-0">
+                                        {% for convoi in enChemin %}
+                                            <li class="text-sm text-encre-600" data-chiffres>
+                                                {{ convoi.sens.value == 'vendre' ? 'Parti avec' : 'Ramène' }}
+                                                {{ convoi.quantite }} {{ convoi.ressource.libelle }}
+                                                à {{ convoi.prix }} deben —
+                                                retour dans {{ convoi.quinzainesAvantRetour }}
+                                                quinzaine{{ convoi.quinzainesAvantRetour > 1 ? 's' : '' }}.
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+
                                 {# L'étal : le joueur affiche ses conditions et
                                    attend. Le prix décide de l'empressement du
                                    partenaire, donc du volume qui bouge — et

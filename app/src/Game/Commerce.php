@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Game;
 
+use App\Entity\Convoi;
 use App\Entity\GameSave;
 use App\Entity\OrdreCommercial;
 use App\Entity\RouteCommerciale;
@@ -192,20 +193,199 @@ final readonly class Commerce
         $messages = [];
 
         foreach ($partie->getVille()->getRoutesCommerciales() as $route) {
-            if (!$route->avancerDUnCycle()) {
+            $partenaire = $this->partenaireDe($partie, $route->getPartenaire());
+            $nom = null === $partenaire ? $route->getPartenaire() : $partenaire->nom;
+
+            if ($route->avancerDUnCycle()) {
+                $messages[] = \sprintf(
+                    'Votre %s atteint %s : la route est ouverte.',
+                    $route->getRoute()->convoi(),
+                    $nom,
+                );
+
                 continue;
             }
 
-            $partenaire = $this->partenaireDe($partie, $route->getPartenaire());
+            if (!$route->estOuverte() || null === $partenaire) {
+                continue;
+            }
 
-            $messages[] = \sprintf(
-                'Votre %s atteint %s : la route est ouverte.',
-                $route->getRoute()->convoi(),
-                null === $partenaire ? $route->getPartenaire() : $partenaire->nom,
-            );
+            // Les retours d'abord : une caravane qui rentre libère la route
+            // pour la suivante, dans la même quinzaine.
+            $messages = [
+                ...$messages,
+                ...$this->faireRentrerLesConvois($partie, $route, $nom),
+                ...$this->fairePartirLesConvois($partie, $route, $partenaire),
+            ];
         }
 
         return $messages;
+    }
+
+    /**
+     * Règle les convois qui rentrent : la vente rapporte ses deben, l'achat sa
+     * marchandise.
+     *
+     * @return list<string>
+     */
+    private function faireRentrerLesConvois(GameSave $partie, RouteCommerciale $route, string $nom): array
+    {
+        $ville = $partie->getVille();
+        $messages = [];
+
+        foreach ($route->getConvois()->toArray() as $convoi) {
+            if (!$convoi->avancerDUnCycle()) {
+                continue;
+            }
+
+            if (SensDEchange::Vendre === $convoi->getSens()) {
+                $ville->crediterRessources([Ressource::Deben->value => $convoi->valeur()]);
+                $messages[] = \sprintf(
+                    'Votre %s revient de %s : %d %s vendus, %d deben en caisse.',
+                    $route->getRoute()->convoi(),
+                    $nom,
+                    $convoi->getQuantite(),
+                    $convoi->getRessource()->libelle(),
+                    $convoi->valeur(),
+                );
+            } else {
+                $livraison = [$convoi->getRessource()->value => $convoi->getQuantite()];
+                $perdu = $ville->surplusRefuse($livraison);
+                $ville->crediterRessources($livraison);
+
+                $messages[] = \sprintf(
+                    'Un %s de %s décharge %d %s.',
+                    $route->getRoute()->convoi(),
+                    $nom,
+                    $convoi->getQuantite(),
+                    $convoi->getRessource()->libelle(),
+                );
+
+                if ([] !== $perdu) {
+                    $messages[] = \sprintf(
+                        'Vos réserves débordent : %d %s se perdent faute de place.',
+                        array_sum($perdu),
+                        $convoi->getRessource()->libelle(),
+                    );
+                }
+            }
+
+            // Le convoi reste en place, rentré : il repartira chargé à neuf
+            // (`fairePartirLesConvois`) ou sera défait faute d'ordre.
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Charge et fait partir ce que les ordres permettent.
+     *
+     * **Tout est débité au départ** : la marchandise pour une vente, les deben
+     * pour un achat. C'est ce qui fait de l'aller un engagement, et non une
+     * intention qu'on pourrait défaire en vendant au Marché entre-temps.
+     *
+     * @return list<string>
+     */
+    private function fairePartirLesConvois(
+        GameSave $partie,
+        RouteCommerciale $route,
+        PartenaireCommercial $partenaire,
+    ): array {
+        $ville = $partie->getVille();
+        $niveau = $ville->batimentDeType($partenaire->route->batiment())?->getNiveau() ?? 0;
+        $volume = $partenaire->volumeParConvoi($niveau);
+        $messages = [];
+
+        $recharges = [];
+
+        foreach ($route->getOrdres() as $ordre) {
+            $ressource = $ordre->getRessource();
+            $enPlace = $route->convoiPour($ressource);
+
+            // Un seul convoi en chemin par ressource : la caravane doit
+            // revenir avant que la suivante ne parte.
+            if (null !== $enPlace && !$enPlace->estRentre()) {
+                continue;
+            }
+
+            $quantite = $this->quantiteAuDepart($ville, $partenaire, $ordre, $volume);
+
+            if ($quantite < 1) {
+                continue;
+            }
+
+            $recharges[$ressource->value] = true;
+
+            if (SensDEchange::Vendre === $ordre->getSens()) {
+                $ville->debiterRessources([$ressource->value => $quantite]);
+            } else {
+                $ville->debiterRessources([Ressource::Deben->value => $quantite * $ordre->getPrix()]);
+            }
+
+            if (null !== $enPlace) {
+                $enPlace->repartir($quantite, $ordre->getPrix(), $partenaire->distanceEnQuinzaines);
+            } else {
+                $convoi = new Convoi(
+                    $route,
+                    $ressource,
+                    $ordre->getSens(),
+                    $quantite,
+                    $ordre->getPrix(),
+                    $partenaire->distanceEnQuinzaines,
+                );
+                $route->ajouterConvoi($convoi);
+                $this->entityManager->persist($convoi);
+            }
+
+            $messages[] = \sprintf(
+                'Un %s part pour %s : %d %s %s.',
+                $route->getRoute()->convoi(),
+                $partenaire->nom,
+                $quantite,
+                $ressource->libelle(),
+                SensDEchange::Vendre === $ordre->getSens() ? 'à vendre' : 'à quérir',
+            );
+        }
+
+        // Les caravanes rentrées que rien ne recharge sont défaites : l'ordre
+        // a été retiré, ou la ville n'a plus de quoi l'honorer.
+        foreach ($route->getConvois()->toArray() as $convoi) {
+            if ($convoi->estRentre() && !isset($recharges[$convoi->getRessource()->value])) {
+                $route->retirerConvoi($convoi);
+                $this->entityManager->remove($convoi);
+            }
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Ce qu'un convoi peut réellement emporter : le moins de ce que le joueur
+     * autorise, de ce que le convoi porte, de ce que l'empressement du
+     * partenaire consent, et de ce que la ville a les moyens d'engager.
+     */
+    private function quantiteAuDepart(
+        \App\Entity\City $ville,
+        PartenaireCommercial $partenaire,
+        OrdreCommercial $ordre,
+        int $volume,
+    ): int {
+        $empressement = $partenaire->empressement($ordre->getSens(), $ordre->getRessource(), $ordre->getPrix());
+
+        if ($empressement <= 0) {
+            return 0;
+        }
+
+        $quantite = min(
+            $ordre->getQuantiteParConvoi(),
+            intdiv($volume * $empressement, 100),
+        );
+
+        // Ni le stock ni la bourse ne descendent sous zéro : un ordre
+        // permanent ne vide jamais la ville sans prévenir.
+        return SensDEchange::Vendre === $ordre->getSens()
+            ? min($quantite, $ville->quantite($ordre->getRessource()))
+            : min($quantite, intdiv($ville->getDeben(), max(1, $ordre->getPrix())));
     }
 
     /**
