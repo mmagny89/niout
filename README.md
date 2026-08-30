@@ -50,7 +50,10 @@ attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la
 traversée de la mer Rouge vers Pount. Ouvrir une route, c'est y envoyer une
 première caravane : on la paie, elle prend le temps du trajet, et la route
 n'existe qu'à son arrivée. L'Entrepôt arme les pistes, le Port ce qui flotte —
-une ville sans quai ne commerce que par la terre.
+une ville sans quai ne commerce que par la terre. Une fois la route ouverte, on
+y tient un étal : « je vends du lin à 5 deben, j'achète du cèdre jusqu'à 19 ».
+Le prix décide de l'empressement de la cité, donc de ce qui bouge à chaque
+convoi — trop gourmand, personne n'achète ; généreux, les convois se pressent.
 
 **Réserves** — le Grenier tient les vivres, l'Entrepôt les matériaux et les
 objets, chacun avec un plafond que son niveau élève. Ce qui déborde ne rentre

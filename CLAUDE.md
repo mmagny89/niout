@@ -186,6 +186,15 @@ contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
 coup (garantie de matériau, garantie de poisson) effaçait silencieusement le
 champ qu'une garantie précédente venait de poser sur la même case.
 
+**Le commerce est un étal, pas un bouton d'échange** (`OrdreCommercial`,
+décision de la joueuse) : le joueur annonce ce qu'il vend et achète, à quel
+prix, et attend. **Un ordre ne débite rien** — c'est une annonce, les convois
+l'exécutent. **Le prix décide de l'empressement du partenaire**
+(`PartenaireCommercial::empressement()`), donc du volume qui bouge : c'est ce
+qui en fait un levier plutôt qu'un curseur à pousser au maximum, et l'écran
+montre l'effet **avant** l'engagement. La quantité par convoi est un garde-fou :
+un ordre permanent ne doit jamais vider la ville sans prévenir.
+
 **Une route commerciale s'ouvre en y envoyant une caravane** (`Commerce`,
 `CataloguePartenaires`, décision de la joueuse) : on paie, le convoi part, la
 route n'existe qu'à son arrivée. **Le type de route décide du bâtiment** —

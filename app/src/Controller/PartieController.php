@@ -41,6 +41,7 @@ use App\Game\Recrutements;
 use App\Game\Ressource;
 use App\Game\RoleDExploration;
 use App\Game\Salaires;
+use App\Game\SensDEchange;
 use App\Game\SpecialiteDeChef;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
@@ -163,6 +164,7 @@ final class PartieController extends AbstractController
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
             'ateliers' => $this->ateliersDeLaVille($partie, $fabrication),
             'routes' => $commerce->offrePour($partie),
+            'etals' => $this->etalsDesRoutesOuvertes($partie, $commerce),
             'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
             'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
             // Les deux indicateurs de santé de la ville, côte à côte : les
@@ -265,6 +267,66 @@ final class PartieController extends AbstractController
                 $route->getRoute()->convoi(),
                 $route->getQuinzainesAvantOuverture(),
                 $route->getQuinzainesAvantOuverture() > 1 ? 's' : '',
+            ));
+        } catch (CommerceImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Pose ou retire un ordre permanent sur une route ouverte.
+     *
+     * Rien n'est débité : un ordre est une annonce, pas une transaction. Ce
+     * sont les convois qui l'exécuteront.
+     */
+    #[Route('/{id}/ville/etal', name: 'app_partie_etal', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function etal(Request $request, GameSave $partie, Commerce $commerce): Response
+    {
+        if (!$this->isCsrfTokenValid('etal', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $cle = (string) $request->request->get('partenaire');
+        $ressource = Ressource::tryFrom((string) $request->request->get('ressource'));
+
+        if (null === $ressource) {
+            throw $this->createNotFoundException('Ressource inconnue.');
+        }
+
+        $route = $partie->getVille()->routeVers($cle);
+        $existant = $route?->ordrePour($ressource);
+
+        if ($request->request->has('retirer')) {
+            if (null !== $existant) {
+                $commerce->retirerUnOrdre($existant);
+                $this->addFlash('succes', \sprintf('Votre étal ne propose plus de %s.', $ressource->libelle()));
+            }
+
+            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        }
+
+        $sens = SensDEchange::tryFrom((string) $request->request->get('sens'));
+
+        if (null === $sens) {
+            throw $this->createNotFoundException('Sens inconnu.');
+        }
+
+        try {
+            $commerce->poserUnOrdre(
+                $partie,
+                $cle,
+                $ressource,
+                $sens,
+                $request->request->getInt('prix'),
+                $request->request->getInt('quantite', 1),
+            );
+            $this->addFlash('succes', \sprintf(
+                '%s annoncé à %d deben l\'unité.',
+                $ressource->libelle(),
+                $request->request->getInt('prix'),
             ));
         } catch (CommerceImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
@@ -777,6 +839,25 @@ final class PartieController extends AbstractController
         );
 
         return $batiments;
+    }
+
+    /**
+     * L'étal de chaque route ouverte : ce qui peut s'y annoncer, dans quelle
+     * fourchette, et l'empressement que le prix posé produit.
+     *
+     * @return array<string, list<array{ressource: Ressource, sens: SensDEchange, ordre: ?\App\Entity\OrdreCommercial, plancher: int, plafond: int, empressement: int}>>
+     */
+    private function etalsDesRoutesOuvertes(GameSave $partie, Commerce $commerce): array
+    {
+        $etals = [];
+
+        foreach ($partie->getVille()->getRoutesCommerciales() as $route) {
+            if ($route->estOuverte()) {
+                $etals[$route->getPartenaire()] = $commerce->etalDe($partie, $route);
+            }
+        }
+
+        return $etals;
     }
 
     /**

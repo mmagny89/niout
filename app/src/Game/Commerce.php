@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Game;
 
 use App\Entity\GameSave;
+use App\Entity\OrdreCommercial;
 use App\Entity\RouteCommerciale;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -71,6 +72,112 @@ final readonly class Commerce
         $this->entityManager->flush();
 
         return $route;
+    }
+
+    /**
+     * Pose un ordre permanent sur une route ouverte : « je vends du lin à 5 »,
+     * « j'achète du cèdre jusqu'à 19 ».
+     *
+     * Rien n'est débité ici : un ordre est une annonce, pas une transaction.
+     * Ce sont les convois qui l'exécuteront, au fil des quinzaines (lot 5.7).
+     *
+     * @throws CommerceImpossible
+     */
+    public function poserUnOrdre(
+        GameSave $partie,
+        string $cle,
+        Ressource $ressource,
+        SensDEchange $sens,
+        int $prix,
+        int $quantiteParConvoi,
+    ): OrdreCommercial {
+        $ville = $partie->getVille();
+        $route = $ville->routeVers($cle);
+        $partenaire = $this->partenaireDe($partie, $cle);
+
+        if (null === $route || null === $partenaire) {
+            throw new CommerceImpossible('Aucune route vers cette cité.');
+        }
+
+        if (!$route->estOuverte()) {
+            throw new CommerceImpossible(\sprintf('Votre %s n\'est pas encore arrivée à %s.', $route->getRoute()->convoi(), $partenaire->nom));
+        }
+
+        if (!$partenaire->traite($sens, $ressource)) {
+            throw new CommerceImpossible(\sprintf('%s ne %s pas de %s.', $partenaire->nom, SensDEchange::Vendre === $sens ? 'prend' : 'vend', $ressource->libelle()));
+        }
+
+        if ($prix < 1 || $quantiteParConvoi < 1) {
+            throw new CommerceImpossible('Un ordre porte un prix et une quantité, tous deux d\'au moins un.');
+        }
+
+        if (null !== $route->ordrePour($ressource)) {
+            throw new CommerceImpossible(\sprintf('Un ordre porte déjà sur le %s vers %s. Retirez-le d\'abord.', $ressource->libelle(), $partenaire->nom));
+        }
+
+        $ordre = new OrdreCommercial($route, $ressource, $sens, $prix, $quantiteParConvoi);
+        $route->ajouterOrdre($ordre);
+
+        $this->entityManager->persist($ordre);
+        $this->entityManager->flush();
+
+        return $ordre;
+    }
+
+    /**
+     * Retire une annonce. Rien ne se rembourse : un ordre n'a jamais rien
+     * coûté.
+     */
+    public function retirerUnOrdre(OrdreCommercial $ordre): void
+    {
+        $ordre->getRoute()->retirerOrdre($ordre);
+
+        $this->entityManager->remove($ordre);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Ce qu'une route ouverte peut porter, dans les deux sens, avec le prix
+     * conseillé et l'empressement qu'il produit — de quoi que l'écran montre
+     * au joueur l'effet de son prix **avant** qu'il ne le pose.
+     *
+     * @return list<array{ressource: Ressource, sens: SensDEchange, ordre: ?OrdreCommercial, plancher: int, plafond: int, empressement: int}>
+     */
+    public function etalDe(GameSave $partie, RouteCommerciale $route): array
+    {
+        $partenaire = $this->partenaireDe($partie, $route->getPartenaire());
+
+        if (null === $partenaire) {
+            return [];
+        }
+
+        $etal = [];
+
+        foreach ([SensDEchange::Vendre, SensDEchange::Acheter] as $sens) {
+            $ressources = SensDEchange::Vendre === $sens ? $partenaire->achete : $partenaire->vend;
+
+            foreach ($ressources as $ressource) {
+                $cours = PrixDuMarche::pour($ressource) ?? 1;
+                $ordre = $route->ordrePour($ressource);
+
+                [$plancher, $plafond] = SensDEchange::Vendre === $sens
+                    ? [$cours, $partenaire->prixMaximumALaVente($ressource) ?? $cours]
+                    : [$partenaire->prixMinimumALAchat($ressource) ?? $cours, intdiv($cours * PartenaireCommercial::PRIX_GENEREUX_A_LACHAT, 100)];
+
+                $etal[] = [
+                    'ressource' => $ressource,
+                    'sens' => $sens,
+                    'ordre' => $ordre,
+                    'plancher' => $plancher,
+                    'plafond' => max($plancher, $plafond),
+                    'empressement' => null === $ordre
+                        ? 0
+                        : $partenaire->empressement($sens, $ressource, $ordre->getPrix()),
+                ];
+            }
+        }
+
+        return $etal;
     }
 
     /**

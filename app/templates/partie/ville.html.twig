@@ -483,6 +483,60 @@
                         {% if offre.route %}
                             {% if offre.route.estOuverte %}
                                 <p class="mt-3 text-sm text-encre-900">Route ouverte.</p>
+
+                                {# L'étal : le joueur affiche ses conditions et
+                                   attend. Le prix décide de l'empressement du
+                                   partenaire, donc du volume qui bouge — et
+                                   l'écran le montre **avant** qu'il ne s'engage. #}
+                                <ul class="mt-3 space-y-2 list-none p-0">
+                                    {% for ligne in etals[offre.partenaire.cle] ?? [] %}
+                                        <li class="rounded-sm border border-ocre-500/20 bg-sable-50/60 p-3">
+                                            <form method="post" action="{{ path('app_partie_etal', {id: partie.id}) }}"
+                                                  class="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('etal') }}">
+                                                <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
+                                                <input type="hidden" name="ressource" value="{{ ligne.ressource.value }}">
+                                                <input type="hidden" name="sens" value="{{ ligne.sens.value }}">
+
+                                                <span class="text-sm text-encre-900">
+                                                    {{ ligne.sens.libelle }} {{ ligne.ressource.libelle }}
+                                                </span>
+                                                <span class="text-sm text-encre-500" data-chiffres>
+                                                    entre {{ ligne.plancher }} et {{ ligne.plafond }} deben
+                                                </span>
+
+                                                {% if ligne.ordre %}
+                                                    <span class="text-sm text-encre-900" data-chiffres>
+                                                        posé à {{ ligne.ordre.prix }},
+                                                        {{ ligne.ordre.quantiteParConvoi }} par convoi —
+                                                        <span class="{{ ligne.empressement < 40 ? 'text-terre-600' : '' }}">
+                                                            {{ ligne.empressement }} % d'empressement
+                                                        </span>
+                                                    </span>
+                                                    <button type="submit" name="retirer" value="1"
+                                                            class="ml-auto text-sm text-encre-500 underline hover:text-terre-600">
+                                                        Retirer
+                                                    </button>
+                                                {% elseif partie.estEnCours %}
+                                                    <label class="sr-only" for="prix-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}">Prix</label>
+                                                    <input type="number" id="prix-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}"
+                                                           name="prix" value="{{ ligne.plancher }}" min="1"
+                                                           class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
+                                                           data-chiffres>
+                                                    <label class="sr-only" for="qte-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}">Quantité par convoi</label>
+                                                    <input type="number" id="qte-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}"
+                                                           name="quantite" value="{{ offre.volume }}" min="1"
+                                                           class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
+                                                           data-chiffres>
+                                                    <button type="submit"
+                                                            class="ml-auto rounded-sm border border-ocre-500/40 px-3 py-1 text-sm text-encre-700 hover:bg-ocre-500/10">
+                                                        Annoncer
+                                                    </button>
+                                                {% endif %}
+                                            </form>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
                             {% else %}
                                 <p class="mt-3 text-sm text-encre-500" data-chiffres>
                                     Convoi en chemin : encore

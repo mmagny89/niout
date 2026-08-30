@@ -703,7 +703,7 @@ s'ouvre**, et une seule fois. Comparer un avant et un après aurait marché
 aussi, mais aurait laissé PHPStan croire la seconde vérification impossible —
 et surtout aurait invité un double message.
 
-#### 5.6 — Annoncer ce qu'on vend et ce qu'on achète
+#### 5.6 — Annoncer ce qu'on vend et ce qu'on achète  ✅
 
 Le cœur de la décision du joueur, et ce qui distingue ce commerce d'un robinet.
 
@@ -720,6 +720,39 @@ en fixe les prix.
 Un ordre de vente ne part que si le stock suit ; un ordre d'achat ne se conclut
 que si la bourse suit. Ni l'un ni l'autre ne doit **jamais** vider la ville
 sans prévenir : la limite par convoi existe pour ça.
+
+##### Livré
+
+**Un étal, pas un bouton d'échange.** Le joueur affiche ses conditions et
+attend ; un ordre reste posé jusqu'à ce qu'on le retire, et **ne débite rien** :
+c'est une annonce, pas une transaction. Les convois l'exécuteront (lot 5.7).
+
+**Le prix décide de l'empressement du partenaire**, donc du volume qui bouge à
+chaque convoi. C'est ce qui fait du prix un vrai levier plutôt qu'un curseur à
+pousser au maximum :
+
+| Vendre du lin à Byblos (cours 4) | Empressement | Unités | Recette |
+|---|---|---|---|
+| 4 deben | 100 % | 30 | 120 |
+| 5 deben | 82 % | 24 | 120 |
+| 6 deben | 63 % | 18 | 108 |
+| 9 deben | 0 % | 0 | 0 |
+
+**L'arbitrage est situationnel**, et c'est ce qui le rend intéressant : à
+recette égale, vendre plus cher économise du stock. Une ville dont les réserves
+débordent (lot 5.1) brade pour écouler ; une ville qui n'a qu'un peu de rare
+vend cher, le convoi n'étant alors pas la contrainte.
+
+**Un calibrage corrigé en cours de route** : le plafond de vente était à 140 %
+du cours, ce qui ne laissait au lin — coté 4 — que deux prix entiers possibles.
+Le levier n'existait pas pour les matières bon marché. Porté à **200 %**, chaque
+ressource a une vraie plage. C'est aussi ce qui rend l'export préférable au
+Marché local (~130 % avec un bon chef), la contrepartie étant réelle : une route
+coûte 100 à 150 deben, prend le temps du trajet, et ne porte qu'un convoi par
+quinzaine.
+
+**L'écran montre la fourchette et l'empressement avant l'engagement** : le
+joueur vise, il ne devine pas. Un empressement sous 40 % s'affiche en rouge.
 
 #### 5.7 — Le trafic : caravanes et navires en chemin
 

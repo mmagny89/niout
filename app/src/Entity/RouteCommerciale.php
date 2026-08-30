@@ -6,6 +6,8 @@ namespace App\Entity;
 
 use App\Game\TypeDeRoute;
 use App\Repository\RouteCommercialeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -49,12 +51,54 @@ class RouteCommerciale
     #[ORM\Column]
     private int $quinzainesAvantOuverture;
 
+    /**
+     * @var Collection<int, OrdreCommercial>
+     */
+    #[ORM\OneToMany(targetEntity: OrdreCommercial::class, mappedBy: 'route', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $ordres;
+
     public function __construct(City $ville, string $partenaire, TypeDeRoute $route, int $distanceEnQuinzaines)
     {
         $this->ville = $ville;
         $this->partenaire = $partenaire;
         $this->route = $route;
         $this->quinzainesAvantOuverture = $distanceEnQuinzaines;
+        $this->ordres = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection<int, OrdreCommercial>
+     */
+    public function getOrdres(): Collection
+    {
+        return $this->ordres;
+    }
+
+    public function ajouterOrdre(OrdreCommercial $ordre): static
+    {
+        if (!$this->ordres->contains($ordre)) {
+            $this->ordres->add($ordre);
+        }
+
+        return $this;
+    }
+
+    public function retirerOrdre(OrdreCommercial $ordre): static
+    {
+        $this->ordres->removeElement($ordre);
+
+        return $this;
+    }
+
+    public function ordrePour(\App\Game\Ressource $ressource): ?OrdreCommercial
+    {
+        foreach ($this->ordres as $ordre) {
+            if ($ordre->getRessource() === $ressource) {
+                return $ordre;
+            }
+        }
+
+        return null;
     }
 
     public function getId(): ?int
