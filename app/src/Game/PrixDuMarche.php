@@ -21,6 +21,22 @@ namespace App\Game;
 final readonly class PrixDuMarche
 {
     /**
+     * Ce qu'un objet fabriqué vaut, rapporté à ce qu'il coûte à produire, en
+     * centièmes. **Valeur inventée** : le doc 08 chiffre les recettes mais pas
+     * les prix de vente des objets.
+     *
+     * Environ deux tiers de plus que la matière et le deben qu'on y met. En
+     * deçà, personne ne fabriquerait — vendre brut irait aussi vite et
+     * n'immobiliserait pas l'Atelier. Au-delà, vendre brut n'aurait plus jamais
+     * de sens, et la moitié du commerce disparaîtrait.
+     *
+     * **À revérifier au lot 5.2**, qui réécrit les recettes du doc 08 à
+     * plusieurs ingrédients (décision de la joueuse) : le coût de production
+     * changera, la marge doit tenir malgré tout.
+     */
+    public const int MARGE_DE_TRANSFORMATION = 165;
+
+    /**
      * Prix de vente unitaire, en deben. Une ressource absente de cette table ne
      * se vend pas au Marché local — c'est le cas du deben lui-même, qui est la
      * monnaie et non une marchandise.
@@ -65,6 +81,32 @@ final readonly class PrixDuMarche
             Ressource::Ebene->value => 14,
             Ressource::LapisLazuli->value => 15,
             Ressource::PeauxEtPlumes->value => 15,
+
+            // Ressources fabriquées. Le doc 08 chiffre ce qu'elles coûtent à
+            // produire, jamais ce qu'elles valent : les prix ci-dessous s'en
+            // **déduisent**, à environ `MARGE_DE_TRANSFORMATION` du coût.
+            // Transformer doit rapporter plus que vendre la matière brute,
+            // sans quoi personne ne fabriquerait rien ; mais pas au point que
+            // vendre brut n'ait plus jamais de sens.
+            Ressource::Poterie->value => 12,     // 5 argile + 2 deben = 7
+            Ressource::Pain->value => 18,        // 5 blé + 1 deben = 11
+            Ressource::Biere->value => 20,       // 5 orge + 2 deben = 12
+            Ressource::Vannerie->value => 10,    // 4 roseaux + 2 deben = 6
+            Ressource::Papyrus->value => 15,     // 6 roseaux + 3 deben = 9
+            Ressource::Sandales->value => 10,    // 4 roseaux + 2 deben = 6
+            Ressource::Tissus->value => 60,      // 8 lin + 5 deben = 37
+
+            // La Forge : le doc 08 ne chiffre ni ses recettes ni ses prix.
+            // Comptés sur quatre à cinq cuivres, l'arme demandant plus de
+            // travail que l'outil.
+            Ressource::Outils->value => 60,
+            Ressource::Armes->value => 80,
+
+            // Craft de luxe : ce que l'Entrepôt de haut niveau finit par
+            // ouvrir, et le sommet de la chaîne de valeur du jeu.
+            Ressource::Bijoux->value => 200,     // 3 or + 2 turquoise + 10 deben = 124
+            Ressource::Statuettes->value => 135, // 4 cèdre + 2 ivoire + 15 deben = 83
+            Ressource::Vases->value => 70,       // 6 albâtre + 8 deben = 44
         ];
     }
 

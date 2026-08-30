@@ -516,6 +516,36 @@ final class GenerateurDeCarteTest extends TestCase
     }
 
     /**
+     * **Rien de fabriqué ne se trouve sur une carte** (doc 08) : la poterie,
+     * les outils et les bijoux n'existent que par le travail ou par l'import.
+     * Vérifié sur de vraies cartes générées, et non sur la seule déclaration
+     * des régions — c'est le tirage qui pose les gisements.
+     */
+    public function testAucuneCarteNePorteDeRessourceFabriquee(): void
+    {
+        foreach ((new MissionCatalogue())->toutes() as $mission) {
+            for ($graine = 1; $graine <= 15; ++$graine) {
+                $ville = new City($mission->ville, $mission->difficulte, $mission->tailleDeGrille());
+                $this->generer($ville, $mission->geographie, $graine);
+
+                foreach ($ville->getZones() as $zone) {
+                    foreach ($zone->getGisements() as $gisement) {
+                        self::assertFalse(
+                            $gisement->getRessource()->estFabriquee(),
+                            \sprintf(
+                                '%s, graine %d : %s en gisement.',
+                                $mission->ville,
+                                $graine,
+                                $gisement->getRessource()->libelle(),
+                            ),
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * **La mission 1 porte toujours sa terre broussailleuse** (demande de la
      * joueuse). C'est la région d'apprentissage : le joueur doit y rencontrer
      * chaque terrain du jeu, et y trouver le bois local là où il pousse.

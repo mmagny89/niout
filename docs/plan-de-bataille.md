@@ -396,7 +396,7 @@ catégorie. Le Marché et l'Entrepôt sont des points d'échange généralistes,
 des catalogues fermés. La catégorie ne dit qu'une chose : **où l'obtenir sans
 commercer**.
 
-#### 5.0 — Les ressources fabriquées  *(prérequis)*
+#### 5.0 — Les ressources fabriquées  ✅  *(prérequis)*
 
 Dix ressources de plus dans `Ressource`, avec leurs prix (doc 08) : poterie,
 pain, bière, vannerie, papyrus, sandales, tissus pour l'Atelier ; outils et
@@ -411,6 +411,35 @@ son test.
 objets fabriqués**. Ils s'en déduisent : un objet doit valoir nettement plus
 que la somme de ses ingrédients, sans quoi personne ne fabriquerait rien. Le
 rapport est à calibrer, et c'est le premier arbitrage économique de la phase.
+
+##### Livré
+
+Douze ressources, et non dix : sept à l'Atelier, deux à la Forge, trois au
+craft de luxe.
+
+**La marge de transformation est de 165 %** — un objet vaut environ deux tiers
+de plus que la matière et le deben qu'on y met. En deçà, personne ne
+fabriquerait : vendre brut irait aussi vite sans immobiliser l'Atelier. Au-delà,
+vendre brut n'aurait plus jamais de sens et la moitié du commerce
+disparaîtrait. Le chiffre n'est pas posé au jugé mais **mesuré sur les dix
+recettes du doc 08** : de 159 % à 171 %, moyenne 165 %.
+
+Deux décisions prises en écrivant :
+
+- **Le pain et la bière nourrissent.** Ce sont les deux formes sous lesquelles
+  l'Égypte consommait réellement son grain, et les ostraca de Deir el-Médineh
+  paient les ouvriers en pains et en cruches, pas en épis. Une ville pourra
+  donc manger ce qu'elle fabrique — sans quoi cuire du pain produirait un
+  objet immangeable, ce qui serait absurde.
+- **La Forge n'est chiffrée nulle part** par le doc 08, ni ses recettes ni ses
+  prix. Outils et armes sont comptés sur quatre à cinq cuivres, l'arme
+  demandant plus de travail que l'outil.
+
+**Un test à refaire au lot 5.2** : la marge est vérifiée contre une copie des
+recettes du doc 08, inline dans le test. Le lot 5.2 les réécrit à plusieurs
+ingrédients (décision de la joueuse) — le coût de production changera, et le
+test devra s'adosser au vrai catalogue plutôt qu'à cette copie. La marge devra
+tenir malgré tout.
 
 #### 5.1 — Capacité de stockage : plafonner sans périmer *(décision de la joueuse)*
 

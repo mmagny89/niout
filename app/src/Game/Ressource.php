@@ -65,6 +65,25 @@ enum Ressource: string
     case LapisLazuli = 'lapis_lazuli';
     case PeauxEtPlumes = 'peaux_et_plumes';
 
+    // Ressources fabriquées : elles n'existent que par le craft ou par
+    // l'import, jamais sur une carte (doc 08). Craft de base, à l'Atelier.
+    case Poterie = 'poterie';
+    case Pain = 'pain';
+    case Biere = 'biere';
+    case Vannerie = 'vannerie';
+    case Papyrus = 'papyrus';
+    case Sandales = 'sandales';
+    case Tissus = 'tissus';
+
+    // Craft de la Forge, à partir du cuivre.
+    case Outils = 'outils';
+    case Armes = 'armes';
+
+    // Craft de luxe, débloqué par l'Entrepôt de haut niveau (doc 01, doc 08).
+    case Bijoux = 'bijoux';
+    case Statuettes = 'statuettes';
+    case Vases = 'vases';
+
     public function libelle(): string
     {
         return match ($this) {
@@ -94,6 +113,18 @@ enum Ressource: string
             self::Dattes => 'dattes',
             self::LapisLazuli => 'lapis-lazuli',
             self::PeauxEtPlumes => 'peaux et plumes',
+            self::Poterie => 'poterie',
+            self::Pain => 'pain',
+            self::Biere => 'bière',
+            self::Vannerie => 'vannerie',
+            self::Papyrus => 'papyrus',
+            self::Sandales => 'sandales',
+            self::Tissus => 'tissus',
+            self::Outils => 'outils',
+            self::Armes => 'armes',
+            self::Bijoux => 'bijoux',
+            self::Statuettes => 'statuettes',
+            self::Vases => 'vases',
         };
     }
 
@@ -127,6 +158,33 @@ enum Ressource: string
     }
 
     /**
+     * Ressources qui n'existent que par le travail : l'Atelier, la Forge, ou
+     * l'achat à une cité qui les fabrique (doc 08).
+     *
+     * **Aucune ne se trouve sur une carte.** La génération ne tire que parmi
+     * les ressources de zone d'une région, et aucune région n'en déclare —
+     * l'invariant est vérifié plutôt que supposé, une ressource fabriquée
+     * apparaissant en gisement voudrait dire que de la poterie pousse dans le
+     * sable.
+     *
+     * @return list<self>
+     */
+    public static function fabriquees(): array
+    {
+        return [
+            self::Poterie, self::Pain, self::Biere, self::Vannerie,
+            self::Papyrus, self::Sandales, self::Tissus,
+            self::Outils, self::Armes,
+            self::Bijoux, self::Statuettes, self::Vases,
+        ];
+    }
+
+    public function estFabriquee(): bool
+    {
+        return \in_array($this, self::fabriquees(), true);
+    }
+
+    /**
      * Ressources qu'aucune région jouable ne porte : toujours importées.
      */
     public function estToujoursImportee(): bool
@@ -139,10 +197,17 @@ enum Ressource: string
      * (doc 04) et se rangent au Grenier.
      *
      * Le lin en est exclu bien qu'agricole — c'est un textile, jamais un vivre.
+     * Le pain et la bière, eux, en sont : ce sont les deux formes sous
+     * lesquelles l'Égypte consommait réellement son grain, et les ostraca de
+     * Deir el-Médineh paient les ouvriers en pains et en cruches, pas en épis.
      */
     public function estNourriture(): bool
     {
-        return \in_array($this, [self::Ble, self::Orge, self::Dattes, self::Poisson], true);
+        return \in_array(
+            $this,
+            [self::Ble, self::Orge, self::Dattes, self::Poisson, self::Pain, self::Biere],
+            true,
+        );
     }
 
     /**
@@ -150,9 +215,9 @@ enum Ressource: string
      * les entamer (décision de la joueuse).
      *
      * Le poisson est le seul cas, et c'est ce qui donne au Port sa valeur
-     * durable : une carrière finit par se vider, une pêcherie non. Un Port
-     * coûte 50 or, 40 roseaux et 20 calcaire — le rendre inutile au bout de
-     * quarante quinzaines en aurait fait un piège plutôt qu'un choix.
+     * durable : une carrière finit par se vider, une pêcherie non. Le rendre
+     * inutile au bout de quarante quinzaines aurait fait du Port un piège
+     * plutôt qu'un choix, sur une carte qui peut n'avoir qu'une case d'eau.
      */
     public function estRenouvelable(): bool
     {
