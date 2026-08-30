@@ -13,6 +13,7 @@ use App\Enum\GameMode;
 use App\Form\NouvellePartieType;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
+use App\Game\Atelier;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
@@ -23,6 +24,7 @@ use App\Game\ExploitationImpossible;
 use App\Game\Exploitations;
 use App\Game\ExplorationImpossible;
 use App\Game\Explorations;
+use App\Game\FabricationImpossible;
 use App\Game\LanceurDePartie;
 use App\Game\Marche;
 use App\Game\Mecontentement;
@@ -31,6 +33,7 @@ use App\Game\MissionCatalogue;
 use App\Game\ModeDivin;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\Recette;
 use App\Game\RecrutementImpossible;
 use App\Game\Recrutements;
 use App\Game\Ressource;
@@ -140,6 +143,7 @@ final class PartieController extends AbstractController
         Recrutements $recrutements,
         Salaires $salaires,
         Mecontentement $mecontentement,
+        Atelier $atelier,
     ): Response {
         $ville = $partie->getVille();
 
@@ -154,6 +158,9 @@ final class PartieController extends AbstractController
             'palier' => $partie->getFamille()->palier(),
             'coutDUnAppel' => $appels->cout($partie),
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
+            'recettes' => $atelier->offrePour($partie),
+            'ordreEnCours' => $ville->ordreDeFabricationEnCours(),
+            'lotsMaximum' => Atelier::lotsMaximum($ville->batimentDeType(TypeDeBatiment::Atelier)?->getNiveau() ?? 0),
             'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
             'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
             // Les deux indicateurs de santé de la ville, côte à côte : les
@@ -193,6 +200,42 @@ final class PartieController extends AbstractController
                 $recette,
             ));
         } catch (VenteImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Lance un ordre de fabrication à l'Atelier.
+     *
+     * Les matières sont débitées ici, à l'engagement — on ne réserve pas, on
+     * paie. Les pièces n'arriveront qu'à l'achèvement, au fil des quinzaines.
+     */
+    #[Route('/{id}/ville/fabriquer', name: 'app_partie_fabriquer', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function fabriquer(Request $request, GameSave $partie, Atelier $atelier): Response
+    {
+        if (!$this->isCsrfTokenValid('fabriquer', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $recette = Recette::tryFrom((string) $request->request->get('recette'));
+
+        if (null === $recette) {
+            throw $this->createNotFoundException('Recette inconnue.');
+        }
+
+        try {
+            $ordre = $atelier->lancer($partie, $recette, $request->request->getInt('lots', 1));
+            $this->addFlash('succes', \sprintf(
+                'L\'Atelier s\'attelle à %s : %d pièces dans %d quinzaine%s.',
+                mb_strtolower($recette->libelle()),
+                $ordre->piecesAttendues(),
+                $ordre->cyclesRestants(),
+                $ordre->cyclesRestants() > 1 ? 's' : '',
+            ));
+        } catch (FabricationImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }
 

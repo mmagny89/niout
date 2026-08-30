@@ -503,7 +503,7 @@ cela, à 95 % dès la première quinzaine.
 avec son plafond et vire au rouge à 85 %, et le passage de cycle dit ce qui a
 débordé. Prévenir avant, constater après.
 
-#### 5.2 — L'Atelier : des ordres de fabrication  *(décision de la joueuse)*
+#### 5.2 — L'Atelier : des ordres de fabrication  ✅  *(décision de la joueuse)*
 
 **Fabriquer prend du temps et consomme plusieurs ressources** — la joueuse a
 tranché contre un craft instantané à un seul ingrédient : « fabriquer plusieurs
@@ -530,6 +530,54 @@ demande de l'argile **et** de la paille de dégraissant, du pain demande du blé
 vendre la matière brute, **et** immobiliser l'Atelier doit avoir un coût
 d'opportunité. Si l'un des deux manque, le craft devient soit inutile, soit
 évident.
+
+##### Livré
+
+**Les sept recettes sont réécrites**, chacune sur ce que l'artisanat égyptien
+réclamait. Le **bois local** revient dans la plupart : c'est le combustible et
+l'outil de l'atelier — le four du potier, celui du boulanger, le métier du
+tisserand. Et **la bière se fait avec du pain** : des pains d'orge à peine
+cuits, émiettés et mis à fermenter, ce que montrent les modèles funéraires et
+que confirment les analyses de résidus. C'est la seule recette qui en consomme
+une autre, et l'ordre des niveaux le permet toujours.
+
+| Recette | Un lot | Deben | Pièces | Niveau | Quinzaines |
+|---|---|---|---|---|---|
+| Poterie | 8 argile + 3 bois local | 3 | 4 | 1 | 1 |
+| Pain | 10 blé + 2 bois local | 2 | 5 | 1 | 1 |
+| Bière | 8 orge + 3 pain | 3 | 4 | 2 | 1 |
+| Vannerie | 8 roseaux + 2 lin | 2 | 4 | 2 | 1 |
+| Papyrus | 12 roseaux + 3 blé | 4 | 3 | 3 | 2 |
+| Sandales | 6 roseaux + 3 lin | 2 | 4 | 3 | 1 |
+| Tissus | 10 lin + 2 bois local | 5 | 3 | 4 | 2 |
+
+**Les prix du lot 5.0 sont recalculés**, comme ce lot l'avait annoncé : un lot
+rend plusieurs pièces, ce qui amortit le deben et fait baisser le prix
+unitaire — la poterie passe de 12 à 7, les tissus de 60 à 27. La marge de
+transformation reste à 165 %, et **le test s'adosse désormais au vrai
+catalogue** : un ingrédient ajouté ou une quantité changée le fait tomber.
+
+**Les deux arbitrages sont mesurés**, pas supposés :
+
+| Recette | Matière brute | Objets | Gain | Par quinzaine |
+|---|---|---|---|---|
+| Papyrus | 18 | 36 | 14 | **7** |
+| Poterie | 14 | 28 | 11 | 11 |
+| Tissus | 44 | 81 | 32 | 16 |
+| Bière | 43 | 76 | 30 | **30** |
+
+Transformer rapporte toujours plus que vendre la matière — un test le vérifie
+recette par recette. Et le gain à la quinzaine va du simple au quadruple selon
+ce qu'on fabrique : choisir quoi mettre à l'ouvrage est un vrai choix, d'autant
+que **l'Atelier ne tient qu'un ordre à la fois** — c'est un lieu, pas une file
+d'attente, et tisser c'est ne pas cuire.
+
+**Le rythme vient des bras**, par le canal habituel (`EffetDeChef`) : un
+Atelier désert met deux fois plus de temps, sans jamais s'arrêter.
+
+**Un déséquilibre à surveiller** : le papyrus rapporte quatre fois moins que la
+bière à la quinzaine. Il trouvera son usage avec la Maison des scribes
+(Phase 7) ; d'ici là, rien ne pousse à en fabriquer.
 
 #### 5.3 — La Forge : outils et armes
 

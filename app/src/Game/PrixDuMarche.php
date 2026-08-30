@@ -84,17 +84,24 @@ final readonly class PrixDuMarche
 
             // Ressources fabriquées. Le doc 08 chiffre ce qu'elles coûtent à
             // produire, jamais ce qu'elles valent : les prix ci-dessous s'en
-            // **déduisent**, à environ `MARGE_DE_TRANSFORMATION` du coût.
-            // Transformer doit rapporter plus que vendre la matière brute,
-            // sans quoi personne ne fabriquerait rien ; mais pas au point que
-            // vendre brut n'ait plus jamais de sens.
-            Ressource::Poterie->value => 12,     // 5 argile + 2 deben = 7
-            Ressource::Pain->value => 18,        // 5 blé + 1 deben = 11
-            Ressource::Biere->value => 20,       // 5 orge + 2 deben = 12
-            Ressource::Vannerie->value => 10,    // 4 roseaux + 2 deben = 6
-            Ressource::Papyrus->value => 15,     // 6 roseaux + 3 deben = 9
-            Ressource::Sandales->value => 10,    // 4 roseaux + 2 deben = 6
-            Ressource::Tissus->value => 60,      // 8 lin + 5 deben = 37
+            // **déduisent**, à `MARGE_DE_TRANSFORMATION` du coût d'un lot,
+            // rapporté à la pièce. Transformer doit rapporter plus que vendre
+            // la matière brute, sans quoi personne ne fabriquerait rien ; mais
+            // pas au point que vendre brut n'ait plus jamais de sens.
+            //
+            // **Recalculés au lot 5.2**, qui a réécrit les recettes à
+            // plusieurs ingrédients : un lot rend désormais plusieurs pièces,
+            // ce qui amortit le deben et fait baisser le prix unitaire.
+            // `Recette::coutDunLot()` est la source, `RecetteTest` le vérifie.
+            Ressource::Poterie->value => 7,      // 17 le lot, 4 pièces
+            Ressource::Pain->value => 9,         // 26 le lot, 5 pièces
+            Ressource::Vannerie->value => 7,     // 18 le lot, 4 pièces
+            Ressource::Papyrus->value => 12,     // 22 le lot, 3 pièces
+            Ressource::Sandales->value => 8,     // 20 le lot, 4 pièces
+            Ressource::Tissus->value => 27,      // 49 le lot, 3 pièces
+            // La bière se fait avec du pain : son coût dépend du prix de
+            // celui-ci, et se fixe donc après lui.
+            Ressource::Biere->value => 19,       // 46 le lot, 4 pièces
 
             // La Forge : le doc 08 ne chiffre ni ses recettes ni ses prix.
             // Comptés sur quatre à cinq cuivres, l'arme demandant plus de

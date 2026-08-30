@@ -6,6 +6,7 @@ namespace App\Tests\Game;
 
 use App\Game\MissionCatalogue;
 use App\Game\PrixDuMarche;
+use App\Game\Recette;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -58,9 +59,9 @@ final class RessourcesFabriqueesTest extends TestCase
      * aussi vite sans immobiliser l'Atelier ; au-delà, vendre brut n'aurait
      * plus jamais de sens.
      *
-     * La table des recettes est reprise du doc 08 telle quelle. **Le lot 5.2
-     * la remplacera** par un vrai catalogue, à plusieurs ingrédients (décision
-     * de la joueuse) : ce test devra alors s'y adosser plutôt qu'à cette copie.
+     * **Adossé au vrai catalogue depuis le lot 5.2**, et non plus à une copie
+     * des recettes du document : un ingrédient ajouté ou une quantité changée
+     * doit faire tomber ce test, pas passer inaperçu.
      */
     public function testUnObjetVautEnvironDeuxTiersDePlusQueSaFabrication(): void
     {
@@ -69,21 +70,19 @@ final class RessourcesFabriqueesTest extends TestCase
         $laPlusFaible = 1000;
         $laPlusForte = 0;
 
-        foreach (self::recettesDuDocument() as $objet => [$ingredients, $deben]) {
-            $cout = $deben;
-
-            foreach ($ingredients as $valeur => $quantite) {
-                $prix = PrixDuMarche::pour(Ressource::from($valeur));
-                self::assertNotNull($prix);
-                $cout += $prix * $quantite;
-            }
-
-            $prixDeVente = PrixDuMarche::pour(Ressource::from($objet));
+        foreach (Recette::cases() as $recette) {
+            $prixDeVente = PrixDuMarche::pour($recette->produit());
             self::assertNotNull($prixDeVente);
 
-            $marge = intdiv(100 * $prixDeVente, $cout);
+            // Un lot rend plusieurs pièces : c'est le lot entier qu'on compare,
+            // matières et deben compris.
+            $marge = intdiv(100 * $prixDeVente * $recette->piecesDunLot(), $recette->coutDunLot());
 
-            self::assertGreaterThan(100, $marge, \sprintf('%s se vendrait à perte.', $objet));
+            self::assertGreaterThan(
+                100,
+                $marge,
+                \sprintf('%s se vendrait à perte.', $recette->libelle()),
+            );
 
             $total += $marge;
             ++$recettes;
@@ -99,8 +98,8 @@ final class RessourcesFabriqueesTest extends TestCase
             5,
             \sprintf('Marge moyenne mesurée : %d %%.', $moyenne),
         );
-        self::assertGreaterThan(140, $laPlusFaible, 'Une recette trop peu rentable pour valoir l\'Atelier.');
-        self::assertLessThan(200, $laPlusForte, 'Une recette qui rendrait la vente brute absurde.');
+        self::assertGreaterThan(150, $laPlusFaible, 'Une recette trop peu rentable pour valoir l\'Atelier.');
+        self::assertLessThan(185, $laPlusForte, 'Une recette qui rendrait la vente brute absurde.');
     }
 
     /**
@@ -148,27 +147,5 @@ final class RessourcesFabriqueesTest extends TestCase
                 );
             }
         }
-    }
-
-    /**
-     * Les recettes du doc 08, reprises telles quelles — à remplacer par le
-     * catalogue du lot 5.2.
-     *
-     * @return array<string, array{array<string, int>, int}>
-     */
-    private static function recettesDuDocument(): array
-    {
-        return [
-            'poterie' => [['argile' => 5], 2],
-            'pain' => [['ble' => 5], 1],
-            'biere' => [['orge' => 5], 2],
-            'vannerie' => [['roseaux' => 4], 2],
-            'papyrus' => [['roseaux' => 6], 3],
-            'sandales' => [['roseaux' => 4], 2],
-            'tissus' => [['lin' => 8], 5],
-            'bijoux' => [['or' => 3, 'turquoise' => 2], 10],
-            'statuettes' => [['bois_de_cedre' => 4, 'ivoire' => 2], 15],
-            'vases' => [['albatre' => 6], 8],
-        ];
     }
 }
