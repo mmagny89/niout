@@ -40,6 +40,13 @@ enum Recette: string
     case Outils = 'outils';
     case Armes = 'armes';
 
+    // Craft de luxe : même Atelier, mais des matières qu'aucune région ne
+    // porte toutes. Il ne s'ouvre qu'à un Entrepôt de haut niveau — on ne fait
+    // pas d'orfèvrerie sans un commerce qui apporte l'or et la turquoise.
+    case Bijoux = 'bijoux';
+    case Statuettes = 'statuettes';
+    case Vases = 'vases';
+
     public function libelle(): string
     {
         return match ($this) {
@@ -52,6 +59,9 @@ enum Recette: string
             self::Tissus => 'Tissus',
             self::Outils => 'Outils de cuivre',
             self::Armes => 'Armes de cuivre',
+            self::Bijoux => 'Bijoux et amulettes',
+            self::Statuettes => 'Statuettes et mobilier',
+            self::Vases => 'Vases et statues',
         };
     }
 
@@ -90,6 +100,9 @@ enum Recette: string
         return match ($this) {
             self::Outils => Ressource::Outils,
             self::Armes => Ressource::Armes,
+            self::Bijoux => Ressource::Bijoux,
+            self::Statuettes => Ressource::Statuettes,
+            self::Vases => Ressource::Vases,
             self::Poterie => Ressource::Poterie,
             self::Pain => Ressource::Pain,
             self::Biere => Ressource::Biere,
@@ -128,6 +141,14 @@ enum Recette: string
             // La hache égyptienne : une lame de cuivre, une hampe de bois, et
             // des liens de lin pour tenir l'une à l'autre.
             self::Armes => [Ressource::Cuivre->value => 8, Ressource::BoisLocal->value => 3, Ressource::Lin->value => 2],
+            // L'orfèvrerie funéraire : l'or du désert oriental, la turquoise
+            // du Sinaï. Deux régions, donc deux routes.
+            self::Bijoux => [Ressource::Or->value => 3, Ressource::Turquoise->value => 2],
+            // Le mobilier de prestige : cèdre du Levant, ivoire de Nubie.
+            self::Statuettes => [Ressource::BoisDeCedre->value => 4, Ressource::Ivoire->value => 2],
+            // Les vases canopes : l'albâtre d'Hatnub, creusé au foret de
+            // cuivre et au sable abrasif.
+            self::Vases => [Ressource::Albatre->value => 6, Ressource::Cuivre->value => 2],
         };
     }
 
@@ -142,7 +163,9 @@ enum Recette: string
             self::Poterie, self::Biere => 3,
             self::Papyrus => 4,
             self::Tissus, self::Outils => 5,
-            self::Armes => 8,
+            self::Armes, self::Vases => 8,
+            self::Statuettes => 15,
+            self::Bijoux => 10,
         };
     }
 
@@ -155,6 +178,9 @@ enum Recette: string
             self::Pain => 5,
             self::Poterie, self::Biere, self::Vannerie, self::Sandales => 4,
             self::Papyrus, self::Tissus, self::Outils, self::Armes => 3,
+            // Une pièce de prestige se fait à l'unité : on ne fond pas des
+            // bijoux par fournées.
+            self::Bijoux, self::Statuettes, self::Vases => 1,
         };
     }
 
@@ -176,6 +202,9 @@ enum Recette: string
             // Forge (doc 01) : outils au premier niveau, armes au second.
             self::Outils => 1,
             self::Armes => 2,
+            // Craft de luxe : le doc 01 veut un Atelier de niveau 8, en plus
+            // de l'Entrepôt — voir `deblocageSupplementaire()`.
+            self::Bijoux, self::Statuettes, self::Vases => 8,
         };
     }
 
@@ -188,8 +217,38 @@ enum Recette: string
     {
         return match ($this) {
             self::Papyrus, self::Tissus, self::Armes => 2,
+            // Le travail d'orfèvre ne se presse pas.
+            self::Bijoux, self::Statuettes, self::Vases => 3,
             default => 1,
         };
+    }
+
+    /**
+     * Une seconde condition, portée par un **autre bâtiment** que celui où la
+     * recette se travaille (doc 01, doc 08).
+     *
+     * Le craft de luxe se fait à l'Atelier mais s'ouvre à l'**Entrepôt de
+     * niveau 8** : un commerce longue distance conséquent — l'or, la
+     * turquoise, l'ivoire — suppose une logistique développée, pas un simple
+     * entrepôt de départ.
+     *
+     * **Conséquence voulue** : au Delta, dont le plafond régional est de cinq,
+     * le luxe reste hors d'atteinte. C'est ce que le doc 01 dit expressément
+     * de la région d'apprentissage.
+     *
+     * @return array{TypeDeBatiment, int}|null
+     */
+    public function deblocageSupplementaire(): ?array
+    {
+        return match ($this) {
+            self::Bijoux, self::Statuettes, self::Vases => [TypeDeBatiment::Entrepot, 8],
+            default => null,
+        };
+    }
+
+    public function estDeLuxe(): bool
+    {
+        return null !== $this->deblocageSupplementaire();
     }
 
     /**

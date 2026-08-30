@@ -72,6 +72,17 @@ final readonly class Fabrication
             throw new FabricationImpossible(\sprintf('%s demande %s de niveau %d ; le vôtre est au %d.', $recette->libelle(), $type->libelle(), $recette->niveauRequis(), $atelier->getNiveau()));
         }
 
+        $supplementaire = $recette->deblocageSupplementaire();
+
+        if (null !== $supplementaire) {
+            [$autre, $niveauExige] = $supplementaire;
+            $niveauReel = $ville->batimentDeType($autre)?->getNiveau() ?? 0;
+
+            if ($niveauReel < $niveauExige) {
+                throw new FabricationImpossible(\sprintf('%s demande aussi %s de niveau %d ; le vôtre est au %d.', $recette->libelle(), $autre->libelle(), $niveauExige, $niveauReel));
+            }
+        }
+
         $maximum = self::lotsMaximum($atelier->getNiveau());
 
         if ($lots < 1 || $lots > $maximum) {
@@ -124,8 +135,9 @@ final readonly class Fabrication
             return [];
         }
 
+        // La recette est passée : un Brasseur presse la bière, pas le papyrus.
         $ordre->avancerDUnCycle(
-            EffetDeChef::qualiteDeDirection($ville, $type, $partie->getCycle()),
+            EffetDeChef::qualiteDeDirection($ville, $type, $partie->getCycle(), $ordre->getRecette()),
         );
 
         if (!$ordre->estAcheve()) {
@@ -176,12 +188,25 @@ final readonly class Fabrication
         foreach (Recette::pour($type, $atelier->getNiveau()) as $recette) {
             $matieres = self::matieresPour($recette, 1);
             $manques = $ville->manquesDe($matieres);
+            $supplementaire = $recette->deblocageSupplementaire();
+
+            $empechement = null;
+
+            if (null !== $supplementaire) {
+                [$autre, $niveauExige] = $supplementaire;
+
+                if (($ville->batimentDeType($autre)?->getNiveau() ?? 0) < $niveauExige) {
+                    $empechement = \sprintf('Demande %s de niveau %d.', $autre->libelle(), $niveauExige);
+                }
+            }
+
+            $empechement ??= [] === $manques ? null : \sprintf('Il vous manque %s.', implode(', ', $manques));
 
             $offre[] = [
                 'recette' => $recette,
                 'matieres' => self::enLibelles($matieres),
-                'realisable' => [] === $manques,
-                'empechement' => [] === $manques ? null : \sprintf('Il vous manque %s.', implode(', ', $manques)),
+                'realisable' => null === $empechement,
+                'empechement' => $empechement,
             ];
         }
 

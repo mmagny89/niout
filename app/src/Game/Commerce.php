@@ -152,6 +152,7 @@ final readonly class Commerce
             return [];
         }
 
+        $avantage = $this->avantageDuNegociateur($partie->getVille(), $partie->getCycle());
         $etal = [];
 
         foreach ([SensDEchange::Vendre, SensDEchange::Acheter] as $sens) {
@@ -162,8 +163,8 @@ final readonly class Commerce
                 $ordre = $route->ordrePour($ressource);
 
                 [$plancher, $plafond] = SensDEchange::Vendre === $sens
-                    ? [$cours, $partenaire->prixMaximumALaVente($ressource) ?? $cours]
-                    : [$partenaire->prixMinimumALAchat($ressource) ?? $cours, intdiv($cours * PartenaireCommercial::PRIX_GENEREUX_A_LACHAT, 100)];
+                    ? [$cours, $partenaire->prixMaximumALaVente($ressource, $avantage) ?? $cours]
+                    : [$partenaire->prixMinimumALAchat($ressource, $avantage) ?? $cours, intdiv($cours * PartenaireCommercial::PRIX_GENEREUX_A_LACHAT, 100)];
 
                 $etal[] = [
                     'ressource' => $ressource,
@@ -173,7 +174,7 @@ final readonly class Commerce
                     'plafond' => max($plancher, $plafond),
                     'empressement' => null === $ordre
                         ? 0
-                        : $partenaire->empressement($sens, $ressource, $ordre->getPrix()),
+                        : $partenaire->empressement($sens, $ressource, $ordre->getPrix(), $avantage),
                 ];
             }
         }
@@ -294,6 +295,8 @@ final readonly class Commerce
         $ville = $partie->getVille();
         $niveau = $ville->batimentDeType($partenaire->route->batiment())?->getNiveau() ?? 0;
         $volume = $partenaire->volumeParConvoi($niveau);
+        $avantage = $this->avantageDuNegociateur($ville, $partie->getCycle());
+        $trajet = $this->trajetVers($partenaire, $ville, $partie->getCycle());
         $messages = [];
 
         $recharges = [];
@@ -308,7 +311,7 @@ final readonly class Commerce
                 continue;
             }
 
-            $quantite = $this->quantiteAuDepart($ville, $partenaire, $ordre, $volume);
+            $quantite = $this->quantiteAuDepart($ville, $partenaire, $ordre, $volume, $avantage);
 
             if ($quantite < 1) {
                 continue;
@@ -323,7 +326,7 @@ final readonly class Commerce
             }
 
             if (null !== $enPlace) {
-                $enPlace->repartir($quantite, $ordre->getPrix(), $partenaire->distanceEnQuinzaines);
+                $enPlace->repartir($quantite, $ordre->getPrix(), $trajet);
             } else {
                 $convoi = new Convoi(
                     $route,
@@ -331,7 +334,7 @@ final readonly class Commerce
                     $ordre->getSens(),
                     $quantite,
                     $ordre->getPrix(),
-                    $partenaire->distanceEnQuinzaines,
+                    $trajet,
                 );
                 $route->ajouterConvoi($convoi);
                 $this->entityManager->persist($convoi);
@@ -369,8 +372,9 @@ final readonly class Commerce
         PartenaireCommercial $partenaire,
         OrdreCommercial $ordre,
         int $volume,
+        int $avantage = 0,
     ): int {
-        $empressement = $partenaire->empressement($ordre->getSens(), $ordre->getRessource(), $ordre->getPrix());
+        $empressement = $partenaire->empressement($ordre->getSens(), $ordre->getRessource(), $ordre->getPrix(), $avantage);
 
         if ($empressement <= 0) {
             return 0;
@@ -421,6 +425,36 @@ final readonly class Commerce
         }
 
         return $offre;
+    }
+
+    /**
+     * Ce qu'un **Négociateur** en poste à l'Entrepôt arrache aux partenaires
+     * (doc 03) : une fourchette plus large, des deux côtés.
+     */
+    public function avantageDuNegociateur(\App\Entity\City $ville, int $cycle): int
+    {
+        return EffetDeChef::chefSpecialise($ville, TypeDeBatiment::Entrepot, SpecialiteDeChef::EntrepotNegociateur, $cycle)
+            ? EffetDeChef::BONUS_NEGOCIATEUR
+            : 0;
+    }
+
+    /**
+     * Le trajet réel vers ce partenaire, raccourci par un **Logisticien** en
+     * poste à l'Entrepôt (doc 03).
+     *
+     * **Jamais moins d'une quinzaine** : une route reste une route, et la
+     * distance doit continuer de décider de la fréquence des convois — c'est
+     * elle qui fait qu'une cité lointaine commerce rarement.
+     */
+    public function trajetVers(PartenaireCommercial $partenaire, \App\Entity\City $ville, int $cycle): int
+    {
+        $distance = $partenaire->distanceEnQuinzaines;
+
+        if (!EffetDeChef::chefSpecialise($ville, TypeDeBatiment::Entrepot, SpecialiteDeChef::EntrepotLogisticien, $cycle)) {
+            return $distance;
+        }
+
+        return max(1, $distance - intdiv($distance * EffetDeChef::RACCOURCI_DU_LOGISTICIEN, 100));
     }
 
     /**

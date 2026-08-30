@@ -43,7 +43,17 @@ et mis à fermenter. Un ordre paie ses matières à l'engagement, occupe l'Ateli
 plusieurs quinzaines et ne livre qu'à la fin. Le niveau du bâtiment ouvre les
 recettes et élargit les lots ; les bras qui le tiennent en décident le rythme.
 La Forge suit la même mécanique sur une matière que le Delta ne porte pas — le
-cuivre —, et travaille de front avec l'Atelier.
+cuivre —, et travaille de front avec l'Atelier. Au-delà vient l'orfèvrerie —
+bijoux, statuettes, vases —, qui ne s'ouvre pas en montant l'Atelier mais en
+portant l'**Entrepôt** au niveau 8, et réclame de l'or, de la turquoise, du
+cèdre, de l'ivoire, de l'albâtre : rien de tout cela ne pousse chez soi, il
+faut donc commercer avant d'espérer produire du prestige.
+
+Les chefs comptent : un Potier, un Brasseur, un Armurier dirigent mieux **leur
+propre ouvrage**, et seulement lui. À l'Entrepôt, deux spécialités ne
+produisent rien mais changent le commerce — le Négociateur obtient de
+meilleurs prix des deux côtés de l'étal, le Logisticien raccourcit les
+trajets de caravane.
 
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la

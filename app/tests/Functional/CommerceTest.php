@@ -5,16 +5,20 @@ declare(strict_types=1);
 namespace App\Tests\Functional;
 
 use App\Entity\Building;
+use App\Entity\Employee;
 use App\Entity\GameSave;
 use App\Entity\User;
+use App\Game\Candidat;
 use App\Game\CataloguePartenaires;
 use App\Game\Commerce;
 use App\Game\CommerceImpossible;
+use App\Game\EffetDeChef;
 use App\Game\LanceurDePartie;
 use App\Game\PassageDeCycle;
 use App\Game\PrixDuMarche;
 use App\Game\Ressource;
 use App\Game\SensDEchange;
+use App\Game\SpecialiteDeChef;
 use App\Game\TypeDeBatiment;
 use App\Game\TypeDeRoute;
 use Doctrine\ORM\EntityManagerInterface;
@@ -484,6 +488,91 @@ final class CommerceTest extends KernelTestCase
 
         self::assertGreaterThan($debenAvant, $ville->getDeben(), 'Le convoi parti est allé au bout.');
         self::assertCount(0, $route->getConvois(), 'Et rien n\'est reparti derrière.');
+    }
+
+    /**
+     * **Le Négociateur élargit la fourchette des deux côtés** (doc 03) : on
+     * vend plus cher, on achète moins cher. C'est la première spécialité de
+     * l'Entrepôt à faire quelque chose.
+     */
+    public function testLeNegociateurElargitLaFourchette(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecRouteOuverte('negociateur@example.com');
+        $ville = $partie->getVille();
+        $byblos = (new CataloguePartenaires())->partenaire(1, 'memphis');
+        self::assertNotNull($byblos);
+
+        self::assertSame(0, $this->commerce()->avantageDuNegociateur($ville, $partie->getCycle()));
+
+        $this->engagerUnChef($partie, TypeDeBatiment::Entrepot, SpecialiteDeChef::EntrepotNegociateur);
+        $avantage = $this->commerce()->avantageDuNegociateur($ville, $partie->getCycle());
+
+        self::assertSame(EffetDeChef::BONUS_NEGOCIATEUR, $avantage);
+        self::assertGreaterThan(
+            $byblos->prixMaximumALaVente(Ressource::Poterie) ?? 0,
+            $byblos->prixMaximumALaVente(Ressource::Poterie, $avantage) ?? 0,
+            'On doit pouvoir vendre plus cher.',
+        );
+        self::assertLessThan(
+            $byblos->prixMinimumALAchat(Ressource::Calcaire) ?? 0,
+            $byblos->prixMinimumALAchat(Ressource::Calcaire, $avantage) ?? 0,
+            'Et acheter moins cher.',
+        );
+    }
+
+    /**
+     * **Le Logisticien raccourcit les trajets** (doc 03), mais jamais sous une
+     * quinzaine : une route reste une route, et c'est la distance qui décide
+     * de la fréquence des convois.
+     */
+    public function testLeLogisticienRaccourcitLesTrajetsSansLesAbolir(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecRouteOuverte('logisticien@example.com');
+        $ville = $partie->getVille();
+        $catalogue = new CataloguePartenaires();
+
+        $pount = $catalogue->partenaire(3, 'pount');
+        $memphis = $catalogue->partenaire(1, 'memphis');
+        self::assertNotNull($pount);
+        self::assertNotNull($memphis);
+
+        self::assertSame(
+            $pount->distanceEnQuinzaines,
+            $this->commerce()->trajetVers($pount, $ville, $partie->getCycle()),
+        );
+
+        $this->engagerUnChef($partie, TypeDeBatiment::Entrepot, SpecialiteDeChef::EntrepotLogisticien);
+
+        self::assertLessThan(
+            $pount->distanceEnQuinzaines,
+            $this->commerce()->trajetVers($pount, $ville, $partie->getCycle()),
+        );
+        self::assertGreaterThanOrEqual(
+            1,
+            $this->commerce()->trajetVers($memphis, $ville, $partie->getCycle()),
+            'Même la cité la plus proche reste à une quinzaine.',
+        );
+    }
+
+    private function engagerUnChef(GameSave $partie, TypeDeBatiment $type, SpecialiteDeChef $specialite): void
+    {
+        $ville = $partie->getVille();
+        $ville->ajouterEmploye(new Employee(
+            $ville,
+            $type,
+            new Candidat(
+                competence: 60,
+                salaire: 8,
+                ancienneteProbable: 20,
+                traits: [],
+                specialite: $specialite,
+                actifsAmenes: 0,
+                inactifsAmenes: 0,
+            ),
+            $partie->getCycle(),
+        ));
     }
 
     private function villeAvecRouteOuverte(string $email): GameSave

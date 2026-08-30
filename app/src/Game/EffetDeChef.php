@@ -54,16 +54,42 @@ final readonly class EffetDeChef
     public const int BONUS_VENDEUR = 10;
 
     /**
+     * Ce qu'une spécialité d'atelier ajoute **sur son propre ouvrage**. Un
+     * Brasseur ne fait pas de meilleurs papyrus : le bonus ne s'applique qu'à
+     * ce que la spécialité nomme.
+     */
+    public const int BONUS_DATELIER = 20;
+
+    /**
+     * Ce que le Négociateur de l'Entrepôt élargit à la fourchette d'un
+     * partenaire, en centièmes du cours (doc 03 : « obtient de meilleurs prix
+     * des caravanes »). **Valeur inventée.**.
+     */
+    public const int BONUS_NEGOCIATEUR = 25;
+
+    /**
+     * Ce que le Logisticien retire au trajet, en centièmes (doc 03 :
+     * « raccourcit les trajets de caravane »). **Valeur inventée**, bornée à
+     * un quart : une route reste une route, et la distance doit continuer de
+     * décider de la fréquence des convois.
+     */
+    public const int RACCOURCI_DU_LOGISTICIEN = 25;
+
+    /**
      * La qualité de direction d'un bâtiment, en centièmes : ce que valent
      * ensemble ses bras et la compétence de ceux qui les dirigent.
      *
      * C'est **le seul canal** par lequel un chef agit sur une production. Un
      * bâtiment sans chef vaut son seul rendement d'effectif.
      */
-    public static function qualiteDeDirection(City $ville, TypeDeBatiment $type, int $cycle): int
-    {
+    public static function qualiteDeDirection(
+        City $ville,
+        TypeDeBatiment $type,
+        int $cycle,
+        ?Recette $recette = null,
+    ): int {
         $rendement = Effectifs::rendementDe($ville, $type, $cycle);
-        $facteur = self::facteurDesChefs($ville, $type, $cycle);
+        $facteur = self::facteurDesChefs($ville, $type, $cycle, $recette);
 
         return intdiv($rendement * $facteur, Effectifs::RENDEMENT_PLEIN);
     }
@@ -76,13 +102,17 @@ final readonly class EffetDeChef
      * bâtiment de haut niveau en emploie jusqu'à trois, et les cumuler ferait
      * du niveau un multiplicateur déguisé, alors qu'il a déjà son propre effet.
      */
-    public static function facteurDesChefs(City $ville, TypeDeBatiment $type, int $cycle): int
-    {
+    public static function facteurDesChefs(
+        City $ville,
+        TypeDeBatiment $type,
+        int $cycle,
+        ?Recette $recette = null,
+    ): int {
         $facteurs = [];
 
         foreach ($ville->chefsDe($type) as $chef) {
             if ($chef->estEnPoste($cycle)) {
-                $facteurs[] = self::facteurDe($chef);
+                $facteurs[] = self::facteurDe($chef, $recette);
             }
         }
 
@@ -96,10 +126,28 @@ final readonly class EffetDeChef
     /**
      * Ce que vaut un chef donné, compétence et spécialité comprises.
      */
-    public static function facteurDe(Employee $chef): int
+    public static function facteurDe(Employee $chef, ?Recette $recette = null): int
     {
         return self::facteurDeCompetence($chef->getCompetence())
-            + self::bonusDeSpecialite($chef->getSpecialite());
+            + self::bonusDeSpecialite($chef->getSpecialite(), $recette);
+    }
+
+    /**
+     * Le chef en poste de ce bâtiment qui porte cette spécialité, s'il existe.
+     *
+     * Sert aux spécialités dont l'effet ne passe pas par la production — le
+     * Négociateur et le Logisticien de l'Entrepôt, qui agissent sur le
+     * commerce et non sur ce que le bâtiment fabrique.
+     */
+    public static function chefSpecialise(City $ville, TypeDeBatiment $type, SpecialiteDeChef $specialite, int $cycle): bool
+    {
+        foreach ($ville->chefsDe($type) as $chef) {
+            if ($chef->estEnPoste($cycle) && $chef->getSpecialite() === $specialite) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -117,8 +165,17 @@ final readonly class EffetDeChef
      * existe déjà. Les autres sont tirées et affichées, mais dorment jusqu'à
      * leur phase (`SpecialiteDeChef::agitDeja()`).
      */
-    public static function bonusDeSpecialite(?SpecialiteDeChef $specialite): int
+    public static function bonusDeSpecialite(?SpecialiteDeChef $specialite, ?Recette $recette = null): int
     {
+        if (null === $specialite) {
+            return 0;
+        }
+
+        // Une spécialité d'atelier ne vaut que sur son propre ouvrage.
+        if (null !== $recette && $specialite->favorise($recette)) {
+            return self::BONUS_DATELIER;
+        }
+
         return match ($specialite) {
             SpecialiteDeChef::PortPecheur => self::BONUS_PECHEUR,
             SpecialiteDeChef::GrenierGestionnaire => self::BONUS_GESTIONNAIRE,
