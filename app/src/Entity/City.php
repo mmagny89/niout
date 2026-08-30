@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Game\CoutDeConstruction;
 use App\Game\Population;
 use App\Game\Ressource;
+use App\Game\Stockage;
 use App\Game\TypeDeBatiment;
 use App\Repository\CityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -373,17 +374,117 @@ class City
      *
      * @param array<string, int> $ressources valeur de Ressource => quantité
      */
+    /**
+     * Crédite ce qui **tient dans les réserves**, et rien de plus (`Stockage`).
+     *
+     * Le plafonnement est fait ici, et non chez l'appelant, pour qu'aucun
+     * chemin ne puisse l'oublier — c'est le seul point d'entrée du stock. Pour
+     * savoir ce qui aura été refusé, demander `surplusRefuse()` **avant** de
+     * créditer : une fois le crédit passé, l'information n'existe plus.
+     *
+     * @param array<string, int> $ressources valeur de Ressource => quantité
+     */
     public function crediterRessources(array $ressources): static
     {
+        $refuse = $this->surplusRefuse($ressources);
+
+        foreach ($ressources as $valeur => $quantite) {
+            $tient = $quantite - ($refuse[$valeur] ?? 0);
+
+            if ($tient <= 0) {
+                continue;
+            }
+
+            $this->ligneDe(Ressource::from($valeur))->ajouter($tient);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Ce qui ne rentrerait pas, ressource par ressource — les lignes qui
+     * tiennent en entier en sont absentes.
+     *
+     * Les ressources d'une même réserve se partagent son plafond : dix roseaux
+     * rangés, c'est dix de moins pour l'argile. Elles sont donc servies dans
+     * l'ordre où on les présente, ce qui n'a d'importance que sur la dernière
+     * place disponible.
+     *
+     * @param array<string, int> $ressources valeur de Ressource => quantité
+     *
+     * @return array<string, int> valeur de Ressource => quantité refusée
+     */
+    public function surplusRefuse(array $ressources): array
+    {
+        $place = [];
+        $refuse = [];
+
         foreach ($ressources as $valeur => $quantite) {
             if ($quantite <= 0) {
                 continue;
             }
 
-            $this->ligneDe(Ressource::from($valeur))->ajouter($quantite);
+            $ressource = Ressource::from($valeur);
+            $plafond = Stockage::plafondPour($this, $ressource);
+
+            if (null === $plafond) {
+                continue;
+            }
+
+            // La réserve est commune : on tient le compte de ce qui reste au
+            // fil des lignes, sans quoi chacune croirait disposer de toute la
+            // place libre.
+            $reserve = $ressource->estNourriture() ? 'vivres' : 'materiaux';
+            $place[$reserve] ??= max(0, $plafond - Stockage::occupationPour($this, $ressource));
+
+            $tient = min($quantite, $place[$reserve]);
+            $place[$reserve] -= $tient;
+
+            if ($tient < $quantite) {
+                $refuse[$valeur] = $quantite - $tient;
+            }
         }
 
-        return $this;
+        return $refuse;
+    }
+
+    public function plafondDesVivres(): int
+    {
+        return Stockage::plafondDesVivres($this);
+    }
+
+    public function plafondDesMateriaux(): int
+    {
+        return Stockage::plafondDesMateriaux($this);
+    }
+
+    public function vivresPresqueSatures(): bool
+    {
+        return Stockage::saturationProche($this->getNourriture(), $this->plafondDesVivres());
+    }
+
+    public function materiauxPresqueSatures(): bool
+    {
+        return Stockage::saturationProche($this->getMateriaux(), $this->plafondDesMateriaux());
+    }
+
+    /**
+     * Ce que la ville garde en matériaux et en objets : tout ce qui n'est ni
+     * un vivre ni la monnaie. C'est l'occupation de l'Entrepôt.
+     */
+    public function getMateriaux(): int
+    {
+        $total = 0;
+
+        foreach ($this->stock as $ligne) {
+            $ressource = $ligne->getRessource();
+
+            if (!$ressource->estNourriture() && !$ressource->estLaMonnaie()) {
+                $total += $ligne->getQuantite();
+            }
+        }
+
+        return $total;
     }
 
     /**

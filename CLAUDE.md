@@ -184,6 +184,17 @@ contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
 coup (garantie de matériau, garantie de poisson) effaçait silencieusement le
 champ qu'une garantie précédente venait de poser sur la même case.
 
+**Le stock est plafonné, jamais périssable** (`Stockage`, décision de la
+joueuse) : le Grenier tient les vivres, l'Entrepôt les matériaux et les objets,
+et les ressources d'une même réserve **se partagent** son plafond. Le surplus
+ne rentre pas ; ce qui est rangé y reste. Trois points à ne pas défaire — **le
+deben n'a aucun plafond** (sans quoi le plafond bloquerait la vente, seule
+issue qu'il pousse à prendre), le plafonnement vit dans
+`City::crediterRessources()` pour qu'aucun chemin ne l'oublie, et
+`surplusRefuse()` s'interroge **avant** de créditer, l'information n'existant
+plus après. Toute nouvelle source de ressources doit annoncer ce qu'elle perd :
+un plafond silencieux est une règle qu'on subit sans comprendre.
+
 **Rien de fabriqué ne se trouve sur une carte** (`Ressource::estFabriquee()`,
 doc 08) : la poterie, les outils et les bijoux n'existent que par le travail ou
 par l'import. Aucune région ne les déclare en ressource de zone, et deux tests

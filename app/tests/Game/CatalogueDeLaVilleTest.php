@@ -43,8 +43,8 @@ final class CatalogueDeLaVilleTest extends TestCase
         // le message doit le dire.
         $pauvre = (new City('Avaris', 0, 3))->crediterRessources([
             Ressource::Deben->value => 999,
-            Ressource::Roseaux->value => 999,
-            Ressource::BoisLocal->value => 999,
+            Ressource::Roseaux->value => 40,
+            Ressource::BoisLocal->value => 40,
             Ressource::Argile->value => 5,
         ]);
 
@@ -149,15 +149,18 @@ final class CatalogueDeLaVilleTest extends TestCase
     private function villeRiche(): City
     {
         return (new City('Avaris', 0, 3))->crediterRessources([
+            // Assez pour n'importe quel bâtiment, et **pas davantage** : les
+            // matériaux se partagent le plafond de l'Entrepôt depuis le lot
+            // 5.1, et une ville qu'on gaverait n'en garderait rien de plus.
             Ressource::Deben->value => 9999,
-            Ressource::Roseaux->value => 9999,
+            Ressource::Roseaux->value => 40,
             // Les deux maçonneries : la brique crue pour presque tout, la
             // pierre de taille pour le Temple et le Port.
-            Ressource::Argile->value => 9999,
-            Ressource::Calcaire->value => 9999,
+            Ressource::Argile->value => 40,
+            Ressource::Calcaire->value => 40,
             // Le bois de charpente : acacia et sycomore, que tout bâtiment
             // réclame depuis le doc 01 révisé.
-            Ressource::BoisLocal->value => 9999,
+            Ressource::BoisLocal->value => 40,
         ]);
     }
 }

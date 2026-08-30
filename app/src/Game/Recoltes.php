@@ -139,17 +139,21 @@ final readonly class Recoltes
 
         $messages = [];
 
+        $perdu = [];
+
         if ([] !== $extraction) {
+            $perdu = $this->fusionner($perdu, $ville->surplusRefuse($extraction));
             $ville->crediterRessources($extraction);
             $messages[] = $this->enoncer('Les gisements ont livré', $extraction);
         }
 
         if ([] !== $peche) {
+            $perdu = $this->fusionner($perdu, $ville->surplusRefuse($peche));
             $ville->crediterRessources($peche);
             $messages[] = $this->enoncer('La pêche a rapporté', $peche);
         }
 
-        return [...$messages, ...$epuises];
+        return [...$messages, ...$epuises, ...$this->direCeQuiDeborde($perdu)];
     }
 
     /**
@@ -243,11 +247,12 @@ final readonly class Recoltes
             return [];
         }
 
+        $perdu = $ville->surplusRefuse($recolte);
         $ville->crediterRessources($recolte);
 
         $verbe = Saison::Chemou === $date->saison ? 'La moisson rentre' : 'Les champs ont donné';
 
-        return [$this->enoncer($verbe, $recolte)];
+        return [$this->enoncer($verbe, $recolte), ...$this->direCeQuiDeborde($perdu)];
     }
 
     /**
@@ -265,6 +270,51 @@ final readonly class Recoltes
             : intdiv(self::EXTRACTION_DE_REFERENCE * self::modificateurDeRareteEnCentiemes($difficulte), 100);
 
         return max(1, $reference);
+    }
+
+    /**
+     * Ce qui n'a pas tenu dans les réserves, dit au joueur.
+     *
+     * **Un plafond qui fait disparaître une moisson en silence est une règle
+     * qu'on subit sans comprendre.** L'écran prévient de la saturation avant
+     * qu'elle ne coûte quelque chose ; ce message-ci constate ce qu'elle a
+     * déjà coûté.
+     *
+     * @param array<string, int> $perdu
+     *
+     * @return list<string>
+     */
+    private function direCeQuiDeborde(array $perdu): array
+    {
+        if ([] === $perdu) {
+            return [];
+        }
+
+        $parts = [];
+        foreach ($perdu as $valeur => $quantite) {
+            $parts[] = \sprintf('%d %s', $quantite, Ressource::from($valeur)->libelle());
+        }
+
+        return [\sprintf(
+            'Vos réserves débordent : %s %s faute de place.',
+            implode(', ', $parts),
+            1 === \count($parts) && 1 === reset($perdu) ? 'se perd' : 'se perdent',
+        )];
+    }
+
+    /**
+     * @param array<string, int> $premier
+     * @param array<string, int> $second
+     *
+     * @return array<string, int>
+     */
+    private function fusionner(array $premier, array $second): array
+    {
+        foreach ($second as $valeur => $quantite) {
+            $premier[$valeur] = ($premier[$valeur] ?? 0) + $quantite;
+        }
+
+        return $premier;
     }
 
     /**
