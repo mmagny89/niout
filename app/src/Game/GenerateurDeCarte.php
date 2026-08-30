@@ -33,6 +33,16 @@ final readonly class GenerateurDeCarte
 
         $grille = $this->poserLaGeographie($ville, $geographie, $taille);
         $this->placerLaVille($grille, $geographie);
+
+        // Les broussailles se sèment **après** le placement de la ville et
+        // **avant** le tirage du contenu : après, pour que la case convertie ne
+        // devienne pas la ville — la garantie serait alors fausse, la carte
+        // n'en montrant plus aucune ; avant, parce que le poids du bois local
+        // dépend du terrain de la case.
+        if ($geographie->nil) {
+            $this->semerLaTerreBroussailleuse($grille);
+        }
+
         $this->remplirLeContenu($grille, $geographie, $ville->getDifficulte());
 
         foreach ($grille as $zone) {
@@ -97,14 +107,6 @@ final readonly class GenerateurDeCarte
 
         if ($geographie->oasis) {
             $this->poserUneOasis($terrains, $taille);
-        }
-
-        // En dernier, sur ce qui reste de terre cultivable : les broussailles
-        // où pousse le bois local. Après le désert et la forêt, jamais avant —
-        // sinon le sable et les cèdres viendraient manger la part déjà tirée,
-        // et la proportion voulue ne serait plus tenue.
-        if ($geographie->nil) {
-            $this->semerLaTerreBroussailleuse($terrains, $taille);
         }
 
         $zones = [];
@@ -223,39 +225,73 @@ final readonly class GenerateurDeCarte
      * Convertit une part des cases fertiles restantes en terre broussailleuse
      * (doc 02).
      *
-     * **Une case fertile est toujours laissée**, quoi qu'en dise le tirage :
-     * sur une grille 3×3 dont presque tout est déjà pris par le fleuve et le
-     * désert, tout convertir priverait la région de son unique terre
-     * cultivable — et une ville sans champ possible ne se nourrit pas.
+     * **Il reste toujours de quoi semer**, quoi qu'en dise le tirage — mais ce
+     * n'est pas forcément une terre fertile : dans une région bordée par le
+     * Nil, les berges inondables sont cultivables aussi. La dernière terre
+     * fertile peut donc devenir broussailleuse tant qu'une autre case accepte
+     * un champ ; c'est ce qui permet à une région ensablée comme Saï, dont la
+     * grille 3×3 ne garde qu'un ou deux carrés de vert, de porter malgré tout
+     * son bosquet.
      *
      * **Seules les régions bordées par le Nil en portent** : sans fleuve, il
      * n'y a pas de ces terrains verdoyants et non cultivés, et le bois local y
      * est donc systématiquement importé.
      *
-     * @param array<int, array<int, TypeDeTerrain>> $terrains
+     * **Et elles en portent toujours au moins une** — voir la garantie en fin
+     * de méthode.
+     *
+     * @param list<Zone> $grille
      */
-    private function semerLaTerreBroussailleuse(array &$terrains, int $taille): void
+    private function semerLaTerreBroussailleuse(array $grille): void
     {
         $fertiles = [];
-        for ($y = 0; $y < $taille; ++$y) {
-            for ($x = 0; $x < $taille; ++$x) {
-                if (TypeDeTerrain::Fertile === $terrains[$y][$x]) {
-                    $fertiles[] = [$y, $x];
-                }
+        foreach ($grille as $zone) {
+            if (!$zone->porteLaVille() && TypeDeTerrain::Fertile === $zone->getTerrain()) {
+                $fertiles[] = $zone;
             }
         }
 
-        $convertibles = \count($fertiles) - 1;
+        // Ce qui restera à cultiver si l'on convertit toutes les terres
+        // fertiles : les berges du Nil, les oasis. Tant qu'il en reste une, on
+        // peut tout convertir ; sinon on garde la dernière terre fertile pour
+        // les champs, et l'on renonce aux broussailles.
+        $autresCultivables = 0;
+        foreach ($grille as $zone) {
+            if (!$zone->porteLaVille()
+                && TypeDeTerrain::Fertile !== $zone->getTerrain()
+                && $zone->getTerrain()->accepteUnChamp()
+            ) {
+                ++$autresCultivables;
+            }
+        }
 
-        foreach ($fertiles as [$y, $x]) {
-            if ($convertibles <= 0) {
-                return;
+        $convertibles = $autresCultivables > 0 ? \count($fertiles) : \count($fertiles) - 1;
+
+        if ($convertibles <= 0) {
+            return;
+        }
+
+        $semees = 0;
+
+        foreach ($fertiles as $zone) {
+            if ($semees >= $convertibles) {
+                break;
             }
 
             if ($this->hasard->getInt(1, 100) <= self::PART_DE_TERRE_CLASSIQUE) {
-                $terrains[$y][$x] = TypeDeTerrain::TerreClassique;
-                --$convertibles;
+                $zone->definirTerrain(TypeDeTerrain::TerreClassique);
+                ++$semees;
             }
+        }
+
+        // **Une région bordée par le Nil en porte toujours au moins une.**
+        // Quinze pour cent par case échouent plus d'une fois sur deux sur une
+        // grille 3×3 : mesuré, le Delta n'avait ses broussailles qu'une partie
+        // du temps. Or c'est le terrain caractéristique du bois local, et le
+        // seul endroit où le joueur peut compter en trouver.
+        if (0 === $semees) {
+            $fertiles[$this->hasard->getInt(0, \count($fertiles) - 1)]
+                ->definirTerrain(TypeDeTerrain::TerreClassique);
         }
     }
 
@@ -723,12 +759,68 @@ final readonly class GenerateurDeCarte
 
         $choix = [] !== $candidatsAnneau ? $candidatsAnneau : $candidates;
 
-        if ([] === $choix) {
+        if ([] !== $choix) {
+            $choix[$this->hasard->getInt(0, \count($choix) - 1)]
+                ->poserUnGisement(Ressource::BoisLocal, $quantite);
+
             return;
         }
 
-        $choix[$this->hasard->getInt(0, \count($choix) - 1)]
-            ->poserUnGisement(Ressource::BoisLocal, $quantite);
+        // Plus une seule case libre où le bois pousse : sur une petite carte
+        // ensablée comme Saï, trois terres pour cinq matériaux, les rares cases
+        // vertes portent déjà leurs deux gisements. Le bois local **passe
+        // devant** — on peut jouer sans or, jamais sans charpente.
+        $this->fairePlaceAuBoisLocal($grille, $quantite);
+    }
+
+    /**
+     * Cède au bois local la place d'un matériau dont la ville peut se passer.
+     *
+     * Priorité assumée, et le seul cas du jeu où un gisement est retiré : les
+     * trois matériaux vitaux (`Ressource::materiauxVitaux()`) ne sont jamais
+     * évincés, et l'on préfère déloger un matériau qui subsiste ailleurs sur
+     * la carte — la région ne perd alors rien, elle déplace.
+     *
+     * @param list<Zone> $grille
+     */
+    private function fairePlaceAuBoisLocal(array $grille, int $quantite): void
+    {
+        $presentAilleurs = [];
+        foreach ($grille as $zone) {
+            foreach ($zone->getGisements() as $gisement) {
+                $valeur = $gisement->getRessource()->value;
+                $presentAilleurs[$valeur] = ($presentAilleurs[$valeur] ?? 0) + 1;
+            }
+        }
+
+        $pisAller = null;
+
+        foreach ($grille as $zone) {
+            if ($zone->porteLaVille() || 0 === self::poidsDuBoisLocal($zone->getTerrain())) {
+                continue;
+            }
+
+            foreach ($zone->getGisements() as $gisement) {
+                $ressource = $gisement->getRessource();
+
+                if (\in_array($ressource, Ressource::materiauxVitaux(), true)) {
+                    continue;
+                }
+
+                if (($presentAilleurs[$ressource->value] ?? 0) > 1) {
+                    $zone->retirerUnGisement($ressource)->poserUnGisement(Ressource::BoisLocal, $quantite);
+
+                    return;
+                }
+
+                $pisAller ??= [$zone, $ressource];
+            }
+        }
+
+        if (null !== $pisAller) {
+            [$zone, $ressource] = $pisAller;
+            $zone->retirerUnGisement($ressource)->poserUnGisement(Ressource::BoisLocal, $quantite);
+        }
     }
 
     /**
@@ -875,8 +967,13 @@ final readonly class GenerateurDeCarte
         // petite carte et de ne plus rien laisser à `garantirDesChamps()`.
         $poidsChamp = $champPossible ? max(1, intdiv($poids->champ, $distanceDeLaVille)) : 0;
 
+        // Ce qui peut réellement pousser ici. Vide, l'option « ressource »
+        // n'est pas proposée du tout : mieux vaut une case sans rien qu'un
+        // gisement que le terrain dément.
+        $poidsDesRessources = self::poidsDesRessources($ressourcesPossibles, $terrain);
+
         $options = [];
-        if ([] !== $ressourcesPossibles) {
+        if ([] !== $poidsDesRessources) {
             $options['ressource'] = $poids->ressource;
         }
         if ($champPossible) {
@@ -887,7 +984,7 @@ final readonly class GenerateurDeCarte
 
         match ($this->tirerParmi($options)) {
             'ressource' => $zone->poserUnGisement(
-                $this->tirerUneRessource($ressourcesPossibles, $terrain),
+                Ressource::from($this->tirerParmi($poidsDesRessources)),
                 $quantite,
             ),
             'champ' => $zone->poserUnContenu(ContenuDeZone::ChampEligible),
@@ -905,9 +1002,18 @@ final readonly class GenerateurDeCarte
      * bordure de canal. Ailleurs — désert, oasis, eau —, jamais : rien ne
      * pousse dans le sable.
      *
+     * **Le résultat peut être vide**, et l'appelant doit alors renoncer au
+     * gisement plutôt que d'en poser un au hasard. Le cas se produit : le
+     * plafond d'un seul exemplaire par matériau dans l'anneau de la ville peut
+     * ne laisser que le bois local comme possibilité, et si la case est de
+     * sable, aucun matériau n'y pousse. Un repli qui tirait alors parmi les
+     * ressources sans regarder le terrain plantait des acacias en plein désert.
+     *
      * @param list<Ressource> $possibles
+     *
+     * @return array<string, int> valeur de Ressource => poids
      */
-    private function tirerUneRessource(array $possibles, TypeDeTerrain $terrain): Ressource
+    private static function poidsDesRessources(array $possibles, TypeDeTerrain $terrain): array
     {
         $poids = [];
 
@@ -921,15 +1027,7 @@ final readonly class GenerateurDeCarte
             }
         }
 
-        // Une région dont le seul matériau serait le bois local, sur un terrain
-        // qui n'en porte pas : on ne rend pas un gisement impossible, on rend
-        // ce qu'il y a. Le cas ne se présente pas aujourd'hui, mais un tirage
-        // sans option est une panne, pas une règle.
-        if ([] === $poids) {
-            return $possibles[$this->hasard->getInt(0, \count($possibles) - 1)];
-        }
-
-        return Ressource::from($this->tirerParmi($poids));
+        return $poids;
     }
 
     private static function poidsDuBoisLocal(TypeDeTerrain $terrain): int

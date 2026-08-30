@@ -467,6 +467,115 @@ final class GenerateurDeCarteTest extends TestCase
     }
 
     /**
+     * **Toute région bordée par le Nil porte de la terre broussailleuse**, et
+     * toute région qui connaît le bois local en porte un gisement — sur les
+     * dix missions réelles, pas sur une géographie de laboratoire.
+     *
+     * C'est le genre de garantie qu'un tirage probabiliste rate en silence :
+     * quinze pour cent par case échouent plus d'une fois sur deux sur une
+     * grille 3×3, et le Delta n'avait ses broussailles qu'une partie du temps.
+     * Or c'est le terrain caractéristique du bois local, dont chaque bâtiment
+     * a besoin.
+     */
+    public function testChaqueMissionPorteSaTerreBroussailleuseEtSonBoisLocal(): void
+    {
+        foreach ((new MissionCatalogue())->toutes() as $mission) {
+            $geographie = $mission->geographie;
+            $porteDuBois = \in_array(Ressource::BoisLocal, $geographie->ressourcesDeZone, true);
+
+            for ($graine = 1; $graine <= 25; ++$graine) {
+                $ville = new City($mission->ville, $mission->difficulte, $mission->tailleDeGrille());
+                $this->generer($ville, $geographie, $graine);
+
+                $broussailles = 0;
+                $bois = 0;
+
+                foreach ($ville->getZones() as $zone) {
+                    if (TypeDeTerrain::TerreClassique === $zone->getTerrain()) {
+                        ++$broussailles;
+                    }
+
+                    if (null !== $zone->gisementDe(Ressource::BoisLocal)) {
+                        ++$bois;
+                    }
+                }
+
+                $ou = \sprintf('%s, graine %d', $mission->ville, $graine);
+
+                if (!$geographie->nil) {
+                    self::assertSame(0, $broussailles, \sprintf('%s : des broussailles sans Nil.', $ou));
+                } else {
+                    self::assertGreaterThan(0, $broussailles, \sprintf('%s : aucune terre broussailleuse.', $ou));
+                }
+
+                if ($porteDuBois) {
+                    self::assertGreaterThan(0, $bois, \sprintf('%s : aucun bois local.', $ou));
+                }
+            }
+        }
+    }
+
+    /**
+     * **La mission 1 porte toujours sa terre broussailleuse** (demande de la
+     * joueuse). C'est la région d'apprentissage : le joueur doit y rencontrer
+     * chaque terrain du jeu, et y trouver le bois local là où il pousse.
+     */
+    public function testLaPremiereMissionPorteToujoursSaTerreBroussailleuse(): void
+    {
+        $delta = (new MissionCatalogue())->get(1);
+
+        for ($graine = 1; $graine <= 120; ++$graine) {
+            $ville = new City($delta->ville, $delta->difficulte, $delta->tailleDeGrille());
+            $this->generer($ville, $delta->geographie, $graine);
+
+            $broussailles = 0;
+            foreach ($ville->getZones() as $zone) {
+                if (TypeDeTerrain::TerreClassique === $zone->getTerrain()) {
+                    ++$broussailles;
+                }
+            }
+
+            self::assertGreaterThan(0, $broussailles, \sprintf('Avaris, graine %d.', $graine));
+        }
+    }
+
+    /**
+     * La garantie de broussailles ne doit jamais coûter la dernière terre
+     * cultivable : convertir toute la terre fertile priverait la région de
+     * quoi semer, et une ville sans champ possible ne se nourrit pas.
+     *
+     * Seules les régions bordées par le Nil sont concernées — un camp minier
+     * sans oasis n'a légitimement rien à cultiver et dépend entièrement du
+     * commerce (doc 02, « cas des régions sans Nil »).
+     */
+    public function testLesBroussaillesNeMangentJamaisLaDerniereTerreCultivable(): void
+    {
+        foreach ((new MissionCatalogue())->toutes() as $mission) {
+            if (!$mission->geographie->nil) {
+                continue;
+            }
+
+            for ($graine = 1; $graine <= 25; ++$graine) {
+                $ville = new City($mission->ville, $mission->difficulte, $mission->tailleDeGrille());
+                $this->generer($ville, $mission->geographie, $graine);
+
+                $cultivables = 0;
+                foreach ($ville->getZones() as $zone) {
+                    if (!$zone->porteLaVille() && $zone->getTerrain()->accepteUnChamp()) {
+                        ++$cultivables;
+                    }
+                }
+
+                self::assertGreaterThan(
+                    0,
+                    $cultivables,
+                    \sprintf('%s, graine %d : rien à cultiver.', $mission->ville, $graine),
+                );
+            }
+        }
+    }
+
+    /**
      * L'invariant qui rend une ville bâtissable : presque tous les bâtiments
      * sont en brique crue, et **rien ne se substitue à l'argile**. Un tirage
      * qui n'en poserait aucune condamnerait la partie dès le deuxième
