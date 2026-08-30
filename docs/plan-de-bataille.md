@@ -519,18 +519,18 @@ je porte dix deben à Hâpi pendant la fête d'Opet, où l'offrande compte doubl
 L'année suivante, la crue est bonne. J'ai négligé Sekhmet trois saisons durant,
 et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
 
-| Lot | Contenu |
-|---|---|
-| 6.0 | Le panthéon : huit divinités, leurs domaines, l'échelle de faveur |
-| 6.1 | Le Temple : offrir, et ce que le niveau autorise |
-| 6.2 | La négligence : décroissance vers le neutre, jamais en dessous |
-| 6.3 | Ce que la faveur change réellement, branché sur l'existant |
-| 6.4 | Les fêtes calendaires attestées |
-| 6.5 | Bénédictions et malédictions ponctuelles |
-| 6.6 | Les épidémies |
-| 6.7 | Le trait « Pieux » et la spécialité « Dévot » se réveillent |
+| Lot | Contenu | |
+|---|---|---|
+| 6.0 | Le panthéon : huit divinités, leurs domaines, l'échelle de faveur | ✅ |
+| 6.1 | Le Temple : offrir, et ce que le niveau autorise | |
+| 6.2 | La négligence : décroissance vers le neutre, jamais en dessous | |
+| 6.3 | Ce que la faveur change réellement, branché sur l'existant | |
+| 6.4 | Les fêtes calendaires attestées | |
+| 6.5 | Bénédictions et malédictions ponctuelles | |
+| 6.6 | Les épidémies | |
+| 6.7 | Le trait « Pieux » et la spécialité « Dévot » se réveillent | |
 
-#### 6.0 — Le panthéon et l'échelle de faveur
+#### 6.0 — Le panthéon et l'échelle de faveur  ✅
 
 Huit divinités, chacune avec un domaine (doc 07) : **Amon-Rê** (renommée),
 **Hâpi** (crue), **Osiris** (récolte), **Ptah** (chantiers), **Sobek** (pêche et
@@ -542,9 +542,22 @@ le nom, le domaine et l'effet — jamais persistés ; une nouvelle entité ne
 persiste que la **clé** de la divinité et la valeur de faveur, sur le modèle de
 `RouteCommerciale` qui ne garde que la clé de son partenaire.
 
-Échelle de 0 à 100, départ à 50, quatre paliers (`PalierDeFaveur`, sur le modèle
+Échelle de 0 à 100, quatre paliers (`PalierDeFaveur`, sur le modèle
 de `PalierDeRenommee`) : Hostile 0-24, Neutre 25-49, Favorable 50-79, Dévoué
-80-100. **Une faveur non cultivée n'est jamais un malus** — il faut avoir fait
+80-100.
+
+**Une contradiction du doc 07, tranchée** : il annonce un départ « neutre à
+50 » tout en plaçant le palier Favorable à partir de 50. Suivi à la lettre, il
+offrirait huit bonus actifs à qui n'a jamais mis les pieds au Temple. On
+démarre donc à **40**, dans la bande Neutre — la partie chiffrée du document
+l'emporte sur sa phrase.
+
+**Une ligne n'existe qu'au premier geste** : une divinité jamais honorée n'a
+pas de ligne en base, `City::faveurEnvers()` répond la constante. Écrire huit
+lignes au lancement de chaque partie stockerait huit fois la même valeur, et
+il faudrait les migrer à chaque divinité ajoutée.
+
+**Une faveur non cultivée n'est jamais un malus** — il faut avoir fait
 descendre un dieu sous 25 pour être puni, ce qui demande de la négligence
 prolongée ou une quête ratée, pas de l'inaction au démarrage.
 

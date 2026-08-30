@@ -428,6 +428,27 @@ système d'accueil reste inerte et le dit** (`SpecialiteDeChef::agitDeja()`),
 promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment
 même où il compare des candidats.
 
+**Le panthéon est du contenu, la faveur est de l'état** (`Divinite`,
+`FaveurDivine`) : nom, domaine et effet d'un dieu vivent dans l'enum, seule sa
+**clé** et la valeur de sa faveur sont persistées — comme les partenaires
+commerciaux. Trois règles à ne pas défaire :
+
+- **On démarre à 40, pas à 50.** Le doc 07 annonce un départ « neutre à 50 »
+  tout en plaçant le palier Favorable à partir de 50 ; à la lettre, il
+  offrirait huit bonus actifs à une ville qui n'a jamais mis les pieds au
+  Temple. La partie chiffrée du document l'emporte sur sa phrase.
+- **Une ligne de faveur naît au premier geste, jamais au lancement.**
+  `City::faveurEnvers()` répond la constante pour un dieu sans ligne ;
+  `suivreLaFaveurDe()` est le seul chemin par lequel une ligne existe.
+- **Les bornes tiennent dans `FaveurDivine::ajuster()`**, pas chez ses
+  appelants : offrande, fête, bénédiction et malédiction y passeront tous, et
+  aucun n'a à vérifier l'échelle pour son compte.
+
+**Un dieu sans emploi le dit** (`Divinite::agitDeja()`, `attente()`) : Isis
+attend le combat, Thot les énigmes. Même règle que les spécialités de chef —
+promettre un effet qui ne s'applique nulle part tromperait le joueur au moment
+même où il choisit à qui donner.
+
 **Le mécontentement a deux causes et un seul mécanisme** (`Mecontentement`) :
 la faim et les salaires impayés mènent à la même colère, comptée une fois. Il
 monte et se résorbe d'un cran par quinzaine — symétrie délibérée, qui interdit

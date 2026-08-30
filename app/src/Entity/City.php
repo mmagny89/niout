@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Game\CoutDeConstruction;
+use App\Game\Divinite;
+use App\Game\PalierDeFaveur;
 use App\Game\Population;
 use App\Game\Ressource;
 use App\Game\Stockage;
@@ -93,6 +95,12 @@ class City
     private Collection $ordresDeFabrication;
 
     /**
+     * @var Collection<int, FaveurDivine>
+     */
+    #[ORM\OneToMany(targetEntity: FaveurDivine::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $faveurs;
+
+    /**
      * @var Collection<int, RouteCommerciale>
      */
     #[ORM\OneToMany(targetEntity: RouteCommerciale::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -145,6 +153,7 @@ class City
         $this->employes = new ArrayCollection();
         $this->ordresDeFabrication = new ArrayCollection();
         $this->routesCommerciales = new ArrayCollection();
+        $this->faveurs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -539,6 +548,76 @@ class City
         }
 
         return null;
+    }
+
+    /**
+     * @return Collection<int, FaveurDivine>
+     */
+    public function getFaveurs(): Collection
+    {
+        return $this->faveurs;
+    }
+
+    /**
+     * Ce que pense un dieu, qu'on l'ait déjà honoré ou non.
+     *
+     * Une divinité sans ligne en base est **neutre**, pas absente : c'est ce
+     * qui permet de n'écrire une ligne qu'au premier geste du joueur.
+     */
+    public function faveurEnvers(Divinite $divinite): int
+    {
+        return $this->faveurDe($divinite)?->getFaveur() ?? Divinite::FAVEUR_DE_DEPART;
+    }
+
+    public function palierDe(Divinite $divinite): PalierDeFaveur
+    {
+        return PalierDeFaveur::pour($this->faveurEnvers($divinite));
+    }
+
+    public function faveurDe(Divinite $divinite): ?FaveurDivine
+    {
+        foreach ($this->faveurs as $faveur) {
+            if ($faveur->getDivinite() === $divinite) {
+                return $faveur;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * La ligne de ce dieu, créée au besoin. C'est le seul chemin par lequel
+     * une faveur naît : partout ailleurs, on lit `faveurEnvers()`.
+     */
+    public function suivreLaFaveurDe(Divinite $divinite): FaveurDivine
+    {
+        $faveur = $this->faveurDe($divinite);
+
+        if (null === $faveur) {
+            $faveur = new FaveurDivine($this, $divinite);
+            $this->faveurs->add($faveur);
+        }
+
+        return $faveur;
+    }
+
+    /**
+     * Les dieux que la ville porte au-dessus du neutre — ce que le niveau du
+     * Temple viendra plafonner.
+     *
+     * @return list<Divinite>
+     */
+    public function divinitesHonorees(): array
+    {
+        $honorees = [];
+
+        foreach ($this->faveurs as $faveur) {
+            if ($faveur->getPalier()->estAuDessusDuNeutre()) {
+                $honorees[] = $faveur->getDivinite();
+            }
+        }
+
+        return $honorees;
     }
 
     public function estEnModeDivin(): bool
