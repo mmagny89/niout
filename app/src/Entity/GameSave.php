@@ -254,6 +254,49 @@ class GameSave
         return $this;
     }
 
+    /**
+     * Partie d'essai (`City::estEnModeDivin()`) : à afficher clairement, une
+     * run truquée ne se confond pas avec une vraie.
+     */
+    /**
+     * Fait démarrer une campagne à une autre mission que la première.
+     *
+     * **Réservé au mode divin** : l'ordre des missions est imposé (doc 09), et
+     * une campagne ordinaire n'a aucun moyen d'appeler ceci. Sans quoi les
+     * neuf autres régions resteraient hors d'atteinte tant que la Phase 8 n'a
+     * pas écrit l'enchaînement — et invérifiables autrement qu'en script.
+     */
+    public function commencerALaMission(int $numero): static
+    {
+        if ($this->estCampagne()) {
+            $this->mission = $numero;
+        }
+
+        return $this;
+    }
+
+    public function estEnModeDivin(): bool
+    {
+        return $this->ville->estEnModeDivin();
+    }
+
+    /**
+     * Remet la partie d'aplomb : famine oubliée, colère retombée, échec levé.
+     *
+     * Réservé au mode divin, et c'est **la seule chose du jeu qui défait un
+     * échec** — sans elle, une partie tombée en famine ne pourrait plus servir
+     * à tester quoi que ce soit, alors que c'est souvent celle qu'on veut
+     * examiner.
+     */
+    public function toutRemettreDAplomb(): static
+    {
+        $this->statut = StatutDePartie::EnCours;
+        $this->quinzainesDeFamine = 0;
+        $this->quinzainesDeMecontentement = 0;
+
+        return $this;
+    }
+
     public function getQuinzainesDeMecontentement(): int
     {
         return $this->quinzainesDeMecontentement;

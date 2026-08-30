@@ -28,6 +28,7 @@ use App\Game\Marche;
 use App\Game\Mecontentement;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
+use App\Game\ModeDivin;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
 use App\Game\RecrutementImpossible;
@@ -67,15 +68,24 @@ final class PartieController extends AbstractController
             return $this->redirectToRoute('app_compte');
         }
 
-        $form = $this->createForm(NouvellePartieType::class);
+        // Les dix régions ne s'ouvrent qu'au mode divin : pour un joueur
+        // ordinaire, le champ n'existe pas et un POST forgé ne le rétablit pas.
+        $ouvertes = [];
+        if ($joueur->estDivinite()) {
+            foreach ($missions->toutes() as $mission) {
+                $ouvertes[\sprintf('%d — %s (%s)', $mission->numero, $mission->ville, $mission->region)] = $mission->numero;
+            }
+        }
+
+        $form = $this->createForm(NouvellePartieType::class, options: ['missionsOuvertes' => $ouvertes]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            /** @var array{mode: GameMode, nomDeFamille: string, difficulte: int, tailleGrille: int} $donnees */
+            /** @var array{mode: GameMode, nomDeFamille: string, difficulte: int, tailleGrille: int, mission?: int} $donnees */
             $donnees = $form->getData();
 
             $partie = GameMode::Campagne === $donnees['mode']
-                ? $lanceur->lancerCampagne($joueur, $donnees['nomDeFamille'])
+                ? $lanceur->lancerCampagne($joueur, $donnees['nomDeFamille'], $donnees['mission'] ?? null)
                 : $lanceur->lancerAventure(
                     $joueur,
                     $donnees['nomDeFamille'],
@@ -185,6 +195,42 @@ final class PartieController extends AbstractController
         } catch (VenteImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Bascule une partie en mode divin, ou l'en fait sortir.
+     *
+     * **Deux écarts délibérés, tous deux nécessaires au propos du mode.**
+     *
+     * Le premier : la route passe par `PartieVoter::VOIR` et non par `JOUER`,
+     * alors qu'elle modifie l'état. `JOUER` refuse une partie échouée — or
+     * c'est justement celle qu'on veut souvent pouvoir remettre debout pour
+     * l'examiner. La propriété de la partie reste vérifiée, elle.
+     *
+     * Le second : `ROLE_DIVIN` en plus, accordé en console seulement. C'est
+     * la vraie barrière ; l'absence de bouton n'en serait pas une.
+     */
+    #[Route('/{id}/divin', name: 'app_partie_divin', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(User::ROLE_DIVIN)]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function modeDivin(Request $request, GameSave $partie, ModeDivin $modeDivin): Response
+    {
+        if (!$this->isCsrfTokenValid('divin', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        if ($partie->estEnModeDivin() && $request->request->has('combler')) {
+            $modeDivin->combler($partie);
+            $this->addFlash('succes', 'Les réserves sont de nouveau pleines.');
+
+            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        }
+
+        $this->addFlash('succes', $modeDivin->basculer($partie)
+            ? 'Cette partie devient une partie d\'essai : un million de chaque ressource, aucun plafond.'
+            : 'Cette partie retrouve les règles ordinaires. Ce qui a été donné reste.');
 
         return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
     }

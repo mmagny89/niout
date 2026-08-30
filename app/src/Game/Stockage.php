@@ -71,7 +71,10 @@ final readonly class Stockage
      */
     public static function plafondPour(City $ville, Ressource $ressource): ?int
     {
-        if ($ressource->estLaMonnaie()) {
+        // Une partie d'essai n'a pas de réserve à ménager : sans cette levée,
+        // le million de ressources du mode divin serait refusé à l'entrée par
+        // la règle même qu'on veut pouvoir mettre de côté pour tester.
+        if ($ressource->estLaMonnaie() || $ville->estEnModeDivin()) {
             return null;
         }
 

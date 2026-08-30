@@ -40,14 +40,20 @@ final readonly class LanceurDePartie
     /**
      * @throws PlafondDePartiesAtteint
      */
-    public function lancerCampagne(User $joueur, string $nomDeFamille): GameSave
+    /**
+     * `$numeroDeMission` n'est renseigné que par le **mode divin**, qui ouvre
+     * les dix régions pour les essais (`User::ROLE_DIVIN`). Une campagne
+     * ordinaire démarre toujours à la première : l'ordre est imposé (doc 09).
+     */
+    public function lancerCampagne(User $joueur, string $nomDeFamille, ?int $numeroDeMission = null): GameSave
     {
         $this->refuserSiPlafondAtteint($joueur);
 
-        $mission = $this->missions->get(GameSave::PREMIERE_MISSION);
+        $mission = $this->missions->get($numeroDeMission ?? GameSave::PREMIERE_MISSION);
         $ville = new City($mission->ville, $mission->difficulte, $mission->tailleDeGrille());
 
         $partie = GameSave::pourCampagne($joueur, new Family($nomDeFamille), $ville);
+        $partie->commencerALaMission($mission->numero);
 
         return $this->doterEtEnregistrer($partie, $mission->geographie);
     }

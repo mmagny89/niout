@@ -134,6 +134,21 @@ Les tests fonctionnels rendent de vraies pages : sans CSS compilée, ils échoue
 tous d'un coup, avec un message qui ne mentionne pas Tailwind clairement. D'où le
 `tailwind:build` ci-dessus.
 
+## Mode d'essai
+
+Éprouver le commerce longue distance ou une région du Sinaï demanderait des
+heures de jeu. Un compte peut donc recevoir le **mode divin**, qui ouvre les dix
+missions à la création d'une partie et comble ses réserves d'un million de
+chaque ressource, plafonds levés :
+
+```bash
+docker compose exec php php bin/console app:users:goddess vous@example.com
+```
+
+Le rôle ne s'accorde que par cette commande — aucun écran ne le propose. Une
+partie d'essai l'affiche en toutes lettres : elle ne se confond jamais avec une
+partie jouée.
+
 ## Secrets
 
 Aucun secret réel ne doit entrer dans un fichier suivi par git. Sont committés,

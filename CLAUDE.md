@@ -28,6 +28,8 @@ Le stack se lance sans `-f` : `COMPOSE_FILE` dans le `.env` racine chaîne déj�
 - Rebuild des styles Tailwind : `docker compose exec php php bin/console tailwind:build`
   (ajouter `--watch` pendant le développement)
 - Migrations : `docker compose exec php php bin/console doctrine:migrations:migrate`
+- Mode d'essai : `docker compose exec php php bin/console app:users:goddess <email>`
+  (`--retirer` pour le reprendre)
 - Observabilité (Ember) : `curl http://127.0.0.1:9191/metrics`
 
 Portes qualité — les quatre doivent passer avant un merge (mêmes commandes qu'en CI) :
@@ -283,11 +285,22 @@ qui ne porte qu'une case d'eau poissonneuse. Il se pêche depuis un Port, ne se
 creuse jamais (`Exploitations::exploiter()`), et l'interface écrit
 « inépuisable » là où les autres gisements affichent leurs unités restantes.
 
+**Le mode divin est un outil d'essai, pas une fonctionnalité** (`ModeDivin`,
+`User::ROLE_DIVIN`) : un million de chaque ressource, plafonds de réserve levés,
+les dix missions ouvertes à la création. **Le rôle ne s'accorde qu'en console**
+(`app:users:goddess`) — aucun écran ne le donne, et cacher un bouton n'est pas
+une barrière : la route vérifie le rôle en plus de la propriété. Une partie
+d'essai le dit en toutes lettres à l'écran, pour ne jamais se confondre avec une
+vraie. C'est aussi **la seule chose du jeu qui défait un échec**, ce qui lui vaut
+son écart au `JOUER` ci-dessous.
+
 **Toute route qui modifie l'état d'une partie doit utiliser
 `PartieVoter::JOUER`**, pas `VOIR` : `JOUER` refuse en plus une partie
 `StatutDePartie::Echouee` (famine prolongée, `Subsistance`). `VOIR` ne
 vérifie que la propriété — une action mutante gardée par `VOIR` seul resterait
-jouable sur une partie déjà terminée.
+jouable sur une partie déjà terminée. **Une seule exception, documentée** : la
+bascule du mode divin, qui doit justement pouvoir remettre debout une partie
+échouée — c'est souvent celle qu'on veut examiner.
 
 Cinq pièges déjà payés, à ne pas refaire :
 

@@ -107,6 +107,18 @@ class City
     #[ORM\Column]
     private int $anciens = 0;
 
+    /**
+     * Partie d'essai : un million de chaque ressource, aucun plafond de
+     * réserve, les dix missions ouvertes (`User::ROLE_DIVIN`).
+     *
+     * **Le drapeau vit sur la ville et non sur la partie**, bien qu'il marque
+     * la run entière : c'est la ville qui porte le stock et les plafonds, et
+     * `Stockage` ne connaît qu'elle. `GameSave::estEnModeDivin()` s'y adosse
+     * pour dire la même chose à l'échelle de la partie.
+     */
+    #[ORM\Column]
+    private bool $modeDivin = false;
+
     public function __construct(string $nom, int $difficulte, int $tailleGrille)
     {
         $this->nom = $nom;
@@ -446,6 +458,27 @@ class City
         }
 
         return $refuse;
+    }
+
+    public function estEnModeDivin(): bool
+    {
+        return $this->modeDivin;
+    }
+
+    /**
+     * Bascule la ville en partie d'essai, ou l'en fait sortir.
+     *
+     * Sortir du mode ne retire rien : ce qui a été donné reste, et les
+     * plafonds reprennent simplement leur effet sur ce qui **entre**. Une
+     * ville qu'on redescend sur terre garde donc ses réserves débordantes
+     * jusqu'à les avoir dépensées — la règle du plafond n'a jamais porté sur
+     * ce qui est déjà rangé.
+     */
+    public function basculerLeModeDivin(bool $actif): static
+    {
+        $this->modeDivin = $actif;
+
+        return $this;
     }
 
     public function plafondDesVivres(): int
