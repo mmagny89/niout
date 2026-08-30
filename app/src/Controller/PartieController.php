@@ -20,6 +20,7 @@ use App\Game\Commerce;
 use App\Game\CommerceImpossible;
 use App\Game\Culture;
 use App\Game\DateDeJeu;
+use App\Game\Divinite;
 use App\Game\Effectifs;
 use App\Game\ExploitationImpossible;
 use App\Game\Exploitations;
@@ -33,6 +34,8 @@ use App\Game\Mecontentement;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\ModeDivin;
+use App\Game\OffrandeImpossible;
+use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
 use App\Game\Recette;
@@ -43,6 +46,7 @@ use App\Game\RoleDExploration;
 use App\Game\Salaires;
 use App\Game\SensDEchange;
 use App\Game\SpecialiteDeChef;
+use App\Game\Temple;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
 use App\Repository\GameSaveRepository;
@@ -504,6 +508,81 @@ final class PartieController extends AbstractController
         }
 
         return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Le Temple : à qui l'on donne, et ce que les dieux en pensent.
+     *
+     * Écran à part plutôt qu'une section de la ville : huit divinités, leurs
+     * paliers et leurs effets ne tiennent pas dans la marge d'une liste de
+     * bâtiments, et le geste d'offrande mérite qu'on s'y arrête.
+     */
+    #[Route('/{id}/temple', name: 'app_partie_temple', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function temple(GameSave $partie, Offrandes $offrandes): Response
+    {
+        $ville = $partie->getVille();
+        $temple = $ville->batimentDeType(TypeDeBatiment::Temple);
+
+        $pantheon = [];
+
+        foreach (Divinite::pantheon() as $divinite) {
+            $pantheon[] = [
+                'divinite' => $divinite,
+                'faveur' => $ville->faveurEnvers($divinite),
+                'palier' => $ville->palierDe($divinite),
+            ];
+        }
+
+        return $this->render('partie/temple.html.twig', [
+            'partie' => $partie,
+            'ville' => $ville,
+            'pantheon' => $pantheon,
+            'aUnTemple' => null !== $temple,
+            'niveauDuTemple' => $temple?->getNiveau() ?? 0,
+            'divinitesPortables' => Temple::divinitesPortables($ville),
+            'plafond' => Temple::plafondDeFaveur($ville),
+            'honorees' => $ville->divinitesHonorees(),
+            'corbeille' => $offrandes->corbeillePour($partie),
+            'pointsParOffrande' => Offrandes::POINTS_PAR_OFFRANDE,
+            'debenParOffrande' => Offrandes::DEBEN_PAR_OFFRANDE,
+        ]);
+    }
+
+    /**
+     * Porte une offrande au Temple.
+     *
+     * Le seul geste du jeu sans contrepartie immédiate : on donne, la faveur
+     * monte, et ce qu'elle change se verra plus tard.
+     */
+    #[Route('/{id}/temple/offrir', name: 'app_partie_offrir', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function offrir(Request $request, GameSave $partie, Offrandes $offrandes): Response
+    {
+        if (!$this->isCsrfTokenValid('offrir', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $divinite = Divinite::tryFrom((string) $request->request->get('divinite'));
+        $ressource = Ressource::tryFrom((string) $request->request->get('ressource'));
+
+        if (null === $divinite || null === $ressource) {
+            throw $this->createNotFoundException('Offrande inconnue.');
+        }
+
+        try {
+            $points = $offrandes->offrir($partie, $divinite, $ressource, $request->request->getInt('quantite'));
+            $this->addFlash('succes', \sprintf(
+                'L\'offrande est portée à %s : %d point%s de faveur.',
+                $divinite->libelle(),
+                $points,
+                $points > 1 ? 's' : '',
+            ));
+        } catch (OffrandeImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_temple', ['id' => $partie->getId()]);
     }
 
     /**
