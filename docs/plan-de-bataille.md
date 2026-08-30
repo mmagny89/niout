@@ -667,13 +667,30 @@ et il attend le combat de la Phase 10.
 - **Les divinités au-delà des huit** : le doc les laisse ouvertes, on s'en tient
   aux huit attestées.
 
-#### À trancher avec la joueuse
+#### Points tranchés avec la joueuse
 
-| Question | Enjeu |
+| Question | Décision |
 |---|---|
-| Peut-on offrir **en ressources** autant qu'en deben ? | Le doc le prévoit ; cela donnerait un débouché au surplus que le plafond de stock refuse |
-| Le barème de 10 deben pour 5 points tient-il ? | 60 deben pour porter un dieu de Neutre à Dévoué, contre 39 de salaires par quinzaine — à mesurer avant de figer |
-| Une malédiction peut-elle faire échouer une partie ? | La ligne du projet dit non ; le doc ne tranche pas |
+| Peut-on offrir **en ressources** autant qu'en deben ? | **Oui.** Une offrande accepte l'un ou l'autre, convertie au cours du Marché. C'est aussi le premier débouché du surplus que le plafond de stock refuse |
+| Le barème de 10 deben pour 5 points tient-il ? | **Oui pour le moment** — on part sur le chiffre du doc 07 et on le corrige au playtest, comme le lot 4.6 |
+| Une malédiction peut-elle faire échouer une partie ? | **Non**, ce serait trop dur. Elle retarde et elle coûte, elle ne termine jamais |
+
+Trois conséquences à ne pas perdre de vue en écrivant la phase :
+
+- **Offrir en ressources passe par le cours du Marché** (`PrixDuMarche`), jamais
+  par un second barème : deux tables de valeurs finiraient par diverger, et
+  l'une des deux deviendrait la bonne affaire. Le corollaire est qu'une région
+  qui produit cher honore ses dieux à moindre effort — c'est cohérent, l'Égypte
+  offrait ce qu'elle avait.
+- **Le barème est provisoire et doit le rester** : 60 deben pour porter une
+  divinité de Neutre à Dévoué, contre 39 de salaires par quinzaine. La mesure
+  se fera comme au lot 4.6, sur la ville d'exemple, et le chiffre du doc n'a
+  pas d'autorité contre elle.
+- **La famine reste la seule cause d'échec du jeu.** Une malédiction peut faire
+  tomber une récolte, jamais mettre la partie en `StatutDePartie::Echouee` — si
+  elle affame la ville, c'est la famine qui conclut, à ses douze quinzaines, et
+  le joueur a le temps de réagir. Aucun événement n'appelle directement
+  l'échec.
 
 #### Définition de « fini »
 
@@ -816,6 +833,8 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Le bois | **Deux ressources distinctes** : le bois local (acacia, sycomore) qu'on ramasse au bord du Nil et dont tout bâtiment est charpenté, et le cèdre du Levant, importé et réservé au prestige |
 | Terre broussailleuse | La « terre classique » du doc 02 est un **terrain**, pas un contenu : jamais cultivable, elle porte le bois local et ne se sème que dans les régions à Nil |
 | Gisements par case | **Jusqu'à deux**, jamais deux fois le même matériau |
+| Offrandes | **En deben ou en ressources**, au choix, converties au cours du Marché |
+| Échec d'une partie | **La famine seule** y mène. Aucun événement, aucune malédiction ne termine une partie directement |
 | Placement de la ville | **Le Nil en priorité** s'il existe, sinon tout point d'eau, sinon terre fertile — jamais en plein désert |
 | Gisements non alimentaires près de la ville | **Un seul exemplaire** dans l'anneau des 8 cases, plafonné même par le tirage aléatoire |
 | Cycle agricole | **Quatre étapes** (semis/pousse/récolte/repos) ; le Nil suit la saison, la terre suit son propre compteur ; aucune nourriture hors récolte |
