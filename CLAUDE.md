@@ -184,6 +184,19 @@ contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
 coup (garantie de matériau, garantie de poisson) effaçait silencieusement le
 champ qu'une garantie précédente venait de poser sur la même case.
 
+**Rien de fabriqué ne se trouve sur une carte** (`Ressource::estFabriquee()`,
+doc 08) : la poterie, les outils et les bijoux n'existent que par le travail ou
+par l'import. Aucune région ne les déclare en ressource de zone, et deux tests
+gardent l'invariant — l'un sur la déclaration, l'autre sur de vraies cartes
+générées. **Le pain et la bière sont des vivres** : ce sont les deux formes
+sous lesquelles l'Égypte consommait son grain.
+
+**Un objet fabriqué vaut environ 165 % de ce qu'il coûte à produire**
+(`PrixDuMarche::MARGE_DE_TRANSFORMATION`). En deçà, personne ne fabriquerait —
+vendre brut irait aussi vite sans immobiliser l'Atelier ; au-delà, vendre brut
+n'aurait plus jamais de sens. Toute recette ajoutée doit garder cette marge, et
+c'est mesuré, pas supposé.
+
 **La monnaie est le deben, jamais l'or** (`Ressource::Deben`,
 `Ressource::estLaMonnaie()`). L'Égypte pharaonique n'a pas de monnaie frappée —
 elle n'apparaît que sous domination perse puis chez les Ptolémées ; le Nouvel
