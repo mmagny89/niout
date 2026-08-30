@@ -186,12 +186,14 @@ contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
 coup (garantie de matériau, garantie de poisson) effaçait silencieusement le
 champ qu'une garantie précédente venait de poser sur la même case.
 
-**Fabriquer prend du temps et plusieurs matières** (`Recette`, `Atelier`,
-décision de la joueuse). Quatre règles à ne pas défaire : les matières sont
+**Fabriquer prend du temps et plusieurs matières** (`Recette`, `Fabrication`,
+décision de la joueuse). **L'Atelier et la Forge partagent tout** — un seul
+service, c'est la recette qui dit où elle se travaille. Quatre règles à ne pas
+défaire : les matières sont
 **débitées à l'engagement** — sans quoi on lancerait dix ordres avec les
 ressources d'un seul —, les pièces **n'entrent qu'à l'achèvement** (la règle
-des champs), **un seul ordre à la fois** parce que c'est ce qui donne son coût
-d'opportunité à la fabrication, et le rythme vient des bras par
+des champs), **un seul ordre à la fois et par bâtiment** parce que c'est ce qui donne son
+coût d'opportunité à la fabrication, et le rythme vient des bras par
 `EffetDeChef::qualiteDeDirection()`, jamais par un multiplicateur de plus.
 **Toute recette ajoutée doit tenir la marge de transformation** — le test s'y
 adosse et tombe sinon.

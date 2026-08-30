@@ -104,10 +104,10 @@ final readonly class PrixDuMarche
             Ressource::Biere->value => 19,       // 46 le lot, 4 pièces
 
             // La Forge : le doc 08 ne chiffre ni ses recettes ni ses prix.
-            // Comptés sur quatre à cinq cuivres, l'arme demandant plus de
-            // travail que l'outil.
-            Ressource::Outils->value => 60,
-            Ressource::Armes->value => 80,
+            // **Recalculés au lot 5.3**, sur les recettes réelles — une lame de
+            // cuivre et son manche, une hache et ses liens de lin.
+            Ressource::Outils->value => 32,      // 59 le lot, 3 pièces
+            Ressource::Armes->value => 47,       // 86 le lot, 3 pièces
 
             // Craft de luxe : ce que l'Entrepôt de haut niveau finit par
             // ouvrir, et le sommet de la chaîne de valeur du jeu.

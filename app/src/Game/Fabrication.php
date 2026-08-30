@@ -9,8 +9,14 @@ use App\Entity\OrdreDeFabrication;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * L'Atelier : lancer un ordre, le faire avancer, en récolter les pièces
+ * Fabriquer : lancer un ordre, le faire avancer, en récolter les pièces
  * (doc 01, doc 08).
+ *
+ * **L'Atelier et la Forge partagent tout** — ordres, lots, déblocage par
+ * niveau, rythme donné par les bras. Ils ne diffèrent que par ce qu'ils savent
+ * faire, et c'est la recette qui dit où elle se travaille
+ * (`Recette::batiment()`). Deux services auraient été deux fois la même chose,
+ * avec deux occasions de diverger.
  *
  * **Quatre règles, et chacune tient à quelque chose :**
  *
@@ -30,12 +36,11 @@ use Doctrine\ORM\EntityManagerInterface;
  * (`EffetDeChef::qualiteDeDirection()`) : un Atelier désert met deux fois plus
  * de temps, sans jamais s'arrêter — « rien ne s'éteint faute d'employés ».
  */
-final readonly class Atelier
+final readonly class Fabrication
 {
     /**
-     * Lots qu'un niveau d'Atelier autorise dans un même ordre. **Valeur
-     * inventée** : le doc 01 dit que le niveau élargit la production sans le
-     * chiffrer.
+     * Lots qu'un niveau autorise dans un même ordre. **Valeur inventée** : le
+     * doc 01 dit que le niveau élargit la production sans le chiffrer.
      */
     public const int LOTS_PAR_NIVEAU = 2;
 
@@ -52,24 +57,25 @@ final readonly class Atelier
     public function lancer(GameSave $partie, Recette $recette, int $lots): OrdreDeFabrication
     {
         $ville = $partie->getVille();
-        $atelier = $ville->batimentDeType(TypeDeBatiment::Atelier);
+        $type = $recette->batiment();
+        $atelier = $ville->batimentDeType($type);
 
         if (null === $atelier) {
-            throw new FabricationImpossible('Il vous faut un Atelier pour fabriquer quoi que ce soit.');
+            throw new FabricationImpossible(\sprintf('Il vous faut %s %s pour cela.', TypeDeBatiment::Forge === $type ? 'une' : 'un', $type->libelle()));
         }
 
-        if (null !== $ville->ordreDeFabricationEnCours()) {
-            throw new FabricationImpossible('Votre Atelier a déjà un ouvrage en cours.');
+        if (null !== $ville->ordreDeFabricationDe($type)) {
+            throw new FabricationImpossible(\sprintf('Votre %s a déjà un ouvrage en cours.', $type->libelle()));
         }
 
         if ($recette->niveauRequis() > $atelier->getNiveau()) {
-            throw new FabricationImpossible(\sprintf('%s demande un Atelier de niveau %d ; le vôtre est au %d.', $recette->libelle(), $recette->niveauRequis(), $atelier->getNiveau()));
+            throw new FabricationImpossible(\sprintf('%s demande %s de niveau %d ; le vôtre est au %d.', $recette->libelle(), $type->libelle(), $recette->niveauRequis(), $atelier->getNiveau()));
         }
 
         $maximum = self::lotsMaximum($atelier->getNiveau());
 
         if ($lots < 1 || $lots > $maximum) {
-            throw new FabricationImpossible(\sprintf('Votre Atelier ne mène pas plus de %d lot%s à la fois.', $maximum, $maximum > 1 ? 's' : ''));
+            throw new FabricationImpossible(\sprintf('Votre %s ne mène pas plus de %d lot%s à la fois.', $type->libelle(), $maximum, $maximum > 1 ? 's' : ''));
         }
 
         $matieres = self::matieresPour($recette, $lots);
@@ -97,15 +103,29 @@ final readonly class Atelier
      */
     public function avancerDUnCycle(GameSave $partie): array
     {
+        $messages = [];
+
+        foreach (Recette::batimentsQuiFabriquent() as $type) {
+            $messages = [...$messages, ...$this->avancerUnAtelier($partie, $type)];
+        }
+
+        return $messages;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function avancerUnAtelier(GameSave $partie, TypeDeBatiment $type): array
+    {
         $ville = $partie->getVille();
-        $ordre = $ville->ordreDeFabricationEnCours();
+        $ordre = $ville->ordreDeFabricationDe($type);
 
         if (null === $ordre) {
             return [];
         }
 
         $ordre->avancerDUnCycle(
-            EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Atelier, $partie->getCycle()),
+            EffetDeChef::qualiteDeDirection($ville, $type, $partie->getCycle()),
         );
 
         if (!$ordre->estAcheve()) {
@@ -142,10 +162,10 @@ final readonly class Atelier
      * @return list<array{recette: Recette, matieres: array<string, int>, realisable: bool, empechement: ?string}>
      *                                                                                                             `matieres` est indexé par libellé, prêt à l'affichage
      */
-    public function offrePour(GameSave $partie): array
+    public function offrePour(GameSave $partie, TypeDeBatiment $type): array
     {
         $ville = $partie->getVille();
-        $atelier = $ville->batimentDeType(TypeDeBatiment::Atelier);
+        $atelier = $ville->batimentDeType($type);
 
         if (null === $atelier) {
             return [];
@@ -153,7 +173,7 @@ final readonly class Atelier
 
         $offre = [];
 
-        foreach (Recette::pourUnAtelierDeNiveau($atelier->getNiveau()) as $recette) {
+        foreach (Recette::pour($type, $atelier->getNiveau()) as $recette) {
             $matieres = self::matieresPour($recette, 1);
             $manques = $ville->manquesDe($matieres);
 
@@ -168,9 +188,9 @@ final readonly class Atelier
         return $offre;
     }
 
-    public static function lotsMaximum(int $niveauDAtelier): int
+    public static function lotsMaximum(int $niveau): int
     {
-        return max(1, self::LOTS_PAR_NIVEAU * $niveauDAtelier);
+        return max(1, self::LOTS_PAR_NIVEAU * $niveau);
     }
 
     /**

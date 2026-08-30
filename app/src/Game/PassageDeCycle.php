@@ -23,7 +23,7 @@ final readonly class PassageDeCycle
         private Demographie $demographie,
         private Subsistance $subsistance,
         private Salaires $salaires,
-        private Atelier $atelier,
+        private Fabrication $fabrication,
         private Mecontentement $mecontentement,
         private DepartsNaturels $departs,
         private TirageDeLaCrue $crues,
@@ -52,10 +52,10 @@ final readonly class PassageDeCycle
             ...$paie->messages,
             ...$this->explorations->avancerDUnCycle($partie),
             ...$this->chantiers->avancerDUnCycle($partie, $saison),
-            // L'Atelier avance avec les chantiers : même nature d'ouvrage, et
-            // ses pièces doivent être au stock avant que la ville ne mange —
-            // le pain et la bière sont des vivres.
-            ...$this->atelier->avancerDUnCycle($partie),
+            // Les ateliers avancent avec les chantiers : même nature d'ouvrage,
+            // et leurs pièces doivent être au stock avant que la ville ne mange
+            // — le pain et la bière sont des vivres.
+            ...$this->fabrication->avancerDUnCycle($partie),
             ...$this->recoltes->avancerDUnCycle($partie, $paie, $this->mecontentement->rendementEnCentiemes($partie)),
         ];
 
