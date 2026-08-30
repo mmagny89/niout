@@ -222,8 +222,12 @@ convois. Elles se lisent par `EffetDeChef::chefSpecialise()`.
 
 **Mesurer l'effet d'un chef en quinzaines ne prouve rien** : elles se comptent
 en entiers, et un ordre de quatre cycles ne distingue pas une qualité de 134 %
-d'une de 114 %. Tester la qualité de direction elle-même ; la durée ne sert
-qu'à vérifier qu'un bâtiment mieux dirigé n'est jamais plus lent.
+d'une de 114 %. Tester la qualité de direction elle-même. Et **ne jamais
+mesurer une cadence en menant une partie sur une dizaine de quinzaines** : sur
+cette durée un chef peut rendre son tablier — son ancienneté est tirée —, et
+l'on mesure alors son départ autant que sa spécialité. Un test de cadence se
+fait sur l'ordre lui-même, à qualité imposée (défaut réel, tombé en CI une
+fois sur plusieurs).
 
 **Une route commerciale s'ouvre en y envoyant une caravane** (`Commerce`,
 `CataloguePartenaires`, décision de la joueuse) : on paie, le convoi part, la

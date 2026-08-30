@@ -7,6 +7,7 @@ namespace App\Tests\Functional;
 use App\Entity\Building;
 use App\Entity\Employee;
 use App\Entity\GameSave;
+use App\Entity\OrdreDeFabrication;
 use App\Entity\User;
 use App\Game\Candidat;
 use App\Game\EffetDeChef;
@@ -339,15 +340,37 @@ final class FabricationTest extends KernelTestCase
     /**
      * Et l'effet se voit bien dans l'ouvrage : à recette et lot égaux, un
      * atelier mieux dirigé n'est jamais plus lent.
+     *
+     * Le contrôle se fait sur l'ordre lui-même plutôt qu'en menant deux
+     * parties sur une dizaine de quinzaines : sur une telle durée, un chef
+     * peut rendre son tablier — son ancienneté est tirée —, et l'atelier
+     * retombe alors au plancher. Le test mesurait donc le départ d'un chef
+     * autant que sa spécialité, et tombait une fois sur plusieurs. Défaut
+     * réel, payé en intégration continue.
      */
     public function testUnAtelierMieuxDirigeNestJamaisPlusLent(): void
     {
         self::bootKernel();
+        $ville = $this->villeAvecAtelier('cadence@example.com')->getVille();
 
-        $specialise = $this->quinzainesPourLaRecette('specialise@example.com', Recette::Tissus, SpecialiteDeChef::AtelierTissus);
-        $quelconque = $this->quinzainesPourLaRecette('quelconque@example.com', Recette::Tissus, SpecialiteDeChef::AtelierPoterie);
+        $precedent = \PHP_INT_MAX;
 
-        self::assertLessThanOrEqual($quelconque, $specialise);
+        foreach ([50, 80, 100, 114, 134] as $qualite) {
+            $ordre = new OrdreDeFabrication($ville, Recette::Tissus, lots: 4);
+            $quinzaines = 0;
+
+            while (!$ordre->estAcheve()) {
+                $ordre->avancerDUnCycle($qualite);
+                ++$quinzaines;
+            }
+
+            self::assertLessThanOrEqual(
+                $precedent,
+                $quinzaines,
+                \sprintf('Une qualité de %d %% ne peut pas être plus lente qu\'une qualité moindre.', $qualite),
+            );
+            $precedent = $quinzaines;
+        }
     }
 
     private function engagerUnChef(GameSave $partie, TypeDeBatiment $type, SpecialiteDeChef $specialite): void
@@ -367,23 +390,6 @@ final class FabricationTest extends KernelTestCase
             ),
             $partie->getCycle(),
         ));
-    }
-
-    private function quinzainesPourLaRecette(string $email, Recette $recette, SpecialiteDeChef $specialite): int
-    {
-        $partie = $this->villeAvecAtelier($email);
-        $ville = $partie->getVille();
-
-        $this->engagerUnChef($partie, TypeDeBatiment::Atelier, $specialite);
-        $this->fabrication()->lancer($partie, $recette, lots: 4);
-
-        $quinzaines = 0;
-        while (null !== $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier) && $quinzaines < 40) {
-            $this->cycle()->passer($partie);
-            ++$quinzaines;
-        }
-
-        return $quinzaines;
     }
 
     private function quinzainesPourUnLot(string $email, bool $avecChef): int
