@@ -45,6 +45,13 @@ recettes et élargit les lots ; les bras qui le tiennent en décident le rythme.
 La Forge suit la même mécanique sur une matière que le Delta ne porte pas — le
 cuivre —, et travaille de front avec l'Atelier.
 
+**Commerce** — chaque région a ses cités partenaires, sur des routes réellement
+attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la
+traversée de la mer Rouge vers Pount. Ouvrir une route, c'est y envoyer une
+première caravane : on la paie, elle prend le temps du trajet, et la route
+n'existe qu'à son arrivée. L'Entrepôt arme les pistes, le Port ce qui flotte —
+une ville sans quai ne commerce que par la terre.
+
 **Réserves** — le Grenier tient les vivres, l'Entrepôt les matériaux et les
 objets, chacun avec un plafond que son niveau élève. Ce qui déborde ne rentre
 pas : il faut écouler son surplus au Marché, ou agrandir. Le deben, lui, ne

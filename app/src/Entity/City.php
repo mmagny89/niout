@@ -93,6 +93,12 @@ class City
     private Collection $ordresDeFabrication;
 
     /**
+     * @var Collection<int, RouteCommerciale>
+     */
+    #[ORM\OneToMany(targetEntity: RouteCommerciale::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $routesCommerciales;
+
+    /**
      * @var Collection<int, Employee>
      */
     #[ORM\OneToMany(targetEntity: Employee::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -138,6 +144,7 @@ class City
         $this->offres = new ArrayCollection();
         $this->employes = new ArrayCollection();
         $this->ordresDeFabrication = new ArrayCollection();
+        $this->routesCommerciales = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -500,6 +507,34 @@ class City
         foreach ($this->ordresDeFabrication as $ordre) {
             if ($ordre->getBatiment() === $batiment) {
                 return $ordre;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return Collection<int, RouteCommerciale>
+     */
+    public function getRoutesCommerciales(): Collection
+    {
+        return $this->routesCommerciales;
+    }
+
+    public function ajouterRouteCommerciale(RouteCommerciale $route): static
+    {
+        if (!$this->routesCommerciales->contains($route)) {
+            $this->routesCommerciales->add($route);
+        }
+
+        return $this;
+    }
+
+    public function routeVers(string $partenaire): ?RouteCommerciale
+    {
+        foreach ($this->routesCommerciales as $route) {
+            if ($route->getPartenaire() === $partenaire) {
+                return $route;
             }
         }
 

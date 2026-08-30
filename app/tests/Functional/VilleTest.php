@@ -294,6 +294,36 @@ final class VilleTest extends WebTestCase
     }
 
     /**
+     * Le parcours complet d'une ouverture de route, jeton compris : l'écran
+     * annonce ce que la cité vend et achète, le convoi part, et la route
+     * s'affiche comme en chemin.
+     */
+    public function testOuvrirUneRouteCommerciale(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'route-ecran@example.com');
+        $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Entrepot, niveau: 2));
+        $ville->crediterRessources([Ressource::Deben->value => 1000]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertSelectorTextContains('body', 'Routes commerciales');
+        self::assertSelectorTextContains('body', 'Canaan');
+
+        $formulaire = $crawler->filter(\sprintf('form[action="/partie/%d/ville/commercer"]', $partie->getId()));
+        self::assertGreaterThan(0, $formulaire->count(), 'Un Entrepôt doit ouvrir les pistes.');
+
+        $client->submit($formulaire->first()->form());
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('body', 'prend la route');
+        self::assertNotEmpty($this->relire($partie)->getVille()->getRoutesCommerciales());
+    }
+
+    /**
      * Le doc 03 veut la compétence « chiffrée en interne, qualitative à
      * l'affichage ». Chercher la valeur dans le HTML rendu serait instable —
      * une compétence de 20 à 100 et un rendement de 50 à 100 se croisent, et

@@ -16,6 +16,8 @@ use App\Game\AppelImpossible;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
+use App\Game\Commerce;
+use App\Game\CommerceImpossible;
 use App\Game\Culture;
 use App\Game\DateDeJeu;
 use App\Game\Effectifs;
@@ -144,6 +146,7 @@ final class PartieController extends AbstractController
         Salaires $salaires,
         Mecontentement $mecontentement,
         Fabrication $fabrication,
+        Commerce $commerce,
     ): Response {
         $ville = $partie->getVille();
 
@@ -159,6 +162,7 @@ final class PartieController extends AbstractController
             'coutDUnAppel' => $appels->cout($partie),
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
             'ateliers' => $this->ateliersDeLaVille($partie, $fabrication),
+            'routes' => $commerce->offrePour($partie),
             'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
             'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
             // Les deux indicateurs de santé de la ville, côte à côte : les
@@ -234,6 +238,35 @@ final class PartieController extends AbstractController
                 $ordre->cyclesRestants() > 1 ? 's' : '',
             ));
         } catch (FabricationImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Ouvre une route commerciale en y envoyant une première caravane.
+     *
+     * Le coût est débité ici ; la route ne s'ouvrira qu'à l'arrivée du convoi,
+     * au fil des quinzaines.
+     */
+    #[Route('/{id}/ville/commercer', name: 'app_partie_commercer', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function commercer(Request $request, GameSave $partie, Commerce $commerce): Response
+    {
+        if (!$this->isCsrfTokenValid('commercer', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        try {
+            $route = $commerce->ouvrir($partie, (string) $request->request->get('partenaire'));
+            $this->addFlash('succes', \sprintf(
+                'Votre %s prend la route : %d quinzaine%s avant qu\'elle ne soit ouverte.',
+                $route->getRoute()->convoi(),
+                $route->getQuinzainesAvantOuverture(),
+                $route->getQuinzainesAvantOuverture() > 1 ? 's' : '',
+            ));
+        } catch (CommerceImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
