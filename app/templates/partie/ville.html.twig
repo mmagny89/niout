@@ -440,6 +440,75 @@
             {% endif %}
         {% endfor %}
 
+        {# Les routes commerciales. Ce ne sont pas des cases sur la carte mais
+           des débouchés, hors grille : le niveau du bâtiment qui les arme
+           décide de ce qu'un convoi porte. #}
+        {% if routes is not empty %}
+            <h2 class="mt-10 text-2xl text-encre-900">Routes commerciales</h2>
+            <p class="mt-2 text-sm text-encre-500">
+                Ouvrir une route, c'est y envoyer une première caravane : elle
+                déclare à la cité que vous êtes prêt à commercer, et la route
+                n'existe qu'à son arrivée.
+            </p>
+
+            <ul class="mt-4 space-y-3 list-none p-0">
+                {% for offre in routes %}
+                    <li class="rounded-sm border p-5
+                               {{ offre.route or offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
+                        <div class="flex flex-wrap items-baseline justify-between gap-3">
+                            <h3 class="font-display text-lg text-encre-900">{{ offre.partenaire.nom }}</h3>
+                            <span class="text-xs uppercase tracking-wide text-encre-500">
+                                {{ offre.partenaire.route.libelle }}
+                            </span>
+                        </div>
+
+                        <p class="mt-2 text-sm text-encre-600">{{ offre.partenaire.description }}</p>
+
+                        <p class="mt-2 text-sm text-encre-500" data-chiffres>
+                            {{ offre.partenaire.distanceEnQuinzaines }} quinzaines de trajet ·
+                            {{ offre.volume }} unités par convoi
+                        </p>
+
+                        <p class="mt-2 text-sm text-encre-600">
+                            Vend
+                            {%- for ressource in offre.partenaire.vend %}
+                                {{ ressource.libelle }}{{ not loop.last ? ',' : '' }}
+                            {%- endfor %} ·
+                            achète
+                            {%- for ressource in offre.partenaire.achete %}
+                                {{ ressource.libelle }}{{ not loop.last ? ',' : '' }}
+                            {%- endfor %}.
+                        </p>
+
+                        {% if offre.route %}
+                            {% if offre.route.estOuverte %}
+                                <p class="mt-3 text-sm text-encre-900">Route ouverte.</p>
+                            {% else %}
+                                <p class="mt-3 text-sm text-encre-500" data-chiffres>
+                                    Convoi en chemin : encore
+                                    {{ offre.route.quinzainesAvantOuverture }}
+                                    quinzaine{{ offre.route.quinzainesAvantOuverture > 1 ? 's' : '' }}.
+                                </p>
+                            {% endif %}
+                        {% elseif offre.empechement %}
+                            <p class="mt-3 text-sm text-terre-600">{{ offre.empechement }}</p>
+                        {% elseif partie.estEnCours %}
+                            <form method="post" action="{{ path('app_partie_commercer', {id: partie.id}) }}"
+                                  class="mt-3 flex flex-wrap items-baseline gap-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token('commercer') }}">
+                                <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
+                                <span class="text-sm text-encre-500" data-chiffres>{{ offre.cout }} deben</span>
+                                <button type="submit"
+                                        class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                    Envoyer une première {{ offre.partenaire.route.convoi }}
+                                </button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
         {# Faire venir des habitants : deux verrous, le logement et la bourse.
            L'écran annonce les deux avant que la joueuse ne s'engage. #}
         <h2 class="mt-10 text-2xl text-encre-900">Habitants</h2>

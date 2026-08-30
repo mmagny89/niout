@@ -186,6 +186,16 @@ contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
 coup (garantie de matériau, garantie de poisson) effaçait silencieusement le
 champ qu'une garantie précédente venait de poser sur la même case.
 
+**Une route commerciale s'ouvre en y envoyant une caravane** (`Commerce`,
+`CataloguePartenaires`, décision de la joueuse) : on paie, le convoi part, la
+route n'existe qu'à son arrivée. **Le type de route décide du bâtiment** —
+Entrepôt pour les pistes, Port pour tout ce qui flotte — et du volume d'un
+convoi. Seule la **clé** du partenaire est persistée ; nom, distance et
+fourchettes de prix sont du contenu, jamais de l'état. **Les fourchettes se
+déduisent** de `PrixDuMarche` (140 % à la vente, 150 % à l'achat), jamais d'une
+table par partenaire et par ressource — et **un partenaire ne vend jamais ce
+qu'il achète**, sans quoi une route serait une machine à arbitrer.
+
 **Fabriquer prend du temps et plusieurs matières** (`Recette`, `Fabrication`,
 décision de la joueuse). **L'Atelier et la Forge partagent tout** — un seul
 service, c'est la recette qui dit où elle se travaille. Quatre règles à ne pas

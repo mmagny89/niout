@@ -622,7 +622,7 @@ exactement ce que le lot suivant doit rendre possible.
 **L'interface dit que l'usage viendra** (`Recette::produitDortEnAttendantSonUsage()`),
 comme elle le fait déjà des traits et des spécialités endormis.
 
-#### 5.4 — Les partenaires commerciaux
+#### 5.4 — Les partenaires commerciaux  ✅
 
 Contenu pur, non persisté (`src/Game/`), tiré du doc 12 : chaque mission a ses
 routes attestées, terrestres, fluviales et maritimes.
@@ -641,7 +641,29 @@ une majoration d'import de ×1,5, jamais une marge de négociation.
 chiffrer. Elles doivent rester lisibles — Byblos plus loin que Memphis, Pount
 plus loin que tout.
 
-#### 5.5 — Ouvrir une route
+##### Livré
+
+Dix-neuf partenaires sur les dix missions, toutes routes attestées : le Chemin
+d'Horus, le Bahr Yousef, le Ouadi Hammamat, le Darb el-Arbain. Distances de 2 à
+8 quinzaines — le fleuve est court, Pount est au bout du monde.
+
+**Les fourchettes se déduisent, elles ne se tabulent pas.** Dix partenaires par
+vingt-cinq ressources feraient cinq cents nombres à tenir à jour, dont aucun ne
+dirait rien de plus que la règle qui les engendre. Deux constantes suffisent :
+
+- un partenaire paie **jusqu'à 140 %** du cours local pour ce qu'il veut — c'est
+  ce qui rend l'export intéressant, et ce qui laisse au joueur de quoi se
+  tromper en demandant trop ;
+- il réclame **au moins 150 %** pour ce qu'il vend : la majoration d'import du
+  doc 08, qui paie le transport.
+
+L'écart entre les deux est l'espace de négociation du lot 5.6.
+
+**Un invariant posé et testé** : un partenaire ne vend jamais ce qu'il achète.
+Sans cette règle, une route deviendrait une machine à arbitrer — acheter et
+revendre à la même cité sans rien produire.
+
+#### 5.5 — Ouvrir une route  ✅
 
 **Ouvrir une route, c'est envoyer une première caravane** (décision de la
 joueuse) : le geste déclare à une cité qu'on est prêt à commercer avec elle.
@@ -660,6 +682,26 @@ commercial inter-missions** du doc 12 (−20 % sur l'ouverture d'une route déj�
 exploitée) suppose que la campagne enchaîne réellement ses missions. Elle n'en
 compte qu'une jouable aujourd'hui. Écrire l'héritage maintenant serait écrire
 du code que rien n'exerce.
+
+##### Livré
+
+Le geste est celui que la joueuse voulait : **on paie, le convoi part, et la
+route n'existe qu'à son arrivée** — deux quinzaines pour Memphis, huit pour
+Pount. L'ouverture s'annonce une fois, au moment où la caravane touche au but.
+
+**La géographie pèse une fois de plus** : une ville sans quai ne commerce que
+par la piste, l'Entrepôt armant les caravanes et le Port les navires (doc 12).
+Le niveau de ces bâtiments décide de ce qu'un convoi porte — `10 × niveau` ou
+`15 × niveau` —, ce qui leur donne un effet de niveau supplémentaire.
+
+Seule la **clé** du partenaire est persistée : nom, distance, ce qu'il vend et
+achète restent du contenu de référence, hors base.
+
+**Un détail d'implémentation qui vaut d'être noté** :
+`RouteCommerciale::avancerDUnCycle()` rend vrai **au moment précis où la route
+s'ouvre**, et une seule fois. Comparer un avant et un après aurait marché
+aussi, mais aurait laissé PHPStan croire la seconde vérification impossible —
+et surtout aurait invité un double message.
 
 #### 5.6 — Annoncer ce qu'on vend et ce qu'on achète
 

@@ -24,6 +24,7 @@ final readonly class PassageDeCycle
         private Subsistance $subsistance,
         private Salaires $salaires,
         private Fabrication $fabrication,
+        private Commerce $commerce,
         private Mecontentement $mecontentement,
         private DepartsNaturels $departs,
         private TirageDeLaCrue $crues,
@@ -56,6 +57,9 @@ final readonly class PassageDeCycle
             // et leurs pièces doivent être au stock avant que la ville ne mange
             // — le pain et la bière sont des vivres.
             ...$this->fabrication->avancerDUnCycle($partie),
+            // Les caravanes en chemin se rapprochent : ouvrir une route prend
+            // le temps du trajet, comme une expédition.
+            ...$this->commerce->avancerDUnCycle($partie),
             ...$this->recoltes->avancerDUnCycle($partie, $paie, $this->mecontentement->rendementEnCentiemes($partie)),
         ];
 
