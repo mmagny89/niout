@@ -185,6 +185,25 @@ class Zone
         return $this;
     }
 
+    /**
+     * Retire un gisement de cette case, s'il s'y trouve.
+     *
+     * Sert à la génération seule, et à un seul cas : faire de la place à un
+     * matériau vital sur une carte saturée (voir
+     * `GenerateurDeCarte::garantirDuBoisLocal()`). Rien dans le jeu ne fait
+     * disparaître un filon — un gisement épuisé reste sur la carte.
+     */
+    public function retirerUnGisement(Ressource $ressource): static
+    {
+        $gisement = $this->gisementDe($ressource);
+
+        if (null !== $gisement) {
+            $this->gisements->removeElement($gisement);
+        }
+
+        return $this;
+    }
+
     public function peutPorterUnGisementDePlus(): bool
     {
         return $this->gisements->count() < self::GISEMENTS_MAX;
