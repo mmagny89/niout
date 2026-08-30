@@ -42,6 +42,8 @@ pour la cuire, un pain du blé et un four, une bière des pains d'orge émietté
 et mis à fermenter. Un ordre paie ses matières à l'engagement, occupe l'Atelier
 plusieurs quinzaines et ne livre qu'à la fin. Le niveau du bâtiment ouvre les
 recettes et élargit les lots ; les bras qui le tiennent en décident le rythme.
+La Forge suit la même mécanique sur une matière que le Delta ne porte pas — le
+cuivre —, et travaille de front avec l'Atelier.
 
 **Réserves** — le Grenier tient les vivres, l'Entrepôt les matériaux et les
 objets, chacun avec un plafond que son niveau élève. Ce qui déborde ne rentre

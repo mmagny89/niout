@@ -492,11 +492,18 @@ class City
     }
 
     /**
-     * L'Atelier ne tient qu'un ordre à la fois : c'est un lieu, pas une file.
+     * Un atelier ne tient qu'un ordre à la fois : c'est un lieu, pas une file.
+     * L'Atelier et la Forge en ont chacun le leur.
      */
-    public function ordreDeFabricationEnCours(): ?OrdreDeFabrication
+    public function ordreDeFabricationDe(TypeDeBatiment $batiment): ?OrdreDeFabrication
     {
-        return $this->ordresDeFabrication->first() ?: null;
+        foreach ($this->ordresDeFabrication as $ordre) {
+            if ($ordre->getBatiment() === $batiment) {
+                return $ordre;
+            }
+        }
+
+        return null;
     }
 
     public function estEnModeDivin(): bool

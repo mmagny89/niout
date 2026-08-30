@@ -36,6 +36,10 @@ enum Recette: string
     case Sandales = 'sandales';
     case Tissus = 'tissus';
 
+    // La Forge, sur une matière que le Delta ne porte pas : le cuivre.
+    case Outils = 'outils';
+    case Armes = 'armes';
+
     public function libelle(): string
     {
         return match ($this) {
@@ -46,7 +50,36 @@ enum Recette: string
             self::Papyrus => 'Papyrus',
             self::Sandales => 'Sandales',
             self::Tissus => 'Tissus',
+            self::Outils => 'Outils de cuivre',
+            self::Armes => 'Armes de cuivre',
         };
+    }
+
+    /**
+     * Où la recette se travaille. L'Atelier et la Forge partagent la même
+     * mécanique — ordres, lots, déblocage par niveau — et ne diffèrent que par
+     * ce qu'ils savent faire.
+     */
+    public function batiment(): TypeDeBatiment
+    {
+        return match ($this) {
+            self::Outils, self::Armes => TypeDeBatiment::Forge,
+            default => TypeDeBatiment::Atelier,
+        };
+    }
+
+    /**
+     * Vrai quand l'objet produit n'a **pas encore d'usage propre** : il se
+     * vend, et c'est tout. Les armes attendent les Medjaÿ (Phase 10), les
+     * outils qu'un système les consomme.
+     *
+     * L'interface doit le dire, comme elle le fait déjà des traits et des
+     * spécialités endormis : promettre un usage qui n'existe nulle part
+     * tromperait le joueur au moment où il engage ses matières.
+     */
+    public function produitDortEnAttendantSonUsage(): bool
+    {
+        return \in_array($this, [self::Outils, self::Armes], true);
     }
 
     /**
@@ -55,6 +88,8 @@ enum Recette: string
     public function produit(): Ressource
     {
         return match ($this) {
+            self::Outils => Ressource::Outils,
+            self::Armes => Ressource::Armes,
             self::Poterie => Ressource::Poterie,
             self::Pain => Ressource::Pain,
             self::Biere => Ressource::Biere,
@@ -87,6 +122,12 @@ enum Recette: string
             self::Sandales => [Ressource::Roseaux->value => 6, Ressource::Lin->value => 3],
             // Le lin filé, et le métier qui s'use à le tisser.
             self::Tissus => [Ressource::Lin->value => 10, Ressource::BoisLocal->value => 2],
+            // La lame de cuivre et son manche : une herminette, une houe, un
+            // ciseau de tailleur de pierre.
+            self::Outils => [Ressource::Cuivre->value => 6, Ressource::BoisLocal->value => 3],
+            // La hache égyptienne : une lame de cuivre, une hampe de bois, et
+            // des liens de lin pour tenir l'une à l'autre.
+            self::Armes => [Ressource::Cuivre->value => 8, Ressource::BoisLocal->value => 3, Ressource::Lin->value => 2],
         };
     }
 
@@ -100,7 +141,8 @@ enum Recette: string
             self::Pain, self::Vannerie, self::Sandales => 2,
             self::Poterie, self::Biere => 3,
             self::Papyrus => 4,
-            self::Tissus => 5,
+            self::Tissus, self::Outils => 5,
+            self::Armes => 8,
         };
     }
 
@@ -112,7 +154,7 @@ enum Recette: string
         return match ($this) {
             self::Pain => 5,
             self::Poterie, self::Biere, self::Vannerie, self::Sandales => 4,
-            self::Papyrus, self::Tissus => 3,
+            self::Papyrus, self::Tissus, self::Outils, self::Armes => 3,
         };
     }
 
@@ -125,10 +167,15 @@ enum Recette: string
     public function niveauRequis(): int
     {
         return match ($this) {
+            // Atelier (doc 01) : la complexité de l'artisanat croît avec le
+            // bâtiment, et les sept tiennent en quatre niveaux.
             self::Poterie, self::Pain => 1,
             self::Biere, self::Vannerie => 2,
             self::Papyrus, self::Sandales => 3,
             self::Tissus => 4,
+            // Forge (doc 01) : outils au premier niveau, armes au second.
+            self::Outils => 1,
+            self::Armes => 2,
         };
     }
 
@@ -140,22 +187,33 @@ enum Recette: string
     public function quinzainesDunLot(): int
     {
         return match ($this) {
-            self::Papyrus, self::Tissus => 2,
+            self::Papyrus, self::Tissus, self::Armes => 2,
             default => 1,
         };
     }
 
     /**
-     * Les recettes qu'un Atelier de ce niveau sait faire.
+     * Les recettes que ce bâtiment sait faire à ce niveau.
      *
      * @return list<self>
      */
-    public static function pourUnAtelierDeNiveau(int $niveau): array
+    public static function pour(TypeDeBatiment $batiment, int $niveau): array
     {
         return array_values(array_filter(
             self::cases(),
-            static fn (self $recette): bool => $recette->niveauRequis() <= $niveau,
+            static fn (self $recette): bool => $recette->batiment() === $batiment
+                && $recette->niveauRequis() <= $niveau,
         ));
+    }
+
+    /**
+     * Les bâtiments qui fabriquent quelque chose.
+     *
+     * @return list<TypeDeBatiment>
+     */
+    public static function batimentsQuiFabriquent(): array
+    {
+        return [TypeDeBatiment::Atelier, TypeDeBatiment::Forge];
     }
 
     /**

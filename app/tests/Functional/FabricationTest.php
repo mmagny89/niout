@@ -8,8 +8,8 @@ use App\Entity\Building;
 use App\Entity\Employee;
 use App\Entity\GameSave;
 use App\Entity\User;
-use App\Game\Atelier;
 use App\Game\Candidat;
+use App\Game\Fabrication;
 use App\Game\FabricationImpossible;
 use App\Game\LanceurDePartie;
 use App\Game\PassageDeCycle;
@@ -20,7 +20,7 @@ use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-final class AtelierTest extends KernelTestCase
+final class FabricationTest extends KernelTestCase
 {
     /**
      * Les matières sont **payées à l'engagement**, comme un chantier. Sans
@@ -36,7 +36,7 @@ final class AtelierTest extends KernelTestCase
         $argileAvant = $ville->quantite(Ressource::Argile);
         $boisAvant = $ville->quantite(Ressource::BoisLocal);
 
-        $this->atelier()->lancer($partie, Recette::Poterie, lots: 1);
+        $this->fabrication()->lancer($partie, Recette::Poterie, lots: 1);
 
         self::assertSame($argileAvant - 8, $ville->quantite(Ressource::Argile));
         self::assertSame($boisAvant - 3, $ville->quantite(Ressource::BoisLocal));
@@ -51,17 +51,17 @@ final class AtelierTest extends KernelTestCase
         $partie = $this->villeAvecAtelier('achevement@example.com');
         $ville = $partie->getVille();
 
-        $ordre = $this->atelier()->lancer($partie, Recette::Poterie, lots: 2);
+        $ordre = $this->fabrication()->lancer($partie, Recette::Poterie, lots: 2);
         $attendues = $ordre->piecesAttendues();
 
         self::assertSame(0, $ville->quantite(Ressource::Poterie), 'Rien n\'est livré au lancement.');
 
-        for ($i = 0; $i < 20 && null !== $ville->ordreDeFabricationEnCours(); ++$i) {
+        for ($i = 0; $i < 20 && null !== $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier); ++$i) {
             $this->cycle()->passer($partie);
         }
 
         self::assertSame($attendues, $ville->quantite(Ressource::Poterie));
-        self::assertNull($ville->ordreDeFabricationEnCours(), 'L\'ordre achevé libère l\'Atelier.');
+        self::assertNull($ville->ordreDeFabricationDe(TypeDeBatiment::Atelier), 'L\'ordre achevé libère l\'Atelier.');
     }
 
     /**
@@ -72,12 +72,12 @@ final class AtelierTest extends KernelTestCase
     {
         self::bootKernel();
         $partie = $this->villeAvecAtelier('un-seul@example.com');
-        $this->atelier()->lancer($partie, Recette::Poterie, lots: 1);
+        $this->fabrication()->lancer($partie, Recette::Poterie, lots: 1);
 
         $this->expectException(FabricationImpossible::class);
         $this->expectExceptionMessageMatches('/déjà un ouvrage/');
 
-        $this->atelier()->lancer($partie, Recette::Pain, lots: 1);
+        $this->fabrication()->lancer($partie, Recette::Pain, lots: 1);
     }
 
     /**
@@ -91,7 +91,7 @@ final class AtelierTest extends KernelTestCase
 
         $ouvertes = array_map(
             static fn (array $offre): Recette => $offre['recette'],
-            $this->atelier()->offrePour($partie),
+            $this->fabrication()->offrePour($partie, TypeDeBatiment::Atelier),
         );
 
         self::assertContains(Recette::Poterie, $ouvertes);
@@ -100,7 +100,7 @@ final class AtelierTest extends KernelTestCase
         $this->expectException(FabricationImpossible::class);
         $this->expectExceptionMessageMatches('/niveau 4/');
 
-        $this->atelier()->lancer($partie, Recette::Tissus, lots: 1);
+        $this->fabrication()->lancer($partie, Recette::Tissus, lots: 1);
     }
 
     /**
@@ -112,13 +112,13 @@ final class AtelierTest extends KernelTestCase
         self::bootKernel();
         $partie = $this->villeAvecAtelier('lots@example.com', niveau: 1);
 
-        self::assertSame(Atelier::LOTS_PAR_NIVEAU, Atelier::lotsMaximum(1));
-        self::assertGreaterThan(Atelier::lotsMaximum(1), Atelier::lotsMaximum(4));
+        self::assertSame(Fabrication::LOTS_PAR_NIVEAU, Fabrication::lotsMaximum(1));
+        self::assertGreaterThan(Fabrication::lotsMaximum(1), Fabrication::lotsMaximum(4));
 
         $this->expectException(FabricationImpossible::class);
         $this->expectExceptionMessageMatches('/pas plus de/');
 
-        $this->atelier()->lancer($partie, Recette::Poterie, lots: Atelier::lotsMaximum(1) + 1);
+        $this->fabrication()->lancer($partie, Recette::Poterie, lots: Fabrication::lotsMaximum(1) + 1);
     }
 
     /**
@@ -176,6 +176,76 @@ final class AtelierTest extends KernelTestCase
         );
     }
 
+    /**
+     * **L'Atelier et la Forge travaillent de front** : ce sont deux lieux, et
+     * la règle « un seul ouvrage » vaut par bâtiment, pas par ville.
+     */
+    public function testLAtelierEtLaForgeTravaillentDeFront(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('deux-lieux@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Forge, niveau: 2));
+        $ville->crediterRessources([Ressource::Cuivre->value => 500]);
+
+        $this->fabrication()->lancer($partie, Recette::Poterie, lots: 1);
+        $this->fabrication()->lancer($partie, Recette::Outils, lots: 1);
+
+        self::assertNotNull($ville->ordreDeFabricationDe(TypeDeBatiment::Atelier));
+        self::assertNotNull($ville->ordreDeFabricationDe(TypeDeBatiment::Forge));
+    }
+
+    /**
+     * **La Forge est le premier bâtiment dont la production dépend du
+     * commerce** : le Delta ne porte pas de cuivre. Sans lui, elle ne fabrique
+     * rien — ce qui fait d'elle la démonstration du lot suivant.
+     */
+    public function testSansCuivreLaForgeNeFabriqueRien(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('sans-cuivre@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Forge, niveau: 2));
+
+        self::assertSame(0, $ville->quantite(Ressource::Cuivre), 'Le Delta ne porte pas de cuivre.');
+
+        $offre = $this->fabrication()->offrePour($partie, TypeDeBatiment::Forge);
+        self::assertNotEmpty($offre, 'Les recettes s\'affichent, mais hors de portée.');
+
+        foreach ($offre as $ligne) {
+            self::assertFalse($ligne['realisable']);
+            self::assertNotNull($ligne['empechement']);
+            self::assertStringContainsString('cuivre', $ligne['empechement']);
+        }
+
+        $this->expectException(FabricationImpossible::class);
+        $this->expectExceptionMessageMatches('/cuivre/');
+
+        $this->fabrication()->lancer($partie, Recette::Outils, lots: 1);
+    }
+
+    /**
+     * Les armes et les outils n'ont **pas encore d'usage propre** : ils se
+     * vendent, et l'interface doit le dire — promettre un usage qui n'existe
+     * nulle part tromperait le joueur au moment où il engage ses matières.
+     */
+    public function testLesProduitsDeLaForgeSeDisentSansUsagePropre(): void
+    {
+        $dormants = array_values(array_filter(
+            Recette::cases(),
+            static fn (Recette $r): bool => $r->produitDortEnAttendantSonUsage(),
+        ));
+
+        self::assertSame([Recette::Outils, Recette::Armes], $dormants);
+
+        foreach (Recette::pour(TypeDeBatiment::Atelier, 10) as $recette) {
+            self::assertFalse(
+                $recette->produitDortEnAttendantSonUsage(),
+                \sprintf('%s se mange, se vend ou s\'emploie déjà.', $recette->libelle()),
+            );
+        }
+    }
+
     private function quinzainesPourUnLot(string $email, bool $avecChef): int
     {
         $partie = $this->villeAvecAtelier($email);
@@ -198,10 +268,10 @@ final class AtelierTest extends KernelTestCase
             ));
         }
 
-        $this->atelier()->lancer($partie, Recette::Poterie, lots: 3);
+        $this->fabrication()->lancer($partie, Recette::Poterie, lots: 3);
 
         $quinzaines = 0;
-        while (null !== $ville->ordreDeFabricationEnCours() && $quinzaines < 40) {
+        while (null !== $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier) && $quinzaines < 40) {
             $this->cycle()->passer($partie);
             ++$quinzaines;
         }
@@ -244,9 +314,9 @@ final class AtelierTest extends KernelTestCase
         return static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
     }
 
-    private function atelier(): Atelier
+    private function fabrication(): Fabrication
     {
-        return static::getContainer()->get(Atelier::class);
+        return static::getContainer()->get(Fabrication::class);
     }
 
     private function cycle(): PassageDeCycle

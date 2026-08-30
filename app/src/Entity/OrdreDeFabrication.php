@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Game\Effectifs;
 use App\Game\Recette;
+use App\Game\TypeDeBatiment;
 use App\Repository\OrdreDeFabricationRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -17,12 +18,13 @@ use Doctrine\ORM\Mapping as ORM;
  * des quinzaines, et **les pièces n'entrent au stock qu'à l'achèvement**. C'est
  * la règle des champs : rien ne rentre hors de la récolte.
  *
- * **Un seul ordre à la fois** : l'Atelier est un lieu, pas une file d'attente.
- * C'est ce qui donne son coût d'opportunité à la fabrication — immobiliser
- * l'Atelier pour des sandales, c'est ne pas tisser.
+ * **Un seul ordre à la fois et par bâtiment** : un atelier est un lieu, pas une
+ * file d'attente. C'est ce qui donne son coût d'opportunité à la fabrication —
+ * immobiliser l'Atelier pour des sandales, c'est ne pas tisser. La Forge, elle,
+ * est un autre lieu : les deux travaillent de front.
  */
 #[ORM\Entity(repositoryClass: OrdreDeFabricationRepository::class)]
-#[ORM\UniqueConstraint(name: 'UNIQ_ORDRE_PAR_VILLE', columns: ['ville_id'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_ORDRE_PAR_BATIMENT', columns: ['ville_id', 'batiment'])]
 class OrdreDeFabrication
 {
     /**
@@ -45,6 +47,14 @@ class OrdreDeFabrication
     #[ORM\Column(enumType: Recette::class)]
     private Recette $recette;
 
+    /**
+     * Où l'ouvrage se fait. Redondant avec `Recette::batiment()`, et c'est
+     * assumé : la contrainte d'unicité « un ordre par bâtiment » a besoin
+     * d'une colonne, pas d'une méthode.
+     */
+    #[ORM\Column(enumType: TypeDeBatiment::class)]
+    private TypeDeBatiment $batiment;
+
     #[ORM\Column]
     private int $lots;
 
@@ -58,6 +68,7 @@ class OrdreDeFabrication
     {
         $this->ville = $ville;
         $this->recette = $recette;
+        $this->batiment = $recette->batiment();
         $this->lots = $lots;
         $this->dureeEnCycles = $recette->quinzainesDunLot() * $lots;
     }
@@ -75,6 +86,11 @@ class OrdreDeFabrication
     public function getRecette(): Recette
     {
         return $this->recette;
+    }
+
+    public function getBatiment(): TypeDeBatiment
+    {
+        return $this->batiment;
     }
 
     public function getLots(): int

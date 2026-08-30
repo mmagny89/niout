@@ -579,7 +579,7 @@ Atelier désert met deux fois plus de temps, sans jamais s'arrêter.
 bière à la quinzaine. Il trouvera son usage avec la Maison des scribes
 (Phase 7) ; d'ici là, rien ne pousse à en fabriquer.
 
-#### 5.3 — La Forge : outils et armes
+#### 5.3 — La Forge : outils et armes  ✅
 
 Même mécanique que l'Atelier — ordres de fabrication, déblocage par niveau —
 sur une matière que le Delta ne porte pas : le **cuivre**. La Forge est donc le
@@ -591,6 +591,36 @@ non plus tant que rien ne les consomme. **Les deux se vendent**, ce qui suffit
 à les rendre utiles — mais l'interface doit dire que leur usage propre viendra
 plus tard, comme elle le fait déjà pour les traits et les spécialités
 endormis.
+
+##### Livré
+
+**Un seul mécanisme, deux lieux.** Le service du lot 5.2 est généralisé plutôt
+que dupliqué : c'est la recette qui dit où elle se travaille
+(`Recette::batiment()`), et l'Atelier comme la Forge partagent ordres, lots,
+déblocage par niveau et rythme donné par les bras. Deux services auraient été
+deux fois la même chose, avec deux occasions de diverger.
+
+La règle « un seul ouvrage à la fois » devient donc **un par bâtiment** :
+l'Atelier et la Forge travaillent de front, ce sont deux lieux.
+
+| Recette | Un lot | Deben | Pièces | Niveau | Quinzaines |
+|---|---|---|---|---|---|
+| Outils | 6 cuivre + 3 bois local | 5 | 3 | 1 | 1 |
+| Armes | 8 cuivre + 3 bois local + 2 lin | 8 | 3 | 2 | 2 |
+
+Une lame de cuivre et son manche pour l'outil ; pour l'arme, la hache
+égyptienne — lame, hampe de bois, liens de lin.
+
+**Ce qui rend la Forge intéressante, et fragile** : à 32 et 47 deben la pièce,
+elle rapporte plus que tout ce que fait l'Atelier — 37 deben la quinzaine pour
+les outils, contre 30 pour la meilleure recette de l'Atelier. Mais **le Delta
+ne porte pas de cuivre**. Avec la majoration d'import du doc 08 (×1,5), le
+cuivre passe de 8 à 12 et la marge des outils tombe de 165 % à ~116 % : la
+Forge n'est vraiment payante que si l'on négocie bien son cuivre. C'est
+exactement ce que le lot suivant doit rendre possible.
+
+**L'interface dit que l'usage viendra** (`Recette::produitDortEnAttendantSonUsage()`),
+comme elle le fait déjà des traits et des spécialités endormis.
 
 #### 5.4 — Les partenaires commerciaux
 

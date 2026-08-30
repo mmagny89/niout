@@ -288,7 +288,7 @@ final class VilleTest extends WebTestCase
 
         self::assertSelectorTextContains('body', 's\'attelle à');
         self::assertNotNull(
-            $this->relire($partie)->getVille()->ordreDeFabricationEnCours(),
+            $this->relire($partie)->getVille()->ordreDeFabricationDe(TypeDeBatiment::Atelier),
             'L\'ordre doit être engagé.',
         );
     }

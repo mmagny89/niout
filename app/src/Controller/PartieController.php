@@ -13,7 +13,6 @@ use App\Enum\GameMode;
 use App\Form\NouvellePartieType;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
-use App\Game\Atelier;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
@@ -24,6 +23,7 @@ use App\Game\ExploitationImpossible;
 use App\Game\Exploitations;
 use App\Game\ExplorationImpossible;
 use App\Game\Explorations;
+use App\Game\Fabrication;
 use App\Game\FabricationImpossible;
 use App\Game\LanceurDePartie;
 use App\Game\Marche;
@@ -143,7 +143,7 @@ final class PartieController extends AbstractController
         Recrutements $recrutements,
         Salaires $salaires,
         Mecontentement $mecontentement,
-        Atelier $atelier,
+        Fabrication $fabrication,
     ): Response {
         $ville = $partie->getVille();
 
@@ -158,9 +158,7 @@ final class PartieController extends AbstractController
             'palier' => $partie->getFamille()->palier(),
             'coutDUnAppel' => $appels->cout($partie),
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
-            'recettes' => $atelier->offrePour($partie),
-            'ordreEnCours' => $ville->ordreDeFabricationEnCours(),
-            'lotsMaximum' => Atelier::lotsMaximum($ville->batimentDeType(TypeDeBatiment::Atelier)?->getNiveau() ?? 0),
+            'ateliers' => $this->ateliersDeLaVille($partie, $fabrication),
             'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
             'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
             // Les deux indicateurs de santé de la ville, côte à côte : les
@@ -214,7 +212,7 @@ final class PartieController extends AbstractController
      */
     #[Route('/{id}/ville/fabriquer', name: 'app_partie_fabriquer', requirements: ['id' => '\\d+'], methods: ['POST'])]
     #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
-    public function fabriquer(Request $request, GameSave $partie, Atelier $atelier): Response
+    public function fabriquer(Request $request, GameSave $partie, Fabrication $fabrication): Response
     {
         if (!$this->isCsrfTokenValid('fabriquer', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton invalide.');
@@ -227,7 +225,7 @@ final class PartieController extends AbstractController
         }
 
         try {
-            $ordre = $atelier->lancer($partie, $recette, $request->request->getInt('lots', 1));
+            $ordre = $fabrication->lancer($partie, $recette, $request->request->getInt('lots', 1));
             $this->addFlash('succes', \sprintf(
                 'L\'Atelier s\'attelle à %s : %d pièces dans %d quinzaine%s.',
                 mb_strtolower($recette->libelle()),
@@ -746,6 +744,38 @@ final class PartieController extends AbstractController
         );
 
         return $batiments;
+    }
+
+    /**
+     * Ce que chaque bâtiment qui fabrique sait faire, et ce qu'il fait déjà.
+     *
+     * L'Atelier et la Forge partagent tout : un seul gabarit les rend, une
+     * seule boucle les prépare.
+     *
+     * @return list<array{type: TypeDeBatiment, niveau: int, lotsMaximum: int, recettes: list<array{recette: Recette, matieres: array<string, int>, realisable: bool, empechement: ?string}>, ordre: ?\App\Entity\OrdreDeFabrication}>
+     */
+    private function ateliersDeLaVille(GameSave $partie, Fabrication $fabrication): array
+    {
+        $ville = $partie->getVille();
+        $ateliers = [];
+
+        foreach (Recette::batimentsQuiFabriquent() as $type) {
+            $batiment = $ville->batimentDeType($type);
+
+            if (null === $batiment) {
+                continue;
+            }
+
+            $ateliers[] = [
+                'type' => $type,
+                'niveau' => $batiment->getNiveau(),
+                'lotsMaximum' => Fabrication::lotsMaximum($batiment->getNiveau()),
+                'recettes' => $fabrication->offrePour($partie, $type),
+                'ordre' => $ville->ordreDeFabricationDe($type),
+            ];
+        }
+
+        return $ateliers;
     }
 
     /**
