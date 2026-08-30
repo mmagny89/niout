@@ -3,12 +3,20 @@
 {% block title %}Territoire {{ ville.avecPreposition }} — Niout{% endblock %}
 
 {% block body %}
-    {# Géométrie mesurée sur la planche « tuiles » du Drive. Le losange occupe
-       174 × 140 px dans une cellule de 189 × 206 : le pas vaut donc la moitié
-       de chaque dimension. Un pas plus grand écarterait les tuiles, et
-       l'épaisseur du prisme masquerait mal les marches ainsi créées. #}
-    {% set cellule = { largeur: 174, hauteur: 185 } %}
-    {% set pas = { x: 87, y: 70 } %}
+    {# Géométrie **mesurée sur les tuiles elles-mêmes**, jamais devinée : dans
+       une image de 188 × 116, la face supérieure est un losange de 186 × 90,
+       de son sommet (y = 12) à sa pointe basse (y = 102), le plus large à
+       y = 57. Les treize pixels du bas sont l'épaisseur du prisme, et les
+       arbres d'une forêt débordent par le haut — ni les uns ni les autres
+       n'entrent dans le pas.
+
+       Le pas vaut donc la moitié du losange, pas la moitié de l'image : c'est
+       ce qui fait que les cases pavent le plan au lieu de s'écarter. La zone
+       cliquable se découpe à partir des deux mêmes nombres — centre et pas —,
+       pour qu'aucun réglage ne puisse dériver de l'autre. #}
+    {% set cellule = { largeur: 188, hauteur: 116 } %}
+    {% set centre = { x: 94, y: 57 } %}
+    {% set pas = { x: 93, y: 45 } %}
     {% set cote = ville.tailleGrille %}
     {% set origineX = (cote - 1) * pas.x %}
 
@@ -74,7 +82,10 @@
                               top: {{ (zone.x + zone.y) * pas.y }}px;
                               width: {{ cellule.largeur }}px;
                               height: {{ cellule.hauteur }}px;
-                              clip-path: polygon(50% 15%, 100% 52%, 50% 89%, 0% 52%);"
+                              clip-path: polygon({{ centre.x }}px {{ centre.y - pas.y }}px,
+                                                  {{ centre.x + pas.x }}px {{ centre.y }}px,
+                                                  {{ centre.x }}px {{ centre.y + pas.y }}px,
+                                                  {{ centre.x - pas.x }}px {{ centre.y }}px);"
                        {{ zone.porteLaVille ? 'title="Entrer dans la ville"' : '' }}
                        aria-label="{{ zone.porteLaVille
                            ? 'Entrer dans ' ~ ville.nom

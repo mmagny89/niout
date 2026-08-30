@@ -513,6 +513,16 @@ fonctionnelle : ne pas réinventer une mécanique déjà spécifiée, s'y réfé
 Les 18 planches de sprites sont dans le sous-dossier `Niout/Sprites/` du Drive — déjà
 générées, à découper, pas à recréer.
 
+**La géométrie de la carte se mesure sur les tuiles, jamais sur la taille de
+l'image** (`templates/partie/carte.html.twig`). Une tuile de 188 × 116 porte une
+face supérieure de 186 × 90 : le reste est l'épaisseur du prisme, en bas, et ce
+qui dépasse par le haut — les arbres d'une forêt, les roseaux d'une berge. Le
+pas de la grille vaut la **moitié du losange** (93 × 45), pas la moitié de
+l'image ; le prendre sur l'image écarterait les cases et ouvrirait des marches
+entre elles. La zone cliquable se découpe des deux mêmes nombres, pour qu'aucun
+des deux réglages ne dérive de l'autre. Après tout changement de planche,
+remesurer : c'est le canal alpha qui fait foi.
+
 La planche « tuiles » se redécoupe avec `.claude/scripts/decouper-tuiles.py`,
 jamais à la main : il détoure le damier — **peint dans les pixels du JPEG**, pas
 une vraie transparence — par remplissage depuis les bords, et met **toutes les
