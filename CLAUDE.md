@@ -468,6 +468,16 @@ qui ne vaut pas un point est **refusée** plutôt qu'encaissée pour rien, et un
 faveur déjà au plafond du Temple refuse l'offrande au lieu de la gaspiller en
 silence.
 
+**La négligence s'arrête au neutre** (`Negligence`, doc 07 : « décroissance
+lente et naturelle, pas de chute punitive ») : cinq quinzaines de grâce, puis
+un point par quinzaine, et **jamais sous `Divinite::FAVEUR_DE_DEPART`**. Seules
+une quête ratée ou une malédiction feront descendre une faveur plus bas. Sans
+ce plancher, une partie menée sans mettre les pieds au Temple finirait avec
+huit dieux hostiles — punie pour n'avoir pas joué à ce système-là. Elle se
+compte **dieu par dieu**, ce qui permet d'entretenir Ptah en laissant Sekhmet
+filer, et le journal de cycle ne raconte que le **changement de palier** : un
+message par dieu et par quinzaine noierait tout le reste.
+
 **Un dieu sans emploi le dit** (`Divinite::agitDeja()`, `attente()`) : Isis
 attend le combat, Thot les énigmes. Même règle que les spécialités de chef —
 promettre un effet qui ne s'applique nulle part tromperait le joueur au moment

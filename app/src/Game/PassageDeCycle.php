@@ -26,6 +26,7 @@ final readonly class PassageDeCycle
         private Fabrication $fabrication,
         private Commerce $commerce,
         private Mecontentement $mecontentement,
+        private Negligence $negligence,
         private DepartsNaturels $departs,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
@@ -78,6 +79,10 @@ final readonly class PassageDeCycle
             ...$evenements,
             ...$this->mecontentement->raconter($partie),
             ...$this->departs->avancerDUnCycle($partie),
+            // Les dieux comptent les quinzaines depuis la dernière offrande.
+            // Après le reste : ce qu'on a produit et mangé cette quinzaine ne
+            // dépend pas d'eux, seule la suivante s'en ressentira.
+            ...$this->negligence->avancerDUnCycle($partie),
         ];
 
         $partie->avancerDUnCycle();
