@@ -37,6 +37,12 @@ porter un gisement à exploiter, une eau à pêcher une fois le Port dressé, ou
 champ à semer ; les champs traversent quatre étapes — semis, pousse, récolte,
 repos — et ne nourrissent qu'à la récolte, sur le Nil comme en terre.
 
+**Artisanat** — l'Atelier transforme : une jarre demande de l'argile et du bois
+pour la cuire, un pain du blé et un four, une bière des pains d'orge émiettés
+et mis à fermenter. Un ordre paie ses matières à l'engagement, occupe l'Atelier
+plusieurs quinzaines et ne livre qu'à la fin. Le niveau du bâtiment ouvre les
+recettes et élargit les lots ; les bras qui le tiennent en décident le rythme.
+
 **Réserves** — le Grenier tient les vivres, l'Entrepôt les matériaux et les
 objets, chacun avec un plafond que son niveau élève. Ce qui déborde ne rentre
 pas : il faut écouler son surplus au Marché, ou agrandir. Le deben, lui, ne

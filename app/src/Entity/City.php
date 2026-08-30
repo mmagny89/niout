@@ -87,6 +87,12 @@ class City
     private Collection $offres;
 
     /**
+     * @var Collection<int, OrdreDeFabrication>
+     */
+    #[ORM\OneToMany(targetEntity: OrdreDeFabrication::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $ordresDeFabrication;
+
+    /**
      * @var Collection<int, Employee>
      */
     #[ORM\OneToMany(targetEntity: Employee::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -131,6 +137,7 @@ class City
         $this->chantiers = new ArrayCollection();
         $this->offres = new ArrayCollection();
         $this->employes = new ArrayCollection();
+        $this->ordresDeFabrication = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -460,6 +467,38 @@ class City
         return $refuse;
     }
 
+    /**
+     * @return Collection<int, OrdreDeFabrication>
+     */
+    public function getOrdresDeFabrication(): Collection
+    {
+        return $this->ordresDeFabrication;
+    }
+
+    public function ajouterOrdreDeFabrication(OrdreDeFabrication $ordre): static
+    {
+        if (!$this->ordresDeFabrication->contains($ordre)) {
+            $this->ordresDeFabrication->add($ordre);
+        }
+
+        return $this;
+    }
+
+    public function retirerOrdreDeFabrication(OrdreDeFabrication $ordre): static
+    {
+        $this->ordresDeFabrication->removeElement($ordre);
+
+        return $this;
+    }
+
+    /**
+     * L'Atelier ne tient qu'un ordre à la fois : c'est un lieu, pas une file.
+     */
+    public function ordreDeFabricationEnCours(): ?OrdreDeFabrication
+    {
+        return $this->ordresDeFabrication->first() ?: null;
+    }
+
     public function estEnModeDivin(): bool
     {
         return $this->modeDivin;
@@ -558,9 +597,21 @@ class City
      */
     public function manquesPour(CoutDeConstruction $cout): array
     {
+        return $this->manquesDe($cout->enRessources());
+    }
+
+    /**
+     * Ce qui manque pour payer ces ressources-là, en toutes lettres.
+     *
+     * @param array<string, int> $ressources valeur de Ressource => quantité
+     *
+     * @return list<string>
+     */
+    public function manquesDe(array $ressources): array
+    {
         $manques = [];
 
-        foreach ($cout->enRessources() as $valeur => $exige) {
+        foreach ($ressources as $valeur => $exige) {
             $ressource = Ressource::from($valeur);
             $possede = $this->quantite($ressource);
 

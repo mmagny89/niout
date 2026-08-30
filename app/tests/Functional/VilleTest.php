@@ -257,6 +257,43 @@ final class VilleTest extends WebTestCase
     }
 
     /**
+     * Le parcours complet d'une fabrication, jeton compris : l'écran propose
+     * les recettes que le niveau ouvre, l'ordre s'engage, et l'Atelier annonce
+     * ce qu'il fait — les matières payées, les pièces à venir.
+     */
+    public function testMettreLAtelierALOuvrage(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'atelier-ecran@example.com');
+        $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Atelier, niveau: 2));
+        $ville->basculerLeModeDivin(true);
+        $ville->crediterRessources([
+            Ressource::Deben->value => 1000,
+            Ressource::Argile->value => 200,
+            Ressource::BoisLocal->value => 200,
+        ]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertSelectorTextContains('body', 'Atelier');
+
+        $formulaire = $crawler->filter(\sprintf('form[action="/partie/%d/ville/fabriquer"]', $partie->getId()));
+        self::assertGreaterThan(0, $formulaire->count(), 'Un Atelier dressé doit proposer ses recettes.');
+
+        $client->submit($formulaire->first()->form());
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('body', 's\'attelle à');
+        self::assertNotNull(
+            $this->relire($partie)->getVille()->ordreDeFabricationEnCours(),
+            'L\'ordre doit être engagé.',
+        );
+    }
+
+    /**
      * Le doc 03 veut la compétence « chiffrée en interne, qualitative à
      * l'affichage ». Chercher la valeur dans le HTML rendu serait instable —
      * une compétence de 20 à 100 et un rendement de 50 à 100 se croisent, et

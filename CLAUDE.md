@@ -186,6 +186,16 @@ contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
 coup (garantie de matériau, garantie de poisson) effaçait silencieusement le
 champ qu'une garantie précédente venait de poser sur la même case.
 
+**Fabriquer prend du temps et plusieurs matières** (`Recette`, `Atelier`,
+décision de la joueuse). Quatre règles à ne pas défaire : les matières sont
+**débitées à l'engagement** — sans quoi on lancerait dix ordres avec les
+ressources d'un seul —, les pièces **n'entrent qu'à l'achèvement** (la règle
+des champs), **un seul ordre à la fois** parce que c'est ce qui donne son coût
+d'opportunité à la fabrication, et le rythme vient des bras par
+`EffetDeChef::qualiteDeDirection()`, jamais par un multiplicateur de plus.
+**Toute recette ajoutée doit tenir la marge de transformation** — le test s'y
+adosse et tombe sinon.
+
 **Le stock est plafonné, jamais périssable** (`Stockage`, décision de la
 joueuse) : le Grenier tient les vivres, l'Entrepôt les matériaux et les objets,
 et les ressources d'une même réserve **se partagent** son plafond. Le surplus
