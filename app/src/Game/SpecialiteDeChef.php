@@ -125,19 +125,53 @@ enum SpecialiteDeChef: string
     }
 
     /**
+     * La ou les recettes que cette spécialité favorise, s'il y en a.
+     *
+     * C'est ce qui distingue un chef d'atelier d'un chef quelconque : sa
+     * compétence vaut partout, sa spécialité ne vaut que sur son ouvrage. Un
+     * Brasseur ne fait pas de meilleurs papyrus.
+     *
+     * @return list<Recette>
+     */
+    public function recettesFavorisees(): array
+    {
+        return match ($this) {
+            self::AtelierPoterie => [Recette::Poterie],
+            self::AtelierPapyrus => [Recette::Papyrus],
+            // Le doc 03 les nomme ensemble : « la vannerie et les sandales ».
+            self::AtelierVannerie => [Recette::Vannerie, Recette::Sandales],
+            self::AtelierTissus => [Recette::Tissus],
+            self::AtelierBierePain => [Recette::Biere, Recette::Pain],
+            self::ForgeArmurier => [Recette::Armes],
+            self::ForgeOutilleur => [Recette::Outils],
+            default => [],
+        };
+    }
+
+    public function favorise(Recette $recette): bool
+    {
+        return \in_array($recette, $this->recettesFavorisees(), true);
+    }
+
+    /**
      * Spécialités dont l'effet existe réellement aujourd'hui — celles des trois
      * bâtiments qui produisent déjà quelque chose (lot 4.8). Les autres sont
      * tirées et affichées, mais dorment jusqu'à leur phase.
      */
     public function agitDeja(): bool
     {
-        // L'Acheteur du Marché en est écarté : **rien ne s'achète encore**
-        // (l'achat vient en Phase 5), et l'annoncer comme actif mentirait au
-        // joueur sur ce qu'il paie.
-        return \in_array($this, [
-            self::GrenierGestionnaire,
-            self::MarcheVendeur,
-            self::PortPecheur,
-        ], true);
+        // L'Acheteur du Marché en est toujours écarté : le Marché reste une
+        // vente locale, l'achat passant par les caravanes et non par lui.
+        // Restent inertes, faute de système : le Dévot (Phase 6), les deux
+        // Scribes (Phase 7), les deux Instructeurs et le Commerçant naval
+        // (Phase 10 pour les uns, commerce naval avancé pour l'autre).
+        return [] !== $this->recettesFavorisees()
+            || \in_array($this, [
+                self::GrenierGestionnaire,
+                self::MarcheVendeur,
+                self::PortPecheur,
+                self::EntrepotNegociateur,
+                self::EntrepotLogisticien,
+            ], true);
     }
 }

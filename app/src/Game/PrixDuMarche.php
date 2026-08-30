@@ -111,9 +111,12 @@ final readonly class PrixDuMarche
 
             // Craft de luxe : ce que l'Entrepôt de haut niveau finit par
             // ouvrir, et le sommet de la chaîne de valeur du jeu.
-            Ressource::Bijoux->value => 200,     // 3 or + 2 turquoise + 10 deben = 124
-            Ressource::Statuettes->value => 135, // 4 cèdre + 2 ivoire + 15 deben = 83
-            Ressource::Vases->value => 70,       // 6 albâtre + 8 deben = 44
+            // Recalculés au lot 5.8 sur les recettes réelles. Une pièce de
+            // prestige se fait à l'unité : le deben du lot ne s'amortit sur
+            // rien, et le prix unitaire reste donc élevé.
+            Ressource::Bijoux->value => 205,     // 124 le lot, 1 pièce
+            Ressource::Statuettes->value => 137, // 83 le lot, 1 pièce
+            Ressource::Vases->value => 99,       // 60 le lot, 1 pièce
         ];
     }
 

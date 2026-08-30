@@ -205,13 +205,33 @@ qui en fait un levier plutôt qu'un curseur à pousser au maximum, et l'écran
 montre l'effet **avant** l'engagement. La quantité par convoi est un garde-fou :
 un ordre permanent ne doit jamais vider la ville sans prévenir.
 
+**Le craft de luxe se débloque par l'Entrepôt, pas par l'Atelier**
+(`Recette::deblocageSupplementaire()`, docs 01 et 08) : bijoux, statuettes et
+vases réclament un Entrepôt de niveau 8, et six matières qu'aucune région de
+départ ne porte. C'est voulu — le prestige n'est atteignable qu'une fois le
+commerce établi, et non par la seule montée d'un bâtiment.
+
+**Une spécialité d'atelier ne vaut que sur son propre ouvrage**
+(`SpecialiteDeChef::favorise()`) : un Brasseur ne fait pas de meilleurs
+papyrus. Le bonus passe par la **qualité de direction**, comme tout effet de
+chef. Deux spécialités font exception et ne passent pas par elle, parce que
+leur effet n'est pas une production : le **Négociateur** élargit la fourchette
+des partenaires, le **Logisticien** raccourcit les trajets — jamais sous une
+quinzaine, sans quoi la distance cesserait de décider de la fréquence des
+convois. Elles se lisent par `EffetDeChef::chefSpecialise()`.
+
+**Mesurer l'effet d'un chef en quinzaines ne prouve rien** : elles se comptent
+en entiers, et un ordre de quatre cycles ne distingue pas une qualité de 134 %
+d'une de 114 %. Tester la qualité de direction elle-même ; la durée ne sert
+qu'à vérifier qu'un bâtiment mieux dirigé n'est jamais plus lent.
+
 **Une route commerciale s'ouvre en y envoyant une caravane** (`Commerce`,
 `CataloguePartenaires`, décision de la joueuse) : on paie, le convoi part, la
 route n'existe qu'à son arrivée. **Le type de route décide du bâtiment** —
 Entrepôt pour les pistes, Port pour tout ce qui flotte — et du volume d'un
 convoi. Seule la **clé** du partenaire est persistée ; nom, distance et
 fourchettes de prix sont du contenu, jamais de l'état. **Les fourchettes se
-déduisent** de `PrixDuMarche` (140 % à la vente, 150 % à l'achat), jamais d'une
+déduisent** de `PrixDuMarche` (200 % à la vente, 150 % à l'achat), jamais d'une
 table par partenaire et par ressource — et **un partenaire ne vend jamais ce
 qu'il achète**, sans quoi une route serait une machine à arbitrer.
 

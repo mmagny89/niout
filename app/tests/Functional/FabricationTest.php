@@ -9,6 +9,7 @@ use App\Entity\Employee;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Game\Candidat;
+use App\Game\EffetDeChef;
 use App\Game\Fabrication;
 use App\Game\FabricationImpossible;
 use App\Game\LanceurDePartie;
@@ -16,6 +17,7 @@ use App\Game\PassageDeCycle;
 use App\Game\PrixDuMarche;
 use App\Game\Recette;
 use App\Game\Ressource;
+use App\Game\SpecialiteDeChef;
 use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -244,6 +246,144 @@ final class FabricationTest extends KernelTestCase
                 \sprintf('%s se mange, se vend ou s\'emploie déjà.', $recette->libelle()),
             );
         }
+    }
+
+    /**
+     * **Le craft de luxe s'ouvre à l'Entrepôt, pas à l'Atelier** (docs 01
+     * et 08) : un commerce longue distance conséquent suppose une logistique
+     * développée. On fait de l'orfèvrerie à l'Atelier, mais on ne l'y débloque
+     * pas.
+     */
+    public function testLeCraftDeLuxeDemandeUnEntrepotDeHautNiveau(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('luxe@example.com', niveau: 8);
+        $ville = $partie->getVille();
+        $ville->crediterRessources([
+            Ressource::Or->value => 500,
+            Ressource::Turquoise->value => 500,
+        ]);
+
+        // L'Atelier suffit-il ? Non : il manque l'Entrepôt.
+        try {
+            $this->fabrication()->lancer($partie, Recette::Bijoux, lots: 1);
+            self::fail('Le luxe ne doit pas s\'ouvrir sans Entrepôt.');
+        } catch (FabricationImpossible $impossible) {
+            self::assertStringContainsString('Entrepôt', $impossible->getMessage());
+        }
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Entrepot, niveau: 8));
+
+        $this->fabrication()->lancer($partie, Recette::Bijoux, lots: 1);
+
+        self::assertNotNull(
+            $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier),
+            'L\'Entrepôt de niveau 8 ouvre l\'orfèvrerie.',
+        );
+    }
+
+    /**
+     * **Le Delta n'y accède jamais**, et c'est voulu : son plafond régional
+     * est de cinq niveaux, quand le luxe en demande huit. Le doc 01 le dit
+     * expressément de la région d'apprentissage.
+     */
+    public function testLeDeltaNAtteintJamaisLeCraftDeLuxe(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('delta-luxe@example.com');
+        $ville = $partie->getVille();
+
+        foreach (Recette::cases() as $recette) {
+            $supplementaire = $recette->deblocageSupplementaire();
+
+            if (null === $supplementaire) {
+                continue;
+            }
+
+            self::assertGreaterThan(
+                $ville->niveauMaxRegional(),
+                $recette->niveauRequis(),
+                \sprintf('%s serait atteignable au Delta.', $recette->libelle()),
+            );
+        }
+    }
+
+    /**
+     * **Une spécialité d'atelier ne vaut que sur son propre ouvrage.** Un
+     * Brasseur presse la bière, pas le papyrus — et c'est ce qui donne un sens
+     * au choix d'un candidat plutôt qu'un autre.
+     *
+     * Le contrôle porte sur la **qualité de direction**, non sur le nombre de
+     * quinzaines : celles-ci se comptent en entiers, et un ordre de quatre
+     * cycles ne distingue pas 134 % de 114 %. Mesurer la durée aurait donné un
+     * test qui passe ou non selon la taille du lot, ce qui n'apprend rien.
+     */
+    public function testUneSpecialiteNeSertQueSonProprOuvrage(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('brasseur@example.com');
+        $ville = $partie->getVille();
+        $this->engagerUnChef($partie, TypeDeBatiment::Atelier, SpecialiteDeChef::AtelierBierePain);
+
+        $surSonOuvrage = EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Atelier, $partie->getCycle(), Recette::Pain);
+        $surUnAutre = EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Atelier, $partie->getCycle(), Recette::Papyrus);
+
+        self::assertGreaterThan($surUnAutre, $surSonOuvrage, 'Le Brasseur ne fait pas de meilleurs papyrus.');
+        self::assertSame(
+            EffetDeChef::BONUS_DATELIER,
+            EffetDeChef::bonusDeSpecialite(SpecialiteDeChef::AtelierBierePain, Recette::Pain),
+        );
+        self::assertSame(0, EffetDeChef::bonusDeSpecialite(SpecialiteDeChef::AtelierBierePain, Recette::Papyrus));
+    }
+
+    /**
+     * Et l'effet se voit bien dans l'ouvrage : à recette et lot égaux, un
+     * atelier mieux dirigé n'est jamais plus lent.
+     */
+    public function testUnAtelierMieuxDirigeNestJamaisPlusLent(): void
+    {
+        self::bootKernel();
+
+        $specialise = $this->quinzainesPourLaRecette('specialise@example.com', Recette::Tissus, SpecialiteDeChef::AtelierTissus);
+        $quelconque = $this->quinzainesPourLaRecette('quelconque@example.com', Recette::Tissus, SpecialiteDeChef::AtelierPoterie);
+
+        self::assertLessThanOrEqual($quelconque, $specialise);
+    }
+
+    private function engagerUnChef(GameSave $partie, TypeDeBatiment $type, SpecialiteDeChef $specialite): void
+    {
+        $ville = $partie->getVille();
+        $ville->ajouterEmploye(new Employee(
+            $ville,
+            $type,
+            new Candidat(
+                competence: 60,
+                salaire: 8,
+                ancienneteProbable: 20,
+                traits: [],
+                specialite: $specialite,
+                actifsAmenes: 0,
+                inactifsAmenes: 0,
+            ),
+            $partie->getCycle(),
+        ));
+    }
+
+    private function quinzainesPourLaRecette(string $email, Recette $recette, SpecialiteDeChef $specialite): int
+    {
+        $partie = $this->villeAvecAtelier($email);
+        $ville = $partie->getVille();
+
+        $this->engagerUnChef($partie, TypeDeBatiment::Atelier, $specialite);
+        $this->fabrication()->lancer($partie, $recette, lots: 4);
+
+        $quinzaines = 0;
+        while (null !== $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier) && $quinzaines < 40) {
+            $this->cycle()->passer($partie);
+            ++$quinzaines;
+        }
+
+        return $quinzaines;
     }
 
     private function quinzainesPourUnLot(string $email, bool $avecChef): int

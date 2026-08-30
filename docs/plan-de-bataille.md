@@ -81,11 +81,14 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `StockDeRessource` | ✅ | Une ligne du stock de la ville (ressource → quantité), deben compris | 08 |
 | `Employee` | ✅ | Un chef en poste : compétence, salaire, spécialité, la maisonnée qu'il a amenée | 03, 05 |
 | `JobOffer` | ✅ | Une annonce affichée et son tirage de candidats, figé | 03 |
-| Recettes, ordres et convois (Phase 5) | — | Ce qu'on fabrique, ce qu'on vend, ce qui voyage | 08, 12 |
+| `OrdreDeFabrication` | ✅ | Un lot en cours à l'Atelier, à la Forge ou au Luxe | 08 |
+| `RouteCommerciale` | ✅ | Une route ouverte vers un partenaire, et ce qu'on y échange | 12 |
+| `OrdreCommercial` | ✅ | Une ligne de l'étal : ressource, sens, prix, volume par convoi | 08, 12 |
+| `Convoi` | ✅ | Une caravane ou un navire en chemin, avec sa copie de l'échange | 12 |
 | … (Phase 6+) | — | Medjaÿ, faveur divine, énigmes | 03, 07, 10 |
 
 `Family`, `City` et tout ce qui s'y rattache (`Zone`, `Building`, `Chantier`,
-`Expedition`, `Employee`, `JobOffer`) sont détenus par leur `GameSave` : l'abandon d'une partie, comme
+`Expedition`, `Employee`, `JobOffer`, `OrdreDeFabrication`, `RouteCommerciale`) sont détenus par leur `GameSave` : l'abandon d'une partie, comme
 la purge d'un compte, les emporte en cascade.
 
 **Couche de domaine.** Ce qui relève des règles du jeu plutôt que de la
@@ -108,7 +111,7 @@ vues, pas de la conception.
 | **2** | Lancer une partie et bâtir | `01`, `05`, `13` | ✅ |
 | **3** | Carte, exploration et ressources | `02`, `04`, `06`, `08` | ✅ |
 | **4** | Population : recrutement, chefs et travailleurs | `01`, `02`, `03`, `05`, `13` | ✅ |
-| **5** | Artisanat et commerce | `08`, `12`, `01` | à faire |
+| **5** | Artisanat et commerce | `08`, `12`, `01` | ✅ |
 | **6** | Faveur divine et événements | `07` | à cadrer |
 | **7** | Énigmes, enquêtes et fil rouge | `10` | à cadrer |
 | **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | à cadrer |
@@ -370,7 +373,7 @@ les prix restent en nombres entiers de deben.
 
 ---
 
-### 5.6 Phase 5 — Artisanat et commerce  *(à faire)*
+### 5.6 Phase 5 — Artisanat et commerce  *(livrée)*
 
 **Sources** : docs `08` (ressources, recettes, prix, rivaux), `12` (routes
 commerciales par mission), `01` (Atelier, Forge, Entrepôt, Port, capacités de
@@ -799,30 +802,44 @@ son dîner. Et une caravane rentrée repart aussitôt, donc une boucle « jusqu'
 retour » encaisse plusieurs fois : les tests comptent désormais exactement
 l'aller-retour.
 
-#### 5.8 — Le craft de luxe
+#### 5.8 — Le craft de luxe  ✅
 
-Second jeu de recettes de l'Atelier, débloqué non par l'Atelier mais par
-l'**Entrepôt au niveau 8** (docs 01 et 08) : bijoux, statuettes, vases. Il
-réclame des matières que la région ne porte pas, et n'est donc atteignable
-qu'une fois le commerce établi — c'est la progression économique voulue par le
-doc 08, artisanat courant puis artisanat de prestige.
+Trois recettes de prestige — bijoux (or + turquoise), statuettes (cèdre +
+ivoire), vases (albâtre + cuivre) —, débloquées non par l'Atelier mais par
+l'**Entrepôt au niveau 8** (`Recette::deblocageSupplementaire()`, docs 01
+et 08). Aucune des six matières ne pousse dans le Delta : le luxe n'est
+atteignable qu'une fois le commerce établi, ce qui est exactement la
+progression du doc 08 — artisanat courant, puis artisanat de prestige.
 
-À écrire **en dernier**, parce qu'il ne démontre rien tant que les routes ne
-livrent pas.
+Les prix suivent la même marge de transformation que le reste (×1,65) et
+culminent à 205 deben la pièce de bijouterie, le plus haut cours du jeu.
+`FabricationTest` vérifie les deux verrous : l'Atelier seul ne suffit pas,
+et une partie du Delta ne peut pas y arriver par sa carte.
 
-#### 5.9 — Les chefs de l'Atelier, de la Forge et de l'Entrepôt
+#### 5.9 — Les chefs de l'Atelier, de la Forge et de l'Entrepôt  ✅
 
-Sept spécialités dorment depuis le lot 4.8 faute d'un système d'accueil :
-Potier, Papyrussier, Vannier, Tisserand, Brasseur, Armurier, Outilleur, plus
-le Négociateur et le Logisticien de l'Entrepôt. Elles se réveillent ici.
+Les neuf spécialités qui dormaient depuis le lot 4.8 se réveillent, toutes par
+le canal existant — la **qualité de direction** (`EffetDeChef`) —, jamais par
+un multiplicateur de plus.
 
-Elles passent par le canal existant — la **qualité de direction**
-(`EffetDeChef`) —, jamais par un multiplicateur de plus. Le Négociateur élargit
-la fourchette de prix acceptée par les partenaires, le Logisticien raccourcit
-les trajets (doc 03).
+Sept passent par la production : Potier, Papyrussier, Vannier, Tisserand,
+Brasseur, Armurier, Outilleur ajoutent `BONUS_DATELIER` (+20 %) **sur leur
+propre ouvrage seulement** (`SpecialiteDeChef::favorise()`). Un Brasseur ne
+fait pas de meilleurs papyrus : c'est ce qui donne un sens au choix entre deux
+candidats.
 
-**L'invariant du lot 4.5 s'applique** : avant d'ajouter un facteur à une
-production, vérifier ce qui s'y applique déjà.
+Deux agissent hors production, et c'est pourquoi elles passent par
+`EffetDeChef::chefSpecialise()` plutôt que par la qualité de direction :
+le **Négociateur** élargit de 25 centièmes la fourchette des partenaires
+(on vend plus cher, on achète moins cher), le **Logisticien** retire un quart
+au trajet, **jamais sous une quinzaine** — une route reste une route, et la
+distance doit continuer de décider de la fréquence des convois.
+
+**Un test mal conçu, corrigé** : mesurer l'effet d'une spécialité en comptant
+les quinzaines d'un ordre ne distingue pas 134 % de 114 %, puisqu'elles se
+comptent en entiers. Le contrôle porte sur la qualité de direction elle-même,
+et la durée ne sert plus qu'à vérifier qu'un atelier mieux dirigé n'est jamais
+plus lent.
 
 #### Hors périmètre, explicitement
 

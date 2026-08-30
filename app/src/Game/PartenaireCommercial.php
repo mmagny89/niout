@@ -74,7 +74,7 @@ final readonly class PartenaireCommercial
      * Le prix le plus élevé auquel il achètera cette ressource. Au-dessus,
      * aucun convoi ne part : le joueur a demandé trop cher.
      */
-    public function prixMaximumALaVente(Ressource $ressource): ?int
+    public function prixMaximumALaVente(Ressource $ressource, int $avantage = 0): ?int
     {
         $local = PrixDuMarche::pour($ressource);
 
@@ -82,14 +82,14 @@ final readonly class PartenaireCommercial
             return null;
         }
 
-        return max(1, intdiv($local * self::PRIX_MAXIMUM_A_LA_VENTE, 100));
+        return max(1, intdiv($local * (self::PRIX_MAXIMUM_A_LA_VENTE + $avantage), 100));
     }
 
     /**
      * Le prix le plus bas auquel il cédera cette ressource. En dessous, rien
      * n'arrive : le joueur a offert trop peu.
      */
-    public function prixMinimumALAchat(Ressource $ressource): ?int
+    public function prixMinimumALAchat(Ressource $ressource, int $avantage = 0): ?int
     {
         $local = PrixDuMarche::pour($ressource);
 
@@ -97,8 +97,15 @@ final readonly class PartenaireCommercial
             return null;
         }
 
-        return max(1, intdiv($local * self::PRIX_MINIMUM_A_LACHAT, 100));
+        return max(1, intdiv($local * max(100, self::PRIX_MINIMUM_A_LACHAT - $avantage), 100));
     }
+
+    /**
+     * L'`$avantage` que reçoivent plusieurs de ces méthodes est celui qu'un
+     * **Négociateur** en poste à l'Entrepôt arrache (doc 03) : il élargit la
+     * fourchette des deux côtés — on vend plus cher, on achète moins cher.
+     * Zéro sans lui.
+     */
 
     /**
      * Ce prix bradé qui fait se presser les convois, en centièmes du cours
@@ -125,10 +132,10 @@ final readonly class PartenaireCommercial
      * entre la marge et le volume — et c'est cet arbitrage qui fait du
      * commerce autre chose qu'un robinet.
      */
-    public function empressementALaVente(Ressource $ressource, int $prix): int
+    public function empressementALaVente(Ressource $ressource, int $prix, int $avantage = 0): int
     {
         $cours = PrixDuMarche::pour($ressource);
-        $maximum = $this->prixMaximumALaVente($ressource);
+        $maximum = $this->prixMaximumALaVente($ressource, $avantage);
 
         if (null === $cours || null === $maximum || $prix > $maximum) {
             return 0;
@@ -146,10 +153,10 @@ final readonly class PartenaireCommercial
      * dessous de ce qu'il réclame, rien n'arrive ; au double du cours, il
      * charge tout.
      */
-    public function empressementALAchat(Ressource $ressource, int $prix): int
+    public function empressementALAchat(Ressource $ressource, int $prix, int $avantage = 0): int
     {
         $cours = PrixDuMarche::pour($ressource);
-        $minimum = $this->prixMinimumALAchat($ressource);
+        $minimum = $this->prixMinimumALAchat($ressource, $avantage);
 
         if (null === $cours || null === $minimum || $prix < $minimum) {
             return 0;
@@ -169,11 +176,11 @@ final readonly class PartenaireCommercial
      * L'empressement dans le sens demandé — de quoi éviter aux appelants de
      * choisir entre les deux méthodes.
      */
-    public function empressement(SensDEchange $sens, Ressource $ressource, int $prix): int
+    public function empressement(SensDEchange $sens, Ressource $ressource, int $prix, int $avantage = 0): int
     {
         return SensDEchange::Vendre === $sens
-            ? $this->empressementALaVente($ressource, $prix)
-            : $this->empressementALAchat($ressource, $prix);
+            ? $this->empressementALaVente($ressource, $prix, $avantage)
+            : $this->empressementALAchat($ressource, $prix, $avantage);
     }
 
     /**

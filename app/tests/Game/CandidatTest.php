@@ -161,24 +161,46 @@ final class CandidatTest extends TestCase
     }
 
     /**
-     * Seules les spécialités des trois bâtiments qui produisent déjà quelque
-     * chose ont un effet (lot 4.8) ; les autres sont tirées et affichées mais
-     * dorment.
+     * **Ce qui dort et ce qui agit doit rester exact.** Le lot 5.9 a réveillé
+     * les sept spécialités d'atelier, plus le Négociateur et le Logisticien de
+     * l'Entrepôt. Restent inertes celles dont le système n'existe pas encore :
+     * le Dévot attend la faveur divine, les Scribes les énigmes, les
+     * Instructeurs le combat.
+     *
+     * L'Acheteur du Marché en fait toujours partie : le Marché est une vente
+     * locale, l'achat passant par les caravanes et non par lui.
      */
-    public function testSeulesLesSpecialitesDesBatimentsProductifsAgissent(): void
+    public function testSeulesLesSpecialitesDunSystemeExistantAgissent(): void
     {
-        $agissantes = array_values(array_filter(
+        $dormantes = array_values(array_filter(
             SpecialiteDeChef::cases(),
-            static fn (SpecialiteDeChef $specialite): bool => $specialite->agitDeja(),
+            static fn (SpecialiteDeChef $specialite): bool => !$specialite->agitDeja(),
         ));
 
-        // L'Acheteur du Marché n'y figure pas : rien ne s'achète encore
-        // (Phase 5), et l'annoncer comme actif mentirait au joueur.
         self::assertSame([
-            SpecialiteDeChef::MarcheVendeur,
-            SpecialiteDeChef::GrenierGestionnaire,
-            SpecialiteDeChef::PortPecheur,
-        ], $agissantes);
+            SpecialiteDeChef::MarcheAcheteur,
+            SpecialiteDeChef::TempleDevot,
+            SpecialiteDeChef::ScribesDechiffreur,
+            SpecialiteDeChef::ScribesOraculaire,
+            SpecialiteDeChef::CaserneInstructeurArcher,
+            SpecialiteDeChef::CaserneInstructeurBouclier,
+            SpecialiteDeChef::PortCommercantNaval,
+        ], $dormantes);
+    }
+
+    /**
+     * Une spécialité d'atelier ne vaut que sur son propre ouvrage : un
+     * Brasseur ne fait pas de meilleurs papyrus.
+     */
+    public function testUneSpecialiteDAtelierNeFavoriseQueSonPropreOuvrage(): void
+    {
+        self::assertTrue(SpecialiteDeChef::AtelierBierePain->favorise(\App\Game\Recette::Biere));
+        self::assertTrue(SpecialiteDeChef::AtelierBierePain->favorise(\App\Game\Recette::Pain));
+        self::assertFalse(SpecialiteDeChef::AtelierBierePain->favorise(\App\Game\Recette::Papyrus));
+
+        // Le doc 03 nomme la vannerie et les sandales ensemble.
+        self::assertTrue(SpecialiteDeChef::AtelierVannerie->favorise(\App\Game\Recette::Vannerie));
+        self::assertTrue(SpecialiteDeChef::AtelierVannerie->favorise(\App\Game\Recette::Sandales));
     }
 
     private function candidat(int $competence = 50, int $anciennete = 20, int $inactifs = 0): Candidat
