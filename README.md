@@ -37,6 +37,11 @@ porter un gisement à exploiter, une eau à pêcher une fois le Port dressé, ou
 champ à semer ; les champs traversent quatre étapes — semis, pousse, récolte,
 repos — et ne nourrissent qu'à la récolte, sur le Nil comme en terre.
 
+**Réserves** — le Grenier tient les vivres, l'Entrepôt les matériaux et les
+objets, chacun avec un plafond que son niveau élève. Ce qui déborde ne rentre
+pas : il faut écouler son surplus au Marché, ou agrandir. Le deben, lui, ne
+s'entasse nulle part.
+
 **Population et emploi** — la ville se compte en trois nombres : ceux qui
 travaillent, les enfants, les anciens. Elle les nourrit à chaque quinzaine, et
 sans vivres suffisantes la famine s'installe — d'abord le mécontentement, puis

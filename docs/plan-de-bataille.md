@@ -441,7 +441,7 @@ ingrédients (décision de la joueuse) — le coût de production changera, et l
 test devra s'adosser au vrai catalogue plutôt qu'à cette copie. La marge devra
 tenir malgré tout.
 
-#### 5.1 — Capacité de stockage : plafonner sans périmer *(décision de la joueuse)*
+#### 5.1 — Capacité de stockage : plafonner sans périmer  ✅  *(décision de la joueuse)*
 
 Le stock est illimité depuis le lot 3.1. Il cesse de l'être : le **Grenier
 plafonne les denrées** et l'**Entrepôt les matériaux et objets** (doc 01), le
@@ -461,6 +461,47 @@ de cycle doit dire ce qui a été perdu.
 **À vérifier avant d'écrire** : la dotation royale d'ouverture ne doit pas
 dépasser le plafond de départ, sans quoi le pharaon ferait un cadeau dont une
 partie s'évaporerait à la première quinzaine.
+
+##### Livré
+
+**Deux réserves, jamais une seule** : le Grenier tient les vivres, l'Entrepôt
+les matériaux et les objets. Chacune a une **réserve de base** — la Résidence
+familiale a ses propres jarres — que le niveau du bâtiment élève : 100 par
+niveau de Grenier (doc 01), 150 par niveau d'Entrepôt (inventé, le document
+décrivant sa capacité sans jamais la chiffrer).
+
+**Le deben n'est pas stocké.** La monnaie n'occupe ni grenier ni entrepôt et
+n'a donc aucun plafond : c'est ce qui fait de la vente l'issue au surplus, une
+valeur qui ne déborde jamais. Sans cette exception, le plafond aurait bloqué la
+seule sortie qu'il est censé pousser à prendre.
+
+**Les ressources d'une même réserve se partagent son plafond** : ranger des
+roseaux, c'est autant de moins pour l'argile. Un compteur par ressource
+n'aurait donné aucune raison de monter l'Entrepôt, et personne ne l'aurait
+surveillé.
+
+**Le plafonnement est fait dans `City::crediterRessources()`**, seul point
+d'entrée du stock, pour qu'aucun chemin ne puisse l'oublier. `surplusRefuse()`
+dit **avant** de créditer ce qui restera dehors — c'est sur cette promesse que
+le passage de cycle annonce la perte.
+
+**Calibrage mesuré**, la vérification que le lot réclamait :
+
+| | Plafond | Dotation | Saturation à deux carrières |
+|---|---|---|---|
+| Sans bâtiment | 250 / 250 | 70 % / 57 % | 7 quinzaines |
+| Grenier et Entrepôt 1 | 350 / 400 | — | 10 quinzaines |
+| Niveau 5 | 750 / 1000 | — | 25 quinzaines |
+
+La dotation tient avec de la marge — **et la marge compte autant que le
+plafond** : une réserve qui la contiendrait au ras ferait démarrer la ville
+saturée, et le joueur perdrait sa première extraction avant d'avoir compris
+qu'il a un plafond. Une première version calibrée à 150 faisait exactement
+cela, à 95 % dès la première quinzaine.
+
+**Le piège est traité des deux côtés** : la barre de jeu affiche chaque réserve
+avec son plafond et vire au rouge à 85 %, et le passage de cycle dit ce qui a
+débordé. Prévenir avant, constater après.
 
 #### 5.2 — L'Atelier : des ordres de fabrication  *(décision de la joueuse)*
 

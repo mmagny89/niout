@@ -33,9 +33,22 @@
                             </div>
                         {% endif %}
                     {% endfor %}
-                    <div class="flex items-baseline gap-1.5">
+                    {# Chaque réserve avec son plafond : le joueur doit voir la
+                       saturation venir, pas la découvrir en perdant une
+                       moisson. #}
+                    <div class="flex items-baseline gap-1.5"
+                         title="Le Grenier tient les vivres. Au-delà de {{ partie.ville.plafondDesVivres }}, ce qui rentre se perd.">
                         <dt class="text-encre-500">Vivres</dt>
-                        <dd class="text-encre-900">{{ partie.ville.nourriture }}</dd>
+                        <dd class="{{ partie.ville.vivresPresqueSatures ? 'text-terre-600' : 'text-encre-900' }}">
+                            {{ partie.ville.nourriture }} / {{ partie.ville.plafondDesVivres }}
+                        </dd>
+                    </div>
+                    <div class="flex items-baseline gap-1.5"
+                         title="L'Entrepôt tient les matériaux et les objets. Au-delà de {{ partie.ville.plafondDesMateriaux }}, ce qui rentre se perd.">
+                        <dt class="text-encre-500">Réserves</dt>
+                        <dd class="{{ partie.ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-900' }}">
+                            {{ partie.ville.materiaux }} / {{ partie.ville.plafondDesMateriaux }}
+                        </dd>
                     </div>
                     {# Un actif est un bras et une ration ; un inactif — enfant
                        ou ancien — une demi-ration. Le détail explique pourquoi
