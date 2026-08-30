@@ -54,6 +54,9 @@ une ville sans quai ne commerce que par la terre. Une fois la route ouverte, on
 y tient un étal : « je vends du lin à 5 deben, j'achète du cèdre jusqu'à 19 ».
 Le prix décide de l'empressement de la cité, donc de ce qui bouge à chaque
 convoi — trop gourmand, personne n'achète ; généreux, les convois se pressent.
+Les caravanes partent alors d'elles-mêmes, chargées de ce qu'on a engagé, et
+reviennent au bout du trajet : la distance décide de la fréquence, le prix du
+volume.
 
 **Réserves** — le Grenier tient les vivres, l'Entrepôt les matériaux et les
 objets, chacun avec un plafond que son niveau élève. Ce qui déborde ne rentre

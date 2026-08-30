@@ -754,7 +754,7 @@ quinzaine.
 **L'écran montre la fourchette et l'empressement avant l'engagement** : le
 joueur vise, il ne devine pas. Un empressement sous 40 % s'affiche en rouge.
 
-#### 5.7 — Le trafic : caravanes et navires en chemin
+#### 5.7 — Le trafic : caravanes et navires en chemin  ✅
 
 La résolution, à chaque quinzaine, sur le modèle des expéditions du lot 3.4 —
 même forme, même absence de persistance dans le service.
@@ -771,6 +771,33 @@ même forme, même absence de persistance dans le service.
 stock a fondu entre le départ et l'arrivée, c'est trop tard — la marchandise
 est partie avec lui, débitée au départ. Débiter à l'arrivée permettrait de
 vendre deux fois la même chose.
+
+##### Livré
+
+**L'engagement est symétrique** : on débite au départ ce qu'on engage — la
+marchandise pour une vente, les deben pour un achat — et l'on reçoit au retour.
+Retirer une annonce n'annule pas ce qui roule : on ne rappelle pas une caravane
+partie il y a trois quinzaines. Le convoi porte d'ailleurs **sa propre copie**
+de l'échange plutôt qu'un lien vers l'ordre, précisément pour cela.
+
+**Un seul convoi en chemin par ressource et par route** : la caravane doit
+revenir avant que la suivante ne parte. C'est ce qui donne son poids à la
+distance — Memphis échange toutes les quatre quinzaines, Byblos toutes les dix,
+Pount toutes les seize, quelle que soit la générosité du prix. La distance
+décide de la **fréquence**, le prix et le niveau du bâtiment du **volume**.
+
+**Un piège déjà connu, repayé sous une autre forme** : supprimer un convoi
+rentré pour en insérer un neuf dans la même quinzaine fait insérer Doctrine
+avant de supprimer, et la contrainte d'unicité saute — le même défaut que celui
+payé sur les gisements. La parade retenue n'est pas un flush intermédiaire mais
+le **réemploi de la caravane**, qui décharge et repart : c'est aussi ce qui se
+passe vraiment.
+
+**Deux pièges de test**, l'un et l'autre instructifs : le blé est un vivre, et
+la ville en mange à chaque quinzaine — mesurer une vente de blé mesure aussi
+son dîner. Et une caravane rentrée repart aussitôt, donc une boucle « jusqu'au
+retour » encaisse plusieurs fois : les tests comptent désormais exactement
+l'aller-retour.
 
 #### 5.8 — Le craft de luxe
 
