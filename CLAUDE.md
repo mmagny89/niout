@@ -450,6 +450,24 @@ commerciaux. Trois règles à ne pas défaire :
   appelants : offrande, fête, bénédiction et malédiction y passeront tous, et
   aucun n'a à vérifier l'échelle pour son compte.
 
+**Le Temple est la seule limite de la dévotion** (`Temple`, doc 07 : « sans
+plafond arbitraire indépendant »), et il en pose **deux, qui ne disent pas la
+même chose** : combien de dieux la ville porte au-dessus du neutre (un par
+niveau) et jusqu'où leur faveur monte (`50 + 5 × niveau`). La première fait de
+la répartition des offrandes une stratégie, la seconde fait du palier Dévoué
+une conquête — il demande un Temple de niveau 6. Sans Temple, on n'offre pas,
+et la ville n'en est pas punie pour autant : ses dieux restent neutres.
+
+**On offre en deben ou en ressources** (`Offrandes`, décision de la joueuse),
+et la conversion passe par **le cours du Marché**, jamais par un second barème
+— deux tables de valeurs finiraient par diverger, et l'une deviendrait la
+bonne affaire à exploiter. Conséquence assumée : une région qui produit cher
+honore ses dieux à moindre effort. C'est aussi le premier débouché du surplus
+que le plafond de stock refuse. Deux gardes à ne pas retirer : une offrande
+qui ne vaut pas un point est **refusée** plutôt qu'encaissée pour rien, et une
+faveur déjà au plafond du Temple refuse l'offrande au lieu de la gaspiller en
+silence.
+
 **Un dieu sans emploi le dit** (`Divinite::agitDeja()`, `attente()`) : Isis
 attend le combat, Thot les énigmes. Même règle que les spécialités de chef —
 promettre un effet qui ne s'applique nulle part tromperait le joueur au moment

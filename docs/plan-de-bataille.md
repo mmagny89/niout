@@ -522,7 +522,7 @@ et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
 | Lot | Contenu | |
 |---|---|---|
 | 6.0 | Le panthéon : huit divinités, leurs domaines, l'échelle de faveur | ✅ |
-| 6.1 | Le Temple : offrir, et ce que le niveau autorise | |
+| 6.1 | Le Temple : offrir, et ce que le niveau autorise | ✅ |
 | 6.2 | La négligence : décroissance vers le neutre, jamais en dessous | |
 | 6.3 | Ce que la faveur change réellement, branché sur l'existant | |
 | 6.4 | Les fêtes calendaires attestées | |
@@ -561,7 +561,7 @@ il faudrait les migrer à chaque divinité ajoutée.
 descendre un dieu sous 25 pour être puni, ce qui demande de la négligence
 prolongée ou une quête ratée, pas de l'inaction au démarrage.
 
-#### 6.1 — Le Temple : offrir, et ce que le niveau autorise
+#### 6.1 — Le Temple : offrir, et ce que le niveau autorise  ✅
 
 Un écran de Temple, hérité de `_layout.html.twig` comme tout écran de partie :
 la liste des divinités, leur palier, ce que chacune promet, et le geste
@@ -574,13 +574,19 @@ niveau 1 permet de soigner un dieu, pas huit — ce qui fait de la répartition 
 offrandes une stratégie plutôt qu'une liste de courses.
 
 Le doc 07 chiffre `5 points pour 10 or` ; l'or est devenu un métal au lot 4.0,
-donc **10 deben**. **À recalibrer** : 10 deben, c'est le quart d'une quinzaine
-de salaires — porter un dieu de 50 à 80 coûterait 60 deben, une saison et demie
-de masse salariale. Le barème se fixe après mesure, comme au lot 4.6, et la
-question à trancher est de savoir si l'on peut offrir **en ressources** aussi
-bien qu'en deben. Le doc le prévoit (« or ou équivalent en ressources ») et cela
-donnerait un débouché au surplus que le plafond de stock refuse — à confirmer
-avec la joueuse.
+donc **10 deben** — ou leur valeur en marchandise, la conversion passant par le
+cours du Marché et jamais par un second barème.
+
+**Deux limites, et elles ne disent pas la même chose.** Combien de dieux le
+Temple porte au-dessus du neutre (un par niveau) fait de la répartition des
+offrandes une stratégie : un Temple modeste oblige à choisir. Jusqu'où la
+faveur peut monter (`50 + 5 × niveau`) fait du palier Dévoué une conquête — il
+demande un Temple de niveau 6, donc une partie déjà avancée.
+
+**Ce que ça coûte, en l'état** : amener un dieu au plafond d'un Temple de
+niveau 1 demande 30 deben, l'amener à Dévoué sous un Temple de niveau 6 en
+demande 80. À comparer aux ~39 deben d'une quinzaine de salaires. Le barème
+reste **provisoire** et sera repris au playtest, comme au lot 4.6.
 
 #### 6.2 — La négligence
 

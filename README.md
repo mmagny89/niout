@@ -55,6 +55,13 @@ produisent rien mais changent le commerce — le Négociateur obtient de
 meilleurs prix des deux côtés de l'étal, le Logisticien raccourcit les
 trajets de caravane.
 
+**Faveur divine** — huit divinités du panthéon du Nouvel Empire se cultivent en
+parallèle : Hâpi pour la crue, Ptah pour bâtir vite, Sekhmet avant que la fièvre
+ne passe. On les honore au Temple, en deben ou en marchandise — l'Égypte offrait
+ce qu'elle avait —, et c'est le seul geste du jeu sans contrepartie immédiate.
+Le Temple décide de tout : combien de dieux on peut porter haut, et jusqu'où.
+Ne rien offrir ne coûte rien ; c'est la négligence prolongée qui fâche.
+
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la
 traversée de la mer Rouge vers Pount. Ouvrir une route, c'est y envoyer une

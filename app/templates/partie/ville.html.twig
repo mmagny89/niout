@@ -7,6 +7,13 @@
         <div class="flex flex-wrap items-baseline justify-between gap-4">
             <h1 class="text-4xl text-encre-900">{{ ville.nom }}</h1>
             <div class="flex flex-wrap items-baseline gap-4">
+                {# Le Temple ne se visite qu'une fois dressé : proposer l'écran
+                   d'un bâtiment qu'on n'a pas ferait une porte sur du vide. #}
+                {% if ville.possede(constant('App\\Game\\TypeDeBatiment::Temple')) %}
+                    <a href="{{ path('app_partie_temple', {id: partie.id}) }}" class="text-sm text-lapis-500">
+                        Temple
+                    </a>
+                {% endif %}
                 <a href="{{ path('app_partie_carte', {id: partie.id}) }}" class="text-sm text-lapis-500">
                     ← Retour au territoire
                 </a>
