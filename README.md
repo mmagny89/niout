@@ -138,8 +138,8 @@ tous d'un coup, avec un message qui ne mentionne pas Tailwind clairement. D'où 
 
 Éprouver le commerce longue distance ou une région du Sinaï demanderait des
 heures de jeu. Un compte peut donc recevoir le **mode divin**, qui ouvre les dix
-missions à la création d'une partie et comble ses réserves d'un million de
-chaque ressource, plafonds levés :
+missions à la création d'une partie, comble ses réserves d'un million de chaque
+ressource, plafonds levés, et lève le brouillard sur toute la carte :
 
 ```bash
 docker compose exec php php bin/console app:users:goddess vous@example.com

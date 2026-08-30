@@ -287,7 +287,7 @@ creuse jamais (`Exploitations::exploiter()`), et l'interface écrit
 
 **Le mode divin est un outil d'essai, pas une fonctionnalité** (`ModeDivin`,
 `User::ROLE_DIVIN`) : un million de chaque ressource, plafonds de réserve levés,
-les dix missions ouvertes à la création. **Le rôle ne s'accorde qu'en console**
+brouillard levé d'un geste, les dix missions ouvertes à la création. **Le rôle ne s'accorde qu'en console**
 (`app:users:goddess`) — aucun écran ne le donne, et cacher un bouton n'est pas
 une barrière : la route vérifie le rôle en plus de la propriété. Une partie
 d'essai le dit en toutes lettres à l'écran, pour ne jamais se confondre avec une

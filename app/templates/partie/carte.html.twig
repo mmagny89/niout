@@ -25,6 +25,21 @@
             bâtiments ; les dalles gravées de hiéroglyphes attendent un éclaireur.
         </p>
 
+        {# Reconnaître une grille du Sinaï case par case demande des dizaines de
+           quinzaines : c'est ce temps de jeu que le mode d'essai permet de
+           sauter. Le bouton n'existe que pour un compte qui porte le rôle, et
+           la route le vérifie de son côté. #}
+        {% if is_granted('ROLE_DIVIN') and partie.estEnModeDivin %}
+            <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}" class="mt-3">
+                <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
+                <input type="hidden" name="retour" value="app_partie_carte">
+                <button type="submit" name="brouillard" value="1"
+                        class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                    Lever le brouillard sur toute la carte
+                </button>
+            </form>
+        {% endif %}
+
         {# La carte déborde en largeur sur les grandes régions : elle défile
            dans son propre conteneur, jamais la page entière. #}
         <div class="mt-6 overflow-x-auto">

@@ -147,6 +147,59 @@ final class ModeDivinTest extends WebTestCase
     }
 
     /**
+     * Reconnaître une grille du Sinaï case par case demande des dizaines de
+     * quinzaines : c'est ce temps de jeu que le mode permet de sauter, et rien
+     * d'autre — les cases révélées portent ce que le tirage leur avait donné.
+     */
+    public function testLeModeDivinLeveLeBrouillardSurToutLaCarte(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancer($this->creerJoueur('brouillard@example.com'));
+        $ville = $partie->getVille();
+        $modeDivin = static::getContainer()->get(ModeDivin::class);
+
+        $sousBrouillard = 0;
+        foreach ($ville->getZones() as $zone) {
+            if (!$zone->estDecouverte()) {
+                ++$sousBrouillard;
+            }
+        }
+
+        self::assertGreaterThan(0, $sousBrouillard, 'Une carte neuve n\'est pas déjà reconnue.');
+
+        $modeDivin->basculer($partie);
+
+        self::assertSame($sousBrouillard, $modeDivin->leverLeBrouillard($partie));
+
+        foreach ($ville->getZones() as $zone) {
+            self::assertTrue($zone->estDecouverte());
+        }
+
+        self::assertSame(0, $modeDivin->leverLeBrouillard($partie), 'Rien à lever deux fois.');
+    }
+
+    /**
+     * Le brouillard ne se lève **que** sur une partie d'essai : le geste est
+     * un raccourci de test, pas une capacité du jeu.
+     */
+    public function testLeBrouillardNeSeLevePasSurUnePartieOrdinaire(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancer($this->creerJoueur('brouillard-ordinaire@example.com'));
+
+        self::assertSame(0, static::getContainer()->get(ModeDivin::class)->leverLeBrouillard($partie));
+
+        $couvertes = 0;
+        foreach ($partie->getVille()->getZones() as $zone) {
+            if (!$zone->estDecouverte()) {
+                ++$couvertes;
+            }
+        }
+
+        self::assertGreaterThan(0, $couvertes, 'La carte doit rester sous le brouillard.');
+    }
+
+    /**
      * L'autre moitié du mode : les dix régions, autrement hors d'atteinte tant
      * que la Phase 8 n'a pas écrit l'enchaînement des missions.
      */

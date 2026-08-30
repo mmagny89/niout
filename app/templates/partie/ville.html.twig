@@ -45,6 +45,7 @@
                 <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}"
                       class="mt-3 flex flex-wrap items-center gap-3">
                     <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
+                    <input type="hidden" name="retour" value="app_partie_ville">
                     <button type="submit"
                             class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
                         {{ partie.estEnModeDivin ? 'Revenir aux règles ordinaires' : 'Passer en partie d\'essai' }}
@@ -53,6 +54,10 @@
                         <button type="submit" name="combler" value="1"
                                 class="text-sm text-encre-500 underline hover:text-lapis-500">
                             Recombler les réserves
+                        </button>
+                        <button type="submit" name="brouillard" value="1"
+                                class="text-sm text-encre-500 underline hover:text-lapis-500">
+                            Lever le brouillard
                         </button>
                     {% endif %}
                 </form>
