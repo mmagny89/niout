@@ -62,6 +62,14 @@
 
                     <p class="mt-1 text-sm text-encre-500">{{ dieu.palier.description }}</p>
 
+                    {% if dieu.seDetourne %}
+                        <p class="mt-2 text-sm text-terre-600">
+                            Sans offrande depuis <span data-chiffres>{{ dieu.quinzainesSansOffrande }}</span>
+                            quinzaines, {{ dieu.divinite.libelle }} se détourne peu à peu — jamais
+                            plus bas que le neutre.
+                        </p>
+                    {% endif %}
+
                     {# Promettre un effet qui ne s'applique nulle part tromperait
                        le joueur au moment même où il choisit à qui donner. #}
                     {% if not dieu.divinite.agitDeja %}

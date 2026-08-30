@@ -34,6 +34,7 @@ use App\Game\Mecontentement;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\ModeDivin;
+use App\Game\Negligence;
 use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
@@ -527,10 +528,18 @@ final class PartieController extends AbstractController
         $pantheon = [];
 
         foreach (Divinite::pantheon() as $divinite) {
+            $suivie = $ville->faveurDe($divinite);
             $pantheon[] = [
                 'divinite' => $divinite,
                 'faveur' => $ville->faveurEnvers($divinite),
                 'palier' => $ville->palierDe($divinite),
+                // Un dieu qui commence à se détourner doit le dire avant que
+                // son effet ne cesse, sinon le joueur ne l'apprend qu'une fois
+                // le palier perdu.
+                'seDetourne' => null !== $suivie
+                    && $suivie->getQuinzainesSansOffrande() > Negligence::QUINZAINES_DE_GRACE
+                    && $suivie->getFaveur() > Negligence::PLANCHER,
+                'quinzainesSansOffrande' => $suivie?->getQuinzainesSansOffrande() ?? 0,
             ];
         }
 

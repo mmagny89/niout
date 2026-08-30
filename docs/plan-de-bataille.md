@@ -523,7 +523,7 @@ et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
 |---|---|---|
 | 6.0 | Le panthéon : huit divinités, leurs domaines, l'échelle de faveur | ✅ |
 | 6.1 | Le Temple : offrir, et ce que le niveau autorise | ✅ |
-| 6.2 | La négligence : décroissance vers le neutre, jamais en dessous | |
+| 6.2 | La négligence : décroissance vers le neutre, jamais en dessous | ✅ |
 | 6.3 | Ce que la faveur change réellement, branché sur l'existant | |
 | 6.4 | Les fêtes calendaires attestées | |
 | 6.5 | Bénédictions et malédictions ponctuelles | |
@@ -588,16 +588,26 @@ niveau 1 demande 30 deben, l'amener à Dévoué sous un Temple de niveau 6 en
 demande 80. À comparer aux ~39 deben d'une quinzaine de salaires. Le barème
 reste **provisoire** et sera repris au playtest, comme au lot 4.6.
 
-#### 6.2 — La négligence
+#### 6.2 — La négligence  ✅
 
 Dans le passage de cycle, après les salaires : au bout de cinq quinzaines sans
 offrande, une divinité perd un point par quinzaine, **et s'arrête au palier
 Neutre** (doc 07 : « décroissance lente et naturelle, pas de chute punitive »).
 Seuls une quête ratée ou un événement font descendre plus bas.
 
-C'est symétrique du mécontentement du lot 4.7, et il faut la même vigilance :
-vérifier qu'une ville qui décroche peut **remonter** — un dieu hostile ne doit
-jamais empêcher de produire de quoi lui faire une offrande.
+C'est symétrique du mécontentement du lot 4.7, avec une différence qui change
+tout : le mécontentement descend jusqu'à la colère, la négligence s'arrête au
+neutre. Une partie menée sans jamais mettre les pieds au Temple ne finit donc
+pas avec huit dieux hostiles — elle finit comme elle a commencé, ce qui est la
+seule façon de ne pas punir un joueur pour n'avoir pas joué à ce système-là.
+
+**Le rythme laisse le temps de revenir** : redescendre du plafond d'un Temple
+de niveau 1 jusqu'au neutre demande une quinzaine de cycles, plus de six mois
+de jeu. Entretenir un dieu est un geste occasionnel, jamais un abonnement.
+
+Le journal de cycle ne raconte que le **changement de palier**, jamais le point
+perdu : un message par dieu et par quinzaine noierait tout le reste. L'écran du
+Temple, lui, prévient dès que la décroissance a commencé.
 
 #### 6.3 — Ce que la faveur change
 
