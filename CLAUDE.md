@@ -176,9 +176,15 @@ cases, d'où un minimum volontairement bas (1) plutôt que théoriquement
 généreux mais irréalisable. Les garanties de matériaux privilégient l'anneau
 des 8 cases autour de la ville, **un seul exemplaire de chaque matériau non
 alimentaire** dans cet anneau (décision de la joueuse — éviter d'avoir
-directement tout à portée) ; une case fertile ou une berge du Nil qui n'a pas
-tiré de champ reste marquée `ContenuDeZone::TerreNonCultivable`, distincte du
-« rien » générique.
+directement tout à portée).
+
+**Retirer un cas d'enum ne le retire pas de la base** (défaut réel, payé) :
+`ContenuDeZone::TerreNonCultivable` a disparu du code avec la terre classique,
+sans migration pour les lignes déjà écrites. Doctrine ne sait pas hydrater une
+valeur absente de l'enum — **toute partie portant une seule case de ce contenu
+devenait illisible**, donc impossible à ouvrir comme à abandonner, et l'erreur
+ne nomme ni la partie ni la table. Tout retrait d'un cas persisté se
+double d'une migration qui convertit l'existant (`Version20260830190000`).
 
 **Piège payé** : `Zone::poserUnGisement()` ne doit **jamais** écraser un
 contenu déjà posé (`ContenuDeZone::ChampEligible`, `Evenement`) — seul
