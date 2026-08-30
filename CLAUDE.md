@@ -285,6 +285,22 @@ Cinq pièges déjà payés, à ne pas refaire :
   impossible (`Zone::poserUnContenu()` efface les gisements). Dans l'autre
   ordre, les garanties de matériaux pouvaient consommer les rares terres
   cultivables d'une petite carte avant que celle des champs ne s'exécute.
+- **Un tirage n'impose jamais un gisement que le terrain dément.** Le plafond
+  d'un seul exemplaire par matériau dans l'anneau de la ville peut ne laisser
+  que le bois local comme possibilité ; si la case est de sable, aucun matériau
+  n'y pousse et l'option « ressource » ne doit pas être proposée du tout. Un
+  repli qui tirerait alors sans regarder le terrain plante des acacias en plein
+  désert — défaut réel, payé.
+- **Une garantie probabiliste n'est pas une garantie.** Quinze pour cent par
+  case échouent plus d'une fois sur deux sur une grille 3×3 : la terre
+  broussailleuse n'apparaissait qu'une fois sur deux au Delta. Toute règle du
+  type « la région en porte toujours » se vérifie **sur les dix missions à leurs
+  tailles réelles** (`Mission::tailleDeGrille()` vaut `3 + difficulté / 2`, pas
+  `3 + difficulté`), et se conclut par un minimum forcé.
+- **Un matériau vital passe devant un matériau de confort.** Sur une carte
+  saturée, la garantie de bois local déloge un filon non vital plutôt que de
+  renoncer (`GenerateurDeCarte::fairePlaceAuBoisLocal()`) — on joue sans or,
+  jamais sans charpente. C'est le seul endroit du jeu où un gisement est retiré.
 - **Un poids de tirage réduit doit être redistribué, jamais simplement retiré**
   (`GenerateurDeCarte::tirerParmi()`) : le total du tirage rétrécirait sinon,
   gonflant mécaniquement la part des autres options. En pondérant le poids
@@ -373,3 +389,10 @@ fonctionnelle : ne pas réinventer une mécanique déjà spécifiée, s'y réfé
 
 Les 18 planches de sprites sont dans le sous-dossier `Niout/Sprites/` du Drive — déjà
 générées, à découper, pas à recréer.
+
+La planche « tuiles » se redécoupe avec `.claude/scripts/decouper-tuiles.py`,
+jamais à la main : il détoure le damier — **peint dans les pixels du JPEG**, pas
+une vraie transparence — par remplissage depuis les bords, et met **toutes les
+tuiles à la même échelle**. Les mettre chacune à l'échelle de sa propre boîte
+donnerait des losanges de tailles différentes et désalignerait la grille
+isométrique.
