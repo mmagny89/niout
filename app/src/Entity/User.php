@@ -94,6 +94,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * Le rôle qui ouvre le mode divin (`City::estEnModeDivin()`).
+     *
+     * **C'est la seule barrière du mode**, et elle ne s'accorde qu'en console
+     * (`app:users:goddess`) : aucun écran ne permet de se l'octroyer, et
+     * aucune inscription ne le donne. Un bouton visible de tous ne serait pas
+     * une barrière — le mode se contente donc de ne pas s'afficher pour qui ne
+     * l'a pas, et les routes le refusent en plus.
+     */
+    public const string ROLE_DIVIN = 'ROLE_DIVIN';
+
+    public function estDivinite(): bool
+    {
+        return \in_array(self::ROLE_DIVIN, $this->getRoles(), true);
+    }
+
+    /**
      * @see UserInterface
      */
     public function getRoles(): array

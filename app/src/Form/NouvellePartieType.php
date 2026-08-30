@@ -6,6 +6,7 @@ namespace App\Form;
 
 use App\Entity\City;
 use App\Entity\Family;
+use App\Entity\GameSave;
 use App\Enum\GameMode;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -42,7 +43,22 @@ final class NouvellePartieType extends AbstractType
                 // dans les tests.
                 'choice_value' => static fn (?GameMode $mode): ?string => $mode?->value,
                 'data' => GameMode::Campagne,
-            ])
+            ]);
+
+        if ([] !== $options['missionsOuvertes']) {
+            $builder->add('mission', ChoiceType::class, [
+                'label' => 'Mission de départ',
+                'help' => 'Réservé au mode divin : ouvre les dix régions pour les essais.',
+                'choices' => $options['missionsOuvertes'],
+                'data' => GameSave::PREMIERE_MISSION,
+            ]);
+        }
+
+        $builder
+            // Le choix de mission n'existe que pour le mode divin : l'ordre
+            // des missions est imposé (doc 09), et le champ n'est même pas
+            // construit pour un joueur ordinaire — il ne suffirait pas de le
+            // cacher, un POST forgé le rétablirait.
             ->add('nomDeFamille', TextType::class, [
                 'label' => 'Nom de votre famille',
                 'help' => 'Il apparaîtra dans les textes de la partie.',
@@ -84,7 +100,10 @@ final class NouvellePartieType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([]);
+        // Les missions ouvertes au choix. Vide pour un joueur ordinaire, qui
+        // n'a pas de champ « mission » du tout : l'ordre est imposé (doc 09).
+        $resolver->setDefault('missionsOuvertes', []);
+        $resolver->setAllowedTypes('missionsOuvertes', 'array');
     }
 
     private static function libelleDeDifficulte(int $niveau): string

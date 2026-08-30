@@ -26,6 +26,39 @@
             {% endif %}
         </p>
 
+        {# Une partie d'essai le dit en toutes lettres : elle ne doit jamais se
+           confondre avec une vraie. Le bouton n'existe que pour un compte qui
+           porte le rôle — la route le vérifie de son côté, l'absence
+           d'affichage n'étant pas une barrière. #}
+        {% if is_granted('ROLE_DIVIN') %}
+            <div class="mt-4 rounded-sm border border-lapis-500/40 bg-lapis-500/5 px-4 py-3 text-sm text-encre-700">
+                {% if partie.estEnModeDivin %}
+                    <strong class="text-encre-900">Partie d'essai.</strong>
+                    Un million de chaque ressource, aucun plafond de réserve.
+                    Rien de ce qui s'y passe ne vaut comme partie jouée.
+                {% else %}
+                    <strong class="text-encre-900">Partie ordinaire.</strong>
+                    Le mode d'essai comble les réserves et lève les plafonds,
+                    pour éprouver un système sans jouer les heures qui y mènent.
+                {% endif %}
+
+                <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}"
+                      class="mt-3 flex flex-wrap items-center gap-3">
+                    <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
+                    <button type="submit"
+                            class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                        {{ partie.estEnModeDivin ? 'Revenir aux règles ordinaires' : 'Passer en partie d\'essai' }}
+                    </button>
+                    {% if partie.estEnModeDivin %}
+                        <button type="submit" name="combler" value="1"
+                                class="text-sm text-encre-500 underline hover:text-lapis-500">
+                            Recombler les réserves
+                        </button>
+                    {% endif %}
+                </form>
+            </div>
+        {% endif %}
+
         {# Le mécontentement est une spirale : la subir sans la comprendre
            serait injuste. L'écran dit la cause et le remède. #}
         {% if villeMecontente %}
