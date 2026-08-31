@@ -88,6 +88,13 @@ final readonly class Offrandes
         // dérisoire ne devient pas remarquable parce qu'un jour est saint.
         $points += self::supplementDeFete($partie->dateDeJeu(), $divinite);
 
+        // Le Dévot du Temple ne produit rien : son effet passe donc, comme
+        // celui du Négociateur, par `chefSpecialise()` et non par la qualité
+        // de direction (lot 6.7).
+        if (EffetDeChef::chefSpecialise($ville, TypeDeBatiment::Temple, SpecialiteDeChef::TempleDevot, $partie->getCycle())) {
+            $points += EffetDeChef::BONUS_DU_DEVOT;
+        }
+
         $faveur = $ville->faveurDe($divinite);
         $plafond = Temple::plafondDeFaveur($ville);
 

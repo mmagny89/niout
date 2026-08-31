@@ -112,8 +112,8 @@ vues, pas de la conception.
 | **3** | Carte, exploration et ressources | `02`, `04`, `06`, `08` | ✅ |
 | **4** | Population : recrutement, chefs et travailleurs | `01`, `02`, `03`, `05`, `13` | ✅ |
 | **5** | Artisanat et commerce | `08`, `12`, `01` | ✅ |
-| **6** | Faveur divine et événements | `07` | planifiée |
-| **7** | Énigmes, enquêtes et fil rouge | `10` | à cadrer |
+| **6** | Faveur divine et événements | `07` | ✅ |
+| **7** | Énigmes, enquêtes et fil rouge | `10` | planifiée |
 | **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | à cadrer |
 | **9** | Renommée, héritage et succession familiale | `13` | à cadrer |
 | **10** | Medjaÿ et combat automatique | `03` | à cadrer |
@@ -138,13 +138,13 @@ montée au lot 3.7, le recrutement et les chefs restant en Phase 4.
 
 ## 5. Les phases, dans l'ordre
 
-Les six premières (Phases 0 à 5) sont livrées et résumées ici : intention,
+Les sept premières (Phases 0 à 6) sont livrées et résumées ici : intention,
 lots, règles qui en sortent, pièges payés, ce qu'elles laissent ouvert. Le
 détail des conventions qui en découlent vit dans [`CLAUDE.md`](../CLAUDE.md) ;
 l'historique complet est dans les messages de commit.
 
-**La Phase 6 est cadrée et pas encore écrite** : elle garde le format détaillé,
-lot par lot, jusqu'à sa livraison — comme la Phase 5 avant elle.
+**La Phase 7 est cadrée et pas encore écrite** : elle garde le format détaillé,
+lot par lot, jusqu'à sa livraison — comme les Phases 5 et 6 avant elle.
 
 ### 5.1 Phase 0 — Fondations techniques  ✅
 
@@ -498,26 +498,20 @@ d'une ressource ne dit qu'une chose : **où l'obtenir sans commercer**.
 
 ---
 
-### 5.7 Phase 6 — Faveur divine et événements  *(à faire)*
+### 5.7 Phase 6 — Faveur divine et événements  ✅
 
 **Sources** : doc `07` (panthéon, paliers, offrandes, épidémies), doc `01`
-(Temple : « le nombre de dieux honorés croît avec le niveau »), doc `03`
-(trait « Pieux », spécialité « Dévot »).
+(Temple), doc `03` (trait « Pieux », spécialité « Dévot »).
 
-**Intention.** Le Temple existe, se construit, se monte en niveau — et ne sert
-à rien. Un trait de candidat et une spécialité de chef sont tirés, affichés,
-et **annoncent eux-mêmes qu'ils ne font rien** (`TraitDeCandidat::agitDeja()`).
-Cette phase leur donne leur système d'accueil.
+**Intention.** Le Temple existait, se construisait, montait en niveau — et ne
+servait à rien. Un trait de candidat et une spécialité de chef étaient tirés,
+affichés, et annonçaient eux-mêmes leur inertie. Cette phase leur donne leur
+système d'accueil.
 
-Elle apporte au jeu ce qui lui manque le plus après cinq phases d'économie :
-**une variable que le joueur choisit d'alimenter sans contrepartie immédiate**.
-Tout le reste se calcule — un Grenier rapporte tant, un convoi rapporte tant.
-Une offrande est un pari, et c'est ce qui la rend intéressante.
-
-À la fin de la phase, on doit pouvoir raconter : *« la crue s'annonce faible ;
-je porte dix deben à Hâpi pendant la fête d'Opet, où l'offrande compte double.
-L'année suivante, la crue est bonne. J'ai négligé Sekhmet trois saisons durant,
-et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
+Elle apporte au jeu ce qui lui manquait après cinq phases d'économie : **une
+variable que le joueur choisit d'alimenter sans contrepartie immédiate**. Tout
+le reste se calcule — un Grenier rapporte tant, un convoi rapporte tant. Une
+offrande est un pari.
 
 | Lot | Contenu | |
 |---|---|---|
@@ -528,290 +522,276 @@ et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
 | 6.4 | Les fêtes calendaires attestées | ✅ |
 | 6.5 | Bénédictions et malédictions ponctuelles | ✅ |
 | 6.6 | Les épidémies | ✅ |
-| 6.7 | Le trait « Pieux » et la spécialité « Dévot » se réveillent | |
+| 6.7 | Le trait « Pieux » et la spécialité « Dévot » | ✅ |
 
-#### 6.0 — Le panthéon et l'échelle de faveur  ✅
+**Les règles qui en sortent**
 
-Huit divinités, chacune avec un domaine (doc 07) : **Amon-Rê** (renommée),
-**Hâpi** (crue), **Osiris** (récolte), **Ptah** (chantiers), **Sobek** (pêche et
-navigation), **Sekhmet** (épidémies), **Isis** (blessures au combat), **Thot**
-(énigmes).
+- **Le panthéon est du contenu, la faveur est de l'état.** Seule la clé d'un
+  dieu et la valeur de sa faveur sont persistées, et **une ligne naît au premier
+  geste, jamais au lancement**.
+- **Le Temple est la seule limite de la dévotion**, et il en pose deux qui ne
+  disent pas la même chose : combien de dieux on porte au-dessus du neutre (un
+  par niveau), et jusqu'où leur faveur monte (`50 + 5 × niveau`). La première
+  oblige un Temple modeste à choisir, la seconde fait du palier Dévoué une
+  conquête — il demande un niveau 6.
+- **On offre en deben ou en marchandise**, converties au cours du Marché et par
+  aucun autre barème. C'est aussi le premier débouché du surplus que le plafond
+  de stock refuse.
+- **La négligence s'arrête au neutre.** Un dieu délaissé cesse de favoriser, il
+  ne punit pas : une partie menée sans mettre les pieds au Temple finit comme
+  elle a commencé.
+- **La faveur n'ajoute jamais un multiplicateur à une chaîne qui en a déjà un.**
+  Là où un facteur existe, elle déplace ce qui l'alimente ; là où il n'en existe
+  aucun, elle agit directement.
+- **Un dieu favorable ne pénalise jamais une production.** L'hostilité se paie
+  par une crue moins généreuse ou par la fièvre, jamais par un malus de
+  rendement.
+- **Les fêtes sont datées par les sources**, jamais étalées pour l'équilibre, et
+  leur supplément est **forfaitaire** : c'est le moment qui compte, pas la
+  générosité.
+- **Une malédiction retarde et coûte, elle n'efface pas** — et **jamais
+  d'échec** : la famine reste la seule cause de défaite.
+- **Une épidémie couche des bras, elle ne tue personne**, et passe par le canal
+  existant du rendement d'effectif.
+- **Un dieu sans emploi le dit.** Il n'en reste que deux : Isis attend le
+  combat, Thot les énigmes.
 
-Répartition état / contenu, comme partout ailleurs : `Game/Divinite.php` porte
-le nom, le domaine et l'effet — jamais persistés ; une nouvelle entité ne
-persiste que la **clé** de la divinité et la valeur de faveur, sur le modèle de
-`RouteCommerciale` qui ne garde que la clé de son partenaire.
+**Le partage des canaux, dieu par dieu**
 
-Échelle de 0 à 100, quatre paliers (`PalierDeFaveur`, sur le modèle
-de `PalierDeRenommee`) : Hostile 0-24, Neutre 25-49, Favorable 50-79, Dévoué
-80-100.
-
-**Une contradiction du doc 07, tranchée** : il annonce un départ « neutre à
-50 » tout en plaçant le palier Favorable à partir de 50. Suivi à la lettre, il
-offrirait huit bonus actifs à qui n'a jamais mis les pieds au Temple. On
-démarre donc à **40**, dans la bande Neutre — la partie chiffrée du document
-l'emporte sur sa phrase.
-
-**Une ligne n'existe qu'au premier geste** : une divinité jamais honorée n'a
-pas de ligne en base, `City::faveurEnvers()` répond la constante. Écrire huit
-lignes au lancement de chaque partie stockerait huit fois la même valeur, et
-il faudrait les migrer à chaque divinité ajoutée.
-
-**Une faveur non cultivée n'est jamais un malus** — il faut avoir fait
-descendre un dieu sous 25 pour être puni, ce qui demande de la négligence
-prolongée ou une quête ratée, pas de l'inaction au démarrage.
-
-#### 6.1 — Le Temple : offrir, et ce que le niveau autorise  ✅
-
-Un écran de Temple, hérité de `_layout.html.twig` comme tout écran de partie :
-la liste des divinités, leur palier, ce que chacune promet, et le geste
-d'offrande. Route mutante, donc `PartieVoter::JOUER`.
-
-**Le niveau du Temple est la seule limite** (doc 01, doc 07 : « sans plafond
-arbitraire indépendant ») : il fixe **combien de divinités** peuvent dépasser le
-palier Neutre en même temps, et **jusqu'où** la faveur peut monter. Un Temple de
-niveau 1 permet de soigner un dieu, pas huit — ce qui fait de la répartition des
-offrandes une stratégie plutôt qu'une liste de courses.
-
-Le doc 07 chiffre `5 points pour 10 or` ; l'or est devenu un métal au lot 4.0,
-donc **10 deben** — ou leur valeur en marchandise, la conversion passant par le
-cours du Marché et jamais par un second barème.
-
-**Deux limites, et elles ne disent pas la même chose.** Combien de dieux le
-Temple porte au-dessus du neutre (un par niveau) fait de la répartition des
-offrandes une stratégie : un Temple modeste oblige à choisir. Jusqu'où la
-faveur peut monter (`50 + 5 × niveau`) fait du palier Dévoué une conquête — il
-demande un Temple de niveau 6, donc une partie déjà avancée.
-
-**Ce que ça coûte, en l'état** : amener un dieu au plafond d'un Temple de
-niveau 1 demande 30 deben, l'amener à Dévoué sous un Temple de niveau 6 en
-demande 80. À comparer aux ~39 deben d'une quinzaine de salaires. Le barème
-reste **provisoire** et sera repris au playtest, comme au lot 4.6.
-
-#### 6.2 — La négligence  ✅
-
-Dans le passage de cycle, après les salaires : au bout de cinq quinzaines sans
-offrande, une divinité perd un point par quinzaine, **et s'arrête au palier
-Neutre** (doc 07 : « décroissance lente et naturelle, pas de chute punitive »).
-Seuls une quête ratée ou un événement font descendre plus bas.
-
-C'est symétrique du mécontentement du lot 4.7, avec une différence qui change
-tout : le mécontentement descend jusqu'à la colère, la négligence s'arrête au
-neutre. Une partie menée sans jamais mettre les pieds au Temple ne finit donc
-pas avec huit dieux hostiles — elle finit comme elle a commencé, ce qui est la
-seule façon de ne pas punir un joueur pour n'avoir pas joué à ce système-là.
-
-**Le rythme laisse le temps de revenir** : redescendre du plafond d'un Temple
-de niveau 1 jusqu'au neutre demande une quinzaine de cycles, plus de six mois
-de jeu. Entretenir un dieu est un geste occasionnel, jamais un abonnement.
-
-Le journal de cycle ne raconte que le **changement de palier**, jamais le point
-perdu : un message par dieu et par quinzaine noierait tout le reste. L'écran du
-Temple, lui, prévient dès que la décroissance a commencé.
-
-#### 6.3 — Ce que la faveur change  ✅
-
-Le lot central, et le plus exposé. **L'invariant du lot 4.5 s'applique
-entièrement** : avant de brancher un effet, vérifier ce qui multiplie déjà cette
-production. Trois cas se présentent, et ils ne se traitent pas pareil.
-
-**Ce qui a déjà un multiplicateur** — les récoltes (qualité de crue), les
-chantiers (facteur de saison), les productions (qualité de direction). Un
-palier n'y ajoute **pas un facteur de plus** : il déplace la valeur qui alimente
-le facteur existant. Hâpi favorable ne multiplie pas la récolte, il **améliore
-d'un cran le tirage de la crue** ; Ptah ne multiplie pas l'avancement, il
-s'ajoute au facteur de saison déjà en place.
-
-**Ce qui n'a pas encore de multiplicateur** — la renommée (Amon-Rê), la pêche et
-la sécurité des convois (Sobek). Ceux-là peuvent recevoir un effet propre.
-
-**Ce qui n'a pas encore de système** — Thot attend les énigmes (Phase 7), Isis
-le combat (Phase 10), **Sekhmet les épidémies du lot 6.6**. Ils sont dans le
-panthéon, offrables, et **le disent en toutes lettres à l'écran**, exactement
-comme `SpecialiteDeChef::agitDeja()`. Promettre un bonus qui ne s'applique
-nulle part tromperait le joueur au moment même où il choisit à qui donner —
-Sekhmet le faisait depuis le lot 6.0, c'est corrigé ici.
-
-**Le partage, dieu par dieu** (`EffetDeFaveur`) :
-
-| Dieu | Canal | Pourquoi celui-là |
+| Dieu | Ce qu'il change | Par où |
 |---|---|---|
-| Hâpi | Infléchit le **tirage de la crue**, d'un cran | La récolte a déjà son modificateur de crue ; on déplace ce qui l'alimente |
-| Ptah | **S'ajoute** au facteur de saison des chantiers | Même unité, donc addition et non composition de deux facteurs |
-| Osiris | **Raccourcit la jachère** d'un champ terrestre | Le dieu du grain qui meurt et renaît agit sur le cycle, pas sur la gerbe : la récolte revient plus tôt, elle n'est pas plus grosse |
-| Amon-Rê | Allège l'**appel d'habitants**, ajoute à la migration spontanée | L'attractivité n'a aucun multiplicateur ; il ajoute à ce que la renommée a ouvert, il ne l'ouvre pas |
-| Sobek | Raccourcit les **trajets par eau**, jamais sous une quinzaine | La pêche passerait par la qualité de direction du Port : ce serait le second multiplicateur interdit. Son effet a été **réduit à ce qu'il fait vraiment** |
+| Hâpi | La crue de l'année | Infléchit le **tirage**, d'un cran — la récolte garde son unique modificateur |
+| Ptah | Les chantiers | **S'ajoute** au facteur de saison, même unité |
+| Osiris | Les champs terrestres | Raccourcit la **jachère** : la récolte revient plus tôt, elle n'est pas plus grosse |
+| Amon-Rê | L'attractivité | Allège l'appel d'habitants, ajoute à ce que la renommée a ouvert |
+| Sobek | Les trajets **par eau** | Jamais sous une quinzaine |
+| Sekhmet | La fièvre | L'écarte, l'abrège, et se laisse fléchir pendant qu'elle dure |
 
-**Un dieu favorable ne pénalise jamais une production.** L'hostilité se paie
-autrement — une crue moins généreuse, la fièvre au lot 6.6 —, jamais par un
-malus de rendement : deux malus qui se multiplient sont exactement ce qui a
-fait tomber la chaîne alimentaire à 25 % au lot 4.4.
+**Pièges payés pendant la phase**
 
-**Un flottant retiré au passage** : l'avancement d'un chantier composait un
-`float` de saison ; il se compte désormais en centièmes, comme le reste.
+- **Une contradiction du doc 07**, tranchée : il annonce un départ « neutre à
+  50 » tout en plaçant le palier Favorable à 50. À la lettre, huit bonus actifs
+  pour qui n'a jamais mis les pieds au Temple. Départ à **40**.
+- **Sekhmet promettait d'écarter une fièvre qui n'existait pas encore**, depuis
+  le lot 6.0. Corrigée au 6.3, réveillée au 6.6.
+- **Sobek promettait la pêche** : elle passe déjà par la qualité de direction du
+  Port, c'eût été le multiplicateur de trop. Effet réduit à la navigation.
+- **Une invention corrigée par la mesure** : j'avais écrit que les trois fêtes
+  tombaient hors de la moisson. La Belle Fête de la Vallée est en pleine Chémou,
+  là où les sources la placent. C'est l'affirmation qui a sauté, pas la date.
+- **La branche « malédiction » n'aurait jamais tourné** : rien ne rendait un dieu
+  hostile. Le piège d'`ajusterRenommee()` — une règle indexée sur une valeur que
+  rien ne fait bouger — évité de justesse en lui donnant sa source, la famine.
+- **Un arrondi vidait les épidémies de leur substance** : 20 % de quatre actifs
+  fait zéro. La fièvre couche désormais au moins une paire de bras.
+- **Mesurer Ptah sur un Grenier de deux cycles** ne montrait rien : les
+  quinzaines sont entières. La leçon du lot 5.9, repayée une demi-fois.
 
-#### 6.4 — Les fêtes calendaires  ✅
+**Ce que la phase laisse ouvert**
 
-**Trois** fêtes attestées, et le calendrier du jeu portait déjà leurs mois :
-
-| Fête | Mois | Dieu |
-|---|---|---|
-| **Opet** — la barque d'Amon remonte de Karnak à Louxor | 2 et 3 (Menhèt, Hout-Herou) | Amon-Rê |
-| **Mystères d'Osiris** — on rejoue sa mort et son relèvement | 4 (*Ka-her-ka*, dont les Grecs ont fait *Khoiak*) | Osiris |
-| **Belle Fête de la Vallée** — Amon traverse vers la rive des morts | 10 (Khent-khéti) | Amon-Rê |
-
-Les deux premières viennent du doc 07 ; celle d'Osiris a été ajoutée pour que
-la fête ne concerne pas qu'un seul dieu — et le mois portait déjà son nom, sans
-qu'on l'ait fait exprès.
-
-**+10 points forfaitaires** (doc 07), non un multiplicateur : c'est le moment
-qui compte, pas la générosité. Une poignée de blé offerte à Opet vaut donc bien
-plus qu'un lingot offert la veille, ce qui est exactement ce qu'une fête doit
-produire. Le supplément ne vaut que pour **le dieu de la fête** — une offrande
-à Ptah pendant Opet reste ordinaire — et s'ajoute **après** le seuil : un jour
-saint ne rend pas remarquable une offrande dérisoire.
-
-**Une invention corrigée par la mesure** : j'avais écrit que les trois fêtes
-tombaient hors de Chémou, pour que la dévotion ne concurrence jamais la
-moisson. C'est faux — la Belle Fête de la Vallée est au 2ᵉ mois de Chémou, là
-où les sources la placent. L'affirmation a sauté, pas la date.
-
-**Une fête ne mène jamais vers un dieu inerte** : ce serait inviter le joueur à
-dépenser pour rien au moment précis où le jeu lui dit que le moment est
-favorable. Un test le garde.
-
-C'est le premier contenu du jeu qui donne une raison de **regarder la date**
-pour autre chose que la saison agricole : la barre de jeu annonce la fête en
-cours, et l'écran du Temple dit ce qu'elle vaut, dieu par dieu.
-
-#### 6.5 — Bénédictions et malédictions  ✅
-
-Symétriques (doc 07) : un palier Dévoué ouvre une chance d'événement favorable,
-un palier Hostile une chance d'événement défavorable — 8 % par quinzaine et par
-dieu concerné, soit un peu plus d'un par an. Ce sont les **seuls effets divins
-qui surviennent** au lieu de s'appliquer en continu ; tout le reste de la faveur
-est un réglage permanent qu'on oublie.
-
-| Dieu | Bénédiction | Malédiction |
-|---|---|---|
-| Hâpi, Osiris | Une gerbe de plus au Grenier | Une part des vivres se gâte — **jamais toute** |
-| Ptah | Argile et bois livrés sans rien demander | Les travaux prennent une quinzaine de retard |
-| Sobek | Un chargement qu'on croyait perdu remonte le fleuve | Les vents contrarient les convois d'une quinzaine |
-| Amon-Rê | On parle de vous jusqu'à Karnak : +1 de renommée | On en dit du mal : −1 |
-
-**Une malédiction retarde et coûte, elle n'efface pas** : jamais de perte
-définitive, jamais de bâtiment détruit, et **jamais d'échec de partie** — la
-famine reste la seule cause de défaite. Aucune ne multiplie non plus une
-production : la discipline du lot 6.3 vaut aussi pour ce qui surgit.
-
-**Il fallait une source d'hostilité, sans quoi la moitié du lot serait du code
-mort** — la négligence s'arrête au neutre (6.2), et les quêtes ratées du doc 07
-relèvent des Phases 7 et 8. C'est **la famine** : une ville qui ne se nourrit
-plus ne nourrit plus ses dieux, les offrandes s'arrêtent avec le reste. C'est la
-seule perte de faveur qui franchit le plancher du neutre, et elle ne frappe que
-les divinités qu'on avait engagées — ne jamais mettre les pieds au Temple ne
-coûte toujours rien. Le piège d'`ajusterRenommee()`, resté inerte des mois
-durant faute d'une source, ne se repaie pas.
-
-#### 6.6 — Les épidémies  ✅
-
-Le doc 07 les rattache à Sekhmet, et l'ancrage est solide : ses prêtres, les
-*ouabou-Sekhmet*, étaient les médecins de l'Égypte — la déesse qui envoie la
-maladie est aussi celle qui la guérit.
-
-**Deux causes cumulables** : Sekhmet hostile, et la surpopulation — une ville
-au-delà de la capacité de son Quartier d'habitation. La seconde referme une
-boucle laissée ouverte au lot 4.1 : le manque de logement empêchait les
-naissances, il aura désormais aussi un coût quand la ville déborde par
-l'embauche.
-
-**Effet** : 20 à 40 % des bras indisponibles pendant 2 à 4 quinzaines —
-**malades, jamais morts**. C'est un retrait temporaire du vivier d'actifs, donc
-une baisse de rendement **par le canal existant**, sans multiplicateur nouveau :
-`EpidemiesTest` vérifie qu'aucun bâtiment ne descend sous le plancher de 50 %,
-fièvre comprise.
-
-**Un arrondi qui vidait le lot de sa substance** : 20 % de quatre actifs fait
-zéro. Toutes les villes de début de partie auraient reçu un message sans la
-moindre conséquence. La fièvre couche donc **au moins une paire de bras** tant
-qu'il y a quelqu'un — ce qui se sent d'autant plus qu'on en a peu.
-
-**Guérison** : Sekhmet favorable ou dévouée réduit la durée de moitié, et une
-offrande dédiée pendant l'épidémie en retire une quinzaine. C'est l'un des rares
-endroits où le joueur peut **agir pendant** un événement plutôt que le subir.
-
-#### 6.7 — Le trait « Pieux » et la spécialité « Dévot »
-
-Deux dormeurs se réveillent : le trait « Pieux » d'un chef, et la spécialité
-« Dévot » du Temple, qui « attire davantage la faveur d'une divinité ». Le
-Dévot passe par le canal des chefs, comme le Négociateur du lot 5.9 : son effet
-n'étant pas une production, il se lit par `EffetDeChef::chefSpecialise()`.
-
-Une fois ce lot posé, **il ne restera que « Bagarreur »** en trait sans effet,
-et il attend le combat de la Phase 10.
-
-#### Hors périmètre, explicitement
-
-- **Les quêtes de temple** (doc 07 : +15 en réussite, -10 en échec) : elles
-  supposent le système de quêtes de la campagne, Phase 8.
+- **Les quêtes de temple** (doc 07 : +15 en réussite, −10 en échec) : elles
+  supposent le système de quêtes de la campagne, Phase 8. Elles apporteront à
+  l'hostilité une seconde source, aujourd'hui unique.
 - **Les choix moraux** alignés ou contraires à un domaine : ils supposent la
   narration du fil rouge, Phase 7.
-- **Isis et Thot** restent offrables mais inertes, et le disent.
+- **Isis et Thot** restent offrables et inertes, et le disent.
 - **Les divinités au-delà des huit** : le doc les laisse ouvertes, on s'en tient
   aux huit attestées.
+- **Le barème d'offrande reste provisoire** — 30 deben pour amener un dieu au
+  plafond d'un Temple de niveau 1, 80 pour atteindre Dévoué sous un niveau 6,
+  contre ~39 deben la quinzaine de salaires. À reprendre au playtest.
 
-#### Points tranchés avec la joueuse
+**Points tranchés avec la joueuse**
 
 | Question | Décision |
 |---|---|
-| Peut-on offrir **en ressources** autant qu'en deben ? | **Oui.** Une offrande accepte l'un ou l'autre, convertie au cours du Marché. C'est aussi le premier débouché du surplus que le plafond de stock refuse |
-| Le barème de 10 deben pour 5 points tient-il ? | **Oui pour le moment** — on part sur le chiffre du doc 07 et on le corrige au playtest, comme le lot 4.6 |
-| Une malédiction peut-elle faire échouer une partie ? | **Non**, ce serait trop dur. Elle retarde et elle coûte, elle ne termine jamais |
-
-Trois conséquences à ne pas perdre de vue en écrivant la phase :
-
-- **Offrir en ressources passe par le cours du Marché** (`PrixDuMarche`), jamais
-  par un second barème : deux tables de valeurs finiraient par diverger, et
-  l'une des deux deviendrait la bonne affaire. Le corollaire est qu'une région
-  qui produit cher honore ses dieux à moindre effort — c'est cohérent, l'Égypte
-  offrait ce qu'elle avait.
-- **Le barème est provisoire et doit le rester** : 60 deben pour porter une
-  divinité de Neutre à Dévoué, contre 39 de salaires par quinzaine. La mesure
-  se fera comme au lot 4.6, sur la ville d'exemple, et le chiffre du doc n'a
-  pas d'autorité contre elle.
-- **La famine reste la seule cause d'échec du jeu.** Une malédiction peut faire
-  tomber une récolte, jamais mettre la partie en `StatutDePartie::Echouee` — si
-  elle affame la ville, c'est la famine qui conclut, à ses douze quinzaines, et
-  le joueur a le temps de réagir. Aucun événement n'appelle directement
-  l'échec.
-
-#### Définition de « fini »
-
-Parcours de bout en bout : construire un Temple → voir les huit divinités et
-leurs paliers → offrir à Hâpi → voir la faveur monter et le palier changer →
-passer une année sans offrir et voir la faveur redescendre au neutre, pas plus
-bas → offrir pendant Opet et constater le gain renforcé → traverser une
-épidémie et l'écourter par une offrande à Sekhmet.
-
-Tests sur les invariants, jamais sur des tirages attendus : la faveur reste
-bornée à 0-100, la négligence ne descend jamais sous Neutre, le nombre de
-divinités au-dessus du neutre ne dépasse jamais ce que le Temple autorise, une
-épidémie finit toujours, et **la chaîne alimentaire ne descend jamais sous la
-moitié** — le test du lot 4.5, qui doit rester vert avec une épidémie en cours.
-
-Les quatre portes qualité au vert, et toute route qui offre, guérit ou modifie
-une faveur passe par `PartieVoter::JOUER`.
+| Peut-on offrir **en ressources** autant qu'en deben ? | **Oui**, converties au cours du Marché |
+| Le barème de 10 deben pour 5 points tient-il ? | **Oui pour le moment**, à corriger au playtest |
+| Une malédiction peut-elle faire échouer une partie ? | **Non.** Elle retarde et elle coûte, elle ne termine jamais |
 
 ---
 
-### 5.8 Phases 7 à 12 — à cadrer
+### 5.8 Phase 7 — Énigmes, enquêtes et fil rouge  *(à faire)*
+
+**Sources** : doc `10` (énigmes, enquêtes, structure en trois actes), doc `09`
+(lore et fil rouge de chaque mission), doc `01` (Maison des scribes), doc `04`
+(rôles d'exploration), doc `02` (l'événement de zone comme point d'entrée).
+
+**Intention.** Le jeu sait faire prospérer une ville ; il ne sait rien
+**raconter**. La Maison des scribes se construit sans rien porter, les cases
+d'événement de la carte sont posées depuis le lot 3.2 et ne mènent nulle part,
+et la « commande du pharaon » affichée au lancement d'une partie n'a aucune
+suite. Cette phase branche les trois.
+
+Elle porte aussi le seul objectif **pédagogique** explicite du projet (doc 10) :
+faire découvrir l'écriture, l'iconographie et l'astronomie égyptiennes **en
+jouant**, jamais par un encart documentaire.
+
+À la fin de la phase, on doit pouvoir raconter : *« une inscription trouvée sur
+une stèle mêle l'eau, la route et le danger ; ma clé de lecture me dit qu'un
+passage du fleuve est coupé. J'envoie un émissaire à l'Auberge, qui rapporte
+une rumeur contradictoire. Trois indices plus tard, je conclus — mal —, ce qui
+me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
+
+| Lot | Contenu |
+|---|---|
+| 7.0 | La clé de lecture : vingt symboles, et la Maison des scribes qui les ouvre |
+| 7.1 | Le déchiffrage : reconstituer une inscription |
+| 7.2 | Devinettes, oracles et associations |
+| 7.3 | Le dossier d'enquête : collecter des indices |
+| 7.4 | L'écran de déduction, et le droit de se tromper |
+| 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire |
+| 7.6 | Le fil rouge en trois actes, sur la mission 1 |
+| 7.7 | Les deux Scribes, et Thot qui cesse d'attendre |
+| 7.8 | Les marchands rivaux, reportés de la Phase 5 |
+
+#### 7.0 — La clé de lecture
+
+Vingt symboles au total (doc 10), tirés d'un sous-ensemble lisible de la **liste
+de Gardiner** — la classification académique de référence, ~700 signes. On
+retient ceux qui parlent au jeu : eau, homme, maison, route, bateau, désert,
+temple, roi.
+
+**Quatre connus d'emblée, puis deux par niveau de Maison des scribes** jusqu'à
+vingt au niveau 8. Le bâtiment cesse ainsi d'être décoratif, et la difficulté
+des inscriptions monte d'elle-même : plus la clé est riche, plus les
+inscriptions peuvent être longues.
+
+Répartition état / contenu, comme le panthéon : les symboles, leur sens et leur
+tracé sont du **contenu** ; ce qu'une partie a débloqué est de l'**état**.
+
+#### 7.1 — Le déchiffrage
+
+Une inscription de 3 à 6 symboles, à reconstituer. Le doc 10 tranche l'interface :
+**glisser-déposer** pour le déchiffrage — la manipulation physique des signes
+fait partie de ce qu'on apprend —, texte à choix pour tout le reste.
+
+Le glisser-déposer est le premier écran du jeu à demander une vraie interaction
+client. Il passe par un **contrôleur Stimulus**, jamais par du JS applicatif
+écrit à la main, et doit rester **utilisable au clavier** : un jeu qui
+n'enseigne qu'à la souris n'enseigne pas à tout le monde.
+
+#### 7.2 — Devinettes, oracles et associations
+
+Trois formes courtes, toutes à choix multiples :
+
+- **La devinette et l'oracle** (Auberge, Temple). Ancrage réel : les oracles
+  d'Amon à Karnak tranchaient des affaires judiciaires et personnelles. Le
+  corpus est **moitié attesté, moitié original écrit dans le même esprit**
+  (doc 10) — se limiter aux sources restreindrait trop.
+- **L'association symbolique** : l'ibis et Thot, le chacal et Anubis, le faucon
+  et Horus. C'est de l'iconographie réelle, et elle rejoint le panthéon de la
+  Phase 6.
+- **La reconnaissance astronomique** : relier un décan à son mois. Réutilise le
+  calendrier existant, sans le dupliquer.
+
+#### 7.3 — Le dossier d'enquête
+
+Trois à cinq indices par enquête, **dont certains optionnels ou trompeurs** — le
+doc y tient, et c'est ce qui distingue une enquête d'une case à cocher. Le
+dossier est persisté (une enquête traverse des dizaines de quinzaines) ; les
+indices eux-mêmes sont du contenu.
+
+Trois familles : **terrain** (traces, objets, inscriptions sur des zones
+explorées), **témoignages** (rumeurs de PNJ, parfois contradictoires),
+**mixte** — le cas du fil rouge.
+
+#### 7.4 — La déduction, et le droit de se tromper
+
+Une fois assez d'indices réunis, un écran de conclusions au choix. **Une
+mauvaise déduction ne bloque rien** : +2 cycles de retard, aucune perte de
+ressource (doc 10). C'est la même ligne que partout ailleurs — on retarde, on
+n'efface pas —, et elle vaut ici plus qu'ailleurs : une énigme qui punit est
+une énigme qu'on cesse de tenter.
+
+**À vérifier au moment de l'écrire** : que la pénalité passe par le temps et
+non par une route mutante mal gardée. Toute action d'enquête modifie l'état
+d'une partie, donc `PartieVoter::JOUER`.
+
+#### 7.5 — D'où viennent les indices
+
+Le doc 10 les rattache à l'exploration : l'**Éclaireur** rapporte les indices
+physiques, l'**Émissaire** les témoignages. Ce dernier existe déjà comme rôle
+(`RoleDExploration`) et ne sert à rien — c'est ici qu'il se réveille, et non à
+la Phase 10 comme le plan l'annonçait.
+
+L'autre porte d'entrée est le **contenu `Evenement` d'une zone**, posé par la
+génération de carte depuis le lot 3.2 et resté sans effet depuis : une case
+d'événement devient le point de départ d'une énigme ou d'une enquête.
+
+#### 7.6 — Le fil rouge, sur la mission 1
+
+La structure en trois actes du doc 10, écrite **pour une seule mission** :
+
+- **Acte 1 — la commande du pharaon.** L'écran existe déjà (`commande.html.twig`).
+  Il se prolonge d'un déchiffrage simple, qui sert de tutoriel.
+- **Acte 2 — l'obstacle.** Une case d'événement révèle un problème local ; une
+  enquête complète le résout.
+- **Acte 3 — l'accomplissement.** Une énigme plus complexe clôt le fil.
+
+**Une couture à assumer** : l'Acte 3 « déclenche la fin de la mission », or la
+fin de mission et l'enchaînement des dix relèvent de la **Phase 8**. La Phase 7
+livre donc la machinerie et un fil rouge complet pour la mission 1 ; la Phase 8
+la généralise. Écrire les dix fils rouges avant d'avoir joué le premier serait
+écrire dix fois la même erreur.
+
+#### 7.7 — Les deux Scribes, et Thot
+
+`ScribesDechiffreur` et `ScribesOraculaire` dorment depuis le lot 4.2 en
+annonçant leur inertie. Ils se réveillent ici, par le canal des chefs dont
+l'effet n'est pas une production — celui du Négociateur et du Dévot, jamais la
+qualité de direction.
+
+**Thot** cesse du même coup d'être un dieu offrable et inerte. Il ne restera
+qu'Isis, et le trait « Bagarreur », tous deux pour la Phase 10.
+
+#### 7.8 — Les marchands rivaux
+
+Reportés en bloc de la Phase 5 (décision de la joueuse) parce que **l'une de
+leurs trois issues est une enquête** : les écrire sans elle revenait à les
+réécrire ensuite. Ils trouvent ici leur place, et rendent au commerce
+l'adversité qui lui manque.
+
+#### Hors périmètre, explicitement
+
+- **Les dix fils rouges** : Phase 8, avec la campagne.
+- **Les autres rôles d'exploration** (hors Éclaireur et Émissaire) : Phase 10.
+- **Le projet des décans** : le doc 10 l'écarte nommément. La reconnaissance
+  astronomique reste un mini-jeu d'association, jamais un simulateur de ciel.
+
+#### À trancher avec la joueuse
+
+| Question | Enjeu |
+|---|---|
+| Le déchiffrage se fait-il par **glisser-déposer** ou par choix de traduction ? | Le doc tranche pour le glisser-déposer ; c'est la première vraie interaction client du jeu, et le coût n'est pas le même |
+| Les énigmes secondaires (5 à 8 par mission) sont-elles **obligatoires** ou facultatives ? | Le doc ne le dit pas. Facultatives, elles récompensent la curiosité ; obligatoires, elles rythment la mission mais peuvent bloquer |
+| Une enquête peut-elle **échouer définitivement** ? | La ligne du projet dit non ; le doc parle de fausses pistes « à corriger plus tard » |
+
+#### Définition de « fini »
+
+Parcours de bout en bout : ouvrir la Maison des scribes → y lire sa clé de
+lecture → déchiffrer une première inscription → explorer une case d'événement →
+y trouver un indice → envoyer un émissaire chercher un témoignage → ouvrir le
+dossier d'enquête → conclure, de travers d'abord, puis juste → voir le fil
+rouge de la mission 1 avancer d'un acte.
+
+Tests sur les invariants : une clé de lecture ne donne jamais un symbole qu'un
+niveau n'a pas ouvert, une enquête ne se conclut pas sans le nombre d'indices
+requis, une mauvaise déduction ne retire jamais de ressource, et **aucune
+énigme ne peut rendre une partie injouable**.
+
+Les quatre portes qualité au vert, et l'accessibilité au clavier vérifiée sur
+l'écran de déchiffrage — c'est le premier du jeu où elle peut se perdre.
+
+---
+
+### 5.9 Phases 8 à 12 — à cadrer
 
 Chacune traduit un document déjà spécifié ; le cadrage technique se fera à son
 tour, comme pour les précédentes.
 
 | Phase | Sujet | Ce qu'elle apporte |
 |---|---|---|
-| **7** — Énigmes, enquêtes et fil rouge (`10`) | Maison des scribes, clés de lecture, enquêtes | Prérequis des marchands rivaux du doc 08, reportés de la Phase 5 |
 | **8** — Campagne (`09`, `11`) | Les 10 missions, leurs objectifs, l'enchaînement | Prérequis de l'héritage commercial inter-missions (doc 12) |
 | **9** — Renommée et héritage (`13`) | Succession familiale, carnet de contacts | La renommée existe déjà et bouge ; c'est l'héritage entre parties qui manque |
 | **10** — Medjaÿ et combat (`03`) | Recrutement militaire, équipement, zones à bandits | Réveille le trait « Bagarreur », l'usage des armes de la Forge, et les rôles d'exploration autres que l'éclaireur |

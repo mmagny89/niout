@@ -522,6 +522,14 @@ la maladie est celle qui la guérit, ses prêtres étaient les médecins de
 l'Égypte. C'est l'un des rares événements du jeu sur lesquels on peut agir au
 lieu de les subir.
 
+**Le Dévot et le chef pieux ne passent pas par la qualité de direction** : leur
+effet n'est pas une production, donc ils se lisent comme le Négociateur, par
+`EffetDeChef::chefSpecialise()` et `chefsPieux()`. Le **Dévot** du Temple ajoute
+des points à chaque offrande ; un chef **pieux**, dans n'importe quel bâtiment,
+allonge le délai de grâce avant qu'un dieu ne se détourne — sa maisonnée
+entretient les rites. Le trait n'est pas une spécialité du Temple : un
+contremaître dévot vaut ici autant qu'un prêtre.
+
 **La négligence s'arrête au neutre** (`Negligence`, doc 07 : « décroissance
 lente et naturelle, pas de chute punitive ») : cinq quinzaines de grâce, puis
 un point par quinzaine, et **jamais sous `Divinite::FAVEUR_DE_DEPART`**. Seules

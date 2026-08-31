@@ -53,11 +53,19 @@ final readonly class Negligence
     public function avancerDUnCycle(GameSave $partie): array
     {
         $evenements = [];
+        $ville = $partie->getVille();
 
-        foreach ($partie->getVille()->getFaveurs() as $faveur) {
+        // Un chef **pieux** fait dire les rites quotidiens par sa maisonnée :
+        // la ville oublie ses dieux moins vite. Le trait n'est pas une
+        // spécialité du Temple — un contremaître dévot vaut ici autant qu'un
+        // prêtre (lot 6.7).
+        $grace = self::QUINZAINES_DE_GRACE
+            + EffetDeChef::chefsPieux($ville, $partie->getCycle()) * EffetDeChef::REPIT_DUN_CHEF_PIEUX;
+
+        foreach ($ville->getFaveurs() as $faveur) {
             $faveur->attendreUneQuinzaine();
 
-            if ($faveur->getQuinzainesSansOffrande() <= self::QUINZAINES_DE_GRACE) {
+            if ($faveur->getQuinzainesSansOffrande() <= $grace) {
                 continue;
             }
 
