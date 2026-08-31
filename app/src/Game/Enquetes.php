@@ -165,17 +165,40 @@ final readonly class Enquetes
     }
 
     /**
+     * Ce qu'un émissaire rapporte : un témoignage qu'on n'a pas encore
+     * entendu. Nul quand il n'en reste aucun — l'émissaire revient bredouille,
+     * et l'écran le dit plutôt que de faire semblant.
+     */
+    public function recueillirUnTemoignage(GameSave $partie): ?Indice
+    {
+        $indice = $this->tirerUnIndice($partie, SourceDIndice::Temoignage);
+
+        if (null === $indice) {
+            return null;
+        }
+
+        $partie->getVille()->ouvrirLeDossierDe($indice->enquete())->verser($indice);
+
+        return $indice;
+    }
+
+    /**
      * Un indice de terrain qu'on n'a pas encore. Le tirage passe par le
      * `Randomizer` injecté, comme la crue et les candidats : semé en test, il
      * rend la fouille reproductible.
      */
     private function tirerUnIndiceDeTerrain(GameSave $partie): ?Indice
     {
+        return $this->tirerUnIndice($partie, SourceDIndice::Terrain);
+    }
+
+    private function tirerUnIndice(GameSave $partie, SourceDIndice $source): ?Indice
+    {
         $ville = $partie->getVille();
         $restants = [];
 
         foreach (Indice::cases() as $indice) {
-            if (SourceDIndice::Terrain !== $indice->source()) {
+            if ($source !== $indice->source()) {
                 continue;
             }
 

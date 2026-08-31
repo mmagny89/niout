@@ -640,7 +640,7 @@ me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 | 7.2 | Devinettes, oracles et associations | ✅ |
 | 7.3 | Le dossier d'enquête : collecter des indices | ✅ |
 | 7.4 | L'écran de déduction, et le droit de se tromper | ✅ |
-| 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | |
+| 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | ✅ |
 | 7.6 | Le fil rouge en trois actes, sur la mission 1 | |
 | 7.7 | Les deux Scribes, et Thot qui cesse d'attendre | |
 | 7.8 | Les marchands rivaux, reportés de la Phase 5 | |
@@ -804,16 +804,22 @@ s'est passé.
 Une enquête résolue rapporte des deben et **un point de renommée** : on parle
 d'une famille qui a démêlé une affaire.
 
-#### 7.5 — D'où viennent les indices
+#### 7.5 — D'où viennent les indices  ✅
 
 Le doc 10 les rattache à l'exploration : l'**Éclaireur** rapporte les indices
-physiques, l'**Émissaire** les témoignages. Ce dernier existe déjà comme rôle
-(`RoleDExploration`) et ne sert à rien — c'est ici qu'il se réveille, et non à
-la Phase 10 comme le plan l'annonçait.
+physiques, l'**Émissaire** les témoignages.
 
-L'autre porte d'entrée est le **contenu `Evenement` d'une zone**, posé par la
-génération de carte depuis le lot 3.2 et resté sans effet depuis : une case
-d'événement devient le point de départ d'une énigme ou d'une enquête.
+**Un éclaireur va vers l'inconnu, un émissaire va vers les gens.** C'est la
+règle qui donne enfin à l'Émissaire un emploi propre : jusqu'ici il faisait le
+travail de l'éclaireur en trois fois plus cher. Il ne part que vers une case
+**déjà reconnue** — on ne parle pas à des gens qu'on n'a pas trouvés — et il
+faut des scribes pour consigner ce qu'il rapporte, même règle que la fouille.
+
+**Il peut revenir bredouille**, et l'écran le dit : faire semblant d'avoir
+appris quelque chose serait pire que de l'avouer.
+
+Le `ChefDExpedition`, lui, reste sans emploi : il encadre une expédition lourde
+vers une mine éloignée, ce qui relève de la Phase 10.
 
 #### 7.6 — Le fil rouge, sur la mission 1
 
