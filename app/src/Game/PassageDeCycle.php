@@ -27,6 +27,7 @@ final readonly class PassageDeCycle
         private Commerce $commerce,
         private Mecontentement $mecontentement,
         private Negligence $negligence,
+        private Providence $providence,
         private DepartsNaturels $departs,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
@@ -83,6 +84,9 @@ final readonly class PassageDeCycle
             // Après le reste : ce qu'on a produit et mangé cette quinzaine ne
             // dépend pas d'eux, seule la suivante s'en ressentira.
             ...$this->negligence->avancerDUnCycle($partie),
+            // Puis ce que les dieux font d'eux-mêmes, une fois leur palier à
+            // jour : bénédiction d'un dévoué, revers d'un hostile.
+            ...$this->providence->avancerDUnCycle($partie),
         ];
 
         $partie->avancerDUnCycle();

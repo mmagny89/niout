@@ -526,7 +526,7 @@ et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
 | 6.2 | La négligence : décroissance vers le neutre, jamais en dessous | ✅ |
 | 6.3 | Ce que la faveur change réellement, branché sur l'existant | ✅ |
 | 6.4 | Les fêtes calendaires attestées | ✅ |
-| 6.5 | Bénédictions et malédictions ponctuelles | |
+| 6.5 | Bénédictions et malédictions ponctuelles | ✅ |
 | 6.6 | Les épidémies | |
 | 6.7 | Le trait « Pieux » et la spécialité « Dévot » se réveillent | |
 
@@ -684,15 +684,34 @@ C'est le premier contenu du jeu qui donne une raison de **regarder la date**
 pour autre chose que la saison agricole : la barre de jeu annonce la fête en
 cours, et l'écran du Temple dit ce qu'elle vaut, dieu par dieu.
 
-#### 6.5 — Bénédictions et malédictions
+#### 6.5 — Bénédictions et malédictions  ✅
 
-Symétriques (doc 07) : un palier Dévoué ouvre une chance d'événement favorable
-ponctuel, un palier Hostile prolongé une chance d'événement défavorable. Ils
-tirent sur le `Randomizer` semé de la partie, comme la crue et les candidats,
-et se racontent dans le journal de cycle.
+Symétriques (doc 07) : un palier Dévoué ouvre une chance d'événement favorable,
+un palier Hostile une chance d'événement défavorable — 8 % par quinzaine et par
+dieu concerné, soit un peu plus d'un par an. Ce sont les **seuls effets divins
+qui surviennent** au lieu de s'appliquer en continu ; tout le reste de la faveur
+est un réglage permanent qu'on oublie.
 
-**Une malédiction ne détruit jamais définitivement** — c'est la ligne de conduite
-du projet depuis le doc 03 : elle retarde, elle coûte, elle n'efface pas.
+| Dieu | Bénédiction | Malédiction |
+|---|---|---|
+| Hâpi, Osiris | Une gerbe de plus au Grenier | Une part des vivres se gâte — **jamais toute** |
+| Ptah | Argile et bois livrés sans rien demander | Les travaux prennent une quinzaine de retard |
+| Sobek | Un chargement qu'on croyait perdu remonte le fleuve | Les vents contrarient les convois d'une quinzaine |
+| Amon-Rê | On parle de vous jusqu'à Karnak : +1 de renommée | On en dit du mal : −1 |
+
+**Une malédiction retarde et coûte, elle n'efface pas** : jamais de perte
+définitive, jamais de bâtiment détruit, et **jamais d'échec de partie** — la
+famine reste la seule cause de défaite. Aucune ne multiplie non plus une
+production : la discipline du lot 6.3 vaut aussi pour ce qui surgit.
+
+**Il fallait une source d'hostilité, sans quoi la moitié du lot serait du code
+mort** — la négligence s'arrête au neutre (6.2), et les quêtes ratées du doc 07
+relèvent des Phases 7 et 8. C'est **la famine** : une ville qui ne se nourrit
+plus ne nourrit plus ses dieux, les offrandes s'arrêtent avec le reste. C'est la
+seule perte de faveur qui franchit le plancher du neutre, et elle ne frappe que
+les divinités qu'on avait engagées — ne jamais mettre les pieds au Temple ne
+coûte toujours rien. Le piège d'`ajusterRenommee()`, resté inerte des mois
+durant faute d'une source, ne se repaie pas.
 
 #### 6.6 — Les épidémies
 

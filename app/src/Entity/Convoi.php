@@ -121,6 +121,18 @@ class Convoi
         return $this->quantite * $this->prix;
     }
 
+    /**
+     * Allonge le trajet d'un convoi déjà parti. Il rentre plus tard ; il ne se
+     * perd jamais — un chargement englouti serait la perte définitive que le
+     * jeu s'interdit (lot 6.5).
+     */
+    public function retarder(int $quinzaines): static
+    {
+        $this->quinzainesAvantRetour += max(0, $quinzaines);
+
+        return $this;
+    }
+
     public function estRentre(): bool
     {
         return 0 === $this->quinzainesAvantRetour;
