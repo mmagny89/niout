@@ -19,7 +19,11 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
         {% endif %}
     </head>
-    <body class="min-h-screen flex flex-col bg-sable-100 text-encre-900 antialiased">
+    {# Deux coques, et une seule page ne peut pas servir les deux :
+       la présentation se lit dans une colonne étroite, le jeu se joue en
+       plein écran. `base_jeu.html.twig` redéfinit ce qu'il faut. #}
+    <body class="{% block coque %}min-h-screen flex flex-col{% endblock %} bg-sable-100 text-encre-900 antialiased">
+        {% block enTete %}
         <header class="border-b border-ocre-500/25 bg-sable-50">
             <div class="mx-auto flex max-w-5xl items-baseline justify-between gap-4 px-5 py-4">
                 <a href="{{ path('app_accueil') }}"
@@ -40,6 +44,7 @@
                 </nav>
             </div>
         </header>
+        {% endblock %}
 
         {# Barre de jeu : les partie/* la remplissent via partie/_layout.
            Les compteurs doivent rester visibles en permanence (doc 15). #}
@@ -60,14 +65,16 @@
             {% endfor %}
         {% endblock %}
 
-        <main class="flex-1">
+        <main class="{% block corps %}flex-1{% endblock %}">
             {% block body %}{% endblock %}
         </main>
 
+        {% block piedDePage %}
         <footer class="mt-16 border-t border-ocre-500/25 py-6">
             <p class="mx-auto max-w-5xl px-5 text-xs text-encre-500">
                 Niout — jeu de gestion situé dans l'Égypte du Nouvel Empire.
             </p>
         </footer>
+        {% endblock %}
     </body>
 </html>

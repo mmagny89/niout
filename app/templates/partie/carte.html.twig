@@ -20,40 +20,21 @@
     {% set cote = ville.tailleGrille %}
     {% set origineX = (cote - 1) * pas.x %}
 
-    <section class="mx-auto w-full max-w-5xl px-5 py-10">
-        <div class="flex flex-wrap items-baseline justify-between gap-4">
-            <h1 class="text-3xl text-encre-900">Le territoire {{ ville.avecPreposition }}</h1>
-            <a href="{{ path('app_partie_ville', {id: partie.id}) }}" class="text-sm text-lapis-500">
-                Bâtiments {{ ville.avecPreposition }}
-            </a>
-        </div>
+    {# Deux panneaux qui remplissent la fenêtre : le territoire à gauche, à
+       l'échelle qui le fait tenir en entier ; le détail à droite, seul à
+       défiler. La page, elle, ne défile jamais. #}
+    <section class="flex h-full min-h-0">
+        <div class="relative min-w-0 flex-1 overflow-hidden bg-sable-100"
+             data-controller="carte"
+             data-carte-min-value="0.25"
+             data-carte-max-value="1.5"
+             data-carte-pas-value="0.15">
 
-        <p class="mt-2 text-sm text-encre-500">
-            {{ cote }} × {{ cote }} cases. Cliquez votre ville pour en gérer les
-            bâtiments ; les dalles gravées de hiéroglyphes attendent un éclaireur.
-        </p>
-
-        {# Reconnaître une grille du Sinaï case par case demande des dizaines de
-           quinzaines : c'est ce temps de jeu que le mode d'essai permet de
-           sauter. Le bouton n'existe que pour un compte qui porte le rôle, et
-           la route le vérifie de son côté. #}
-        {% if is_granted('ROLE_DIVIN') and partie.estEnModeDivin %}
-            <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}" class="mt-3">
-                <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
-                <input type="hidden" name="retour" value="app_partie_carte">
-                <button type="submit" name="brouillard" value="1"
-                        class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
-                    Lever le brouillard sur toute la carte
-                </button>
-            </form>
-        {% endif %}
-
-        {# La carte déborde en largeur sur les grandes régions : elle défile
-           dans son propre conteneur, jamais la page entière. #}
-        <div class="mt-6 overflow-x-auto">
-            <div class="relative mx-auto"
-                 style="width: {{ 2 * (cote - 1) * pas.x + cellule.largeur }}px;
-                        height: {{ 2 * (cote - 1) * pas.y + cellule.hauteur }}px;">
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="relative origin-center transition-transform"
+                     data-carte-target="grille"
+                     style="width: {{ 2 * (cote - 1) * pas.x + cellule.largeur }}px;
+                            height: {{ 2 * (cote - 1) * pas.y + cellule.hauteur }}px;">
 
                 {# Couche visible. Les tuiles se recouvrent : elles ne captent
                    aucun clic, sinon celles du premier plan voleraient ceux des
@@ -91,12 +72,62 @@
                            ? 'Entrer dans ' ~ ville.nom
                            : 'Case ' ~ zone.x ~ ', ' ~ zone.y ~ ' — ' ~ (zone.estDecouverte ? zone.terrain.libelle : 'inexplorée') }}"></a>
                 {% endfor %}
+                </div>
+            </div>
+
+            {# Les commandes flottent au-dessus du territoire plutôt que de lui
+               prendre de la hauteur : c'est la carte qui doit occuper l'écran. #}
+            <div class="absolute left-4 top-4 flex items-center gap-2 rounded-sm border border-ocre-500/30
+                        bg-sable-50/90 px-3 py-2 text-sm shadow-sm">
+                <h1 class="font-display text-base text-encre-900">Territoire {{ ville.avecPreposition }}</h1>
+                <span class="text-encre-500" data-chiffres>{{ cote }} × {{ cote }}</span>
+            </div>
+
+            <div class="absolute bottom-4 left-4 flex items-center gap-1 rounded-sm border border-ocre-500/30
+                        bg-sable-50/90 p-1 text-sm shadow-sm">
+                <button type="button" data-action="carte#eloigner"
+                        class="rounded-sm px-2 py-1 text-encre-700 hover:bg-ocre-300/30" aria-label="Éloigner">−</button>
+                <span class="w-12 text-center text-xs text-encre-500" data-chiffres data-carte-target="facteur">100 %</span>
+                <button type="button" data-action="carte#approcher"
+                        class="rounded-sm px-2 py-1 text-encre-700 hover:bg-ocre-300/30" aria-label="Approcher">+</button>
+                <button type="button" data-action="carte#revenir"
+                        class="rounded-sm px-2 py-1 text-xs text-encre-600 hover:bg-ocre-300/30">Ajuster</button>
             </div>
         </div>
 
+        {# Le panneau de droite : tout ce qui se lit, et le seul endroit qui
+           défile. #}
+        <aside class="flex w-96 shrink-0 flex-col overflow-y-auto border-l border-ocre-500/25 bg-sable-50 p-5">
+            <div class="flex items-baseline justify-between gap-3">
+                <a href="{{ path('app_partie_ville', {id: partie.id}) }}" class="text-sm text-lapis-500">
+                    Bâtiments {{ ville.avecPreposition }} →
+                </a>
+            </div>
+
+            <p class="mt-2 text-xs text-encre-500">
+                Cliquez votre ville pour en gérer les bâtiments ; les dalles
+                gravées de hiéroglyphes attendent un éclaireur.
+            </p>
+
+        {# Reconnaître une grille du Sinaï case par case demande des dizaines de
+           quinzaines : c'est ce temps de jeu que le mode d'essai permet de
+           sauter. Le bouton n'existe que pour un compte qui porte le rôle, et
+           la route le vérifie de son côté. #}
+        {% if is_granted('ROLE_DIVIN') and partie.estEnModeDivin %}
+            <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}" class="mt-4">
+                <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
+                <input type="hidden" name="retour" value="app_partie_carte">
+                <button type="submit" name="brouillard" value="1"
+                        class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                    Lever le brouillard sur toute la carte
+                </button>
+            </form>
+        {% endif %}
+
+
         {% if ville.expeditions|length > 0 %}
-            <section class="mt-8">
-                <h2 class="text-xl text-encre-900">Expéditions en route</h2>
+            <section class="mt-6">
+                <h2 class="text-lg text-encre-900">Expéditions en route</h2>
                 <ul class="mt-3 space-y-2 list-none p-0">
                     {% for expedition in ville.expeditions %}
                         <li class="rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-5 py-3">
@@ -118,7 +149,7 @@
             </section>
         {% endif %}
 
-        <div id="case" class="mt-8">
+        <div id="case" class="mt-6">
             {% if zoneDetaillee %}
                 <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
                     <div class="flex flex-wrap items-baseline justify-between gap-3">
@@ -283,5 +314,6 @@
                 </p>
             {% endif %}
         </div>
+        </aside>
     </section>
 {% endblock %}

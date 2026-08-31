@@ -3,9 +3,18 @@
 {% block title %}{{ ville.nom }} — Niout{% endblock %}
 
 {% block body %}
-    <section class="mx-auto w-full max-w-3xl px-5 py-14">
+    {# L'écran de ville tient dans la fenêtre : un bandeau fixe pour ce qui
+       presse, une barre d'onglets, et un seul panneau ouvert à la fois — qui
+       défile pour son compte. Empilée, la ville faisait plusieurs écrans de
+       haut, et comparer sa masse salariale à son étal demandait de retenir. #}
+    <section class="flex h-full min-h-0 flex-col"
+             data-controller="onglets"
+             data-onglets-actif-class="border-terre-500 text-terre-600"
+             data-onglets-inactif-class="border-transparent text-encre-500">
+
+        <div class="shrink-0 border-b border-ocre-500/25 bg-sable-50 px-6 pt-4">
         <div class="flex flex-wrap items-baseline justify-between gap-4">
-            <h1 class="text-4xl text-encre-900">{{ ville.nom }}</h1>
+            <h1 class="font-display text-2xl text-encre-900">{{ ville.nom }}</h1>
             <div class="flex flex-wrap items-baseline gap-4">
                 {# Le Temple ne se visite qu'une fois dressé : proposer l'écran
                    d'un bâtiment qu'on n'a pas ferait une porte sur du vide. #}
@@ -100,6 +109,48 @@
             </p>
         {% endif %}
 
+
+            <nav class="mt-4 flex flex-wrap gap-1 text-sm" role="tablist" aria-label="Sections de la ville">
+                <button type="button" role="tab" id="onglet-batiments"
+                        aria-controls="panneau-batiments" aria-selected="true" tabindex="0"
+                        data-onglets-target="onglet" data-onglet-actif="true"
+                        data-action="onglets#choisir keydown->onglets#naviguer"
+                        class="border-b-2 px-3 py-2 hover:text-terre-600">Bâtiments</button>
+                <button type="button" role="tab" id="onglet-marche"
+                        aria-controls="panneau-marche" aria-selected="false" tabindex="-1"
+                        data-onglets-target="onglet" data-onglet-actif="false"
+                        data-action="onglets#choisir keydown->onglets#naviguer"
+                        class="border-b-2 px-3 py-2 hover:text-terre-600">Marché</button>
+                <button type="button" role="tab" id="onglet-direction"
+                        aria-controls="panneau-direction" aria-selected="false" tabindex="-1"
+                        data-onglets-target="onglet" data-onglet-actif="false"
+                        data-action="onglets#choisir keydown->onglets#naviguer"
+                        class="border-b-2 px-3 py-2 hover:text-terre-600">Direction</button>
+                <button type="button" role="tab" id="onglet-ateliers"
+                        aria-controls="panneau-ateliers" aria-selected="false" tabindex="-1"
+                        data-onglets-target="onglet" data-onglet-actif="false"
+                        data-action="onglets#choisir keydown->onglets#naviguer"
+                        class="border-b-2 px-3 py-2 hover:text-terre-600">Ateliers</button>
+                <button type="button" role="tab" id="onglet-commerce"
+                        aria-controls="panneau-commerce" aria-selected="false" tabindex="-1"
+                        data-onglets-target="onglet" data-onglet-actif="false"
+                        data-action="onglets#choisir keydown->onglets#naviguer"
+                        class="border-b-2 px-3 py-2 hover:text-terre-600">Commerce</button>
+                <button type="button" role="tab" id="onglet-habitants"
+                        aria-controls="panneau-habitants" aria-selected="false" tabindex="-1"
+                        data-onglets-target="onglet" data-onglet-actif="false"
+                        data-action="onglets#choisir keydown->onglets#naviguer"
+                        class="border-b-2 px-3 py-2 hover:text-terre-600">Habitants</button>
+                <button type="button" role="tab" id="onglet-batir"
+                        aria-controls="panneau-batir" aria-selected="false" tabindex="-1"
+                        data-onglets-target="onglet" data-onglet-actif="false"
+                        data-action="onglets#choisir keydown->onglets#naviguer"
+                        class="border-b-2 px-3 py-2 hover:text-terre-600">À bâtir</button>
+            </nav>
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+             id="panneau-batiments" aria-labelledby="onglet-batiments" data-onglets-target="panneau">
         {% if chantiers|length > 0 %}
             <h2 class="mt-10 text-2xl text-encre-900">Chantiers en cours</h2>
             <ul class="mt-4 space-y-3 list-none p-0">
@@ -188,6 +239,10 @@
             {% endfor %}
         </ul>
 
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+             id="panneau-marche" aria-labelledby="onglet-marche" data-onglets-target="panneau" hidden>
         {# Le Marché est la seule entrée de deben du jeu : sans lui, la dotation
            royale s'épuise et la partie se fige. C'est aussi la seule source de
            renommée branchée à ce jour (doc 13). #}
@@ -238,6 +293,10 @@
             {% endif %}
         {% endif %}
 
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+             id="panneau-direction" aria-labelledby="onglet-direction" data-onglets-target="panneau" hidden>
         {# Direction des bâtiments. Le doc 03 veut la compétence « chiffrée en
            interne, qualitative à l'affichage » : ces gabarits n'impriment donc
            que des étoiles, jamais `competence`. #}
@@ -372,6 +431,10 @@
             </ul>
         {% endif %}
 
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+             id="panneau-ateliers" aria-labelledby="onglet-ateliers" data-onglets-target="panneau" hidden>
         {# L'Atelier et la Forge. Un seul ouvrage à la fois **par bâtiment** :
            chacun est un lieu, pas une file, et c'est ce qui donne son coût
            d'opportunité à la fabrication — tisser, c'est ne pas cuire. Les deux
@@ -462,6 +525,10 @@
             {% endif %}
         {% endfor %}
 
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+             id="panneau-commerce" aria-labelledby="onglet-commerce" data-onglets-target="panneau" hidden>
         {# Les routes commerciales. Ce ne sont pas des cases sur la carte mais
            des débouchés, hors grille : le niveau du bâtiment qui les arme
            décide de ce qu'un convoi porte. #}
@@ -603,6 +670,10 @@
             </ul>
         {% endif %}
 
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+             id="panneau-habitants" aria-labelledby="onglet-habitants" data-onglets-target="panneau" hidden>
         {# Faire venir des habitants : deux verrous, le logement et la bourse.
            L'écran annonce les deux avant que la joueuse ne s'engage. #}
         <h2 class="mt-10 text-2xl text-encre-900">Habitants</h2>
@@ -653,6 +724,10 @@
             {% endif %}
         </div>
 
+        </div>
+
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+             id="panneau-batir" aria-labelledby="onglet-batir" data-onglets-target="panneau" hidden>
         <h2 class="mt-10 text-2xl text-encre-900">À bâtir</h2>
         <p class="mt-2 text-sm text-encre-500">
             Les ressources sont payées à l'engagement du chantier ; les travaux
@@ -719,8 +794,6 @@
             {% endfor %}
         </ul>
 
-        <p class="mt-10 text-sm">
-            <a href="{{ path('app_partie_carte', {id: partie.id}) }}" class="text-lapis-500">Retour au territoire</a>
-        </p>
+        </div>
     </section>
 {% endblock %}

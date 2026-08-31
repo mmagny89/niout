@@ -1,0 +1,155 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Functional;
+
+use App\Entity\GameSave;
+use App\Entity\User;
+use App\Game\FamilleDeRessource;
+use App\Game\LanceurDePartie;
+use App\Game\Ressource;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+
+/**
+ * L'ergonomie de l'écran de jeu.
+ *
+ * Ce qui se vérifie ici est de la **structure**, jamais un rendu : un test
+ * fonctionnel n'a pas de fenêtre, ne calcule aucune hauteur et n'exécute pas
+ * le JavaScript. Il peut en revanche garantir que la coque du jeu est bien
+ * celle qui interdit le défilement, que chaque onglet a son panneau, et que
+ * les compteurs sont rangés — c'est-à-dire tout ce qu'une régression casserait
+ * en silence. La parade est la même que pour le jeton CSRF sans état.
+ */
+final class ErgonomieTest extends WebTestCase
+{
+    /**
+     * **Deux coques, et une seule ne peut pas servir les deux.** La
+     * présentation se lit dans une colonne étroite ; le jeu occupe la fenêtre
+     * et n'y défile jamais.
+     */
+    public function testLeJeuEstEnPleinEcranEtLaPresentationContenue(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'coque@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+        $corpsDuJeu = $client->getCrawler()->filter('body')->attr('class') ?? '';
+
+        self::assertStringContainsString('h-screen', $corpsDuJeu);
+        self::assertStringContainsString('overflow-hidden', $corpsDuJeu);
+        self::assertCount(0, $client->getCrawler()->filter('footer'), 'Le pied de page appartient à la présentation.');
+
+        $client->request('GET', '/compte');
+        $corpsDeLaPresentation = $client->getCrawler()->filter('body')->attr('class') ?? '';
+
+        self::assertStringContainsString('min-h-screen', $corpsDeLaPresentation);
+        self::assertStringNotContainsString('overflow-hidden', $corpsDeLaPresentation);
+        self::assertCount(1, $client->getCrawler()->filter('footer'));
+    }
+
+    /**
+     * **Les compteurs sont rangés par famille**, chacune derrière un volet.
+     * Quarante nombres alignés, c'était une barre où l'on ne trouvait plus
+     * rien — et qui débordait sur un écran étroit.
+     */
+    public function testLaBarreDeJeuRangeLesCompteursParFamille(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'familles@example.com');
+        $partie->getVille()->crediterRessources([
+            Ressource::Or->value => 5,
+            Ressource::Poterie->value => 3,
+        ]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $barre = $crawler->filter('header')->first()->text();
+
+        foreach (FamilleDeRessource::ordreDAffichage() as $famille) {
+            self::assertStringContainsString($famille->libelle(), $barre);
+        }
+
+        // Le détail reste lisible : une famille qui ne dirait que son total
+        // n'aiderait pas à décider d'une dépense.
+        self::assertStringContainsString('Or', $barre);
+        self::assertStringContainsString('Poterie', $barre);
+
+        // Le deben ne se range nulle part : il est la monnaie.
+        self::assertNull(Ressource::Deben->famille());
+    }
+
+    /**
+     * Chaque onglet a son panneau, et **un seul est ouvert**. Le contrôle est
+     * structurel : sans JavaScript, le test ne peut pas cliquer, mais un
+     * onglet sans panneau est un bouton mort et se verrait ici.
+     */
+    public function testChaqueOngletDeLaVilleAUnPanneau(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'onglets@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        $onglets = $crawler->filter('[role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
+        $panneaux = $crawler->filter('[role="tabpanel"]')->each(static fn ($n): string => (string) $n->attr('id'));
+
+        self::assertNotSame([], $onglets);
+        self::assertSame($onglets, $panneaux, 'Un onglet sans panneau est un bouton mort.');
+        self::assertCount(
+            \count($onglets) - 1,
+            $crawler->filter('[role="tabpanel"][hidden]'),
+            'Un seul panneau est ouvert à la fois.',
+        );
+    }
+
+    /**
+     * **Tout le contenu reste dans le document**, seulement masqué : la page
+     * est rendue d'un bloc, et changer d'onglet ne demande aucun aller-retour.
+     * C'est aussi ce qui laisse les tests fonctionnels lire des sections que
+     * le joueur n'a pas encore ouvertes.
+     */
+    public function testLesPanneauxFermesRestentDansLaPage(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'contenu@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        self::assertSelectorTextContains('body', 'À bâtir');
+        self::assertSelectorTextContains('body', 'Habitants');
+    }
+
+    /**
+     * La carte se met à l'échelle plutôt que de déborder : une grille du Sinaï
+     * fait près de mille six cents pixels de large, et le joueur perdait son
+     * territoire hors de la fenêtre.
+     */
+    public function testLaCarteSAjusteAuPanneau(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'zoom@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        self::assertCount(1, $crawler->filter('[data-controller="carte"]'));
+        self::assertCount(1, $crawler->filter('[data-carte-target="grille"]'));
+        self::assertCount(3, $crawler->filter('[data-action^="carte#"]'), 'Approcher, éloigner, ajuster.');
+    }
+
+    private function lancer(KernelBrowser $client, string $email): GameSave
+    {
+        $user = new User();
+        $user->setEmail($email);
+        $user->setPassword('peu-importe-ici');
+
+        $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
+        $gestionnaire->persist($user);
+        $gestionnaire->flush();
+        $client->loginUser($user);
+
+        return static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
+    }
+}

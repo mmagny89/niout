@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Game\CoutDeConstruction;
 use App\Game\Divinite;
+use App\Game\FamilleDeRessource;
 use App\Game\PalierDeFaveur;
 use App\Game\Population;
 use App\Game\Ressource;
@@ -693,6 +694,38 @@ class City
         }
 
         return $honorees;
+    }
+
+    /**
+     * Le stock rangé par famille, pour la barre de jeu (lot d'ergonomie).
+     *
+     * Une famille sans rien en réserve **reste affichée**, à zéro : une ligne
+     * qui disparaît quand elle se vide oblige le joueur à se demander s'il a
+     * mal vu. Le deben n'y figure pas — il se compte à part, étant la monnaie.
+     *
+     * @return list<array{famille: FamilleDeRessource, total: int, lignes: list<StockDeRessource>}>
+     */
+    public function stockParFamille(): array
+    {
+        $parFamille = [];
+
+        foreach (FamilleDeRessource::ordreDAffichage() as $famille) {
+            $lignes = [];
+            $total = 0;
+
+            foreach ($this->stockAffichable() as $ligne) {
+                if ($ligne->getRessource()->famille() !== $famille) {
+                    continue;
+                }
+
+                $lignes[] = $ligne;
+                $total += $ligne->getQuantite();
+            }
+
+            $parFamille[] = ['famille' => $famille, 'total' => $total, 'lignes' => $lignes];
+        }
+
+        return $parFamille;
     }
 
     public function estEnModeDivin(): bool

@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{# La coque du jeu : plein écran, et **rien qui défile au niveau de la page**.
+
+   Une partie n'est pas un document qu'on lit du haut vers le bas : le joueur
+   doit avoir sous les yeux ses compteurs, sa date et son terrain sans jamais
+   chercher. La page occupe donc exactement la hauteur de la fenêtre, et ce qui
+   déborde défile **à l'intérieur** de son propre panneau — jamais le corps
+   entier, qui emporterait la barre de jeu avec lui.
+
+   L'en-tête public et le pied de page disparaissent : ils appartiennent à la
+   présentation. On revient au compte par la barre de jeu. #}
+
+{% block coque %}h-screen flex flex-col overflow-hidden{% endblock %}
+
+{% block enTete %}{% endblock %}
+{% block piedDePage %}{% endblock %}
+
+{% block corps %}min-h-0 flex-1 overflow-hidden{% endblock %}
+
+{# Les messages ne prennent aucune place dans la mise en page : ils flottent
+   au-dessus. Un bandeau qui pousse le contenu ferait apparaître une barre de
+   défilement au moment précis où le joueur vient d'agir. #}
+{% block flashes %}
+    {% set typesDeFlash = { 'succes': 'good', 'erreur': 'bad' } %}
+    <div class="pointer-events-none fixed inset-x-0 top-20 z-30 flex flex-col items-center gap-2 px-5">
+        {% for type, style in typesDeFlash %}
+            {% for message in app.flashes(type) %}
+                <div role="{{ style == 'bad' ? 'alert' : 'status' }}"
+                     class="pointer-events-auto w-full max-w-xl rounded-sm border-l-4 px-4 py-3 text-sm shadow-lg
+                            {{ style == 'bad'
+                                ? 'border-terre-500 bg-terre-50 text-terre-700'
+                                : 'border-lapis-500 bg-sable-50 text-lapis-600' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endblock %}
