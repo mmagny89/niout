@@ -868,7 +868,8 @@
                     </p>
 
                     <ul class="mt-4 space-y-4 list-none p-0">
-                        {% for dossier in dossiers %}
+                        {% for entree in dossiers %}
+                            {% set dossier = entree.dossier %}
                             <li class="max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
                                 <div class="flex flex-wrap items-baseline justify-between gap-3">
                                     <h3 class="font-display text-lg text-encre-900">
@@ -896,9 +897,38 @@
                                     {% endfor %}
                                 </ul>
 
-                                {% if dossier.peutConclure %}
-                                    <p class="mt-3 text-sm text-lapis-500">
-                                        Vous en savez assez pour conclure.
+                                {% if dossier.statut.value != 'en_cours' %}
+                                    <p class="mt-3 text-sm {{ dossier.statut.value == 'resolue' ? 'text-lapis-500' : 'text-terre-600' }}">
+                                        {{ dossier.statut.libelle }}. {{ dossier.enquete.denouement }}
+                                    </p>
+                                {% elseif entree.peutConclure %}
+                                    <p class="mt-4 text-sm text-encre-700">
+                                        Vous en savez assez pour trancher.
+                                        {% if dossier.enquete.estPrincipale %}
+                                            Se tromper coûtera deux quinzaines, et rien d'autre.
+                                        {% else %}
+                                            Se tromper enterrera l'affaire.
+                                        {% endif %}
+                                    </p>
+
+                                    <form method="post" action="{{ path('app_partie_conclure', {id: partie.id}) }}"
+                                          class="mt-3 flex flex-col gap-2">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('conclure') }}">
+                                        <input type="hidden" name="enquete" value="{{ dossier.enquete.value }}">
+
+                                        {% for conclusion in entree.conclusions %}
+                                            <button type="submit" name="conclusion" value="{{ conclusion }}"
+                                                    class="rounded-sm border border-ocre-500/40 bg-sable-100 px-4 py-2 text-left
+                                                           text-sm text-encre-700 hover:bg-ocre-300/20">
+                                                {{ conclusion }}
+                                            </button>
+                                        {% endfor %}
+                                    </form>
+                                {% elseif dossier.rejouableAuCycle > partie.cycle %}
+                                    <p class="mt-3 text-sm text-encre-500">
+                                        Vos scribes reprennent le dossier depuis le début : encore
+                                        <span data-chiffres>{{ dossier.rejouableAuCycle - partie.cycle }}</span>
+                                        quinzaine(s).
                                     </p>
                                 {% endif %}
                             </li>

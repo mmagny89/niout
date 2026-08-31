@@ -70,6 +70,64 @@ enum Enquete: string
     }
 
     /**
+     * Les conclusions proposées. **La bonne est la première ici** ; elles sont
+     * mélangées au rendu, comme les propositions d'une énigme.
+     *
+     * @return list<string>
+     */
+    public function conclusions(): array
+    {
+        return match ($this) {
+            self::PassageCoupe => [
+                'Des hommes campent sur la route et ont rompu la digue : la terre est coupée, pas stérile.',
+                'La terre s\'est épuisée, et plus rien n\'y pousse.',
+                'La garnison a interdit le passage sur ordre du nomarque.',
+                'Le puits voisin s\'est tari, et les paysans sont partis avec l\'eau.',
+            ],
+            self::CarrieresAbandonnees => [
+                'Le filon était fini : on a laissé les outils sur place plutôt que de les porter.',
+                'Une crue exceptionnelle a noyé le chantier et tué les carriers.',
+                'Les carriers ont été réquisitionnés pour un chantier royal.',
+                'Une malédiction a fait fuir les hommes, qui n\'ont rien osé emporter.',
+            ],
+            self::RumeurDeLaCaravane => [
+                'Le premier ment : il n\'a pas pris la piste, et le registre du péage le confond.',
+                'Le second ment : il décrit un ouadi qu\'il n\'a jamais vu.',
+                'Tous deux disent vrai : la piste a changé entre leurs passages.',
+                'Tous deux mentent : aucune caravane n\'est passée depuis un an.',
+            ],
+        };
+    }
+
+    public function bonneConclusion(): string
+    {
+        return $this->conclusions()[0];
+    }
+
+    /**
+     * Ce qu'on apprend une fois l'enquête close — juste ou non. Comme pour une
+     * énigme, **le vrai gain est là** : savoir ce qui s'est passé.
+     */
+    public function denouement(): string
+    {
+        return match ($this) {
+            self::PassageCoupe => 'Un campement s\'était installé au coude de la route, et la digue rompue noyait les abords pour tenir les curieux à distance. La terre n\'avait rien perdu de sa qualité : il fallait rouvrir le passage, pas renoncer au champ.',
+            self::CarrieresAbandonnees => 'Le front de taille butait sur du calcaire stérile. On abandonne un chantier épuisé comme on quitte une maison vide — sans emporter ce qui ne servira plus ailleurs.',
+            self::RumeurDeLaCaravane => 'Le registre du péage ne portait aucun passage : le premier caravanier n\'avait pas pris la piste dont il vantait la sûreté. Le second, lui, avait vu le ouadi de ses yeux.',
+        };
+    }
+
+    /**
+     * Ce que rapporte une enquête résolue. Le doc 10 veut une « récompense
+     * notable » — quatre fois une énigme courte, et un point de renommée : on
+     * parle d'une famille qui a démêlé une affaire.
+     */
+    public function recompenseEnDeben(): int
+    {
+        return $this->estPrincipale() ? 80 : 60;
+    }
+
+    /**
      * @return list<Indice>
      */
     public function indices(): array

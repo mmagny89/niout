@@ -27,6 +27,13 @@ use Random\Randomizer;
  */
 final readonly class Enquetes
 {
+    /**
+     * Ce qu'une déduction erronée coûte sur une enquête qui se rejoue : deux
+     * cycles, et **aucune ressource** (doc 10). Le temps est la seule monnaie
+     * d'une erreur — c'est ce qui encourage à retenter sans punir durement.
+     */
+    public const int RETARD_DUNE_ERREUR = 2;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Randomizer $hasard = new Randomizer(),
@@ -91,6 +98,70 @@ final readonly class Enquetes
         $this->entityManager->flush();
 
         return $indice;
+    }
+
+    /**
+     * Conclut une enquête.
+     *
+     * **Se tromper ne se paie pas de la même façon selon l'enquête** (décision
+     * de la joueuse) : une **principale** porte le fil rouge d'une mission, son
+     * échec définitif bloquerait la campagne — elle se rejoue, au prix des deux
+     * cycles de retard du doc 10. Une **secondaire** se perd pour de bon, et
+     * c'est ce qui donne du poids à une déduction : sans ce risque, conclure au
+     * hasard puis recommencer serait toujours la meilleure stratégie.
+     *
+     * Dans les deux cas, **aucune ressource n'est retirée** (doc 10) et le
+     * dénouement est dit : le vrai gain d'une enquête est de savoir ce qui
+     * s'est passé.
+     *
+     * @return array{juste: bool, denouement: string, recompense: int, definitif: bool}
+     *
+     * @throws EnqueteImpossible
+     */
+    public function conclure(GameSave $partie, Enquete $enquete, string $conclusion): array
+    {
+        $dossier = $partie->getVille()->dossierDe($enquete);
+
+        if (null === $dossier) {
+            throw new EnqueteImpossible('Vous n\'avez rien sur cette affaire.');
+        }
+
+        if (StatutDEnquete::EnCours !== $dossier->getStatut()) {
+            throw new EnqueteImpossible('Cette affaire est close.');
+        }
+
+        if (!\in_array($conclusion, $enquete->conclusions(), true)) {
+            throw new EnqueteImpossible('Ce n\'est pas une des conclusions envisagées.');
+        }
+
+        if ($dossier->concordantsReunis() < $enquete->indicesRequis()) {
+            throw new EnqueteImpossible('Vous n\'en savez pas encore assez pour trancher.');
+        }
+
+        if ($partie->getCycle() < $dossier->getRejouableAuCycle()) {
+            throw new EnqueteImpossible(\sprintf('Vos scribes reprennent le dossier depuis le début : revenez dans %d quinzaine(s).', $dossier->getRejouableAuCycle() - $partie->getCycle()));
+        }
+
+        $juste = $conclusion === $enquete->bonneConclusion();
+
+        if ($juste) {
+            $dossier->conclure(StatutDEnquete::Resolue);
+            $partie->getVille()->crediterRessources([Ressource::Deben->value => $enquete->recompenseEnDeben()]);
+            $partie->getFamille()->ajusterRenommee(1);
+        } elseif ($enquete->estPrincipale()) {
+            $dossier->retarderJusquAu($partie->getCycle() + self::RETARD_DUNE_ERREUR);
+        } else {
+            $dossier->conclure(StatutDEnquete::Echouee);
+        }
+
+        $this->entityManager->flush();
+
+        return [
+            'juste' => $juste,
+            'denouement' => $enquete->denouement(),
+            'recompense' => $juste ? $enquete->recompenseEnDeben() : 0,
+            'definitif' => !$juste && !$enquete->estPrincipale(),
+        ];
     }
 
     /**
