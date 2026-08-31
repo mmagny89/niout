@@ -860,6 +860,52 @@
                     </ul>
                 {% endif %}
 
+                {% if dossiers is not empty %}
+                    <h2 class="mt-8 text-2xl text-encre-900">Dossiers d'enquête</h2>
+                    <p class="mt-2 max-w-2xl text-sm text-encre-500">
+                        Ce que vos gens ont rapporté. Tout ne concourt pas :
+                        c'est à vous de démêler ce qui tient de ce qui égare.
+                    </p>
+
+                    <ul class="mt-4 space-y-4 list-none p-0">
+                        {% for dossier in dossiers %}
+                            <li class="max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                                <div class="flex flex-wrap items-baseline justify-between gap-3">
+                                    <h3 class="font-display text-lg text-encre-900">
+                                        {{ dossier.enquete.libelle }}
+                                        {% if dossier.enquete.estPrincipale %}
+                                            <span class="ml-2 text-xs text-terre-600">fil rouge</span>
+                                        {% endif %}
+                                    </h3>
+                                    <span class="text-sm text-encre-500" data-chiffres>
+                                        {{ dossier.concordantsReunis }} / {{ dossier.enquete.indicesRequis }}
+                                        indices concordants
+                                    </span>
+                                </div>
+
+                                <p class="mt-2 text-sm text-encre-600">{{ dossier.enquete.question }}</p>
+
+                                <ul class="mt-3 space-y-2 list-none p-0">
+                                    {% for indice in dossier.indices %}
+                                        <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-l-2 border-ocre-500/40 pl-3 text-sm">
+                                            <span class="text-encre-700">{{ indice.texte }}</span>
+                                            <span class="text-xs text-encre-500">
+                                                {{ indice.source.libelle }} · {{ indice.nature.libelleAffiche|lower }}
+                                            </span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+
+                                {% if dossier.peutConclure %}
+                                    <p class="mt-3 text-sm text-lapis-500">
+                                        Vous en savez assez pour conclure.
+                                    </p>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
                 {% if enigmes is not empty %}
                     <h2 class="mt-8 text-2xl text-encre-900">Questions en suspens</h2>
                     <p class="mt-2 max-w-2xl text-sm text-encre-500">

@@ -198,6 +198,24 @@
                         {% endif %}
                     </p>
 
+                    {# Les cases « quelque chose s'y trame » sont posées depuis le
+                       lot 3.2 et ne menaient nulle part : elles rendent désormais
+                       un indice, une fois. #}
+                    {% if peutFouiller %}
+                        <form method="post" action="{{ path('app_partie_fouiller', {id: partie.id}) }}" class="mt-4">
+                            <input type="hidden" name="_token" value="{{ csrf_token('fouiller') }}">
+                            <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                            <button type="submit"
+                                    class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                Fouiller les lieux
+                            </button>
+                        </form>
+                    {% elseif zoneDetaillee.indiceRecueilli %}
+                        <p class="mt-4 text-sm text-encre-500">
+                            Vos gens ont déjà retourné cette terre : elle a livré ce qu'elle avait.
+                        </p>
+                    {% endif %}
+
                     {% if zoneDetaillee.porteUnChamp and not aUnGrenier %}
                         <p class="mt-3 text-sm text-terre-600">
                             Sans Grenier, ce champ travaille pour rien : la récolte n'a nulle part

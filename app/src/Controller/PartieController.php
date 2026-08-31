@@ -28,6 +28,8 @@ use App\Game\Effectifs;
 use App\Game\Enigme;
 use App\Game\EnigmeImpossible;
 use App\Game\Enigmes;
+use App\Game\EnqueteImpossible;
+use App\Game\Enquetes;
 use App\Game\ExploitationImpossible;
 use App\Game\Exploitations;
 use App\Game\ExplorationImpossible;
@@ -163,6 +165,7 @@ final class PartieController extends AbstractController
         Commerce $commerce,
         Dechiffrage $dechiffrage,
         Enigmes $enigmes,
+        Enquetes $enquetes,
     ): Response {
         $ville = $partie->getVille();
         $inscription = $ville->possede(TypeDeBatiment::MaisonDesScribes)
@@ -203,6 +206,7 @@ final class PartieController extends AbstractController
             // gravé donnerait la réponse par la seule lecture du HTML.
             'melange' => $inscription instanceof Inscription ? $this->melanger($inscription) : [],
             'inscriptionsLues' => \count($ville->inscriptionsDechiffrees()),
+            'dossiers' => $enquetes->dossiers($partie),
             // Les propositions sont mélangées au rendu, comme les jetons du
             // déchiffrage : la bonne réponse est toujours la première dans le
             // catalogue, et se lirait sinon dans la source de la page.
@@ -634,6 +638,42 @@ final class PartieController extends AbstractController
     }
 
     /**
+     * Fouille une case où quelque chose se trame, et verse au dossier
+     * l'indice qu'on y trouve.
+     */
+    #[Route('/{id}/carte/fouiller', name: 'app_partie_fouiller', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function fouiller(Request $request, GameSave $partie, Enquetes $enquetes): Response
+    {
+        if (!$this->isCsrfTokenValid('fouiller', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $zones = $this->zonesTrieesPourLIsometrie($partie->getVille());
+        $zone = $this->zoneDemandee($zones, $request->request->get('zone'));
+
+        if (null === $zone) {
+            throw $this->createNotFoundException('Case inconnue.');
+        }
+
+        try {
+            $indice = $enquetes->fouiller($partie, $zone);
+            $this->addFlash('succes', \sprintf(
+                '%s Versé au dossier : « %s ».',
+                $indice->texte(),
+                $indice->enquete()->libelle(),
+            ));
+        } catch (EnqueteImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_carte', [
+            'id' => $partie->getId(),
+            'zone' => $zone->getX().'-'.$zone->getY(),
+        ]);
+    }
+
+    /**
      * Le Temple : à qui l'on donne, et ce que les dieux en pensent.
      *
      * Écran à part plutôt qu'une section de la ville : huit divinités, leurs
@@ -730,8 +770,12 @@ final class PartieController extends AbstractController
      */
     #[Route('/{id}/carte', name: 'app_partie_carte', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function carte(Request $request, GameSave $partie, Explorations $explorations): Response
-    {
+    public function carte(
+        Request $request,
+        GameSave $partie,
+        Explorations $explorations,
+        Enquetes $enquetes,
+    ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
         $detaillee = $this->zoneDemandee($zones, $request->query->get('zone'));
@@ -756,6 +800,7 @@ final class PartieController extends AbstractController
                 : null,
             'cultures' => Culture::cases(),
             'aUnGrenier' => $ville->possede(TypeDeBatiment::Grenier),
+            'peutFouiller' => $detaillee instanceof Zone && $enquetes->peutFouiller($ville, $detaillee),
             // Sans Port, aucune barque n'appareille : la case poissonneuse
             // s'affiche, mais le bouton laisse la place au motif.
             'aUnPort' => $ville->possede(TypeDeBatiment::Port),
@@ -962,6 +1007,7 @@ final class PartieController extends AbstractController
         GameSave $partie,
         MissionCatalogue $missions,
         EntityManagerInterface $entityManager,
+        Enquetes $enquetes,
     ): Response {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('abandonner-partie', (string) $request->request->get('_token'))) {

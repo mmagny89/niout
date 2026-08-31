@@ -638,7 +638,7 @@ me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 | 7.0 | La clé de lecture : vingt symboles, et la Maison des scribes qui les ouvre | ✅ |
 | 7.1 | Le déchiffrage : reconstituer une inscription | ✅ |
 | 7.2 | Devinettes, oracles et associations | ✅ |
-| 7.3 | Le dossier d'enquête : collecter des indices | |
+| 7.3 | Le dossier d'enquête : collecter des indices | ✅ |
 | 7.4 | L'écran de déduction, et le droit de se tromper | |
 | 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | |
 | 7.6 | Le fil rouge en trois actes, sur la mission 1 | |
@@ -752,16 +752,35 @@ L'Auberge trouve ici sa première raison d'exister.
 **par mission** (doc 10) suppose la campagne, donc la Phase 8. Le catalogue est
 pour l'instant commun, et se filtre par les bâtiments dressés.
 
-#### 7.3 — Le dossier d'enquête
+#### 7.3 — Le dossier d'enquête  ✅
 
 Trois à cinq indices par enquête, **dont certains optionnels ou trompeurs** — le
 doc y tient, et c'est ce qui distingue une enquête d'une case à cocher. Le
 dossier est persisté (une enquête traverse des dizaines de quinzaines) ; les
 indices eux-mêmes sont du contenu.
 
-Trois familles : **terrain** (traces, objets, inscriptions sur des zones
-explorées), **témoignages** (rumeurs de PNJ, parfois contradictoires),
-**mixte** — le cas du fil rouge.
+Deux sources : le **terrain**, qui se fouille, et le **témoignage**, qui se
+recueille. Les seconds sont au catalogue mais attendent l'Émissaire (lot 7.5) ;
+les premiers se trouvent déjà.
+
+**Les cases « quelque chose s'y trame » trouvent enfin leur emploi.** Posées
+par la génération de carte depuis le lot 3.2, elles ne menaient nulle part :
+elles rendent désormais un indice — **une seule fois**, sans quoi la même case
+livrerait tout un dossier et l'exploration cesserait d'avoir un coût.
+
+**Il faut des scribes pour enquêter** : sans la Maison des scribes, un indice
+n'irait dans aucun dossier — fouiller rendrait une phrase que rien ne
+retiendrait. C'est ce que le doc 01 dit du bâtiment lui-même, et sa seconde
+raison d'exister.
+
+**Le joueur ne sait pas qu'un indice est trompeur** : l'écran ne l'écrit
+jamais. « À vérifier » vaut pour une fausse piste comme pour un indice de
+contexte — afficher la nature réelle résoudrait l'enquête à sa place. Un test
+verrouille l'indistinction.
+
+**Un dossier n'existe qu'à partir du premier indice**, comme la faveur d'un
+dieu : ouvrir trois dossiers vides au lancement de chaque partie ne dirait
+rien, et il faudrait les migrer à chaque enquête ajoutée.
 
 #### 7.4 — La déduction, et le droit de se tromper
 
