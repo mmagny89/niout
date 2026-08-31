@@ -39,6 +39,17 @@ Portes qualité — les quatre doivent passer avant un merge (mêmes commandes q
 - Audit des dépendances : `docker compose exec php composer audit`
 - Tests : `docker compose exec php php bin/phpunit`
 
+**Un changement de CSS ou de JS qui ne se voit pas au navigateur** : chercher
+d'abord `app/public/assets/`. Ce dossier est le **résultat compilé** d'un
+`asset-map:compile` — utile en production, poison en développement : Caddy y
+sert les fichiers statiques directement et **court-circuite Symfony**, donc
+AssetMapper et le bundle Tailwind. Tant qu'il existe, on regarde le build du
+jour où il a été produit, sans le moindre message d'erreur. Il est ignoré par
+git, se supprime sans risque (`rm -rf app/public/assets`) et se régénère au
+déploiement. Défaut réel, payé : une refonte d'ergonomie entière — coque plein
+écran, empilement de la barre, deux contrôleurs Stimulus neufs — est restée
+invisible, et les symptômes ressemblaient à s'y méprendre à des erreurs de CSS.
+
 Deux prérequis faciles à oublier, tous deux dus à des artefacts vivant dans `app/var/`, ignoré par git :
 
 - PHPStan a besoin du container compilé : lancer `cache:warmup` avant l'analyse si le cache est vide.
