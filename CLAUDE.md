@@ -646,6 +646,13 @@ conclusion, et une enquête porte toujours au moins un indice qui n'en est pas.
 vérifier » pour une fausse piste comme pour un indice de contexte ; afficher la
 nature réelle résoudrait l'enquête à sa place.
 
+**L'acte d'un fil rouge se déduit, il ne se stocke pas** (`FilRouge::acte()`) :
+il découle de faits déjà vrais — l'inscription d'ouverture est-elle lue,
+l'enquête principale résolue, la stèle finale relue. Une colonne « acte en
+cours » finirait par diverger de ces faits, et cela ne se verrait qu'en partie.
+Le fil rouge **ne court que sur la mission qu'il raconte** ; ailleurs, ses
+inscriptions redeviennent ordinaires plutôt que de rester inaccessibles.
+
 **Une principale se rejoue, une secondaire se perd** (décision de la joueuse,
 `Enquetes::conclure()`) : l'échec définitif d'une enquête qui porte le fil
 rouge bloquerait la campagne, donc elle coûte deux cycles et se retente ; une

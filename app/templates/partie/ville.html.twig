@@ -776,10 +776,19 @@
             <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
                  id="panneau-scribes" aria-labelledby="onglet-scribes" data-onglets-target="panneau" hidden>
 
+                {# Le fil rouge d'abord : c'est ce que le roi attend, et un fil
+                   dont on ne sait pas ce qu'il demande n'est qu'une décoration. #}
+                {% if filRouge %}
+                    <div class="max-w-3xl rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-4">
+                        <h2 class="font-display text-lg text-encre-900">{{ filRouge.libelle }}</h2>
+                        <p class="mt-1 text-sm text-encre-700">{{ filRouge.consigne }}</p>
+                    </div>
+                {% endif %}
+
                 {# L'inscription passe avant la clé : c'est ce qu'on vient
                    faire ici, la clé n'est que l'outil. #}
                 {% if inscription %}
-                    <h2 class="text-2xl text-encre-900">Une inscription à lire</h2>
+                    <h2 class="mt-8 text-2xl text-encre-900">Une inscription à lire</h2>
                     <p class="mt-2 max-w-2xl text-sm text-encre-500">{{ inscription.provenance }}</p>
 
                     <form method="post" action="{{ path('app_partie_dechiffrer', {id: partie.id}) }}"

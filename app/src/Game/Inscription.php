@@ -37,6 +37,14 @@ enum Inscription: string
     case VieDansLEnceinteDuDieu = 'vie_dans_l_enceinte_du_dieu';
 
     /**
+     * Les deux inscriptions du fil rouge de la mission 1 : celle qu'Ahmôsis
+     * fait porter avec sa commande, et celle qu'on grave une fois la route
+     * rouverte. Elles ne se proposent pas comme les autres — voir `FilRouge`.
+     */
+    case CommandeDAhmosis = 'commande_d_ahmosis';
+    case LaRouteEstRouverte = 'la_route_est_rouverte';
+
+    /**
      * Les signes, **dans l'ordre où ils sont gravés**. C'est cet ordre que le
      * joueur doit retrouver.
      *
@@ -90,6 +98,22 @@ enum Inscription: string
                 SymboleHieroglyphique::Enceinte,
                 SymboleHieroglyphique::Vie,
             ],
+            // L'acte I : trois signes connus d'emblée, pour que la première
+            // inscription soit lisible avant d'avoir rien bâti.
+            self::CommandeDAhmosis => [
+                SymboleHieroglyphique::Homme,
+                SymboleHieroglyphique::Marcher,
+                SymboleHieroglyphique::Eau,
+            ],
+            // L'acte III : cinq signes, dont trois qui demandent une Maison
+            // des scribes déjà montée.
+            self::LaRouteEstRouverte => [
+                SymboleHieroglyphique::Route,
+                SymboleHieroglyphique::Marcher,
+                SymboleHieroglyphique::Pays,
+                SymboleHieroglyphique::Pain,
+                SymboleHieroglyphique::Vie,
+            ],
         };
     }
 
@@ -109,6 +133,8 @@ enum Inscription: string
             self::ParoleDevantLeVisage => 'L\'homme a parlé, en face.',
             self::LeCanalAuSoleil => 'Au soleil, le canal fait lever les roseaux.',
             self::VieDansLEnceinteDuDieu => 'Dans l\'enceinte du dieu se tient la vie.',
+            self::CommandeDAhmosis => 'Que des hommes aillent de nouveau par l\'eau.',
+            self::LaRouteEstRouverte => 'La route est reprise : on va par le pays, le pain revient, et le pays vit.',
         };
     }
 
@@ -129,6 +155,8 @@ enum Inscription: string
             self::ParoleDevantLeVisage => 'Un ostracon, de ceux dont les scribes se servent pour tout.',
             self::LeCanalAuSoleil => 'Une margelle de bassin, usée par les seaux.',
             self::VieDansLEnceinteDuDieu => 'Un linteau tombé d\'un mur d\'enceinte.',
+            self::CommandeDAhmosis => 'La tablette scellée qu\'un messager du roi a déposée avec sa commande.',
+            self::LaRouteEstRouverte => 'La stèle que vos scribes viennent de graver, et qu\'il faut relire avant de la dresser.',
         };
     }
 
