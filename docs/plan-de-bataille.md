@@ -639,7 +639,7 @@ me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 | 7.1 | Le déchiffrage : reconstituer une inscription | ✅ |
 | 7.2 | Devinettes, oracles et associations | ✅ |
 | 7.3 | Le dossier d'enquête : collecter des indices | ✅ |
-| 7.4 | L'écran de déduction, et le droit de se tromper | |
+| 7.4 | L'écran de déduction, et le droit de se tromper | ✅ |
 | 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | |
 | 7.6 | Le fil rouge en trois actes, sur la mission 1 | |
 | 7.7 | Les deux Scribes, et Thot qui cesse d'attendre | |
@@ -782,17 +782,27 @@ verrouille l'indistinction.
 dieu : ouvrir trois dossiers vides au lancement de chaque partie ne dirait
 rien, et il faudrait les migrer à chaque enquête ajoutée.
 
-#### 7.4 — La déduction, et le droit de se tromper
+#### 7.4 — La déduction, et le droit de se tromper  ✅
 
-Une fois assez d'indices réunis, un écran de conclusions au choix. **Une
-mauvaise déduction ne bloque rien** : +2 cycles de retard, aucune perte de
-ressource (doc 10). C'est la même ligne que partout ailleurs — on retarde, on
-n'efface pas —, et elle vaut ici plus qu'ailleurs : une énigme qui punit est
-une énigme qu'on cesse de tenter.
+Une fois assez d'indices **concordants** réunis, un écran de conclusions au
+choix. On ne tranche pas sans savoir : sinon l'écran ne serait qu'un tirage à
+quatre.
 
-**À vérifier au moment de l'écrire** : que la pénalité passe par le temps et
-non par une route mutante mal gardée. Toute action d'enquête modifie l'état
-d'une partie, donc `PartieVoter::JOUER`.
+**Les deux familles se séparent ici**, et c'est la décision de la joueuse qui
+les sépare :
+
+| | Se tromper coûte | Pourquoi |
+|---|---|---|
+| **Principale** | 2 cycles, puis on rejoue | Son échec définitif bloquerait la campagne |
+| **Secondaire** | L'affaire s'enterre | Sans ce risque, conclure au hasard puis recommencer serait toujours la meilleure stratégie |
+
+**Aucune ne retire de ressource** (doc 10) : le temps est la seule monnaie
+d'une erreur. Et **le dénouement se dit dans les deux cas**, comme
+l'explication d'une énigme — le vrai gain d'une enquête est de savoir ce qui
+s'est passé.
+
+Une enquête résolue rapporte des deben et **un point de renommée** : on parle
+d'une famille qui a démêlé une affaire.
 
 #### 7.5 — D'où viennent les indices
 

@@ -28,6 +28,7 @@ use App\Game\Effectifs;
 use App\Game\Enigme;
 use App\Game\EnigmeImpossible;
 use App\Game\Enigmes;
+use App\Game\Enquete;
 use App\Game\EnqueteImpossible;
 use App\Game\Enquetes;
 use App\Game\ExploitationImpossible;
@@ -206,7 +207,16 @@ final class PartieController extends AbstractController
             // gravé donnerait la réponse par la seule lecture du HTML.
             'melange' => $inscription instanceof Inscription ? $this->melanger($inscription) : [],
             'inscriptionsLues' => \count($ville->inscriptionsDechiffrees()),
-            'dossiers' => $enquetes->dossiers($partie),
+            'dossiers' => array_map(
+                static fn ($dossier): array => [
+                    'dossier' => $dossier,
+                    'peutConclure' => $dossier->peutConclure($partie->getCycle()),
+                    // Mélangées au rendu : la bonne conclusion est la première
+                    // du catalogue, et se lirait sinon dans la source.
+                    'conclusions' => self::melangerLesConclusions($dossier->getEnquete()),
+                ],
+                $enquetes->dossiers($partie),
+            ),
             // Les propositions sont mélangées au rendu, comme les jetons du
             // déchiffrage : la bonne réponse est toujours la première dans le
             // catalogue, et se lirait sinon dans la source de la page.
@@ -674,6 +684,57 @@ final class PartieController extends AbstractController
     }
 
     /**
+     * Conclut une enquête.
+     *
+     * **Se tromper ne se paie pas de la même façon selon l'enquête** : une
+     * principale se rejoue après deux cycles, une secondaire se perd. Aucune
+     * ne retire de ressource.
+     */
+    #[Route('/{id}/scribes/conclure', name: 'app_partie_conclure', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function conclure(Request $request, GameSave $partie, Enquetes $enquetes): Response
+    {
+        if (!$this->isCsrfTokenValid('conclure', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $enquete = Enquete::tryFrom((string) $request->request->get('enquete'));
+
+        if (null === $enquete) {
+            throw $this->createNotFoundException('Enquête inconnue.');
+        }
+
+        try {
+            $verdict = $enquetes->conclure($partie, $enquete, (string) $request->request->get('conclusion'));
+        } catch (EnqueteImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+
+            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        }
+
+        $this->addFlash(
+            $verdict['juste'] ? 'succes' : 'erreur',
+            match (true) {
+                $verdict['juste'] => \sprintf(
+                    'Affaire close. %s Vous recevez %d deben, et l\'on parle de vous.',
+                    $verdict['denouement'],
+                    $verdict['recompense'],
+                ),
+                $verdict['definitif'] => \sprintf(
+                    'Vous vous êtes trompé, et l\'affaire s\'enterre. %s',
+                    $verdict['denouement'],
+                ),
+                default => \sprintf(
+                    'Ce n\'est pas cela. Vos scribes reprennent le dossier : %d quinzaines de perdues.',
+                    Enquetes::RETARD_DUNE_ERREUR,
+                ),
+            },
+        );
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
      * Le Temple : à qui l'on donne, et ce que les dieux en pensent.
      *
      * Écran à part plutôt qu'une section de la ville : huit divinités, leurs
@@ -1084,6 +1145,17 @@ final class PartieController extends AbstractController
         }
 
         return null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function melangerLesConclusions(Enquete $enquete): array
+    {
+        $conclusions = $enquete->conclusions();
+        shuffle($conclusions);
+
+        return $conclusions;
     }
 
     /**

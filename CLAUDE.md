@@ -646,6 +646,14 @@ conclusion, et une enquête porte toujours au moins un indice qui n'en est pas.
 vérifier » pour une fausse piste comme pour un indice de contexte ; afficher la
 nature réelle résoudrait l'enquête à sa place.
 
+**Une principale se rejoue, une secondaire se perd** (décision de la joueuse,
+`Enquetes::conclure()`) : l'échec définitif d'une enquête qui porte le fil
+rouge bloquerait la campagne, donc elle coûte deux cycles et se retente ; une
+secondaire s'enterre, sans quoi conclure au hasard puis recommencer serait
+toujours la meilleure stratégie. **Aucune ne retire de ressource** — le temps
+est la seule monnaie d'une erreur — et **le dénouement se dit dans les deux
+cas**.
+
 **Une case ne se fouille qu'une fois**, et **il faut une Maison des scribes**
 pour qu'un indice aille dans un dossier. Un dossier naît au premier indice,
 jamais au lancement de la partie — même règle que la faveur d'un dieu.

@@ -131,9 +131,30 @@ class DossierDEnquete
         return $concordants;
     }
 
-    public function peutConclure(): bool
+    /**
+     * La quinzaine à partir de laquelle on peut reconclure, après une
+     * déduction erronée (doc 10 : deux cycles de retard, aucune perte de
+     * ressource). Ne concerne que les enquêtes qui se rejouent.
+     */
+    #[ORM\Column]
+    private int $rejouableAuCycle = 0;
+
+    public function getRejouableAuCycle(): int
+    {
+        return $this->rejouableAuCycle;
+    }
+
+    public function retarderJusquAu(int $cycle): static
+    {
+        $this->rejouableAuCycle = $cycle;
+
+        return $this;
+    }
+
+    public function peutConclure(int $cycle = 0): bool
     {
         return StatutDEnquete::EnCours === $this->statut
+            && $cycle >= $this->rejouableAuCycle
             && $this->concordantsReunis() >= $this->enquete->indicesRequis();
     }
 }
