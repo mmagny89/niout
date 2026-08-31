@@ -108,6 +108,13 @@
                         data-onglets-target="onglet" data-onglet-actif="false"
                         data-action="onglets#choisir keydown->onglets#naviguer"
                         class="border-b-2 px-3 py-2 hover:text-terre-600">À bâtir</button>
+                {% if aUneMaisonDesScribes %}
+                    <button type="button" role="tab" id="onglet-scribes"
+                            aria-controls="panneau-scribes" aria-selected="false" tabindex="-1"
+                            data-onglets-target="onglet" data-onglet-actif="false"
+                            data-action="onglets#choisir keydown->onglets#naviguer"
+                            class="border-b-2 px-3 py-2 hover:text-terre-600">Scribes</button>
+                {% endif %}
                 {% if is_granted('ROLE_DIVIN') %}
                     <button type="button" role="tab" id="onglet-essai"
                             aria-controls="panneau-essai" aria-selected="false" tabindex="-1"
@@ -764,6 +771,48 @@
         </ul>
 
         </div>
+
+        {% if aUneMaisonDesScribes %}
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+                 id="panneau-scribes" aria-labelledby="onglet-scribes" data-onglets-target="panneau" hidden>
+
+                <h2 class="text-2xl text-encre-900">Clé de lecture</h2>
+                <p class="mt-2 max-w-2xl text-sm text-encre-500">
+                    Les signes que vos scribes savent lire, tirés de la liste de
+                    Gardiner — la classification de référence des hiéroglyphes.
+                    Chacun porte son vrai code et son vrai sens : ce que vous
+                    apprenez ici est ce qu'un égyptologue lirait.
+                    <span data-chiffres>{{ cleDeLecture|length }}</span> sur
+                    <span data-chiffres>{{ signesEnTout }}</span>.
+                </p>
+
+                {% if prochainSigne %}
+                    <p class="mt-3 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
+                        Monter la Maison des scribes ouvrirait le signe suivant :
+                        <span class="font-display text-2xl align-middle">{{ prochainSigne.signe }}</span>
+                        {{ prochainSigne.libelle|lower }} ({{ prochainSigne.codeDeGardiner }}).
+                    </p>
+                {% else %}
+                    <p class="mt-3 text-sm text-encre-600">
+                        Vos scribes lisent tout ce que cette clé contient.
+                    </p>
+                {% endif %}
+
+                <ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
+                    {% for symbole in cleDeLecture %}
+                        <li class="flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+                            <span class="font-display text-4xl leading-none text-encre-900"
+                                  aria-hidden="true">{{ symbole.signe }}</span>
+                            <span>
+                                <span class="block text-encre-900">{{ symbole.libelle }}</span>
+                                <span class="block text-xs text-encre-500" data-chiffres>{{ symbole.codeDeGardiner }}</span>
+                                <span class="mt-1 block text-sm text-encre-600">{{ symbole.sens }}</span>
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
 
         {% if is_granted('ROLE_DIVIN') %}
             <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
