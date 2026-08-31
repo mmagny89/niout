@@ -495,6 +495,21 @@ saint ne rend pas remarquable ce qui ne l'est pas. Et **une fête ne mène jamai
 vers un dieu qui n'agit pas encore**, sans quoi le jeu inviterait à dépenser
 pour rien au moment où il annonce un moment favorable.
 
+**Une malédiction retarde et coûte, elle n'efface pas** (`Providence`,
+décision de la joueuse) : jamais de perte définitive, jamais de bâtiment
+détruit, **jamais d'échec de partie** — la famine reste la seule cause de
+défaite du jeu. Un événement divin peut affamer la ville ; c'est alors la
+famine qui conclut, à ses douze quinzaines. Aucun n'installe non plus un effet
+permanent, qui se confondrait avec le palier lui-même.
+
+**La famine est la seule source d'hostilité du jeu** — une ville qui ne se
+nourrit plus ne nourrit plus ses dieux. C'est **la seule perte de faveur qui
+franchit le plancher du neutre**, et elle ne frappe que les divinités déjà
+engagées : ne jamais mettre les pieds au Temple ne coûte toujours rien. Sans
+elle, toute la branche « malédiction » serait du code mort — le piège
+d'`ajusterRenommee()` ne se repaie pas. Les quêtes ratées et les choix moraux
+du doc 07 ajouteront leurs sources aux Phases 7 et 8.
+
 **La négligence s'arrête au neutre** (`Negligence`, doc 07 : « décroissance
 lente et naturelle, pas de chute punitive ») : cinq quinzaines de grâce, puis
 un point par quinzaine, et **jamais sous `Divinite::FAVEUR_DE_DEPART`**. Seules

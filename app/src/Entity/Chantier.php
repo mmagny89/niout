@@ -119,6 +119,18 @@ class Chantier
         return intdiv(self::DIXIEMES_PAR_CYCLE * $facteur, 100);
     }
 
+    /**
+     * Fait reculer les travaux, sans jamais les défaire : l'avancement ne
+     * repasse pas sous zéro. Une malédiction retarde, elle n'efface pas
+     * (lot 6.5).
+     */
+    public function retarder(int $dixiemes): static
+    {
+        $this->avancementEnDixiemes = max(0, $this->avancementEnDixiemes - $dixiemes);
+
+        return $this;
+    }
+
     public function estAcheve(): bool
     {
         return $this->avancementEnDixiemes >= $this->dureeEnCycles * self::DIXIEMES_PAR_CYCLE;
