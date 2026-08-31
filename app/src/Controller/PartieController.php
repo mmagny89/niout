@@ -862,6 +862,19 @@ final class PartieController extends AbstractController
             'cultures' => Culture::cases(),
             'aUnGrenier' => $ville->possede(TypeDeBatiment::Grenier),
             'peutFouiller' => $detaillee instanceof Zone && $enquetes->peutFouiller($ville, $detaillee),
+            // L'émissaire ne va que là où l'on sait déjà qu'il y a quelqu'un,
+            // et il lui faut des scribes pour consigner ce qu'il rapporte.
+            'peutEnvoyerUnEmissaire' => $detaillee instanceof Zone
+                && $detaillee->estDecouverte()
+                && !$detaillee->porteLaVille()
+                && $ville->possede(TypeDeBatiment::MaisonDesScribes)
+                && !$ville->aUneExpeditionVers($detaillee),
+            'coutDeLEmissaire' => $detaillee instanceof Zone
+                ? $explorations->coutVers($partie, $detaillee, RoleDExploration::Emissaire)
+                : RoleDExploration::Emissaire->cout(),
+            'provisionsDeLEmissaire' => $detaillee instanceof Zone
+                ? $explorations->provisionsVers($partie, $detaillee, RoleDExploration::Emissaire)
+                : RoleDExploration::Emissaire->provisions(),
             // Sans Port, aucune barque n'appareille : la case poissonneuse
             // s'affiche, mais le bouton laisse la place au motif.
             'aUnPort' => $ville->possede(TypeDeBatiment::Port),
@@ -969,10 +982,14 @@ final class PartieController extends AbstractController
             throw $this->createNotFoundException('Case inconnue.');
         }
 
+        $role = RoleDExploration::tryFrom((string) $request->request->get('role')) ?? RoleDExploration::Eclaireur;
+
         try {
-            $expedition = $explorations->envoyer($partie, $destination, RoleDExploration::Eclaireur);
+            $expedition = $explorations->envoyer($partie, $destination, $role);
             $this->addFlash('succes', \sprintf(
-                'Un éclaireur part en reconnaissance. Il sera sur place dans %d cycle%s.',
+                '%s part%s. Il sera sur place dans %d cycle%s.',
+                $role->libelle(),
+                RoleDExploration::Emissaire === $role ? '' : ' en reconnaissance',
                 $expedition->getDureeEnCycles(),
                 $expedition->getDureeEnCycles() > 1 ? 's' : '',
             ));

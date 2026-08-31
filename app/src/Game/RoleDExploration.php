@@ -35,9 +35,23 @@ enum RoleDExploration: string
     {
         return match ($this) {
             self::Eclaireur => 'Reconnaît la case et en révèle le contenu. Rapide, peu coûteux, sans combat.',
-            self::Emissaire => 'Noue le contact avec une population locale : commerce, quêtes, relations.',
+            self::Emissaire => 'Va parler aux gens d\'une case déjà reconnue, et rapporte ce qui s\'y dit. Les témoignages nourrissent les enquêtes.',
             self::ChefDExpedition => 'Encadre une expédition lourde vers une mine ou une carrière éloignée.',
         };
+    }
+
+    /**
+     * **Un éclaireur va vers l'inconnu, un émissaire va vers les gens**
+     * (doc 04, doc 10). Le premier reconnaît une case qu'on n'a jamais vue ;
+     * le second noue le contact avec une population locale, ce qui suppose
+     * qu'il y ait quelqu'un — donc une case déjà reconnue.
+     *
+     * C'est ce qui donne enfin à l'Émissaire un emploi propre : jusqu'ici, il
+     * faisait le travail de l'éclaireur en plus cher.
+     */
+    public function viseUneCaseInconnue(): bool
+    {
+        return self::Emissaire !== $this;
     }
 
     /**

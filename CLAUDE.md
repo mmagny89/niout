@@ -654,6 +654,13 @@ toujours la meilleure stratégie. **Aucune ne retire de ressource** — le temps
 est la seule monnaie d'une erreur — et **le dénouement se dit dans les deux
 cas**.
 
+**Un éclaireur va vers l'inconnu, un émissaire va vers les gens**
+(`RoleDExploration::viseUneCaseInconnue()`) : le premier ne part que vers une
+case jamais vue, le second seulement vers une case **déjà reconnue** — on ne
+parle pas à des gens qu'on n'a pas trouvés. C'est ce qui donne à l'Émissaire un
+emploi propre, lui qui faisait jusqu'ici le travail de l'éclaireur en trois
+fois plus cher.
+
 **Une case ne se fouille qu'une fois**, et **il faut une Maison des scribes**
 pour qu'un indice aille dans un dossier. Un dossier naît au premier indice,
 jamais au lancement de la partie — même règle que la faveur d'un dieu.

@@ -20,6 +20,7 @@ final readonly class Explorations
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private Enquetes $enquetes,
     ) {
     }
 
@@ -34,8 +35,18 @@ final readonly class Explorations
             throw new ExplorationImpossible('Cette case n\'appartient pas à votre territoire.');
         }
 
-        if ($destination->estDecouverte()) {
+        // Un éclaireur va vers l'inconnu, un émissaire va vers les gens : il
+        // n'y a personne à qui parler sur une case que nul n'a jamais vue.
+        if ($role->viseUneCaseInconnue() && $destination->estDecouverte()) {
             throw new ExplorationImpossible('Cette case est déjà reconnue.');
+        }
+
+        if (!$role->viseUneCaseInconnue() && !$destination->estDecouverte()) {
+            throw new ExplorationImpossible('Envoyez d\'abord un éclaireur : on ne parle pas à des gens qu\'on n\'a pas trouvés.');
+        }
+
+        if (!$role->viseUneCaseInconnue() && !$ville->possede(TypeDeBatiment::MaisonDesScribes)) {
+            throw new ExplorationImpossible('Sans Maison des scribes, personne ne consignerait ce qu\'on vous rapporterait.');
         }
 
         if ($ville->aUneExpeditionVers($destination)) {
@@ -85,14 +96,39 @@ final readonly class Explorations
             }
 
             $zone = $expedition->getDestination();
-            $zone->decouvrir();
-            $evenements[] = $this->rapportDe($zone);
+
+            if ($expedition->getRole()->viseUneCaseInconnue()) {
+                $zone->decouvrir();
+                $evenements[] = $this->rapportDe($zone);
+            } else {
+                $evenements[] = $this->rapportDeLEmissaire($partie);
+            }
 
             $ville->retirerExpedition($expedition);
             $this->entityManager->remove($expedition);
         }
 
         return $evenements;
+    }
+
+    /**
+     * Ce qu'un émissaire ramène. **Il peut revenir bredouille**, et l'écran le
+     * dit : faire semblant d'avoir appris quelque chose serait pire que de
+     * l'avouer.
+     */
+    private function rapportDeLEmissaire(GameSave $partie): string
+    {
+        $indice = $this->enquetes->recueillirUnTemoignage($partie);
+
+        if (null === $indice) {
+            return 'Votre émissaire est rentré : on lui a beaucoup parlé, et rien appris de neuf.';
+        }
+
+        return \sprintf(
+            'Votre émissaire rapporte : « %s » Versé au dossier « %s ».',
+            $indice->texte(),
+            $indice->enquete()->libelle(),
+        );
     }
 
     /**

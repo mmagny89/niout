@@ -79,6 +79,13 @@ annonce la crue, une devinette entendue à l'Auberge. On n'y répond qu'une fois
 rien ne vous oblige à y répondre, et l'on apprend quelque chose même en se
 trompant.
 
+**Enquêtes** — certaines cases cachent autre chose qu'un filon : on les fouille,
+elles livrent un indice. Un émissaire envoyé parler aux gens d'une case déjà
+reconnue en rapporte d'autres, parfois contradictoires. Le dossier se remplit,
+et vient le moment de trancher — tout ne concourt pas, et rien ne vous dit ce
+qui égare. Se tromper sur l'affaire du fil rouge coûte deux quinzaines ; se
+tromper sur une autre l'enterre pour de bon.
+
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la
 traversée de la mer Rouge vers Pount. Ouvrir une route, c'est y envoyer une
