@@ -76,6 +76,39 @@ final readonly class EffetDeChef
     public const int RACCOURCI_DU_LOGISTICIEN = 25;
 
     /**
+     * Ce que le Dévot du Temple ajoute à chaque offrande, en points de faveur
+     * (doc 03 : « attire davantage la faveur d'une divinité »). **Valeur
+     * inventée**, du même ordre qu'une offrande de vingt deben : le chef vaut
+     * la peine d'être payé sans rendre les offrandes accessoires.
+     */
+    public const int BONUS_DU_DEVOT = 5;
+
+    /**
+     * Quinzaines de répit qu'un chef **pieux** ajoute au délai de grâce avant
+     * qu'un dieu ne se détourne (doc 03, trait « Pieux »). Sa maisonnée
+     * entretient les rites quotidiens : la ville oublie ses dieux moins vite.
+     */
+    public const int REPIT_DUN_CHEF_PIEUX = 5;
+
+    /**
+     * Combien de chefs **pieux** la ville emploie, tous bâtiments confondus.
+     * Le trait n'est pas une spécialité du Temple : un contremaître dévot
+     * fait dire les prières sur son chantier comme ailleurs.
+     */
+    public static function chefsPieux(City $ville, int $cycle): int
+    {
+        $pieux = 0;
+
+        foreach ($ville->getEmployes() as $chef) {
+            if ($chef->estEnPoste($cycle) && \in_array(TraitDeCandidat::Croyant, $chef->traits(), true)) {
+                ++$pieux;
+            }
+        }
+
+        return $pieux;
+    }
+
+    /**
      * La qualité de direction d'un bâtiment, en centièmes : ce que valent
      * ensemble ses bras et la compétence de ceux qui les dirigent.
      *

@@ -67,7 +67,8 @@ chantiers, Osiris fait revenir les champs plus tôt, Amon-Rê attire le monde,
 Sobek raccourcit ce qui voyage par l'eau. Et la fièvre passe parfois : elle
 couche des bras quelques quinzaines sans jamais tuer personne, plus volontiers
 sur une ville qui déborde de son logement — une offrande à Sekhmet, dont les
-prêtres étaient les médecins de l'Égypte, en abrège le cours.
+prêtres étaient les médecins de l'Égypte, en abrège le cours. Un chef pieux, où qu'il serve, fait entretenir les rites
+par sa maisonnée : la ville oublie ses dieux moins vite.
 
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la

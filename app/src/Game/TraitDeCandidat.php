@@ -12,7 +12,7 @@ namespace App\Game;
  * c'est le principe qui structure toute la phase, **chiffré en interne,
  * qualitatif à l'affichage**.
  *
- * Deux d'entre eux ne font encore rien : « Pieux » attend la faveur divine
+ * Un seul ne fait encore rien : « Bagarreur » attend le combat
  * (Phase 6) et « Bagarreur » le combat (Phase 10). Ils sont tirés dès
  * maintenant — un candidat est un profil complet, doc 03 — mais l'interface
  * doit dire qu'ils dorment, plutôt que de laisser croire à un bonus actif.
@@ -53,7 +53,7 @@ enum TraitDeCandidat: string
             self::Econome => 'Se contente de peu, et en donne un peu moins.',
             self::Fidele => 'Restera longtemps en poste.',
             self::Ambitieux => 'Doué, mais regarde déjà ailleurs.',
-            self::Croyant => 'Honore les dieux — sans effet tant que le Temple n\'ouvre pas ses cultes.',
+            self::Croyant => 'Sa maisonnée entretient les rites : les dieux de la ville se détournent moins vite.',
             self::Bagarreur => 'A le poing leste — sans effet tant qu\'aucun Medjaÿ n\'est recruté.',
             self::Experimente => 'Sait déjà tout faire, se vend cher et ne restera pas.',
             self::Novice => 'Malhabile et bon marché, mais il s\'accrochera.',
@@ -121,6 +121,6 @@ enum TraitDeCandidat: string
      */
     public function dortEnAttendantSaPhase(): bool
     {
-        return \in_array($this, [self::Croyant, self::Bagarreur], true);
+        return \in_array($this, [self::Bagarreur], true);
     }
 }

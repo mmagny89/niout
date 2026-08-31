@@ -106,14 +106,16 @@ final class CandidatTest extends TestCase
      * dire : promettre un bonus qui ne s'applique nulle part tromperait le
      * joueur au moment même où il compare des candidats.
      */
-    public function testDeuxTraitsDormentEnAttendantLeurPhase(): void
+    public function testSeulBagarreurDortEncore(): void
     {
         $dormants = array_values(array_filter(
             TraitDeCandidat::cases(),
             static fn (TraitDeCandidat $trait): bool => $trait->dortEnAttendantSaPhase(),
         ));
 
-        self::assertSame([TraitDeCandidat::Croyant, TraitDeCandidat::Bagarreur], $dormants);
+        // « Pieux » s'est réveillé au lot 6.7 : sa maisonnée entretient les
+        // rites, et les dieux de la ville se détournent moins vite.
+        self::assertSame([TraitDeCandidat::Bagarreur], $dormants);
     }
 
     public function testChaqueTraitPorteUnLibelleEtUneDescription(): void
@@ -179,7 +181,6 @@ final class CandidatTest extends TestCase
 
         self::assertSame([
             SpecialiteDeChef::MarcheAcheteur,
-            SpecialiteDeChef::TempleDevot,
             SpecialiteDeChef::ScribesDechiffreur,
             SpecialiteDeChef::ScribesOraculaire,
             SpecialiteDeChef::CaserneInstructeurArcher,
