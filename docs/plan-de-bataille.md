@@ -525,7 +525,7 @@ et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
 | 6.1 | Le Temple : offrir, et ce que le niveau autorise | ✅ |
 | 6.2 | La négligence : décroissance vers le neutre, jamais en dessous | ✅ |
 | 6.3 | Ce que la faveur change réellement, branché sur l'existant | ✅ |
-| 6.4 | Les fêtes calendaires attestées | |
+| 6.4 | Les fêtes calendaires attestées | ✅ |
 | 6.5 | Bénédictions et malédictions ponctuelles | |
 | 6.6 | Les épidémies | |
 | 6.7 | Le trait « Pieux » et la spécialité « Dévot » se réveillent | |
@@ -650,17 +650,39 @@ fait tomber la chaîne alimentaire à 25 % au lot 4.4.
 **Un flottant retiré au passage** : l'avancement d'un chantier composait un
 `float` de saison ; il se compte désormais en centièmes, comme le reste.
 
-#### 6.4 — Les fêtes calendaires
+#### 6.4 — Les fêtes calendaires  ✅
 
-Deux fêtes réellement attestées, et le calendrier du jeu les porte déjà :
-la **fête d'Opet** aux 2ᵉ et 3ᵉ mois de l'inondation — Menhèt et Hout-Herou,
-soit les quinzaines 3 à 6 de l'année — dédiée à Amon-Rê, et la **Belle Fête de
-la Vallée** au 10ᵉ mois, Khent-khéti. Offrir pendant sa fête vaut davantage
-(doc 07 : +10 points).
+**Trois** fêtes attestées, et le calendrier du jeu portait déjà leurs mois :
+
+| Fête | Mois | Dieu |
+|---|---|---|
+| **Opet** — la barque d'Amon remonte de Karnak à Louxor | 2 et 3 (Menhèt, Hout-Herou) | Amon-Rê |
+| **Mystères d'Osiris** — on rejoue sa mort et son relèvement | 4 (*Ka-her-ka*, dont les Grecs ont fait *Khoiak*) | Osiris |
+| **Belle Fête de la Vallée** — Amon traverse vers la rive des morts | 10 (Khent-khéti) | Amon-Rê |
+
+Les deux premières viennent du doc 07 ; celle d'Osiris a été ajoutée pour que
+la fête ne concerne pas qu'un seul dieu — et le mois portait déjà son nom, sans
+qu'on l'ait fait exprès.
+
+**+10 points forfaitaires** (doc 07), non un multiplicateur : c'est le moment
+qui compte, pas la générosité. Une poignée de blé offerte à Opet vaut donc bien
+plus qu'un lingot offert la veille, ce qui est exactement ce qu'une fête doit
+produire. Le supplément ne vaut que pour **le dieu de la fête** — une offrande
+à Ptah pendant Opet reste ordinaire — et s'ajoute **après** le seuil : un jour
+saint ne rend pas remarquable une offrande dérisoire.
+
+**Une invention corrigée par la mesure** : j'avais écrit que les trois fêtes
+tombaient hors de Chémou, pour que la dévotion ne concurrence jamais la
+moisson. C'est faux — la Belle Fête de la Vallée est au 2ᵉ mois de Chémou, là
+où les sources la placent. L'affirmation a sauté, pas la date.
+
+**Une fête ne mène jamais vers un dieu inerte** : ce serait inviter le joueur à
+dépenser pour rien au moment précis où le jeu lui dit que le moment est
+favorable. Un test le garde.
 
 C'est le premier contenu du jeu qui donne une raison de **regarder la date**
-pour autre chose que la saison agricole. La barre de jeu affiche déjà le mois
-pharaonique ; elle devra signaler la fête en cours.
+pour autre chose que la saison agricole : la barre de jeu annonce la fête en
+cours, et l'écran du Temple dit ce qu'elle vaut, dieu par dieu.
 
 #### 6.5 — Bénédictions et malédictions
 

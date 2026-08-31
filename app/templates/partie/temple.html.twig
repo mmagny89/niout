@@ -33,6 +33,14 @@
             </p>
         {% endif %}
 
+        {% if fete %}
+            <p class="mt-4 rounded-sm border border-lapis-500/50 bg-lapis-500/5 px-5 py-3 text-sm text-encre-700">
+                <span class="font-display text-lg text-encre-900">{{ fete.libelle }}</span> —
+                {{ fete.description }} Toute offrande à {{ fete.divinite.libelle }} vaut
+                <span data-chiffres>{{ pointsDeFete }}</span> points de plus tant qu'elle dure.
+            </p>
+        {% endif %}
+
         <ul class="mt-6 space-y-4 list-none p-0">
             {% for dieu in pantheon %}
                 <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
@@ -55,6 +63,13 @@
                     </div>
 
                     <p class="mt-3 text-sm text-encre-700">{{ dieu.divinite.effet }}</p>
+
+                    {% if dieu.supplementDeFete > 0 %}
+                        <p class="mt-1 text-sm text-lapis-500">
+                            C'est sa fête : chaque offrande vaut
+                            <span data-chiffres>{{ dieu.supplementDeFete }}</span> points de plus.
+                        </p>
+                    {% endif %}
 
                     {% if dieu.divinite.precision %}
                         <p class="mt-1 text-sm text-encre-500">{{ dieu.divinite.precision }}</p>

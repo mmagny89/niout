@@ -85,6 +85,13 @@
                     {# La crue de l'année conditionne la moisson de Chémou : le
                        joueur doit l'avoir sous les yeux quand il décide de semer. #}
                     <span class="text-encre-500" title="{{ partie.crue.presage }}">· crue {{ partie.crue.libelle }}</span>
+                    {# Une fête qu'on n'a pas vue passer est une fête qui n'existe
+                       pas : elle ne dure que deux à quatre quinzaines par an. #}
+                    {% if partie.feteEnCours %}
+                        <span class="text-lapis-500" title="{{ partie.feteEnCours.description }}">
+                            · {{ partie.feteEnCours.libelle }}
+                        </span>
+                    {% endif %}
                 </p>
 
                 {% block actionDeCycle %}

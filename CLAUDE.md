@@ -484,6 +484,17 @@ par une crue moins généreuse ou par la fièvre, jamais par un malus de
 rendement. Deux malus qui se multiplient sont ce qui a fait tomber la chaîne
 alimentaire à 25 % au lot 4.4.
 
+**Les fêtes sont datées par les sources, pas étalées sur l'année**
+(`FeteCalendaire`) : Opet aux 2ᵉ et 3ᵉ mois de l'inondation, les mystères
+d'Osiris au 4ᵉ — *Ka-her-ka*, dont les Grecs ont fait *Khoiak* —, la Belle Fête
+de la Vallée au 10ᵉ, en pleine Chémou. Ne jamais déplacer une fête pour
+l'équilibre du jeu. Le supplément d'offrande est **forfaitaire** (+10) et ne vaut
+que pour **le dieu de la fête** : c'est le moment qui compte, pas la
+générosité. Il s'ajoute **après** le seuil de l'offrande dérisoire — un jour
+saint ne rend pas remarquable ce qui ne l'est pas. Et **une fête ne mène jamais
+vers un dieu qui n'agit pas encore**, sans quoi le jeu inviterait à dépenser
+pour rien au moment où il annonce un moment favorable.
+
 **La négligence s'arrête au neutre** (`Negligence`, doc 07 : « décroissance
 lente et naturelle, pas de chute punitive ») : cinq quinzaines de grâce, puis
 un point par quinzaine, et **jamais sous `Divinite::FAVEUR_DE_DEPART`**. Seules
