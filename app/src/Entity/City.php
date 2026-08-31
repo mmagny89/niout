@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Game\CoutDeConstruction;
 use App\Game\Divinite;
 use App\Game\Enigme;
+use App\Game\Enquete;
 use App\Game\FamilleDeRessource;
 use App\Game\Inscription;
 use App\Game\PalierDeFaveur;
@@ -99,6 +100,12 @@ class City
     private Collection $ordresDeFabrication;
 
     /**
+     * @var Collection<int, DossierDEnquete>
+     */
+    #[ORM\OneToMany(targetEntity: DossierDEnquete::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $dossiers;
+
+    /**
      * @var Collection<int, FaveurDivine>
      */
     #[ORM\OneToMany(targetEntity: FaveurDivine::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -158,6 +165,7 @@ class City
         $this->ordresDeFabrication = new ArrayCollection();
         $this->routesCommerciales = new ArrayCollection();
         $this->faveurs = new ArrayCollection();
+        $this->dossiers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -848,6 +856,43 @@ class City
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, DossierDEnquete>
+     */
+    public function getDossiers(): Collection
+    {
+        return $this->dossiers;
+    }
+
+    public function dossierDe(Enquete $enquete): ?DossierDEnquete
+    {
+        foreach ($this->dossiers as $dossier) {
+            if ($dossier->getEnquete() === $enquete) {
+                return $dossier;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Le dossier de cette enquête, ouvert au besoin. Comme pour la faveur d'un
+     * dieu, **une enquête n'existe qu'à partir du premier indice** : ouvrir
+     * trois dossiers vides au lancement de chaque partie ne dirait rien de
+     * plus, et il faudrait les migrer à chaque enquête ajoutée.
+     */
+    public function ouvrirLeDossierDe(Enquete $enquete): DossierDEnquete
+    {
+        $dossier = $this->dossierDe($enquete);
+
+        if (null === $dossier) {
+            $dossier = new DossierDEnquete($this, $enquete);
+            $this->dossiers->add($dossier);
+        }
+
+        return $dossier;
     }
 
     public function estEnModeDivin(): bool

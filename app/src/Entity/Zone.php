@@ -316,6 +316,26 @@ class Zone
         return $this;
     }
 
+    /**
+     * Une case où quelque chose se trame ne se fouille qu'une fois (lot 7.3).
+     * Sans cela, la même case rendrait tout un dossier et l'exploration
+     * cesserait d'avoir un coût.
+     */
+    #[ORM\Column]
+    private bool $indiceRecueilli = false;
+
+    public function indiceRecueilli(): bool
+    {
+        return $this->indiceRecueilli;
+    }
+
+    public function marquerFouillee(): static
+    {
+        $this->indiceRecueilli = true;
+
+        return $this;
+    }
+
     public function porteLaVille(): bool
     {
         return $this->porteLaVille;

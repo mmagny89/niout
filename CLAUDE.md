@@ -639,6 +639,17 @@ deux cas** : le gain d'une énigme est ce qu'elle apprend, pas ce qu'elle
 rapporte. Et chaque énigme **dit d'où elle vient** (`sourceAttestee()`) —
 attestée ou écrite dans l'esprit des sources.
 
+**Une enquête se démêle, elle ne se compte pas** (`Enquete`, `Indice`,
+`DossierDEnquete`) : seuls les indices **concordants** rapprochent de la
+conclusion, et une enquête porte toujours au moins un indice qui n'en est pas.
+**Le joueur ne sait jamais lequel** — `NatureDIndice::libelleAffiche()` dit « à
+vérifier » pour une fausse piste comme pour un indice de contexte ; afficher la
+nature réelle résoudrait l'enquête à sa place.
+
+**Une case ne se fouille qu'une fois**, et **il faut une Maison des scribes**
+pour qu'un indice aille dans un dossier. Un dossier naît au premier indice,
+jamais au lancement de la partie — même règle que la faveur d'un dieu.
+
 **Une interaction se construit au clavier, puis se décore à la souris**
 (`dechiffrage_controller.js`) : le glisser-déposer appelle les mêmes actions
 que le clic, et rien ne passe par le seul `dragstart`. Aucun test fonctionnel
