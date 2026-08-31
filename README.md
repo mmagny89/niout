@@ -64,7 +64,10 @@ Ne rien offrir ne coûte rien ; c'est la négligence prolongée qui fâche — e
 même là, un dieu délaissé cesse de vous favoriser, il ne vous punit pas.
 Chacun agit à sa manière : Hâpi incline la crue de l'année, Ptah presse les
 chantiers, Osiris fait revenir les champs plus tôt, Amon-Rê attire le monde,
-Sobek raccourcit ce qui voyage par l'eau.
+Sobek raccourcit ce qui voyage par l'eau. Et la fièvre passe parfois : elle
+couche des bras quelques quinzaines sans jamais tuer personne, plus volontiers
+sur une ville qui déborde de son logement — une offrande à Sekhmet, dont les
+prêtres étaient les médecins de l'Égypte, en abrège le cours.
 
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la

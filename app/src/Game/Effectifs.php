@@ -140,7 +140,10 @@ final readonly class Effectifs
             }
         }
 
-        return max(0, $ville->getActifs() - $chefs);
+        // Une fièvre retire des bras par le canal existant — le rendement
+        // d'effectif —, jamais par un multiplicateur de plus : c'est ce qui
+        // laisse tenir le plancher de 50 % du lot 4.5.
+        return max(0, $ville->actifsValides() - $chefs);
     }
 
     /**

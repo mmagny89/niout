@@ -51,6 +51,7 @@ final readonly class Offrandes
 
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private Epidemies $epidemies,
     ) {
     }
 
@@ -106,6 +107,14 @@ final readonly class Offrandes
         $avant = $faveur->getFaveur();
         $faveur->recevoirUneOffrande($points);
         $this->ramenerAuPlafond($faveur, $plafond);
+
+        // Celle qui envoie la maladie est celle qui la guérit : une offrande
+        // portée pendant la fièvre l'abrège tout de suite (doc 07). C'est
+        // l'un des rares événements du jeu sur lesquels on peut agir pendant
+        // qu'ils durent.
+        if (Divinite::Sekhmet === $divinite) {
+            $this->epidemies->abregerParUneOffrande($partie);
+        }
 
         $this->entityManager->persist($faveur);
         $this->entityManager->flush();

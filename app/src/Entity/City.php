@@ -230,6 +230,81 @@ class City
         return $this->quantite(Ressource::Deben);
     }
 
+    /**
+     * Les actifs qu'une fièvre tient au lit (lot 6.6). Jamais des morts : le
+     * doc 07 est explicite, on ne perd personne définitivement.
+     */
+    #[ORM\Column]
+    private int $partDeMaladesEnCentiemes = 0;
+
+    #[ORM\Column]
+    private int $quinzainesDepidemie = 0;
+
+    public function getQuinzainesDepidemie(): int
+    {
+        return $this->quinzainesDepidemie;
+    }
+
+    public function estFrappeeParUneEpidemie(): bool
+    {
+        return $this->quinzainesDepidemie > 0;
+    }
+
+    public function declarerUneEpidemie(int $quinzaines, int $partEnCentiemes): static
+    {
+        $this->quinzainesDepidemie = $quinzaines;
+        $this->partDeMaladesEnCentiemes = $partEnCentiemes;
+
+        return $this;
+    }
+
+    /**
+     * Fait passer une quinzaine de fièvre. Rend vrai le jour où elle s'éteint.
+     */
+    public function guerirDUneQuinzaine(int $quinzaines = 1): bool
+    {
+        if (0 === $this->quinzainesDepidemie) {
+            return false;
+        }
+
+        $this->quinzainesDepidemie = max(0, $this->quinzainesDepidemie - max(1, $quinzaines));
+
+        if (0 === $this->quinzainesDepidemie) {
+            $this->partDeMaladesEnCentiemes = 0;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Les bras que la fièvre retire.
+     *
+     * **Au moins un, tant qu'il y a quelqu'un.** Le doc 07 dit « 20 à 40 % des
+     * travailleurs », et l'arrondi à l'inférieur donnerait zéro sur une ville
+     * de quatre actifs — soit toutes les villes de début de partie, où
+     * l'épidémie serait un message sans conséquence. Un village y perd une
+     * paire de bras, ce qui se sent d'autant plus qu'il en a peu.
+     */
+    public function malades(): int
+    {
+        if (0 === $this->actifs || 0 === $this->partDeMaladesEnCentiemes) {
+            return 0;
+        }
+
+        return min($this->actifs, max(1, intdiv($this->actifs * $this->partDeMaladesEnCentiemes, 100)));
+    }
+
+    /**
+     * Les actifs réellement debout. **Jamais moins de zéro**, et la ville n'en
+     * perd aucun : ils reviennent avec la santé.
+     */
+    public function actifsValides(): int
+    {
+        return max(0, $this->actifs - $this->malades());
+    }
+
     public function getActifs(): int
     {
         return $this->actifs;
