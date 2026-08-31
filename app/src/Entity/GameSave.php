@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Enum\GameMode;
 use App\Enum\StatutDePartie;
 use App\Game\DateDeJeu;
+use App\Game\FeteCalendaire;
 use App\Game\QualiteDeCrue;
 use App\Repository\GameSaveRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -207,6 +208,17 @@ class GameSave
      * Dérivée, jamais persistée : le cycle suffit à la reconstituer. Exposée
      * ici pour que les gabarits n'aient pas à la recevoir de chaque contrôleur.
      */
+    /**
+     * La fête du calendrier en cours, s'il y en a une (lot 6.4).
+     *
+     * Dérivée de la date, jamais persistée : c'est du contenu, comme le
+     * panthéon lui-même.
+     */
+    public function feteEnCours(): ?FeteCalendaire
+    {
+        return FeteCalendaire::pour($this->dateDeJeu());
+    }
+
     public function dateDeJeu(): DateDeJeu
     {
         return DateDeJeu::pourCycle($this->cycle);

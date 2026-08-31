@@ -40,6 +40,15 @@ final readonly class Offrandes
     public const int POINTS_PAR_OFFRANDE = 5;
     public const int DEBEN_PAR_OFFRANDE = 10;
 
+    /**
+     * Ce qu'une offrande gagne à être portée **pendant la fête de son dieu**
+     * (doc 07). Un supplément forfaitaire, non un multiplicateur : c'est le
+     * moment qui compte, pas la générosité. Une poignée de blé offerte à Opet
+     * vaut donc bien plus qu'un lingot offert la veille — ce qui est
+     * exactement ce qu'une fête doit produire.
+     */
+    public const int POINTS_DE_FETE = 10;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -73,6 +82,10 @@ final readonly class Offrandes
         if ($points < 1) {
             throw new OffrandeImpossible('Une offrande si maigre ne se remarque pas : offrez davantage.');
         }
+
+        // Le supplément de fête s'ajoute **après** le seuil : une offrande
+        // dérisoire ne devient pas remarquable parce qu'un jour est saint.
+        $points += self::supplementDeFete($partie->dateDeJeu(), $divinite);
 
         $faveur = $ville->faveurDe($divinite);
         $plafond = Temple::plafondDeFaveur($ville);
@@ -120,11 +133,33 @@ final readonly class Offrandes
      * ressource-là. Sert à l'écran : le joueur doit voir ce que son geste
      * pèse **avant** de le faire, comme pour un ordre commercial.
      */
-    public static function pointsPour(Ressource $ressource, int $quantite): int
+    public static function pointsPour(Ressource $ressource, int $quantite, ?DateDeJeu $date = null, ?Divinite $divinite = null): int
     {
         $valeur = self::valeurDe($ressource, $quantite);
 
-        return null === $valeur ? 0 : intdiv($valeur * self::POINTS_PAR_OFFRANDE, self::DEBEN_PAR_OFFRANDE);
+        if (null === $valeur) {
+            return 0;
+        }
+
+        $points = intdiv($valeur * self::POINTS_PAR_OFFRANDE, self::DEBEN_PAR_OFFRANDE);
+
+        if ($points < 1) {
+            return 0;
+        }
+
+        return $points + (null !== $date && null !== $divinite ? self::supplementDeFete($date, $divinite) : 0);
+    }
+
+    /**
+     * Ce que la date ajoute, si elle tombe pendant la fête **de ce dieu-là**.
+     * Une offrande à Ptah pendant Opet reste une offrande ordinaire : la fête
+     * est un rendez-vous, pas une saison faste.
+     */
+    public static function supplementDeFete(DateDeJeu $date, Divinite $divinite): int
+    {
+        $fete = FeteCalendaire::pour($date);
+
+        return null !== $fete && $fete->divinite() === $divinite ? self::POINTS_DE_FETE : 0;
     }
 
     /**

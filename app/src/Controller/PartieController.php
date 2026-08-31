@@ -540,6 +540,10 @@ final class PartieController extends AbstractController
                     && $suivie->getQuinzainesSansOffrande() > Negligence::QUINZAINES_DE_GRACE
                     && $suivie->getFaveur() > Negligence::PLANCHER,
                 'quinzainesSansOffrande' => $suivie?->getQuinzainesSansOffrande() ?? 0,
+                // Le supplément de fête se lit **avant** de donner, comme le
+                // prix d'un ordre commercial montre son effet avant
+                // l'engagement.
+                'supplementDeFete' => Offrandes::supplementDeFete($partie->dateDeJeu(), $divinite),
             ];
         }
 
@@ -555,6 +559,8 @@ final class PartieController extends AbstractController
             'corbeille' => $offrandes->corbeillePour($partie),
             'pointsParOffrande' => Offrandes::POINTS_PAR_OFFRANDE,
             'debenParOffrande' => Offrandes::DEBEN_PAR_OFFRANDE,
+            'fete' => $partie->feteEnCours(),
+            'pointsDeFete' => Offrandes::POINTS_DE_FETE,
         ]);
     }
 
