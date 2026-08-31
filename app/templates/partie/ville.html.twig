@@ -860,6 +860,42 @@
                     </ul>
                 {% endif %}
 
+                {% if enigmes is not empty %}
+                    <h2 class="mt-8 text-2xl text-encre-900">Questions en suspens</h2>
+                    <p class="mt-2 max-w-2xl text-sm text-encre-500">
+                        Rien ne vous oblige à y répondre — mais on ne répond
+                        qu'une fois. Juste ou faux, vous saurez pourquoi.
+                    </p>
+
+                    <ul class="mt-4 space-y-4 list-none p-0">
+                        {% for question in enigmes %}
+                            <li class="max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                                <div class="flex flex-wrap items-baseline justify-between gap-3">
+                                    <p class="text-encre-900">{{ question.enigme.enonce }}</p>
+                                    <span class="text-xs text-encre-500">
+                                        {{ question.enigme.lieu.libelle }} ·
+                                        {{ question.enigme.sourceAttestee ? 'd\'après les sources' : 'dans leur esprit' }}
+                                    </span>
+                                </div>
+
+                                <form method="post" action="{{ path('app_partie_enigme', {id: partie.id}) }}"
+                                      class="mt-4 flex flex-col gap-2">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('enigme') }}">
+                                    <input type="hidden" name="enigme" value="{{ question.enigme.value }}">
+
+                                    {% for proposition in question.propositions %}
+                                        <button type="submit" name="reponse" value="{{ proposition }}"
+                                                class="rounded-sm border border-ocre-500/40 bg-sable-100 px-4 py-2 text-left
+                                                       text-sm text-encre-700 hover:bg-ocre-300/20">
+                                            {{ proposition }}
+                                        </button>
+                                    {% endfor %}
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
                 <h2 class="mt-8 text-2xl text-encre-900">Clé de lecture</h2>
                 <p class="mt-2 max-w-2xl text-sm text-encre-500">
                     Les signes que vos scribes savent lire, tirés de la liste de

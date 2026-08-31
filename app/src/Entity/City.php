@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Game\CoutDeConstruction;
 use App\Game\Divinite;
+use App\Game\Enigme;
 use App\Game\FamilleDeRessource;
 use App\Game\Inscription;
 use App\Game\PalierDeFaveur;
@@ -807,6 +808,43 @@ class City
     {
         if (!\in_array($inscription->value, $this->inscriptionsDechiffrees, true)) {
             $this->inscriptionsDechiffrees[] = $inscription->value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Les énigmes déjà tentées — **justes ou fausses**. Une seule tentative
+     * par énigme : avec quatre propositions et un droit de reprise, on essaie
+     * tout et il n'y a plus de question.
+     *
+     * @var list<string>
+     */
+    #[ORM\Column(type: 'json')]
+    private array $enigmesTentees = [];
+
+    /**
+     * @return list<Enigme>
+     */
+    public function enigmesTentees(): array
+    {
+        $tentees = [];
+
+        foreach ($this->enigmesTentees as $cle) {
+            $enigme = Enigme::tryFrom($cle);
+
+            if (null !== $enigme) {
+                $tentees[] = $enigme;
+            }
+        }
+
+        return $tentees;
+    }
+
+    public function tenterUneEnigme(Enigme $enigme): static
+    {
+        if (!\in_array($enigme->value, $this->enigmesTentees, true)) {
+            $this->enigmesTentees[] = $enigme->value;
         }
 
         return $this;

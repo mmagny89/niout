@@ -25,6 +25,9 @@ use App\Game\Dechiffrage;
 use App\Game\DechiffrageImpossible;
 use App\Game\Divinite;
 use App\Game\Effectifs;
+use App\Game\Enigme;
+use App\Game\EnigmeImpossible;
+use App\Game\Enigmes;
 use App\Game\ExploitationImpossible;
 use App\Game\Exploitations;
 use App\Game\ExplorationImpossible;
@@ -159,6 +162,7 @@ final class PartieController extends AbstractController
         Fabrication $fabrication,
         Commerce $commerce,
         Dechiffrage $dechiffrage,
+        Enigmes $enigmes,
     ): Response {
         $ville = $partie->getVille();
         $inscription = $ville->possede(TypeDeBatiment::MaisonDesScribes)
@@ -199,6 +203,16 @@ final class PartieController extends AbstractController
             // gravé donnerait la réponse par la seule lecture du HTML.
             'melange' => $inscription instanceof Inscription ? $this->melanger($inscription) : [],
             'inscriptionsLues' => \count($ville->inscriptionsDechiffrees()),
+            // Les propositions sont mélangées au rendu, comme les jetons du
+            // déchiffrage : la bonne réponse est toujours la première dans le
+            // catalogue, et se lirait sinon dans la source de la page.
+            'enigmes' => array_map(
+                static fn (Enigme $enigme): array => [
+                    'enigme' => $enigme,
+                    'propositions' => self::melangerLesPropositions($enigme),
+                ],
+                $ville->possede(TypeDeBatiment::MaisonDesScribes) ? $enigmes->disponibles($partie) : [],
+            ),
         ]);
     }
 
@@ -576,6 +590,45 @@ final class PartieController extends AbstractController
                 ? 'Vos scribes n\'apprennent rien de neuf : ils lisent déjà tout.'
                 : \sprintf('Vos scribes apprennent un signe de plus : %s.', $lecture['apprend']->libelle()),
         ));
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Répond à une énigme courte.
+     *
+     * **Une seule tentative** : c'est ce qui en fait une question. Juste ou
+     * faux, l'explication tombe — le vrai gain d'une énigme est ce qu'elle
+     * apprend, pas ce qu'elle rapporte.
+     */
+    #[Route('/{id}/scribes/enigme', name: 'app_partie_enigme', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function repondreALEnigme(Request $request, GameSave $partie, Enigmes $enigmes): Response
+    {
+        if (!$this->isCsrfTokenValid('enigme', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $enigme = Enigme::tryFrom((string) $request->request->get('enigme'));
+
+        if (null === $enigme) {
+            throw $this->createNotFoundException('Énigme inconnue.');
+        }
+
+        try {
+            $verdict = $enigmes->repondre($partie, $enigme, (string) $request->request->get('reponse'));
+        } catch (EnigmeImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+
+            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        }
+
+        $this->addFlash(
+            $verdict['juste'] ? 'succes' : 'erreur',
+            $verdict['juste']
+                ? \sprintf('%s Vous recevez %d deben.', $verdict['explication'], $verdict['recompense'])
+                : \sprintf('Ce n\'était pas la réponse. %s', $verdict['explication']),
+        );
 
         return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
     }
@@ -985,6 +1038,17 @@ final class PartieController extends AbstractController
         }
 
         return null;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function melangerLesPropositions(Enigme $enigme): array
+    {
+        $propositions = $enigme->propositions();
+        shuffle($propositions);
+
+        return $propositions;
     }
 
     /**
