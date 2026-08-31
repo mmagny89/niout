@@ -53,12 +53,11 @@ final class EcranDuTempleTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/temple', $partie->getId()));
 
         $attenteDIsis = Divinite::Isis->attente();
-        $attenteDeThot = Divinite::Thot->attente();
         self::assertNotNull($attenteDIsis);
-        self::assertNotNull($attenteDeThot);
-
         self::assertSelectorTextContains('body', $attenteDIsis);
-        self::assertSelectorTextContains('body', $attenteDeThot);
+
+        // Thot a cessé d'attendre au lot 7.7 : il éclaire les écrits.
+        self::assertNull(Divinite::Thot->attente());
     }
 
     /**

@@ -142,7 +142,9 @@ final class FaveurDivineTest extends KernelTestCase
         }
 
         self::assertFalse(Divinite::Isis->agitDeja(), 'Isis attend le combat.');
-        self::assertFalse(Divinite::Thot->agitDeja(), 'Thot attend les énigmes.');
+        // Thot a cessé d'attendre au lot 7.7 : il éclaire les écrits, et
+        // abrège la reprise d'un dossier mal conclu.
+        self::assertTrue(Divinite::Thot->agitDeja());
     }
 
     /**

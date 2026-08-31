@@ -162,9 +162,9 @@ enum SpecialiteDeChef: string
     {
         // L'Acheteur du Marché en est toujours écarté : le Marché reste une
         // vente locale, l'achat passant par les caravanes et non par lui.
-        // Restent inertes, faute de système : les deux Scribes (Phase 7), les
-        // deux Instructeurs et le Commerçant naval (Phase 10 pour les uns,
-        // commerce naval avancé pour l'autre).
+        // Restent inertes, faute de système : les deux Instructeurs et le
+        // Commerçant naval (Phase 10 pour les uns, commerce naval avancé pour
+        // l'autre).
         return [] !== $this->recettesFavorisees()
             || \in_array($this, [
                 self::GrenierGestionnaire,
@@ -173,6 +173,8 @@ enum SpecialiteDeChef: string
                 self::EntrepotNegociateur,
                 self::EntrepotLogisticien,
                 self::TempleDevot,
+                self::ScribesDechiffreur,
+                self::ScribesOraculaire,
             ], true);
     }
 }

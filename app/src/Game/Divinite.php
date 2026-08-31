@@ -120,15 +120,15 @@ enum Divinite: string
     /**
      * Un dieu dont le domaine n'existe pas encore dans le jeu **le dit**.
      *
-     * Isis attend le combat (Phase 10), Thot les énigmes (Phase 7). Ils sont
-     * offrables — le panthéon serait faux sans eux —, mais promettre un effet
+     * Isis attend le combat (Phase 10). Elle est
+     * offrable — le panthéon serait faux sans elle —, mais promettre un effet
      * qui ne s'applique nulle part tromperait le joueur au moment même où il
      * choisit à qui donner. Même règle que `SpecialiteDeChef::agitDeja()`.
      */
     public function agitDeja(): bool
     {
         return match ($this) {
-            self::Isis, self::Thot => false,
+            self::Isis => false,
             default => true,
         };
     }
@@ -140,7 +140,6 @@ enum Divinite: string
     {
         return match ($this) {
             self::Isis => 'Aucune bataille ne se livre encore : sa protection attend les Medjaÿ.',
-            self::Thot => 'Aucun texte ne résiste encore : sa sagesse attend la Maison des scribes.',
             default => null,
         };
     }

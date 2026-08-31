@@ -202,14 +202,14 @@ final class EffetDeFaveurTest extends KernelTestCase
     }
 
     /**
-     * Six dieux sur huit font désormais quelque chose. Les deux qui restent
-     * annoncent leur propre inertie : Isis attend le combat, Thot les
-     * énigmes — et **eux seuls**, sans quoi le panthéon promettrait à faux.
+     * Sept dieux sur huit font désormais quelque chose. Seule Isis annonce
+     * encore son inertie — elle attend le combat —, et **elle seule**, sans
+     * quoi le panthéon promettrait à faux.
      */
-    public function testSeulsIsisEtThotAnnoncentEncoreLeurInertie(): void
+    public function testSeuleIsisAnnonceEncoreSonInertie(): void
     {
         foreach (Divinite::pantheon() as $divinite) {
-            if (\in_array($divinite, [Divinite::Isis, Divinite::Thot], true)) {
+            if (Divinite::Isis === $divinite) {
                 self::assertFalse($divinite->agitDeja());
                 self::assertNotNull($divinite->attente());
 

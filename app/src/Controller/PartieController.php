@@ -200,14 +200,14 @@ final class PartieController extends AbstractController
             // scribes dressée — proposer l'écran d'un bâtiment qu'on n'a pas
             // ferait une porte sur du vide.
             'aUneMaisonDesScribes' => $ville->possede(TypeDeBatiment::MaisonDesScribes),
-            'cleDeLecture' => CleDeLecture::pour($ville),
-            'prochainSigne' => CleDeLecture::prochainSigne($ville),
+            'cleDeLecture' => CleDeLecture::pour($ville, $partie->getCycle()),
+            'prochainSigne' => CleDeLecture::prochainSigne($ville, $partie->getCycle()),
             'signesEnTout' => \count(SymboleHieroglyphique::cases()),
             'inscription' => $inscription,
             'filRouge' => FilRouge::court($partie) ? FilRouge::acte($partie) : null,
             // Les jetons sont mélangés **au rendu** : les laisser dans l'ordre
             // gravé donnerait la réponse par la seule lecture du HTML.
-            'melange' => $inscription instanceof Inscription ? $this->melanger($inscription) : [],
+            'melange' => $inscription instanceof Inscription ? $this->melangerLesSignes($inscription) : [],
             'inscriptionsLues' => \count($ville->inscriptionsDechiffrees()),
             'dossiers' => array_map(
                 static fn ($dossier): array => [
@@ -225,7 +225,7 @@ final class PartieController extends AbstractController
             'enigmes' => array_map(
                 static fn (Enigme $enigme): array => [
                     'enigme' => $enigme,
-                    'propositions' => self::melangerLesPropositions($enigme),
+                    'propositions' => self::melanger($enigmes->propositionsMontrees($partie, $enigme)),
                 ],
                 $ville->possede(TypeDeBatiment::MaisonDesScribes) ? $enigmes->disponibles($partie) : [],
             ),
@@ -1171,18 +1171,19 @@ final class PartieController extends AbstractController
      */
     private static function melangerLesConclusions(Enquete $enquete): array
     {
-        $conclusions = $enquete->conclusions();
-        shuffle($conclusions);
-
-        return $conclusions;
+        return self::melanger($enquete->conclusions());
     }
 
     /**
+     * Mélange une liste de propositions pour le rendu : la bonne est toujours
+     * la première du catalogue, et se lirait sinon dans la source de la page.
+     *
+     * @param list<string> $propositions
+     *
      * @return list<string>
      */
-    private static function melangerLesPropositions(Enigme $enigme): array
+    private static function melanger(array $propositions): array
     {
-        $propositions = $enigme->propositions();
         shuffle($propositions);
 
         return $propositions;
@@ -1195,7 +1196,7 @@ final class PartieController extends AbstractController
      *
      * @return list<SymboleHieroglyphique>
      */
-    private function melanger(Inscription $inscription): array
+    private function melangerLesSignes(Inscription $inscription): array
     {
         $signes = $inscription->signes();
         shuffle($signes);

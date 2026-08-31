@@ -181,8 +181,6 @@ final class CandidatTest extends TestCase
 
         self::assertSame([
             SpecialiteDeChef::MarcheAcheteur,
-            SpecialiteDeChef::ScribesDechiffreur,
-            SpecialiteDeChef::ScribesOraculaire,
             SpecialiteDeChef::CaserneInstructeurArcher,
             SpecialiteDeChef::CaserneInstructeurBouclier,
             SpecialiteDeChef::PortCommercantNaval,

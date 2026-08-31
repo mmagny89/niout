@@ -38,11 +38,11 @@ final readonly class Dechiffrage
         // Ce que le roi attend passe avant le reste.
         $duFilRouge = FilRouge::inscriptionDeLActe($partie);
 
-        if (null !== $duFilRouge && $duFilRouge->estLisiblePar($partie->getVille())) {
+        if (null !== $duFilRouge && $duFilRouge->estLisiblePar($partie->getVille(), $partie->getCycle())) {
             return $duFilRouge;
         }
 
-        foreach (Inscription::disponiblesPour($partie->getVille()) as $inscription) {
+        foreach (Inscription::disponiblesPour($partie->getVille(), $partie->getCycle()) as $inscription) {
             if (FilRouge::inscriptionOuverte($partie, $inscription)) {
                 return $inscription;
             }
@@ -64,7 +64,7 @@ final readonly class Dechiffrage
     {
         $ville = $partie->getVille();
 
-        if (!$inscription->estLisiblePar($ville)) {
+        if (!$inscription->estLisiblePar($ville, $partie->getCycle())) {
             throw new DechiffrageImpossible('Vos scribes ne connaissent pas tous ces signes.');
         }
 
@@ -92,7 +92,7 @@ final readonly class Dechiffrage
         // qu'une poignée de deben : c'est ce qui fait de la lecture sa propre
         // récompense, et ce qui permet d'apprendre encore quand le bâtiment
         // ne peut plus monter.
-        $apprend = CleDeLecture::prochainSigne($ville);
+        $apprend = CleDeLecture::prochainSigne($ville, $partie->getCycle());
 
         if (null !== $apprend) {
             $ville->apprendreUnSymbole($apprend);

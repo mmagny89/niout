@@ -36,6 +36,42 @@ final readonly class Enigmes
     }
 
     /**
+     * Les propositions à montrer. **L'Oraculaire en écarte une mauvaise**
+     * (doc 03) : il ne donne pas la réponse, il resserre le doute — ce qui est
+     * exactement ce qu'un oracle faisait. Son effet n'étant pas une
+     * production, il passe par `chefSpecialise()`.
+     *
+     * L'écart se fait **à l'affichage seulement** : la bonne réponse reste la
+     * bonne, et une réponse écartée soumise à la main reste recevable — elle
+     * est simplement fausse.
+     *
+     * @return list<string>
+     */
+    public function propositionsMontrees(GameSave $partie, Enigme $enigme): array
+    {
+        $propositions = $enigme->propositions();
+
+        if (!EffetDeChef::chefSpecialise($partie->getVille(), TypeDeBatiment::MaisonDesScribes, SpecialiteDeChef::ScribesOraculaire, $partie->getCycle())) {
+            return $propositions;
+        }
+
+        $ecartees = 0;
+        $retenues = [];
+
+        foreach ($propositions as $proposition) {
+            if ($proposition !== $enigme->bonneReponse() && $ecartees < EffetDeChef::PROPOSITIONS_ECARTEES_PAR_LORACULAIRE) {
+                ++$ecartees;
+
+                continue;
+            }
+
+            $retenues[] = $proposition;
+        }
+
+        return $retenues;
+    }
+
+    /**
      * @return array{juste: bool, explication: string, recompense: int}
      *
      * @throws EnigmeImpossible
