@@ -143,6 +143,36 @@ enum Ressource: string
      * deux, comme le faisait le jeu jusqu'ici, faisait de la mission 2 une
      * carrière de monnaie.
      */
+    /**
+     * La famille sous laquelle la barre de jeu la range. Le deben n'en a
+     * aucune : il est la monnaie, et se compte à part.
+     *
+     * **Un classement d'affichage uniquement** — rien dans les règles du jeu
+     * ne s'y adosse, et rien ne doit s'y adosser : les plafonds de réserve
+     * s'appuient sur `Stockage`, les coûts nomment leurs matériaux un par un.
+     */
+    public function famille(): ?FamilleDeRessource
+    {
+        if ($this->estLaMonnaie()) {
+            return null;
+        }
+
+        if ($this->estNourriture()) {
+            return FamilleDeRessource::Vivres;
+        }
+
+        if ($this->estFabriquee()) {
+            return FamilleDeRessource::Ouvrages;
+        }
+
+        return match ($this) {
+            self::Argile, self::Roseaux, self::BoisLocal, self::Lin,
+            self::Calcaire, self::Gres, self::Granite, self::Grauwacke,
+            self::Albatre, self::BoisDeCedre => FamilleDeRessource::Materiaux,
+            default => FamilleDeRessource::Precieux,
+        };
+    }
+
     public function estLaMonnaie(): bool
     {
         return self::Deben === $this;

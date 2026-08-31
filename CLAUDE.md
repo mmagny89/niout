@@ -596,9 +596,45 @@ peuplerait la ville gratuitement et rendrait l'appel d'habitants inutile. Les
 deux voies de peuplement butent d'ailleurs sur le même verrou :
 `manqueDeLogements()`.
 
-Les écrans de partie héritent de `templates/partie/_layout.html.twig`, qui porte
-la barre de jeu — compteurs, date pharaonique, passage de cycle. Un nouvel écran
-de partie doit en hériter plutôt que de `base.html.twig`.
+## Deux coques, jamais une seule
+
+`base.html.twig` sert la **présentation** — accueil, inscription, compte,
+lancement d'une partie : colonne étroite, en-tête public, pied de page, la page
+défile normalement. `base_jeu.html.twig` sert le **jeu** : plein écran,
+`h-screen overflow-hidden`, ni en-tête public ni pied de page.
+
+**Rien ne défile au niveau de la page pendant une partie.** Ce qui déborde
+défile dans son propre panneau — sinon la barre de jeu s'en va avec, alors que
+le doc 15 la veut visible en permanence. Conséquence pour tout nouvel écran de
+partie : il hérite de `templates/partie/_layout.html.twig`, et **son contenu
+doit porter lui-même son défilement** (`h-full overflow-y-auto`, ou une colonne
+`flex h-full min-h-0` dont un seul panneau défile). Un écran qui l'oublie voit
+son bas coupé, sans erreur ni avertissement.
+
+Les messages flash y flottent au-dessus du contenu : un bandeau qui pousse la
+mise en page ferait apparaître une barre de défilement au moment précis où le
+joueur vient d'agir.
+
+**Les compteurs sont rangés par famille** (`FamilleDeRessource`), chacune
+derrière un `<details>` natif — qui s'ouvre au clavier et ne coûte pas un
+contrôleur. C'est un **regroupement d'affichage seulement** : aucune règle du
+jeu ne s'y adosse, et aucune ne doit s'y adosser. Il n'existe toujours ni
+ressource « bois » ni ressource « pierre ».
+
+**La carte se met à l'échelle, elle ne déborde pas** (`carte_controller.js`) :
+`transform: scale()` sur la grille entière, jamais un redimensionnement des
+tuiles — la couche cliquable subit ainsi exactement la même transformation que
+l'image, et les losanges continuent de tomber juste.
+
+**L'écran de ville est en onglets** (`onglets_controller.js`), et **tous les
+panneaux restent dans le document**, seulement masqués : la page est rendue
+d'un bloc, changer d'onglet ne demande aucun aller-retour, et les tests
+fonctionnels continuent de lire des sections que le joueur n'a pas ouvertes.
+
+Un test fonctionnel n'a pas de fenêtre et n'exécute pas le JavaScript : il ne
+peut pas prouver l'absence de défilement. La parade est une **assertion de
+structure** — coque, onglets appariés à leurs panneaux, familles présentes —
+comme pour le jeton CSRF sans état. Voir `ErgonomieTest`.
 
 ## Conception du jeu
 

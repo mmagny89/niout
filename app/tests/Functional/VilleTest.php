@@ -146,6 +146,16 @@ final class VilleTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         self::assertResponseIsSuccessful();
 
+        // La barre range les compteurs par famille, chacune derrière un volet :
+        // le deben se lit à part — il est la monnaie —, l'or dans le détail des
+        // matières rares.
+        self::assertSame(
+            'Deben '.$partie->getVille()->getDeben(),
+            trim(preg_replace('/\s+/', ' ', $crawler->filter('[data-compteur="deben"]')->text()) ?? ''),
+            'La barre de jeu affiche la bourse réelle.',
+        );
+        self::assertGreaterThan(0, $partie->getVille()->getDeben(), 'La dotation royale de la mission 1.');
+
         $compteurs = [];
         $lus = $crawler->filter('dl[data-chiffres] > div')->each(
             static fn (Crawler $compteur): array => [trim($compteur->filter('dt')->text()), trim($compteur->filter('dd')->text())],
@@ -154,15 +164,9 @@ final class VilleTest extends WebTestCase
             $compteurs[$libelle] = $valeur;
         }
 
-        // Les deux se comptent désormais séparément : la dotation royale est en
-        // deben, et les 7 unités d'or créditées restent 7 unités de métal.
-        self::assertArrayHasKey('Deben', $compteurs, 'La monnaie s\'appelle désormais le deben.');
-        self::assertSame(
-            (string) $partie->getVille()->getDeben(),
-            $compteurs['Deben'],
-            'La barre de jeu affiche la bourse réelle.',
-        );
-        self::assertGreaterThan(0, $partie->getVille()->getDeben(), 'La dotation royale de la mission 1.');
+        // Les deux se comptent séparément : la dotation royale est en deben, et
+        // les 7 unités d'or créditées restent 7 unités de métal.
+        self::assertArrayNotHasKey('Deben', $compteurs, 'La monnaie n\'est rangée dans aucune famille.');
 
         self::assertArrayHasKey('Or', $compteurs, 'L\'or reste affiché, mais comme un matériau.');
         self::assertSame('7', $compteurs['Or'], 'L\'or extrait ne se confond plus avec la bourse.');

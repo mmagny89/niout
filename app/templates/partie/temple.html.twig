@@ -3,7 +3,7 @@
 {% block title %}Temple {{ ville.avecPreposition }} — Niout{% endblock %}
 
 {% block body %}
-    <section class="mx-auto w-full max-w-5xl px-5 py-10">
+    <section class="h-full overflow-y-auto mx-auto w-full max-w-5xl px-5 py-10">
         <div class="flex flex-wrap items-baseline justify-between gap-4">
             <h1 class="text-3xl text-encre-900">Le Temple {{ ville.avecPreposition }}</h1>
             <a href="{{ path('app_partie_ville', {id: partie.id}) }}" class="text-sm text-lapis-500">
