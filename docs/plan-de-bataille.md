@@ -633,19 +633,19 @@ passage du fleuve est coupé. J'envoie un émissaire à l'Auberge, qui rapporte
 une rumeur contradictoire. Trois indices plus tard, je conclus — mal —, ce qui
 me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 
-| Lot | Contenu |
-|---|---|
-| 7.0 | La clé de lecture : vingt symboles, et la Maison des scribes qui les ouvre |
-| 7.1 | Le déchiffrage : reconstituer une inscription |
-| 7.2 | Devinettes, oracles et associations |
-| 7.3 | Le dossier d'enquête : collecter des indices |
-| 7.4 | L'écran de déduction, et le droit de se tromper |
-| 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire |
-| 7.6 | Le fil rouge en trois actes, sur la mission 1 |
-| 7.7 | Les deux Scribes, et Thot qui cesse d'attendre |
-| 7.8 | Les marchands rivaux, reportés de la Phase 5 |
+| Lot | Contenu | |
+|---|---|---|
+| 7.0 | La clé de lecture : vingt symboles, et la Maison des scribes qui les ouvre | ✅ |
+| 7.1 | Le déchiffrage : reconstituer une inscription | |
+| 7.2 | Devinettes, oracles et associations | |
+| 7.3 | Le dossier d'enquête : collecter des indices | |
+| 7.4 | L'écran de déduction, et le droit de se tromper | |
+| 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | |
+| 7.6 | Le fil rouge en trois actes, sur la mission 1 | |
+| 7.7 | Les deux Scribes, et Thot qui cesse d'attendre | |
+| 7.8 | Les marchands rivaux, reportés de la Phase 5 | |
 
-#### 7.0 — La clé de lecture
+#### 7.0 — La clé de lecture  ✅
 
 Vingt symboles au total (doc 10), tirés d'un sous-ensemble lisible de la **liste
 de Gardiner** — la classification académique de référence, ~700 signes. On
@@ -654,11 +654,30 @@ temple, roi.
 
 **Quatre connus d'emblée, puis deux par niveau de Maison des scribes** jusqu'à
 vingt au niveau 8. Le bâtiment cesse ainsi d'être décoratif, et la difficulté
-des inscriptions monte d'elle-même : plus la clé est riche, plus les
-inscriptions peuvent être longues.
+des inscriptions monte d'elle-même.
+
+**Une contradiction du doc 10, tranchée** : il annonce « 4 symboles aux niveaux
+1-2, puis 2 par niveau, jusqu'à 20 au niveau 8 » — les trois nombres ne
+s'accordent pas, 4 puis 2 par niveau donnant 16 au niveau 8. On garde les deux
+bornes, qui sont les affirmations fortes, et la progression s'en déduit :
+`4 + 2 × niveau`.
+
+**Les quatre du départ ne sont pas décoratifs** : l'eau, l'homme, la maison et
+la marche permettent de lire « quelqu'un est allé quelque part », donc de tenter
+la première énigme **avant d'avoir rien bâti** — sans quoi le tutoriel de
+l'acte 1 serait inatteignable.
 
 Répartition état / contenu, comme le panthéon : les symboles, leur sens et leur
-tracé sont du **contenu** ; ce qu'une partie a débloqué est de l'**état**.
+tracé sont du **contenu** ; seuls les signes **appris par énigme** sont
+persistés — le reste se recalcule du niveau.
+
+**Ce que le joueur apprend est vrai** : chaque signe porte son vrai code de
+Gardiner, son vrai glyphe (Unicode, aucune image à découper) et une glose
+fidèle. Un test garde l'ensemble — codes bien formés, uniques, vingt signes.
+
+**Le Delta ne lira jamais toute la clé** : la borne régionale de la mission 1
+plafonne la Maison des scribes bien en deçà du huitième niveau. La clé complète
+est une affaire de campagne, comme le craft de luxe.
 
 #### 7.1 — Le déchiffrage
 
@@ -759,13 +778,21 @@ l'adversité qui lui manque.
 - **Le projet des décans** : le doc 10 l'écarte nommément. La reconnaissance
   astronomique reste un mini-jeu d'association, jamais un simulateur de ciel.
 
-#### À trancher avec la joueuse
+#### Points tranchés avec la joueuse
 
-| Question | Enjeu |
+| Question | Décision |
 |---|---|
-| Le déchiffrage se fait-il par **glisser-déposer** ou par choix de traduction ? | Le doc tranche pour le glisser-déposer ; c'est la première vraie interaction client du jeu, et le coût n'est pas le même |
-| Les énigmes secondaires (5 à 8 par mission) sont-elles **obligatoires** ou facultatives ? | Le doc ne le dit pas. Facultatives, elles récompensent la curiosité ; obligatoires, elles rythment la mission mais peuvent bloquer |
-| Une enquête peut-elle **échouer définitivement** ? | La ligne du projet dit non ; le doc parle de fausses pistes « à corriger plus tard » |
+| Le déchiffrage se fait-il par glisser-déposer ? | **Oui**, comme le doc 10 le prévoit — la manipulation des signes fait partie de ce qu'on apprend |
+| Les énigmes secondaires sont-elles obligatoires ? | **Toutes les missions en portent**, mais **aucune n'est requise** pour finir la mission : elles récompensent la curiosité, elles ne bloquent jamais |
+| Une enquête peut-elle échouer définitivement ? | **Une secondaire, oui. Une principale, non** — elle se rejoue jusqu'à être résolue |
+
+Cette dernière décision est structurante : elle sépare nettement les deux
+familles d'enquêtes. Une enquête **principale** porte le fil rouge d'une
+mission, donc son échec définitif bloquerait la campagne — elle se rejoue, au
+prix des deux cycles de retard du doc 10. Une enquête **secondaire** peut se
+perdre pour de bon, et c'est ce qui donne du poids à une déduction : sans ce
+risque, conclure au hasard puis recommencer serait toujours la meilleure
+stratégie.
 
 #### Définition de « fini »
 

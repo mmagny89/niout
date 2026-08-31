@@ -16,6 +16,7 @@ use App\Game\AppelImpossible;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
+use App\Game\CleDeLecture;
 use App\Game\Commerce;
 use App\Game\CommerceImpossible;
 use App\Game\Culture;
@@ -47,6 +48,7 @@ use App\Game\RoleDExploration;
 use App\Game\Salaires;
 use App\Game\SensDEchange;
 use App\Game\SpecialiteDeChef;
+use App\Game\SymboleHieroglyphique;
 use App\Game\Temple;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
@@ -178,6 +180,13 @@ final class PartieController extends AbstractController
             'mecontentement' => $partie->getQuinzainesDeMecontentement(),
             'villeMecontente' => $mecontentement->pese($partie),
             'rendementDeLHumeur' => $mecontentement->rendementEnCentiemes($partie),
+            // La clé de lecture : elle ne s'affiche qu'une fois la Maison des
+            // scribes dressée — proposer l'écran d'un bâtiment qu'on n'a pas
+            // ferait une porte sur du vide.
+            'aUneMaisonDesScribes' => $ville->possede(TypeDeBatiment::MaisonDesScribes),
+            'cleDeLecture' => CleDeLecture::pour($ville),
+            'prochainSigne' => CleDeLecture::prochainSigne($ville),
+            'signesEnTout' => \count(SymboleHieroglyphique::cases()),
         ]);
     }
 

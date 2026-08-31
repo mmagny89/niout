@@ -607,6 +607,17 @@ peuplerait la ville gratuitement et rendrait l'appel d'habitants inutile. Les
 deux voies de peuplement butent d'ailleurs sur le même verrou :
 `manqueDeLogements()`.
 
+**Les hiéroglyphes du jeu sont vrais** (`SymboleHieroglyphique`, doc 10) : vrai
+code de Gardiner, vrai glyphe Unicode, glose fidèle. L'objectif pédagogique du
+doc 10 en dépend — un signe inventé pour les besoins d'une énigme trahirait le
+propos du projet. Ne jamais ajouter un signe sans son code ni son sens attesté.
+
+**La clé de lecture s'enrichit par deux voies, et une seule est persistée**
+(`CleDeLecture`) : ce que le **niveau** de la Maison des scribes ouvre se
+calcule (`4 + 2 × niveau`), ce qu'une **énigme** apprend se stocke. Quatre
+signes sont connus d'emblée — eau, homme, maison, marche — pour que la première
+énigme soit tentable avant d'avoir rien bâti.
+
 ## Deux coques, jamais une seule
 
 `base.html.twig` sert la **présentation** — accueil, inscription, compte,

@@ -11,6 +11,7 @@ use App\Game\PalierDeFaveur;
 use App\Game\Population;
 use App\Game\Ressource;
 use App\Game\Stockage;
+use App\Game\SymboleHieroglyphique;
 use App\Game\TypeDeBatiment;
 use App\Repository\CityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -726,6 +727,51 @@ class City
         }
 
         return $parFamille;
+    }
+
+    /**
+     * Les signes appris **par des énigmes**, hors de ce que le niveau de la
+     * Maison des scribes ouvre déjà (doc 10). Seuls ceux-là sont persistés :
+     * les autres se recalculent du niveau, et une colonne les recopierait pour
+     * rien.
+     *
+     * @var list<string>
+     */
+    #[ORM\Column(type: 'json')]
+    private array $symbolesAppris = [];
+
+    /**
+     * @return list<SymboleHieroglyphique>
+     */
+    public function symbolesAppris(): array
+    {
+        $appris = [];
+
+        foreach ($this->symbolesAppris as $cle) {
+            $symbole = SymboleHieroglyphique::tryFrom($cle);
+
+            if (null !== $symbole) {
+                $appris[] = $symbole;
+            }
+        }
+
+        return $appris;
+    }
+
+    /**
+     * Retient un signe. Rend vrai s'il apprend réellement quelque chose : un
+     * signe que le bâtiment ouvrait déjà n'est pas une récompense, et l'écran
+     * doit pouvoir le dire plutôt que de féliciter dans le vide.
+     */
+    public function apprendreUnSymbole(SymboleHieroglyphique $symbole): bool
+    {
+        if (\in_array($symbole->value, $this->symbolesAppris, true)) {
+            return false;
+        }
+
+        $this->symbolesAppris[] = $symbole->value;
+
+        return true;
     }
 
     public function estEnModeDivin(): bool
