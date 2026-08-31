@@ -60,7 +60,11 @@ parallèle : Hâpi pour la crue, Ptah pour bâtir vite, Sekhmet avant que la fi�
 ne passe. On les honore au Temple, en deben ou en marchandise — l'Égypte offrait
 ce qu'elle avait —, et c'est le seul geste du jeu sans contrepartie immédiate.
 Le Temple décide de tout : combien de dieux on peut porter haut, et jusqu'où.
-Ne rien offrir ne coûte rien ; c'est la négligence prolongée qui fâche.
+Ne rien offrir ne coûte rien ; c'est la négligence prolongée qui fâche — et
+même là, un dieu délaissé cesse de vous favoriser, il ne vous punit pas.
+Chacun agit à sa manière : Hâpi incline la crue de l'année, Ptah presse les
+chantiers, Osiris fait revenir les champs plus tôt, Amon-Rê attire le monde,
+Sobek raccourcit ce qui voyage par l'eau.
 
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la

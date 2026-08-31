@@ -69,9 +69,12 @@ final readonly class Chantiers
     public function avancerDUnCycle(GameSave $partie, ?Saison $saison): array
     {
         $evenements = [];
+        // Ptah presse les travaux : son bonus s'ajoute au facteur de saison,
+        // dans la même unité (lot 6.3).
+        $ptah = EffetDeFaveur::bonusDeChantier($partie->getVille());
 
         foreach ($partie->getVille()->getChantiers() as $chantier) {
-            $chantier->avancerDUnCycle($saison);
+            $chantier->avancerDUnCycle($saison, $ptah);
 
             if ($chantier->estAcheve()) {
                 $evenements[] = $this->achever($chantier);

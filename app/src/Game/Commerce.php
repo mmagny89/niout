@@ -450,11 +450,18 @@ final readonly class Commerce
     {
         $distance = $partenaire->distanceEnQuinzaines;
 
-        if (!EffetDeChef::chefSpecialise($ville, TypeDeBatiment::Entrepot, SpecialiteDeChef::EntrepotLogisticien, $cycle)) {
-            return $distance;
+        // Deux raccourcis possibles, et ils s'additionnent au lieu de se
+        // composer : le Logisticien connaît les relais, Sobek veille sur ce qui
+        // va par l'eau — et lui seul, une piste caravanière ne le regarde pas.
+        $raccourci = EffetDeFaveur::raccourciDeSobek($ville, $partenaire->route);
+
+        if (EffetDeChef::chefSpecialise($ville, TypeDeBatiment::Entrepot, SpecialiteDeChef::EntrepotLogisticien, $cycle)) {
+            $raccourci += EffetDeChef::RACCOURCI_DU_LOGISTICIEN;
         }
 
-        return max(1, $distance - intdiv($distance * EffetDeChef::RACCOURCI_DU_LOGISTICIEN, 100));
+        // Jamais sous une quinzaine : une route reste une route, et c'est la
+        // distance qui décide de la fréquence des convois.
+        return max(1, $distance - intdiv($distance * $raccourci, 100));
     }
 
     /**

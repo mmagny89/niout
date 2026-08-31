@@ -123,7 +123,13 @@ final readonly class Demographie
         $ville = $partie->getVille();
         $palier = $partie->getFamille()->palier();
 
-        if ($ville->manqueDeLogements() || $this->hasard->getInt(1, 100) > $palier->chanceDeMigrationSpontanee()) {
+        // Amon-Rê ajoute à ce que la renommée a ouvert, il ne l'ouvre pas :
+        // un dieu fait parler de vous, il ne vous rend pas célèbre à votre
+        // place (lot 6.3).
+        $chance = $palier->chanceDeMigrationSpontanee();
+        $chance += $chance > 0 ? EffetDeFaveur::bonusDeMigration($ville) : 0;
+
+        if ($ville->manqueDeLogements() || $this->hasard->getInt(1, 100) > $chance) {
             return [];
         }
 

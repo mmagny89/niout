@@ -64,4 +64,25 @@ enum QualiteDeCrue: string
             self::Forte->value => 20,
         ];
     }
+
+    /**
+     * Le cran au-dessus, s'il en existe un. Sert à Hâpi (lot 6.3) : un dieu
+     * dévoué rend la crue faible moins probable, il ne crée pas une crue que
+     * le Nil ne connaît pas.
+     */
+    public function cranAuDessus(): self
+    {
+        return match ($this) {
+            self::Faible => self::Normale,
+            self::Normale, self::Forte => self::Forte,
+        };
+    }
+
+    public function cranEnDessous(): self
+    {
+        return match ($this) {
+            self::Forte => self::Normale,
+            self::Normale, self::Faible => self::Faible,
+        };
+    }
 }
