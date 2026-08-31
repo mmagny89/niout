@@ -166,13 +166,13 @@ enum Inscription: string
      *
      * @return list<self>
      */
-    public static function disponiblesPour(City $ville): array
+    public static function disponiblesPour(City $ville, int $cycle = 0): array
     {
         $faites = $ville->inscriptionsDechiffrees();
         $disponibles = [];
 
         foreach (self::cases() as $inscription) {
-            if (\in_array($inscription, $faites, true) || !$inscription->estLisiblePar($ville)) {
+            if (\in_array($inscription, $faites, true) || !$inscription->estLisiblePar($ville, $cycle)) {
                 continue;
             }
 
@@ -182,10 +182,10 @@ enum Inscription: string
         return $disponibles;
     }
 
-    public function estLisiblePar(City $ville): bool
+    public function estLisiblePar(City $ville, int $cycle = 0): bool
     {
         foreach ($this->signes() as $signe) {
-            if (!CleDeLecture::sait($ville, $signe)) {
+            if (!CleDeLecture::sait($ville, $signe, $cycle)) {
                 return false;
             }
         }

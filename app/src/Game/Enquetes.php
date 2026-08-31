@@ -41,6 +41,19 @@ final readonly class Enquetes
     }
 
     /**
+     * Ce qu'une erreur coûte réellement. **Thot éclaire ce que les écrits
+     * dissimulent** (doc 07) : sous son regard, les scribes retrouvent le fil
+     * plus vite. Jamais nul pour autant — une erreur sans conséquence n'en
+     * serait plus une.
+     */
+    public static function retardDUneErreur(GameSave $partie): int
+    {
+        return $partie->getVille()->palierDe(Divinite::Thot)->estAuDessusDuNeutre()
+            ? 1
+            : self::RETARD_DUNE_ERREUR;
+    }
+
+    /**
      * Les dossiers ouverts, dans l'ordre où le joueur veut les lire : la
      * principale d'abord, elle porte le fil rouge.
      *
@@ -149,7 +162,7 @@ final readonly class Enquetes
             $partie->getVille()->crediterRessources([Ressource::Deben->value => $enquete->recompenseEnDeben()]);
             $partie->getFamille()->ajusterRenommee(1);
         } elseif ($enquete->estPrincipale()) {
-            $dossier->retarderJusquAu($partie->getCycle() + self::RETARD_DUNE_ERREUR);
+            $dossier->retarderJusquAu($partie->getCycle() + self::retardDUneErreur($partie));
         } else {
             $dossier->conclure(StatutDEnquete::Echouee);
         }

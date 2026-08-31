@@ -91,6 +91,21 @@ final readonly class EffetDeChef
     public const int REPIT_DUN_CHEF_PIEUX = 5;
 
     /**
+     * Ce que le **Déchiffreur** de la Maison des scribes ajoute à la clé de
+     * lecture (doc 03). Il lit des signes que le niveau du bâtiment n'ouvre
+     * pas encore : c'est ce que vaut un homme qui a passé sa vie sur les
+     * pierres. **Valeur inventée.**.
+     */
+    public const int SIGNES_DU_DECHIFFREUR = 2;
+
+    /**
+     * Ce que l'**Oraculaire** écarte : une mauvaise proposition, sur chaque
+     * question. Il ne donne pas la réponse — il resserre le doute, ce qui est
+     * exactement ce qu'un oracle faisait.
+     */
+    public const int PROPOSITIONS_ECARTEES_PAR_LORACULAIRE = 1;
+
+    /**
      * Combien de chefs **pieux** la ville emploie, tous bâtiments confondus.
      * Le trait n'est pas une spécialité du Temple : un contremaître dévot
      * fait dire les prières sur son chantier comme ailleurs.

@@ -35,9 +35,9 @@ final readonly class CleDeLecture
      *
      * @return list<SymboleHieroglyphique>
      */
-    public static function pour(City $ville): array
+    public static function pour(City $ville, int $cycle = 0): array
     {
-        $ouverts = self::ouvertsParLeBatiment($ville);
+        $ouverts = self::ouvertsParLeBatiment($ville, $cycle);
         $appris = $ville->symbolesAppris();
 
         $cle = [];
@@ -51,9 +51,9 @@ final readonly class CleDeLecture
         return $cle;
     }
 
-    public static function sait(City $ville, SymboleHieroglyphique $symbole): bool
+    public static function sait(City $ville, SymboleHieroglyphique $symbole, int $cycle = 0): bool
     {
-        return \in_array($symbole, self::pour($ville), true);
+        return \in_array($symbole, self::pour($ville, $cycle), true);
     }
 
     /**
@@ -61,7 +61,7 @@ final readonly class CleDeLecture
      * ouvre tous : on s'en sert justement pour éprouver une énigme sans jouer
      * les heures qui y mènent.
      */
-    public static function ouvertsParLeBatiment(City $ville): int
+    public static function ouvertsParLeBatiment(City $ville, int $cycle = 0): int
     {
         $total = \count(SymboleHieroglyphique::cases());
 
@@ -71,19 +71,51 @@ final readonly class CleDeLecture
 
         $niveau = $ville->batimentDeType(TypeDeBatiment::MaisonDesScribes)?->getNiveau() ?? 0;
 
-        return min($total, self::SIGNES_CONNUS_DEMBLEE + $niveau * self::SIGNES_PAR_NIVEAU);
+        return min(
+            $total,
+            self::SIGNES_CONNUS_DEMBLEE
+                + $niveau * self::SIGNES_PAR_NIVEAU
+                + self::signesDuDechiffreur($ville, $cycle)
+                + self::signesDeThot($ville),
+        );
+    }
+
+    /**
+     * Ce qu'un **Déchiffreur** en poste ajoute. Son effet n'est pas une
+     * production : il passe donc par `chefSpecialise()`, comme le Négociateur
+     * et le Dévot, jamais par la qualité de direction.
+     */
+    public static function signesDuDechiffreur(City $ville, int $cycle): int
+    {
+        return EffetDeChef::chefSpecialise($ville, TypeDeBatiment::MaisonDesScribes, SpecialiteDeChef::ScribesDechiffreur, $cycle)
+            ? EffetDeChef::SIGNES_DU_DECHIFFREUR
+            : 0;
+    }
+
+    /**
+     * **Thot éclaire les écrits** (doc 07) : sa faveur ouvre des signes que le
+     * bâtiment ne porte pas encore. C'est le canal par lequel il cesse d'être
+     * un dieu offrable et inerte.
+     */
+    public static function signesDeThot(City $ville): int
+    {
+        return match ($ville->palierDe(Divinite::Thot)) {
+            PalierDeFaveur::Devoue => 2,
+            PalierDeFaveur::Favorable => 1,
+            default => 0,
+        };
     }
 
     /**
      * Le prochain signe que la montée du bâtiment ouvrirait — ce que l'écran
      * montre pour donner une raison de bâtir. Nul quand la clé est complète.
      */
-    public static function prochainSigne(City $ville): ?SymboleHieroglyphique
+    public static function prochainSigne(City $ville, int $cycle = 0): ?SymboleHieroglyphique
     {
         $ordre = SymboleHieroglyphique::ordreDApprentissage();
 
         foreach ($ordre as $rang => $symbole) {
-            if ($rang >= self::ouvertsParLeBatiment($ville) && !\in_array($symbole, $ville->symbolesAppris(), true)) {
+            if ($rang >= self::ouvertsParLeBatiment($ville, $cycle) && !\in_array($symbole, $ville->symbolesAppris(), true)) {
                 return $symbole;
             }
         }

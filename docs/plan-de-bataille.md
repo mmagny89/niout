@@ -642,7 +642,7 @@ me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 | 7.4 | L'écran de déduction, et le droit de se tromper | ✅ |
 | 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | ✅ |
 | 7.6 | Le fil rouge en trois actes, sur la mission 1 | ✅ |
-| 7.7 | Les deux Scribes, et Thot qui cesse d'attendre | |
+| 7.7 | Les deux Scribes, et Thot qui cesse d'attendre | ✅ |
 | 7.8 | Les marchands rivaux, reportés de la Phase 5 | |
 
 #### 7.0 — La clé de lecture  ✅
@@ -853,15 +853,29 @@ livre donc la machinerie et un fil rouge complet pour la mission 1 ; la Phase 8
 la généralise. Écrire les dix fils rouges avant d'avoir joué le premier serait
 écrire dix fois la même erreur.
 
-#### 7.7 — Les deux Scribes, et Thot
+#### 7.7 — Les deux Scribes, et Thot  ✅
 
-`ScribesDechiffreur` et `ScribesOraculaire` dorment depuis le lot 4.2 en
+`ScribesDechiffreur` et `ScribesOraculaire` dormaient depuis le lot 4.2 en
 annonçant leur inertie. Ils se réveillent ici, par le canal des chefs dont
 l'effet n'est pas une production — celui du Négociateur et du Dévot, jamais la
 qualité de direction.
 
-**Thot** cesse du même coup d'être un dieu offrable et inerte. Il ne restera
-qu'Isis, et le trait « Bagarreur », tous deux pour la Phase 10.
+- Le **Déchiffreur** lit deux signes que le niveau du bâtiment n'ouvre pas
+  encore : c'est ce que vaut un homme qui a passé sa vie sur les pierres.
+- L'**Oraculaire** écarte une mauvaise proposition sur chaque question. Il ne
+  donne pas la réponse, **il resserre le doute** — ce qui est exactement ce
+  qu'un oracle faisait. L'écart se fait à l'affichage seulement : la bonne
+  réponse reste la bonne.
+
+**Thot** cesse du même coup d'être un dieu offrable et inerte, et par deux
+canaux : sa faveur **ouvre des signes** (un au palier Favorable, deux au
+Dévoué) et **abrège la reprise d'un dossier mal conclu** — de deux quinzaines
+à une, jamais à zéro : une erreur sans conséquence n'en serait plus une.
+
+**Ce qui dort encore, et rien d'autre** : Isis parmi les dieux, le trait
+« Bagarreur », l'Acheteur du Marché, les deux Instructeurs et le Commerçant
+naval. Un test verrouille la liste — elle doit rétrécir, jamais s'allonger en
+silence.
 
 #### 7.8 — Les marchands rivaux
 
