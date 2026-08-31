@@ -43,16 +43,20 @@ export default class extends Controller {
         return Math.min(1, dispo.width / largeur, dispo.height / hauteur);
     }
 
+    /** Au redimensionnement, on ne recalcule que si le joueur n'a rien choisi :
+     *  écraser son zoom parce qu'il a agrandi sa fenêtre serait le lui reprendre. */
     ajuster() {
-        this.appliquer(this.zoom ?? this.ajustement());
+        this.appliquer(this.facteurCourant());
     }
 
     approcher() {
-        this.appliquer((this.zoom ?? this.ajustement()) + this.pasValue);
+        this.zoom = this.facteurCourant() + this.pasValue;
+        this.appliquer(this.zoom);
     }
 
     eloigner() {
-        this.appliquer((this.zoom ?? this.ajustement()) - this.pasValue);
+        this.zoom = this.facteurCourant() - this.pasValue;
+        this.appliquer(this.zoom);
     }
 
     revenir() {
@@ -60,10 +64,17 @@ export default class extends Controller {
         this.appliquer(this.ajustement());
     }
 
+    facteurCourant() {
+        return this.zoom ?? this.ajustement();
+    }
+
     appliquer(facteur) {
         const borne = Math.min(this.maxValue, Math.max(this.minValue, facteur));
 
-        this.zoom = borne === this.ajustement() ? this.zoom : borne;
+        if (this.zoom !== null) {
+            this.zoom = borne;
+        }
+
         this.grilleTarget.style.transform = `scale(${borne})`;
 
         if (this.hasFacteurTarget) {

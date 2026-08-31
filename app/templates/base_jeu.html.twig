@@ -23,7 +23,7 @@
    défilement au moment précis où le joueur vient d'agir. #}
 {% block flashes %}
     {% set typesDeFlash = { 'succes': 'good', 'erreur': 'bad' } %}
-    <div class="pointer-events-none fixed inset-x-0 top-20 z-30 flex flex-col items-center gap-2 px-5">
+    <div class="pointer-events-none fixed inset-x-0 top-24 z-40 flex flex-col items-center gap-2 px-5">
         {% for type, style in typesDeFlash %}
             {% for message in app.flashes(type) %}
                 <div role="{{ style == 'bad' ? 'alert' : 'status' }}"

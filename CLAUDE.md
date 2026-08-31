@@ -615,6 +615,19 @@ Les messages flash y flottent au-dessus du contenu : un bandeau qui pousse la
 mise en page ferait apparaître une barre de défilement au moment précis où le
 joueur vient d'agir.
 
+**Tout ce qui ne défile pas est de la hauteur en moins.** Dans la coque du
+jeu, un bandeau fixe se paie sur le panneau ouvert — et s'il dépasse la
+fenêtre, le bas est coupé sans erreur ni avertissement, puisque la page ne
+défile pas. Un outil ou une explication longue prend donc un **onglet**, jamais
+une place fixe : c'est ce qui est arrivé au bloc du mode d'essai, qui mangeait
+à lui seul un tiers de l'écran.
+
+**La barre de jeu porte `relative z-50`, et ce n'est pas décoratif** : sans
+position ni z-index, elle ne crée aucun contexte d'empilement et ses volets
+déroulants passent **sous** le contenu de la page — sous la carte en
+particulier, dont le `transform: scale()` crée le sien. Un z-index ne
+s'applique qu'à un élément positionné.
+
 **Les compteurs sont rangés par famille** (`FamilleDeRessource`), chacune
 derrière un `<details>` natif — qui s'ouvre au clavier et ne coûte pas un
 contrôleur. C'est un **regroupement d'affichage seulement** : aucune règle du
