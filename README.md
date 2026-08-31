@@ -70,6 +70,15 @@ sur une ville qui déborde de son logement — une offrande à Sekhmet, dont les
 prêtres étaient les médecins de l'Égypte, en abrège le cours. Un chef pieux, où qu'il serve, fait entretenir les rites
 par sa maisonnée : la ville oublie ses dieux moins vite.
 
+**Écriture et énigmes** — la Maison des scribes porte une clé de lecture qui
+s'enrichit : vingt hiéroglyphes de la liste de Gardiner, avec leur vrai code et
+leur vrai sens. On remet les sens en face des signes gravés pour lire une
+inscription — les signes sont vrais, les combinaisons sont des rébus, jamais de
+l'égyptien. Ailleurs, des questions courtes : l'ibis de Thot, l'étoile qui
+annonce la crue, une devinette entendue à l'Auberge. On n'y répond qu'une fois,
+rien ne vous oblige à y répondre, et l'on apprend quelque chose même en se
+trompant.
+
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la
 traversée de la mer Rouge vers Pount. Ouvrir une route, c'est y envoyer une

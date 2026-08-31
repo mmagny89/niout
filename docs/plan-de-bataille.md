@@ -637,7 +637,7 @@ me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 |---|---|---|
 | 7.0 | La clé de lecture : vingt symboles, et la Maison des scribes qui les ouvre | ✅ |
 | 7.1 | Le déchiffrage : reconstituer une inscription | ✅ |
-| 7.2 | Devinettes, oracles et associations | |
+| 7.2 | Devinettes, oracles et associations | ✅ |
 | 7.3 | Le dossier d'enquête : collecter des indices | |
 | 7.4 | L'écran de déduction, et le droit de se tromper | |
 | 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | |
@@ -714,7 +714,7 @@ est une énigme qu'on cesse de tenter, ce qui est le contraire de l'objectif
 pédagogique. La pénalité de deux cycles du doc 10 vaut pour les **déductions
 d'enquête** (lot 7.4), pas pour la lecture d'une pierre.
 
-#### 7.2 — Devinettes, oracles et associations
+#### 7.2 — Devinettes, oracles et associations  ✅
 
 Trois formes courtes, toutes à choix multiples :
 
@@ -725,8 +725,32 @@ Trois formes courtes, toutes à choix multiples :
 - **L'association symbolique** : l'ibis et Thot, le chacal et Anubis, le faucon
   et Horus. C'est de l'iconographie réelle, et elle rejoint le panthéon de la
   Phase 6.
-- **La reconnaissance astronomique** : relier un décan à son mois. Réutilise le
+- **La reconnaissance astronomique** : Sopdet — Sirius — dont le lever
+  héliaque précédait la crue et ouvrait l'année, Sah — Orion — qui est Osiris
+  au ciel, et les trente-six décans qui servaient d'horloge. Réutilise le
   calendrier existant, sans le dupliquer.
+
+**Une seule tentative par énigme**, et c'est ce qui en fait des questions :
+avec quatre propositions et un droit de reprise, on essaie tout et il n'y a
+plus qu'un formulaire. C'est la contrepartie de leur caractère facultatif —
+elles ne bloquent rien, donc elles peuvent se perdre. La décision de la joueuse
+sur les enquêtes secondaires, appliquée à ce qui l'est aussi.
+
+**L'explication tombe dans les deux cas.** Le vrai gain d'une énigme est ce
+qu'elle apprend ; la récompense en deben passe. Une énigme ratée qui
+n'expliquerait rien punirait deux fois et n'enseignerait pas — le contraire de
+l'objet du doc 10.
+
+**Chaque énigme dit d'où elle vient** (`sourceAttestee()`) : d'après les
+sources, ou écrite dans leur esprit. Tout présenter comme antique tromperait ;
+tout présenter comme inventé effacerait ce qui est vrai.
+
+**Le lieu compte** : une devinette s'entend à l'Auberge, un oracle au Temple.
+L'Auberge trouve ici sa première raison d'exister.
+
+**Ce que ce lot ne fait pas encore** : la répartition des cinq à huit énigmes
+**par mission** (doc 10) suppose la campagne, donc la Phase 8. Le catalogue est
+pour l'instant commun, et se filtre par les bâtiments dressés.
 
 #### 7.3 — Le dossier d'enquête
 

@@ -631,6 +631,14 @@ ne pas défaire : on ne propose que ce que la ville sait entièrement lire, les
 jetons sont **mélangés au rendu** (sinon la réponse se lit dans la source), et
 une inscription ne se relit pas.
 
+**Une énigme à choix multiple ne se retente pas** (`Enigme`, `Enigmes`) : avec
+quatre propositions et un droit de reprise, on essaie tout et il ne reste
+qu'un formulaire. C'est la contrepartie de leur caractère facultatif — elles ne
+bloquent rien, donc elles peuvent se perdre. **L'explication tombe dans les
+deux cas** : le gain d'une énigme est ce qu'elle apprend, pas ce qu'elle
+rapporte. Et chaque énigme **dit d'où elle vient** (`sourceAttestee()`) —
+attestée ou écrite dans l'esprit des sources.
+
 **Une interaction se construit au clavier, puis se décore à la souris**
 (`dechiffrage_controller.js`) : le glisser-déposer appelle les mêmes actions
 que le clic, et rien ne passe par le seul `dragstart`. Aucun test fonctionnel
