@@ -77,7 +77,7 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `Building` | ✅ | Un bâtiment dressé : son type et son niveau | 01 |
 | `Chantier` | ✅ | Travaux en cours : niveau visé, durée, avancement | 01, 05 |
 | `Zone`, `Gisement` | ✅ | Une case de la carte d'exploration, ses filons | 02, 08 |
-| `Expedition` | ✅ | Un éclaireur en route vers une case | 04 |
+| `Expedition` | ✅ | Un éclaireur ou un émissaire en route vers une case | 04, 10 |
 | `StockDeRessource` | ✅ | Une ligne du stock de la ville (ressource → quantité), deben compris | 08 |
 | `Employee` | ✅ | Un chef en poste : compétence, salaire, spécialité, la maisonnée qu'il a amenée | 03, 05 |
 | `JobOffer` | ✅ | Une annonce affichée et son tirage de candidats, figé | 03 |
@@ -85,10 +85,13 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `RouteCommerciale` | ✅ | Une route ouverte vers un partenaire, et ce qu'on y échange | 12 |
 | `OrdreCommercial` | ✅ | Une ligne de l'étal : ressource, sens, prix, volume par convoi | 08, 12 |
 | `Convoi` | ✅ | Une caravane ou un navire en chemin, avec sa copie de l'échange | 12 |
-| … (Phase 6+) | — | Medjaÿ, faveur divine, énigmes | 03, 07, 10 |
+| `FaveurDivine` | ✅ | Ce qu'un dieu pense de la ville, et depuis quand on l'a négligé | 07 |
+| `DossierDEnquete` | ✅ | Une enquête en cours, ses indices versés, sa conclusion | 10 |
+| … (Phase 8+) | — | Medjaÿ, campagne, héritage | 03, 09, 13 |
 
 `Family`, `City` et tout ce qui s'y rattache (`Zone`, `Building`, `Chantier`,
-`Expedition`, `Employee`, `JobOffer`, `OrdreDeFabrication`, `RouteCommerciale`) sont détenus par leur `GameSave` : l'abandon d'une partie, comme
+`Expedition`, `Employee`, `JobOffer`, `OrdreDeFabrication`, `RouteCommerciale`,
+`FaveurDivine`, `DossierDEnquete`) sont détenus par leur `GameSave` : l'abandon d'une partie, comme
 la purge d'un compte, les emporte en cascade.
 
 **Couche de domaine.** Ce qui relève des règles du jeu plutôt que de la
@@ -113,7 +116,7 @@ vues, pas de la conception.
 | **4** | Population : recrutement, chefs et travailleurs | `01`, `02`, `03`, `05`, `13` | ✅ |
 | **5** | Artisanat et commerce | `08`, `12`, `01` | ✅ |
 | **6** | Faveur divine et événements | `07` | ✅ |
-| **7** | Énigmes, enquêtes et fil rouge | `10` | planifiée |
+| **7** | Énigmes, enquêtes et fil rouge | `10` | en cours — 8 lots sur 9 |
 | **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | à cadrer |
 | **9** | Renommée, héritage et succession familiale | `13` | à cadrer |
 | **10** | Medjaÿ et combat automatique | `03` | à cadrer |
@@ -553,8 +556,8 @@ offrande est un pari.
   d'échec** : la famine reste la seule cause de défaite.
 - **Une épidémie couche des bras, elle ne tue personne**, et passe par le canal
   existant du rendement d'effectif.
-- **Un dieu sans emploi le dit.** Il n'en reste que deux : Isis attend le
-  combat, Thot les énigmes.
+- **Un dieu sans emploi le dit.** Deux à la clôture de cette phase — Isis et
+  Thot ; le lot 7.7 a depuis réveillé le second.
 
 **Le partage des canaux, dieu par dieu**
 
@@ -594,7 +597,8 @@ offrande est un pari.
   l'hostilité une seconde source, aujourd'hui unique.
 - **Les choix moraux** alignés ou contraires à un domaine : ils supposent la
   narration du fil rouge, Phase 7.
-- **Isis et Thot** restent offrables et inertes, et le disent.
+- **Isis et Thot** restaient offrables et inertes, et le disaient. Thot a
+  trouvé son emploi au lot 7.7 ; il ne reste qu'Isis, pour la Phase 10.
 - **Les divinités au-delà des huit** : le doc les laisse ouvertes, on s'en tient
   aux huit attestées.
 - **Le barème d'offrande reste provisoire** — 30 deben pour amener un dieu au
@@ -629,8 +633,8 @@ jouant**, jamais par un encart documentaire.
 
 À la fin de la phase, on doit pouvoir raconter : *« une inscription trouvée sur
 une stèle mêle l'eau, la route et le danger ; ma clé de lecture me dit qu'un
-passage du fleuve est coupé. J'envoie un émissaire à l'Auberge, qui rapporte
-une rumeur contradictoire. Trois indices plus tard, je conclus — mal —, ce qui
+passage du fleuve est coupé. J'envoie un émissaire parler aux gens d'une case
+déjà reconnue, et il rapporte une rumeur qui contredit la première. Trois indices plus tard, je conclus — mal —, ce qui
 me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 
 | Lot | Contenu | |
@@ -934,7 +938,7 @@ tour, comme pour les précédentes.
 |---|---|---|
 | **8** — Campagne (`09`, `11`) | Les 10 missions, leurs objectifs, l'enchaînement | Prérequis de l'héritage commercial inter-missions (doc 12) |
 | **9** — Renommée et héritage (`13`) | Succession familiale, carnet de contacts | La renommée existe déjà et bouge ; c'est l'héritage entre parties qui manque |
-| **10** — Medjaÿ et combat (`03`) | Recrutement militaire, équipement, zones à bandits | Réveille le trait « Bagarreur », l'usage des armes de la Forge, et les rôles d'exploration autres que l'éclaireur |
+| **10** — Medjaÿ et combat (`03`) | Recrutement militaire, équipement, zones à bandits | Réveille le trait « Bagarreur », l'usage des armes de la Forge, et le Chef d'expédition, dernier rôle d'exploration sans emploi |
 | **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre |
 | **12** — Sprites (`15`) | Découpage et intégration des 18 planches | Hors planche « tuiles », déjà intégrée en Phase 3 |
 

@@ -32,7 +32,9 @@ d'Akhèt. Le calendrier pharaonique tourne, mois par mois et saison par saison.
 
 **Carte et territoire** — une carte isométrique générée à la création de la
 partie (Nil, Méditerranée, mer Rouge, désert, terre broussailleuse, oasis selon
-la région), révélée case par case par des éclaireurs. Une case reconnue peut
+la région), révélée case par case par des éclaireurs — un émissaire, lui, ne
+part que vers une case déjà reconnue, car on ne parle pas à des gens qu'on n'a
+pas trouvés. Une case reconnue peut
 porter un gisement à exploiter, une eau à pêcher une fois le Port dressé, ou un
 champ à semer ; les champs traversent quatre étapes — semis, pousse, récolte,
 repos — et ne nourrissent qu'à la récolte, sur le Nil comme en terre.
@@ -85,6 +87,12 @@ reconnue en rapporte d'autres, parfois contradictoires. Le dossier se remplit,
 et vient le moment de trancher — tout ne concourt pas, et rien ne vous dit ce
 qui égare. Se tromper sur l'affaire du fil rouge coûte deux quinzaines ; se
 tromper sur une autre l'enterre pour de bon.
+
+**Un fil rouge** — chaque mission raconte quelque chose. Au Delta, Ahmôsis Ier
+vient de chasser les Hyksôs et fait porter une tablette scellée : rouvrez le
+commerce. Une terre fertile que personne ne cultive vous arrête, il faut
+comprendre pourquoi ; et quand la route est reprise, on grave une stèle qu'il
+faut relire avant de la dresser.
 
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la

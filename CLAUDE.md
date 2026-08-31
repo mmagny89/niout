@@ -551,10 +551,12 @@ compte **dieu par dieu**, ce qui permet d'entretenir Ptah en laissant Sekhmet
 filer, et le journal de cycle ne raconte que le **changement de palier** : un
 message par dieu et par quinzaine noierait tout le reste.
 
-**Un dieu sans emploi le dit** (`Divinite::agitDeja()`, `attente()`) : Isis
-attend le combat, Thot les énigmes. Même règle que les spécialités de chef —
-promettre un effet qui ne s'applique nulle part tromperait le joueur au moment
-même où il choisit à qui donner.
+**Un dieu sans emploi le dit** (`Divinite::agitDeja()`, `attente()`) : il ne
+reste qu'**Isis**, qui attend le combat. Même règle que les spécialités de
+chef — promettre un effet qui ne s'applique nulle part tromperait le joueur au
+moment même où il choisit à qui donner. **Cette liste doit rétrécir, jamais
+s'allonger en silence** : un test la verrouille, dieux et spécialités
+ensemble.
 
 **Le mécontentement a deux causes et un seul mécanisme** (`Mecontentement`) :
 la faim et les salaires impayés mènent à la même colère, comptée une fois. Il
@@ -645,6 +647,21 @@ conclusion, et une enquête porte toujours au moins un indice qui n'en est pas.
 **Le joueur ne sait jamais lequel** — `NatureDIndice::libelleAffiche()` dit « à
 vérifier » pour une fausse piste comme pour un indice de contexte ; afficher la
 nature réelle résoudrait l'enquête à sa place.
+
+**Le Déchiffreur, l'Oraculaire et Thot ne passent pas par la qualité de
+direction** : leur effet n'est pas une production. Le **Déchiffreur** ouvre
+deux signes de plus que le niveau du bâtiment, **Thot** un ou deux selon son
+palier — les deux s'additionnent dans `CleDeLecture`. L'**Oraculaire** écarte
+une mauvaise proposition **à l'affichage seulement** : la validation continue
+d'accepter toutes les propositions du catalogue, une réponse écartée soumise à
+la main étant simplement fausse. Faire mentir le serveur sur ce qui est une
+réponse valide se paierait au premier écran qui l'oublierait.
+
+**La clé de lecture dépend d'un chef en poste, donc d'un cycle.**
+`CleDeLecture::pour()` et `Inscription::estLisiblePar()` prennent un cycle, par
+défaut `0` — sans cycle, aucun chef n'est en poste et aucun bonus ne
+s'applique. C'est le défaut sûr : un appel qui l'oublie sous-estime la clé, il
+ne l'invente pas.
 
 **L'acte d'un fil rouge se déduit, il ne se stocke pas** (`FilRouge::acte()`) :
 il découle de faits déjà vrais — l'inscription d'ouverture est-elle lue,
