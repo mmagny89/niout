@@ -527,7 +527,7 @@ et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
 | 6.3 | Ce que la faveur change réellement, branché sur l'existant | ✅ |
 | 6.4 | Les fêtes calendaires attestées | ✅ |
 | 6.5 | Bénédictions et malédictions ponctuelles | ✅ |
-| 6.6 | Les épidémies | |
+| 6.6 | Les épidémies | ✅ |
 | 6.7 | Le trait « Pieux » et la spécialité « Dévot » se réveillent | |
 
 #### 6.0 — Le panthéon et l'échelle de faveur  ✅
@@ -713,7 +713,7 @@ les divinités qu'on avait engagées — ne jamais mettre les pieds au Temple ne
 coûte toujours rien. Le piège d'`ajusterRenommee()`, resté inerte des mois
 durant faute d'une source, ne se repaie pas.
 
-#### 6.6 — Les épidémies
+#### 6.6 — Les épidémies  ✅
 
 Le doc 07 les rattache à Sekhmet, et l'ancrage est solide : ses prêtres, les
 *ouabou-Sekhmet*, étaient les médecins de l'Égypte — la déesse qui envoie la
@@ -726,11 +726,15 @@ naissances, il aura désormais aussi un coût quand la ville déborde par
 l'embauche.
 
 **Effet** : 20 à 40 % des bras indisponibles pendant 2 à 4 quinzaines —
-**malades, jamais morts**. Techniquement, c'est un retrait temporaire du vivier
-d'actifs, ce qui fait baisser le rendement d'effectif **par le canal existant**,
-sans multiplicateur nouveau. Vérifier alors que le plancher de 50 % tient
-toujours, et que la ville ne bascule pas en famine du seul fait d'une fièvre :
-c'est le risque de calibrage de ce lot.
+**malades, jamais morts**. C'est un retrait temporaire du vivier d'actifs, donc
+une baisse de rendement **par le canal existant**, sans multiplicateur nouveau :
+`EpidemiesTest` vérifie qu'aucun bâtiment ne descend sous le plancher de 50 %,
+fièvre comprise.
+
+**Un arrondi qui vidait le lot de sa substance** : 20 % de quatre actifs fait
+zéro. Toutes les villes de début de partie auraient reçu un message sans la
+moindre conséquence. La fièvre couche donc **au moins une paire de bras** tant
+qu'il y a quelqu'un — ce qui se sent d'autant plus qu'on en a peu.
 
 **Guérison** : Sekhmet favorable ou dévouée réduit la durée de moitié, et une
 offrande dédiée pendant l'épidémie en retire une quinzaine. C'est l'un des rares

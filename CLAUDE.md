@@ -510,6 +510,18 @@ elle, toute la branche « malédiction » serait du code mort — le piège
 d'`ajusterRenommee()` ne se repaie pas. Les quêtes ratées et les choix moraux
 du doc 07 ajouteront leurs sources aux Phases 7 et 8.
 
+**Une épidémie couche des bras, elle ne tue personne** (`Epidemies`, doc 07) :
+elle retire une part des actifs pour quelques quinzaines, puis les rend. Elle
+passe par le **canal existant** — le rendement d'effectif —, jamais par un
+multiplicateur de plus : c'est ce qui laisse tenir le plancher de 50 % du
+lot 4.5 même en pleine fièvre, et c'est mesuré. Deux points à ne pas défaire :
+elle couche **au moins une paire de bras** (20 % de quatre actifs fait zéro, et
+toute ville de début de partie aurait reçu un message sans conséquence), et
+**une offrande à Sekhmet l'abrège pendant qu'elle dure** — la déesse qui envoie
+la maladie est celle qui la guérit, ses prêtres étaient les médecins de
+l'Égypte. C'est l'un des rares événements du jeu sur lesquels on peut agir au
+lieu de les subir.
+
 **La négligence s'arrête au neutre** (`Negligence`, doc 07 : « décroissance
 lente et naturelle, pas de chute punitive ») : cinq quinzaines de grâce, puis
 un point par quinzaine, et **jamais sous `Divinite::FAVEUR_DE_DEPART`**. Seules

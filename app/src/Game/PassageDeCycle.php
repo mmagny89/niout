@@ -28,6 +28,7 @@ final readonly class PassageDeCycle
         private Mecontentement $mecontentement,
         private Negligence $negligence,
         private Providence $providence,
+        private Epidemies $epidemies,
         private DepartsNaturels $departs,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
@@ -47,11 +48,17 @@ final readonly class PassageDeCycle
         // dans la quinzaine qu'elle ouvre. La calculer après la production
         // reviendrait à faire travailler puis à ne pas payer, ce qui ne
         // laisserait au joueur aucune décision à prendre.
+        // La fièvre se résout **avant** la paie et la production : elle
+        // décide de combien de bras la quinzaine dispose, et il serait faux
+        // de faire travailler des gens que la maladie couche le même jour.
+        $fievre = $this->epidemies->avancerDUnCycle($partie);
+
         $paie = $this->salaires->reglerLaQuinzaine($partie);
 
         $subsistance = null;
 
         $evenements = [
+            ...$fievre,
             ...$paie->messages,
             ...$this->explorations->avancerDUnCycle($partie),
             ...$this->chantiers->avancerDUnCycle($partie, $saison),

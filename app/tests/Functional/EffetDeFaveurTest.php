@@ -202,17 +202,22 @@ final class EffetDeFaveurTest extends KernelTestCase
     }
 
     /**
-     * Sekhmet promettait d'écarter la fièvre alors qu'aucune fièvre ne court
-     * encore. Elle rejoint Isis et Thot parmi les dieux qui annoncent leur
-     * propre inertie, jusqu'au lot 6.6.
+     * Six dieux sur huit font désormais quelque chose. Les deux qui restent
+     * annoncent leur propre inertie : Isis attend le combat, Thot les
+     * énigmes — et **eux seuls**, sans quoi le panthéon promettrait à faux.
      */
-    public function testSekhmetAnnonceQuElleNagitPasEncore(): void
+    public function testSeulsIsisEtThotAnnoncentEncoreLeurInertie(): void
     {
-        self::assertFalse(Divinite::Sekhmet->agitDeja());
-        self::assertNotNull(Divinite::Sekhmet->attente());
+        foreach (Divinite::pantheon() as $divinite) {
+            if (\in_array($divinite, [Divinite::Isis, Divinite::Thot], true)) {
+                self::assertFalse($divinite->agitDeja());
+                self::assertNotNull($divinite->attente());
 
-        foreach ([Divinite::Hapi, Divinite::Ptah, Divinite::Osiris, Divinite::AmonRe, Divinite::Sobek] as $active) {
-            self::assertTrue($active->agitDeja(), \sprintf('%s agit depuis le lot 6.3.', $active->libelle()));
+                continue;
+            }
+
+            self::assertTrue($divinite->agitDeja(), \sprintf('%s agit.', $divinite->libelle()));
+            self::assertNull($divinite->attente(), \sprintf('%s n\'a plus rien à faire attendre.', $divinite->libelle()));
         }
     }
 
