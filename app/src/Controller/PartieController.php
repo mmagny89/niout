@@ -37,6 +37,7 @@ use App\Game\ExplorationImpossible;
 use App\Game\Explorations;
 use App\Game\Fabrication;
 use App\Game\FabricationImpossible;
+use App\Game\FilRouge;
 use App\Game\Inscription;
 use App\Game\LanceurDePartie;
 use App\Game\Marche;
@@ -203,6 +204,7 @@ final class PartieController extends AbstractController
             'prochainSigne' => CleDeLecture::prochainSigne($ville),
             'signesEnTout' => \count(SymboleHieroglyphique::cases()),
             'inscription' => $inscription,
+            'filRouge' => FilRouge::court($partie) ? FilRouge::acte($partie) : null,
             // Les jetons sont mélangés **au rendu** : les laisser dans l'ordre
             // gravé donnerait la réponse par la seule lecture du HTML.
             'melange' => $inscription instanceof Inscription ? $this->melanger($inscription) : [],

@@ -641,7 +641,7 @@ me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 | 7.3 | Le dossier d'enquête : collecter des indices | ✅ |
 | 7.4 | L'écran de déduction, et le droit de se tromper | ✅ |
 | 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | ✅ |
-| 7.6 | Le fil rouge en trois actes, sur la mission 1 | |
+| 7.6 | Le fil rouge en trois actes, sur la mission 1 | ✅ |
 | 7.7 | Les deux Scribes, et Thot qui cesse d'attendre | |
 | 7.8 | Les marchands rivaux, reportés de la Phase 5 | |
 
@@ -821,15 +821,31 @@ appris quelque chose serait pire que de l'avouer.
 Le `ChefDExpedition`, lui, reste sans emploi : il encadre une expédition lourde
 vers une mine éloignée, ce qui relève de la Phase 10.
 
-#### 7.6 — Le fil rouge, sur la mission 1
+#### 7.6 — Le fil rouge, sur la mission 1  ✅
 
 La structure en trois actes du doc 10, écrite **pour une seule mission** :
 
-- **Acte 1 — la commande du pharaon.** L'écran existe déjà (`commande.html.twig`).
-  Il se prolonge d'un déchiffrage simple, qui sert de tutoriel.
-- **Acte 2 — l'obstacle.** Une case d'événement révèle un problème local ; une
-  enquête complète le résout.
-- **Acte 3 — l'accomplissement.** Une énigme plus complexe clôt le fil.
+- **Acte I — la commande du pharaon.** Ahmôsis fait porter une tablette
+  scellée : trois signes, tous connus d'emblée. Le tutoriel du système ne peut
+  pas demander un bâtiment.
+- **Acte II — l'obstacle.** Une terre fertile que personne ne cultive.
+  L'enquête « Le passage coupé » la résout — celle qui se rejoue jusqu'à être
+  résolue, puisque son échec bloquerait la mission.
+- **Acte III — l'accomplissement.** Une stèle de cinq signes, qui demande une
+  Maison des scribes déjà montée.
+
+**L'acte se déduit, il ne se stocke pas.** Il découle de trois faits déjà
+vrais — la tablette est-elle lue, l'enquête est-elle résolue, la stèle
+est-elle relue. Une colonne « acte en cours » à tenir à jour finirait par
+diverger de ces trois faits, et cela ne se verrait qu'en partie.
+
+**On ne lit pas la conclusion avant l'obstacle** : la stèle finale est réservée
+à son acte. Et **ce que le roi attend passe avant le reste** : tant qu'une
+inscription du fil rouge est lisible et due, c'est elle qu'on propose.
+
+**Le fil rouge ne court que sur la mission qu'il raconte.** Ailleurs — les
+autres missions, le mode Aventure — ses inscriptions redeviennent ordinaires
+plutôt que de rester à jamais inaccessibles.
 
 **Une couture à assumer** : l'Acte 3 « déclenche la fin de la mission », or la
 fin de mission et l'enchaînement des dix relèvent de la **Phase 8**. La Phase 7

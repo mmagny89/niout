@@ -35,7 +35,20 @@ final readonly class Dechiffrage
      */
     public function proposition(GameSave $partie): ?Inscription
     {
-        return Inscription::disponiblesPour($partie->getVille())[0] ?? null;
+        // Ce que le roi attend passe avant le reste.
+        $duFilRouge = FilRouge::inscriptionDeLActe($partie);
+
+        if (null !== $duFilRouge && $duFilRouge->estLisiblePar($partie->getVille())) {
+            return $duFilRouge;
+        }
+
+        foreach (Inscription::disponiblesPour($partie->getVille()) as $inscription) {
+            if (FilRouge::inscriptionOuverte($partie, $inscription)) {
+                return $inscription;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -57,6 +70,11 @@ final readonly class Dechiffrage
 
         if (\in_array($inscription, $ville->inscriptionsDechiffrees(), true)) {
             throw new DechiffrageImpossible('Cette inscription est déjà lue.');
+        }
+
+        // On ne lit pas la conclusion avant l'obstacle.
+        if (!FilRouge::inscriptionOuverte($partie, $inscription)) {
+            throw new DechiffrageImpossible('Ce n\'est pas le moment de lire cette pierre-là.');
         }
 
         $attendu = array_map(
