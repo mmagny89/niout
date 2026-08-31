@@ -139,11 +139,57 @@ final class ErgonomieTest extends WebTestCase
         self::assertCount(3, $crawler->filter('[data-action^="carte#"]'), 'Approcher, éloigner, ajuster.');
     }
 
-    private function lancer(KernelBrowser $client, string $email): GameSave
+    /**
+     * **La barre de jeu passe au-dessus de tout.** Sans position ni z-index,
+     * elle ne crée aucun contexte d'empilement, et ses volets déroulants
+     * passaient sous le contenu — sous la carte mise à l'échelle en
+     * particulier, dont le `transform` crée le sien. Défaut réel, signalé.
+     */
+    public function testLaBarreDeJeuSEmpileAuDessusDuContenu(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'empilement@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+        $barre = $crawler->filter('header')->first()->attr('class') ?? '';
+
+        self::assertStringContainsString('relative', $barre, 'Un z-index ne s\'applique qu\'à un élément positionné.');
+        self::assertStringContainsString('z-50', $barre);
+    }
+
+    /**
+     * **Rien de haut ne reste fixe.** Tout ce qui ne défile pas est de la
+     * hauteur en moins pour le panneau ouvert : la ville n'a gardé au-dessus
+     * de ses onglets que son titre, une ligne de saison et ses alertes. Le
+     * mode d'essai, qui prenait à lui seul un tiers de l'écran, a pris un
+     * onglet.
+     */
+    public function testLeModeDessaiNeMangePlusLaHauteurDeLEcran(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'essai-onglet@example.com', divin: true);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        self::assertCount(1, $crawler->filter('#panneau-essai'), 'Le mode d\'essai est un onglet.');
+        self::assertCount(1, $crawler->filter('#onglet-essai'));
+        self::assertCount(1, $crawler->filter('#panneau-essai[hidden]'), 'Et il est fermé par défaut.');
+
+        // L'en-tête fixe ne porte plus le formulaire du mode d'essai.
+        $fixe = $crawler->filter('section > div')->first()->html();
+        self::assertStringNotContainsString('app_partie_divin', $fixe);
+        self::assertStringNotContainsString('Passer en partie d\'essai', $fixe);
+    }
+
+    private function lancer(KernelBrowser $client, string $email, bool $divin = false): GameSave
     {
         $user = new User();
         $user->setEmail($email);
         $user->setPassword('peu-importe-ici');
+
+        if ($divin) {
+            $user->setRoles([User::ROLE_DIVIN]);
+        }
 
         $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
         $gestionnaire->persist($user);

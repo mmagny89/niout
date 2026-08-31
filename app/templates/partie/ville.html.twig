@@ -32,7 +32,7 @@
         {# Une fièvre qui ne se voit pas est une production qui baisse sans
            raison apparente : elle s'annonce avant toute autre chose. #}
         {% if ville.estFrappeeParUneEpidemie %}
-            <p class="mt-6 rounded-sm border border-terre-600/50 bg-terre-500/10 px-5 py-3 text-sm text-encre-700">
+            <p class="mt-2 rounded-sm border border-terre-600/50 bg-terre-500/10 px-4 py-2 text-xs text-encre-700">
                 <span class="font-display text-lg text-encre-900">La fièvre est dans la ville.</span>
                 <span data-chiffres>{{ ville.malades }}</span> bras sur
                 <span data-chiffres>{{ ville.actifs }}</span> restent couchés, encore
@@ -44,56 +44,18 @@
             </p>
         {% endif %}
 
-        {# Les compteurs et la date vivent dans la barre de jeu. Reste ici ce
-           qu'elle ne dit pas : ce que la saison change concrètement. #}
-        <p class="mt-6 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-3 text-sm text-encre-600">
+        {# Ce que la barre de jeu ne dit pas : ce que la saison change
+           concrètement. Une ligne, pas un encadré — tout ce qui est fixe ici
+           est de la hauteur en moins pour le panneau ouvert. #}
+        <p class="mt-2 text-xs text-encre-500">
             {% if partie.dateDeJeu.saison %}
-                <strong class="text-encre-900">{{ partie.dateDeJeu.saison.libelle }}</strong>,
+                <strong class="text-encre-700">{{ partie.dateDeJeu.saison.libelle }}</strong>,
                 {{ partie.dateDeJeu.saison.sens }} — {{ partie.dateDeJeu.saison.description }}
             {% else %}
-                <strong class="text-encre-900">Hériou-renpèt</strong> — les cinq jours
-                « au-dessus de l'année », hors mois et hors saison. Une respiration
-                avant la crue suivante.
+                <strong class="text-encre-700">Hériou-renpèt</strong> — les cinq jours
+                « au-dessus de l'année », hors mois et hors saison.
             {% endif %}
         </p>
-
-        {# Une partie d'essai le dit en toutes lettres : elle ne doit jamais se
-           confondre avec une vraie. Le bouton n'existe que pour un compte qui
-           porte le rôle — la route le vérifie de son côté, l'absence
-           d'affichage n'étant pas une barrière. #}
-        {% if is_granted('ROLE_DIVIN') %}
-            <div class="mt-4 rounded-sm border border-lapis-500/40 bg-lapis-500/5 px-4 py-3 text-sm text-encre-700">
-                {% if partie.estEnModeDivin %}
-                    <strong class="text-encre-900">Partie d'essai.</strong>
-                    Un million de chaque ressource, aucun plafond de réserve.
-                    Rien de ce qui s'y passe ne vaut comme partie jouée.
-                {% else %}
-                    <strong class="text-encre-900">Partie ordinaire.</strong>
-                    Le mode d'essai comble les réserves et lève les plafonds,
-                    pour éprouver un système sans jouer les heures qui y mènent.
-                {% endif %}
-
-                <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}"
-                      class="mt-3 flex flex-wrap items-center gap-3">
-                    <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
-                    <input type="hidden" name="retour" value="app_partie_ville">
-                    <button type="submit"
-                            class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
-                        {{ partie.estEnModeDivin ? 'Revenir aux règles ordinaires' : 'Passer en partie d\'essai' }}
-                    </button>
-                    {% if partie.estEnModeDivin %}
-                        <button type="submit" name="combler" value="1"
-                                class="text-sm text-encre-500 underline hover:text-lapis-500">
-                            Recombler les réserves
-                        </button>
-                        <button type="submit" name="brouillard" value="1"
-                                class="text-sm text-encre-500 underline hover:text-lapis-500">
-                            Lever le brouillard
-                        </button>
-                    {% endif %}
-                </form>
-            </div>
-        {% endif %}
 
         {# Le mécontentement est une spirale : la subir sans la comprendre
            serait injuste. L'écran dit la cause et le remède. #}
@@ -146,6 +108,13 @@
                         data-onglets-target="onglet" data-onglet-actif="false"
                         data-action="onglets#choisir keydown->onglets#naviguer"
                         class="border-b-2 px-3 py-2 hover:text-terre-600">À bâtir</button>
+                {% if is_granted('ROLE_DIVIN') %}
+                    <button type="button" role="tab" id="onglet-essai"
+                            aria-controls="panneau-essai" aria-selected="false" tabindex="-1"
+                            data-onglets-target="onglet" data-onglet-actif="false"
+                            data-action="onglets#choisir keydown->onglets#naviguer"
+                            class="border-b-2 px-3 py-2 hover:text-terre-600">Essai</button>
+                {% endif %}
             </nav>
         </div>
 
@@ -795,5 +764,48 @@
         </ul>
 
         </div>
+
+        {% if is_granted('ROLE_DIVIN') %}
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+                 id="panneau-essai" aria-labelledby="onglet-essai" data-onglets-target="panneau" hidden>
+        {# Une partie d'essai le dit en toutes lettres : elle ne doit jamais se
+           confondre avec une vraie. Le bouton n'existe que pour un compte qui
+           porte le rôle — la route le vérifie de son côté, l'absence
+           d'affichage n'étant pas une barrière. #}
+        {% if is_granted('ROLE_DIVIN') %}
+            <div class="mt-4 rounded-sm border border-lapis-500/40 bg-lapis-500/5 px-4 py-3 text-sm text-encre-700">
+                {% if partie.estEnModeDivin %}
+                    <strong class="text-encre-900">Partie d'essai.</strong>
+                    Un million de chaque ressource, aucun plafond de réserve.
+                    Rien de ce qui s'y passe ne vaut comme partie jouée.
+                {% else %}
+                    <strong class="text-encre-900">Partie ordinaire.</strong>
+                    Le mode d'essai comble les réserves et lève les plafonds,
+                    pour éprouver un système sans jouer les heures qui y mènent.
+                {% endif %}
+
+                <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}"
+                      class="mt-3 flex flex-wrap items-center gap-3">
+                    <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
+                    <input type="hidden" name="retour" value="app_partie_ville">
+                    <button type="submit"
+                            class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                        {{ partie.estEnModeDivin ? 'Revenir aux règles ordinaires' : 'Passer en partie d\'essai' }}
+                    </button>
+                    {% if partie.estEnModeDivin %}
+                        <button type="submit" name="combler" value="1"
+                                class="text-sm text-encre-500 underline hover:text-lapis-500">
+                            Recombler les réserves
+                        </button>
+                        <button type="submit" name="brouillard" value="1"
+                                class="text-sm text-encre-500 underline hover:text-lapis-500">
+                            Lever le brouillard
+                        </button>
+                    {% endif %}
+                </form>
+            </div>
+        {% endif %}
+            </div>
+        {% endif %}
     </section>
 {% endblock %}
