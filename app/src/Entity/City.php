@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Game\CoutDeConstruction;
 use App\Game\Divinite;
 use App\Game\FamilleDeRessource;
+use App\Game\Inscription;
 use App\Game\PalierDeFaveur;
 use App\Game\Population;
 use App\Game\Ressource;
@@ -772,6 +773,43 @@ class City
         $this->symbolesAppris[] = $symbole->value;
 
         return true;
+    }
+
+    /**
+     * Les inscriptions déjà lues. Persistées : rien d'autre ne les
+     * retrouverait, et une inscription relue à l'infini rendrait sa récompense
+     * infinie avec elle.
+     *
+     * @var list<string>
+     */
+    #[ORM\Column(type: 'json')]
+    private array $inscriptionsDechiffrees = [];
+
+    /**
+     * @return list<Inscription>
+     */
+    public function inscriptionsDechiffrees(): array
+    {
+        $lues = [];
+
+        foreach ($this->inscriptionsDechiffrees as $cle) {
+            $inscription = Inscription::tryFrom($cle);
+
+            if (null !== $inscription) {
+                $lues[] = $inscription;
+            }
+        }
+
+        return $lues;
+    }
+
+    public function dechiffrer(Inscription $inscription): static
+    {
+        if (!\in_array($inscription->value, $this->inscriptionsDechiffrees, true)) {
+            $this->inscriptionsDechiffrees[] = $inscription->value;
+        }
+
+        return $this;
     }
 
     public function estEnModeDivin(): bool

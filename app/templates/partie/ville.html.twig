@@ -776,7 +776,91 @@
             <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
                  id="panneau-scribes" aria-labelledby="onglet-scribes" data-onglets-target="panneau" hidden>
 
-                <h2 class="text-2xl text-encre-900">Clé de lecture</h2>
+                {# L'inscription passe avant la clé : c'est ce qu'on vient
+                   faire ici, la clé n'est que l'outil. #}
+                {% if inscription %}
+                    <h2 class="text-2xl text-encre-900">Une inscription à lire</h2>
+                    <p class="mt-2 max-w-2xl text-sm text-encre-500">{{ inscription.provenance }}</p>
+
+                    <form method="post" action="{{ path('app_partie_dechiffrer', {id: partie.id}) }}"
+                          class="mt-4 max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5"
+                          data-controller="dechiffrage">
+                        <input type="hidden" name="_token" value="{{ csrf_token('dechiffrer') }}">
+                        <input type="hidden" name="inscription" value="{{ inscription.value }}">
+                        <input type="hidden" name="ordre" value="" data-dechiffrage-target="reponse">
+
+                        <p class="text-center font-display text-5xl leading-tight text-encre-900" aria-hidden="true">
+                            {%- for signe in inscription.signes %}{{ signe.signe }}{% endfor -%}
+                        </p>
+                        <p class="mt-1 text-center text-xs text-encre-500">
+                            <span data-chiffres>{{ inscription.signes|length }}</span> signes, gravés dans cet ordre.
+                        </p>
+
+                        <p class="mt-5 text-sm text-encre-600">
+                            Placez les sens dans l'ordre des signes. Cliquez un mot pour le
+                            poser, une case pour la vider — ou faites-les glisser.
+                        </p>
+
+                        <ol class="mt-3 flex flex-wrap justify-center gap-3 list-none p-0">
+                            {% for rang in 1..inscription.signes|length %}
+                                <li>
+                                    <button type="button" data-dechiffrage-target="case"
+                                            data-action="click->dechiffrage#retirer dragover->dechiffrage#survoler drop->dechiffrage#deposer"
+                                            aria-label="Case {{ rang }}, vide"
+                                            class="flex h-16 w-16 items-center justify-center rounded-sm border-2 border-dashed
+                                                   border-ocre-500/50 bg-sable-100 font-display text-3xl text-encre-900"></button>
+                                </li>
+                            {% endfor %}
+                        </ol>
+
+                        <ul class="mt-5 flex flex-wrap justify-center gap-2 list-none p-0"
+                            data-dechiffrage-target="reserve">
+                            {% for signe in melange %}
+                                <li>
+                                    <button type="button" draggable="true"
+                                            data-signe="{{ signe.value }}"
+                                            data-glyphe="{{ signe.signe }}"
+                                            data-libelle="{{ signe.libelle }}"
+                                            data-action="click->dechiffrage#placer dragstart->dechiffrage#prendre"
+                                            class="rounded-sm border border-ocre-500/40 bg-sable-100 px-3 py-2 text-sm
+                                                   text-encre-700 hover:bg-ocre-300/20">
+                                        {{ signe.libelle }}
+                                    </button>
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                        <div class="mt-5 text-center">
+                            <button type="submit" data-dechiffrage-target="valider" disabled
+                                    class="rounded-sm bg-terre-500 px-5 py-2 text-sm font-medium text-sable-50
+                                           hover:bg-terre-600 disabled:cursor-not-allowed disabled:opacity-40">
+                                Lire l'inscription
+                            </button>
+                        </div>
+                    </form>
+                {% elseif inscriptionsLues > 0 %}
+                    <h2 class="text-2xl text-encre-900">Rien à lire pour l'instant</h2>
+                    <p class="mt-2 max-w-2xl text-sm text-encre-500">
+                        Vos scribes ont lu tout ce qui leur est passé sous les yeux.
+                        De nouveaux signes ouvriront de nouvelles inscriptions.
+                    </p>
+                {% endif %}
+
+                {% if inscriptionsLues > 0 %}
+                    <h2 class="mt-8 text-2xl text-encre-900">Déjà lues</h2>
+                    <ul class="mt-3 space-y-2 list-none p-0">
+                        {% for lue in ville.inscriptionsDechiffrees %}
+                            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3 text-sm">
+                                <span class="font-display text-2xl align-middle" aria-hidden="true">
+                                    {%- for signe in lue.signes %}{{ signe.signe }}{% endfor -%}
+                                </span>
+                                <span class="ml-3 text-encre-700">{{ lue.lecture }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                <h2 class="mt-8 text-2xl text-encre-900">Clé de lecture</h2>
                 <p class="mt-2 max-w-2xl text-sm text-encre-500">
                     Les signes que vos scribes savent lire, tirés de la liste de
                     Gardiner — la classification de référence des hiéroglyphes.
