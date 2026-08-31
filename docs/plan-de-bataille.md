@@ -636,7 +636,7 @@ me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 | Lot | Contenu | |
 |---|---|---|
 | 7.0 | La clé de lecture : vingt symboles, et la Maison des scribes qui les ouvre | ✅ |
-| 7.1 | Le déchiffrage : reconstituer une inscription | |
+| 7.1 | Le déchiffrage : reconstituer une inscription | ✅ |
 | 7.2 | Devinettes, oracles et associations | |
 | 7.3 | Le dossier d'enquête : collecter des indices | |
 | 7.4 | L'écran de déduction, et le droit de se tromper | |
@@ -679,16 +679,40 @@ fidèle. Un test garde l'ensemble — codes bien formés, uniques, vingt signes.
 plafonne la Maison des scribes bien en deçà du huitième niveau. La clé complète
 est une affaire de campagne, comme le craft de luxe.
 
-#### 7.1 — Le déchiffrage
+#### 7.1 — Le déchiffrage  ✅
 
-Une inscription de 3 à 6 symboles, à reconstituer. Le doc 10 tranche l'interface :
-**glisser-déposer** pour le déchiffrage — la manipulation physique des signes
-fait partie de ce qu'on apprend —, texte à choix pour tout le reste.
+Les signes sont gravés dans leur ordre ; le joueur remet **les sens** en face,
+dans cet ordre-là. C'est ce qui fait apprendre la clé plutôt que de la
+consulter.
 
-Le glisser-déposer est le premier écran du jeu à demander une vraie interaction
-client. Il passe par un **contrôleur Stimulus**, jamais par du JS applicatif
-écrit à la main, et doit rester **utilisable au clavier** : un jeu qui
-n'enseigne qu'à la souris n'enseigne pas à tout le monde.
+**Le clavier d'abord, le glisser-déposer par-dessus.** Toute la mécanique passe
+par deux gestes — placer un sens, retirer un sens — et le glisser-déposer ne
+fait qu'appeler ces mêmes actions. Une interaction bâtie autour du seul
+`dragstart` est inutilisable au clavier, et **aucun test fonctionnel ne le
+signalerait** : la parade est une assertion de structure sur les actions
+portées par chaque bouton.
+
+**Ce qui est vrai et ce qui est du jeu, dit nettement.** Les signes et leurs
+sens sont réels ; les **combinaisons** sont du jeu — des indices en rébus,
+comme l'exemple du doc 10 (« eau + route + danger »), jamais des phrases
+d'égyptien. La distinction dit au joueur ce qu'il apprend vraiment, et ce qu'il
+ne doit pas croire avoir appris.
+
+**Trois garde-fous** : on ne propose que ce que la ville sait entièrement lire
+(une énigme dont un signe manque est un mur), les jetons sont **mélangés au
+rendu** (sinon la réponse se lit dans la source de la page), et une inscription
+ne se relit pas — sa récompense serait sinon infinie.
+
+**Réussir apprend un signe de plus** : c'est la seconde voie du doc 10, et elle
+referme la boucle du lot 7.0 — on lit ce qu'on sait, et lire fait savoir
+davantage. C'est aussi ce qui permet à une ville dont la Maison des scribes
+plafonne, comme au Delta, de continuer d'apprendre.
+
+**Se tromper ne coûte rien** : ni ressource, ni cycle, et l'inscription reste à
+tenter. Le coût d'une énigme est le temps qu'on y passe — une énigme qui punit
+est une énigme qu'on cesse de tenter, ce qui est le contraire de l'objectif
+pédagogique. La pénalité de deux cycles du doc 10 vaut pour les **déductions
+d'enquête** (lot 7.4), pas pour la lecture d'une pierre.
 
 #### 7.2 — Devinettes, oracles et associations
 

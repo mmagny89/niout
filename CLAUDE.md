@@ -618,6 +618,25 @@ calcule (`4 + 2 × niveau`), ce qu'une **énigme** apprend se stocke. Quatre
 signes sont connus d'emblée — eau, homme, maison, marche — pour que la première
 énigme soit tentable avant d'avoir rien bâti.
 
+**Les signes sont vrais, les combinaisons sont du jeu** (`Inscription`) : une
+inscription est un **indice en rébus**, jamais une phrase d'égyptien — la
+langue a une grammaire, des phonogrammes et des déterminatifs que le jeu
+n'enseigne pas. Dire lequel des deux on manipule évite de faire croire au
+joueur qu'il apprend à lire l'égyptien.
+
+**Une énigme ne punit jamais** (décision de la joueuse) : se tromper ne coûte
+ni ressource ni cycle. Les deux cycles de retard du doc 10 valent pour une
+**déduction d'enquête**, pas pour la lecture d'une pierre. Trois garde-fous à
+ne pas défaire : on ne propose que ce que la ville sait entièrement lire, les
+jetons sont **mélangés au rendu** (sinon la réponse se lit dans la source), et
+une inscription ne se relit pas.
+
+**Une interaction se construit au clavier, puis se décore à la souris**
+(`dechiffrage_controller.js`) : le glisser-déposer appelle les mêmes actions
+que le clic, et rien ne passe par le seul `dragstart`. Aucun test fonctionnel
+n'exécute le JavaScript — la parade est une assertion de structure sur les
+actions portées par chaque bouton.
+
 ## Deux coques, jamais une seule
 
 `base.html.twig` sert la **présentation** — accueil, inscription, compte,

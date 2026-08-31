@@ -21,6 +21,8 @@ use App\Game\Commerce;
 use App\Game\CommerceImpossible;
 use App\Game\Culture;
 use App\Game\DateDeJeu;
+use App\Game\Dechiffrage;
+use App\Game\DechiffrageImpossible;
 use App\Game\Divinite;
 use App\Game\Effectifs;
 use App\Game\ExploitationImpossible;
@@ -29,6 +31,7 @@ use App\Game\ExplorationImpossible;
 use App\Game\Explorations;
 use App\Game\Fabrication;
 use App\Game\FabricationImpossible;
+use App\Game\Inscription;
 use App\Game\LanceurDePartie;
 use App\Game\Marche;
 use App\Game\Mecontentement;
@@ -155,8 +158,12 @@ final class PartieController extends AbstractController
         Mecontentement $mecontentement,
         Fabrication $fabrication,
         Commerce $commerce,
+        Dechiffrage $dechiffrage,
     ): Response {
         $ville = $partie->getVille();
+        $inscription = $ville->possede(TypeDeBatiment::MaisonDesScribes)
+            ? $dechiffrage->proposition($partie)
+            : null;
 
         return $this->render('partie/ville.html.twig', [
             'partie' => $partie,
@@ -187,6 +194,11 @@ final class PartieController extends AbstractController
             'cleDeLecture' => CleDeLecture::pour($ville),
             'prochainSigne' => CleDeLecture::prochainSigne($ville),
             'signesEnTout' => \count(SymboleHieroglyphique::cases()),
+            'inscription' => $inscription,
+            // Les jetons sont mélangés **au rendu** : les laisser dans l'ordre
+            // gravé donnerait la réponse par la seule lecture du HTML.
+            'melange' => $inscription instanceof Inscription ? $this->melanger($inscription) : [],
+            'inscriptionsLues' => \count($ville->inscriptionsDechiffrees()),
         ]);
     }
 
@@ -516,6 +528,54 @@ final class PartieController extends AbstractController
         } catch (AppelImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Soumet une lecture d'inscription.
+     *
+     * **Se tromper ne coûte rien** (décision de la joueuse) : ni ressource, ni
+     * cycle. Le coût d'une énigme est le temps qu'on y passe — une énigme qui
+     * punit est une énigme qu'on cesse de tenter.
+     */
+    #[Route('/{id}/scribes/dechiffrer', name: 'app_partie_dechiffrer', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function dechiffrer(Request $request, GameSave $partie, Dechiffrage $dechiffrage): Response
+    {
+        if (!$this->isCsrfTokenValid('dechiffrer', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $inscription = Inscription::tryFrom((string) $request->request->get('inscription'));
+
+        if (null === $inscription) {
+            throw $this->createNotFoundException('Inscription inconnue.');
+        }
+
+        $ordre = array_values(array_filter(explode(',', (string) $request->request->get('ordre'))));
+
+        try {
+            $lecture = $dechiffrage->verifier($partie, $inscription, $ordre);
+        } catch (DechiffrageImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+
+            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        }
+
+        if (!$lecture['juste']) {
+            $this->addFlash('erreur', 'Ce n\'est pas ce que disent ces signes. Reprenez la clé et recommencez.');
+
+            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        }
+
+        $this->addFlash('succes', \sprintf(
+            '« %s » %s',
+            $inscription->lecture(),
+            null === $lecture['apprend']
+                ? 'Vos scribes n\'apprennent rien de neuf : ils lisent déjà tout.'
+                : \sprintf('Vos scribes apprennent un signe de plus : %s.', $lecture['apprend']->libelle()),
+        ));
 
         return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
     }
@@ -925,6 +985,21 @@ final class PartieController extends AbstractController
         }
 
         return null;
+    }
+
+    /**
+     * Les signes d'une inscription, mélangés pour le rendu. Le tirage n'a
+     * aucune conséquence de jeu : il empêche seulement de lire la réponse dans
+     * l'ordre du HTML.
+     *
+     * @return list<SymboleHieroglyphique>
+     */
+    private function melanger(Inscription $inscription): array
+    {
+        $signes = $inscription->signes();
+        shuffle($signes);
+
+        return $signes;
     }
 
     /**
