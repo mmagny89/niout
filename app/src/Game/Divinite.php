@@ -91,7 +91,10 @@ enum Divinite: string
             self::Hapi => 'Incline la crue de l\'année vers la générosité.',
             self::Osiris => 'Fait rendre davantage aux champs, de Perèt à Chémou.',
             self::Ptah => 'Abrège les chantiers.',
-            self::Sobek => 'Veille sur la pêche et sur ce qui voyage par l\'eau.',
+            // Pas la pêche : elle passe déjà par la qualité de direction du
+            // Port, et un second multiplicateur sur la même chaîne est ce que
+            // le lot 4.5 a fait retirer. Sobek s'en tient à la navigation.
+            self::Sobek => 'Raccourcit les trajets de ce qui voyage par l\'eau.',
             self::Sekhmet => 'Écarte la fièvre, et l\'abrège quand elle a pris.',
             self::Isis => 'Protège les combattants et referme leurs blessures.',
             self::Thot => 'Éclaire les écrits et ce qu\'ils dissimulent.',
@@ -117,7 +120,8 @@ enum Divinite: string
     /**
      * Un dieu dont le domaine n'existe pas encore dans le jeu **le dit**.
      *
-     * Isis attend le combat (Phase 10), Thot les énigmes (Phase 7). Ils sont
+     * Isis attend le combat (Phase 10), Thot les énigmes (Phase 7), Sekhmet
+     * les épidémies (lot 6.6). Ils sont
      * offrables — le panthéon serait faux sans eux —, mais promettre un effet
      * qui ne s'applique nulle part tromperait le joueur au moment même où il
      * choisit à qui donner. Même règle que `SpecialiteDeChef::agitDeja()`.
@@ -125,7 +129,7 @@ enum Divinite: string
     public function agitDeja(): bool
     {
         return match ($this) {
-            self::Isis, self::Thot => false,
+            self::Isis, self::Thot, self::Sekhmet => false,
             default => true,
         };
     }
@@ -137,6 +141,7 @@ enum Divinite: string
     {
         return match ($this) {
             self::Isis => 'Aucune bataille ne se livre encore : sa protection attend les Medjaÿ.',
+            self::Sekhmet => 'Aucune fièvre ne court encore sur la ville : sa clémence attend les épidémies.',
             self::Thot => 'Aucun texte ne résiste encore : sa sagesse attend la Maison des scribes.',
             default => null,
         };

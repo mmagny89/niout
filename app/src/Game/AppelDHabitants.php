@@ -40,7 +40,12 @@ final readonly class AppelDHabitants
      */
     public function cout(GameSave $partie): int
     {
-        return $partie->getFamille()->palier()->coutDAppel();
+        $plein = $partie->getFamille()->palier()->coutDAppel();
+        // Amon-Rê fait parler de la famille au loin : on insiste moins, donc
+        // on paie moins (lot 6.3). Jamais gratuit — un appel reste un voyage.
+        $remise = EffetDeFaveur::remiseSurLAppel($partie->getVille());
+
+        return max(1, $plein - intdiv($plein * $remise, 100));
     }
 
     /**

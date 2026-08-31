@@ -93,7 +93,9 @@ final readonly class PassageDeCycle
         if ($partie->dateDeJeu()->ouvreUneAnnee()) {
             // La crue est annoncée avant qu'on ait à semer : c'est un aléa
             // qu'on subit, pas une surprise de moisson.
-            $crue = $this->crues->tirer();
+            // Hâpi n'ajoute pas un facteur à la récolte : il infléchit le
+            // tirage, d'un cran, dans un sens ou dans l'autre (lot 6.3).
+            $crue = EffetDeFaveur::crueInflechie($partie->getVille(), $this->crues->tirer());
             $partie->annoncerLaCrue($crue);
             $evenements[] = \sprintf('La crue de cette année est %s. %s', $crue->libelle(), $crue->presage());
 

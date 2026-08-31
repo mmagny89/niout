@@ -468,6 +468,22 @@ qui ne vaut pas un point est **refusée** plutôt qu'encaissée pour rien, et un
 faveur déjà au plafond du Temple refuse l'offrande au lieu de la gaspiller en
 silence.
 
+**La faveur n'ajoute jamais un multiplicateur à une chaîne qui en a déjà un**
+(`EffetDeFaveur`) — c'est la discipline du lot 6.3, héritée du double comptage
+retiré au lot 4.5. Là où un facteur existe, elle **déplace ce qui l'alimente** :
+Hâpi infléchit le tirage de la crue et non la récolte, Ptah **s'ajoute** au
+facteur de saison des chantiers dans la même unité, Osiris raccourcit la
+**jachère** d'un champ plutôt que d'en grossir la gerbe. Là où aucun facteur
+n'existe, elle agit directement : Amon-Rê sur l'attractivité, Sobek sur les
+trajets **par eau seulement** — la pêche passerait par la qualité de direction
+du Port, ce serait le multiplicateur de trop, et c'est pourquoi l'effet annoncé
+de Sobek a été réduit à la navigation.
+
+**Un dieu favorable ne pénalise jamais une production** : l'hostilité se paie
+par une crue moins généreuse ou par la fièvre, jamais par un malus de
+rendement. Deux malus qui se multiplient sont ce qui a fait tomber la chaîne
+alimentaire à 25 % au lot 4.4.
+
 **La négligence s'arrête au neutre** (`Negligence`, doc 07 : « décroissance
 lente et naturelle, pas de chute punitive ») : cinq quinzaines de grâce, puis
 un point par quinzaine, et **jamais sous `Divinite::FAVEUR_DE_DEPART`**. Seules

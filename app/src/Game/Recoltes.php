@@ -213,7 +213,11 @@ final readonly class Recoltes
                 // Le compteur vient d'avancer : la quinzaine qui s'achève est
                 // donc celle d'avant, seule pertinente pour ce qui vient de
                 // mûrir.
-                : CycleAgricoleTerrestre::pourUneQuinzaine(($zone->getQuinzainesDepuisSemis() ?? 1) - 1);
+                : CycleAgricoleTerrestre::pourUneQuinzaine(
+                    ($zone->getQuinzainesDepuisSemis() ?? 1) - 1,
+                    // Osiris ne fait pas rendre plus, il fait revenir plus tôt.
+                    EffetDeFaveur::jachereRaccourcie($partie->getVille()),
+                );
 
             if ($quantite <= 0) {
                 continue;

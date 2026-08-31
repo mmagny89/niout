@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Game\ContenuDeZone;
 use App\Game\Culture;
 use App\Game\CycleAgricoleTerrestre;
+use App\Game\EffetDeFaveur;
 use App\Game\EtapeDeChamp;
 use App\Game\RendementDesChamps;
 use App\Game\Ressource;
@@ -302,7 +303,10 @@ class Zone
 
         return TypeDeTerrain::Nil === $this->terrain
             ? RendementDesChamps::etape($saisonActuelle, $rangDansLaSaison)
-            : CycleAgricoleTerrestre::etape($this->quinzainesDepuisSemis ?? 0);
+            : CycleAgricoleTerrestre::etape(
+                $this->quinzainesDepuisSemis ?? 0,
+                EffetDeFaveur::jachereRaccourcie($this->ville),
+            );
     }
 
     public function decouvrir(): static

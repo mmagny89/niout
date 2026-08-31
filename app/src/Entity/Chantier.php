@@ -96,12 +96,27 @@ class Chantier
      * Fait avancer les travaux d'un cycle, accéléré si la crue mobilise la
      * main-d'œuvre paysanne.
      */
-    public function avancerDUnCycle(?Saison $saison): static
+    public function avancerDUnCycle(?Saison $saison, int $faveurEnCentiemes = 0): static
     {
-        $facteur = $saison?->facteurDAvancementDesChantiers() ?? 1.0;
-        $this->avancementEnDixiemes += (int) round(self::DIXIEMES_PAR_CYCLE * $facteur);
+        $this->avancementEnDixiemes += self::avancementDUneQuinzaine($saison, $faveurEnCentiemes);
 
         return $this;
+    }
+
+    /**
+     * Ce qu'une quinzaine fait gagner, en dixièmes de cycle.
+     *
+     * Le facteur de saison et celui de Ptah **s'additionnent** dans la même
+     * unité, au lieu de se multiplier : deux facteurs multipliés sur la même
+     * chaîne sont précisément ce que le lot 4.5 a fait retirer. Le tout est
+     * compté en centièmes, jamais en flottants — un chantier bloqué à un
+     * cheveu de son terme est le défaut que la règle évite.
+     */
+    private static function avancementDUneQuinzaine(?Saison $saison, int $faveurEnCentiemes): int
+    {
+        $facteur = (int) round(100 * ($saison?->facteurDAvancementDesChantiers() ?? 1.0)) + $faveurEnCentiemes;
+
+        return intdiv(self::DIXIEMES_PAR_CYCLE * $facteur, 100);
     }
 
     public function estAcheve(): bool
@@ -147,15 +162,14 @@ class Chantier
      *
      * @return list<array{etape: EtapeDeChantier, etat: EtatDEtape, numero: int}>
      */
-    public function etapes(?Saison $saison = null): array
+    public function etapes(?Saison $saison = null, int $faveurEnCentiemes = 0): array
     {
         $etapes = $this->type->etapesDeChantier();
         $total = $this->dureeEnCycles * self::DIXIEMES_PAR_CYCLE;
         $parEtape = $total / \count($etapes);
 
-        $facteur = $saison?->facteurDAvancementDesChantiers() ?? 1.0;
         $debutDeLaQuinzaine = $this->avancementEnDixiemes;
-        $finDeLaQuinzaine = $debutDeLaQuinzaine + (int) round(self::DIXIEMES_PAR_CYCLE * $facteur);
+        $finDeLaQuinzaine = $debutDeLaQuinzaine + self::avancementDUneQuinzaine($saison, $faveurEnCentiemes);
 
         $rendu = [];
 

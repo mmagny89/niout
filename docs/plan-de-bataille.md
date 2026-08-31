@@ -524,7 +524,7 @@ et la fièvre a pris un quart de mes bras pendant deux quinzaines. »*
 | 6.0 | Le panthéon : huit divinités, leurs domaines, l'échelle de faveur | ✅ |
 | 6.1 | Le Temple : offrir, et ce que le niveau autorise | ✅ |
 | 6.2 | La négligence : décroissance vers le neutre, jamais en dessous | ✅ |
-| 6.3 | Ce que la faveur change réellement, branché sur l'existant | |
+| 6.3 | Ce que la faveur change réellement, branché sur l'existant | ✅ |
 | 6.4 | Les fêtes calendaires attestées | |
 | 6.5 | Bénédictions et malédictions ponctuelles | |
 | 6.6 | Les épidémies | |
@@ -609,7 +609,7 @@ Le journal de cycle ne raconte que le **changement de palier**, jamais le point
 perdu : un message par dieu et par quinzaine noierait tout le reste. L'écran du
 Temple, lui, prévient dès que la décroissance a commencé.
 
-#### 6.3 — Ce que la faveur change
+#### 6.3 — Ce que la faveur change  ✅
 
 Le lot central, et le plus exposé. **L'invariant du lot 4.5 s'applique
 entièrement** : avant de brancher un effet, vérifier ce qui multiplie déjà cette
@@ -626,10 +626,29 @@ s'ajoute au facteur de saison déjà en place.
 la sécurité des convois (Sobek). Ceux-là peuvent recevoir un effet propre.
 
 **Ce qui n'a pas encore de système** — Thot attend les énigmes (Phase 7), Isis
-attend le combat (Phase 10). Ils sont dans le panthéon, offrables, et **le
-disent en toutes lettres à l'écran**, exactement comme `SpecialiteDeChef::agitDeja()`.
-Promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment
-même où il choisit à qui donner.
+le combat (Phase 10), **Sekhmet les épidémies du lot 6.6**. Ils sont dans le
+panthéon, offrables, et **le disent en toutes lettres à l'écran**, exactement
+comme `SpecialiteDeChef::agitDeja()`. Promettre un bonus qui ne s'applique
+nulle part tromperait le joueur au moment même où il choisit à qui donner —
+Sekhmet le faisait depuis le lot 6.0, c'est corrigé ici.
+
+**Le partage, dieu par dieu** (`EffetDeFaveur`) :
+
+| Dieu | Canal | Pourquoi celui-là |
+|---|---|---|
+| Hâpi | Infléchit le **tirage de la crue**, d'un cran | La récolte a déjà son modificateur de crue ; on déplace ce qui l'alimente |
+| Ptah | **S'ajoute** au facteur de saison des chantiers | Même unité, donc addition et non composition de deux facteurs |
+| Osiris | **Raccourcit la jachère** d'un champ terrestre | Le dieu du grain qui meurt et renaît agit sur le cycle, pas sur la gerbe : la récolte revient plus tôt, elle n'est pas plus grosse |
+| Amon-Rê | Allège l'**appel d'habitants**, ajoute à la migration spontanée | L'attractivité n'a aucun multiplicateur ; il ajoute à ce que la renommée a ouvert, il ne l'ouvre pas |
+| Sobek | Raccourcit les **trajets par eau**, jamais sous une quinzaine | La pêche passerait par la qualité de direction du Port : ce serait le second multiplicateur interdit. Son effet a été **réduit à ce qu'il fait vraiment** |
+
+**Un dieu favorable ne pénalise jamais une production.** L'hostilité se paie
+autrement — une crue moins généreuse, la fièvre au lot 6.6 —, jamais par un
+malus de rendement : deux malus qui se multiplient sont exactement ce qui a
+fait tomber la chaîne alimentaire à 25 % au lot 4.4.
+
+**Un flottant retiré au passage** : l'avancement d'un chantier composait un
+`float` de saison ; il se compte désormais en centièmes, comme le reste.
 
 #### 6.4 — Les fêtes calendaires
 

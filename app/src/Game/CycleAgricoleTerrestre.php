@@ -28,12 +28,26 @@ final readonly class CycleAgricoleTerrestre
     public const int DUREE_TOTALE = self::DUREE_SEMIS + self::DUREE_POUSSE + self::DUREE_RECOLTE + self::DUREE_REPOS;
 
     /**
+     * Le cycle sous le regard d'Osiris : la jachère saute, le champ revient
+     * plus tôt (lot 6.3). **Le dieu du grain qui meurt et renaît agit sur le
+     * cycle, jamais sur la gerbe** — une récolte ne rend pas davantage, elle
+     * revient plus souvent, ce qui évite d'empiler un multiplicateur de plus
+     * sur une chaîne qui en porte déjà.
+     */
+    public const int DUREE_SANS_JACHERE = self::DUREE_TOTALE - self::DUREE_REPOS;
+
+    public static function duree(bool $jachereRaccourcie): int
+    {
+        return $jachereRaccourcie ? self::DUREE_SANS_JACHERE : self::DUREE_TOTALE;
+    }
+
+    /**
      * L'étape courante, à partir du nombre de quinzaines écoulées depuis le
      * semis. Reboucle d'elle-même : pas de remise à zéro à gérer.
      */
-    public static function etape(int $quinzainesDepuisSemis): EtapeDeChamp
+    public static function etape(int $quinzainesDepuisSemis, bool $jachereRaccourcie = false): EtapeDeChamp
     {
-        $rang = $quinzainesDepuisSemis % self::DUREE_TOTALE;
+        $rang = $quinzainesDepuisSemis % self::duree($jachereRaccourcie);
 
         return match (true) {
             $rang < self::DUREE_SEMIS => EtapeDeChamp::Semis,
@@ -48,9 +62,9 @@ final readonly class CycleAgricoleTerrestre
      * récolte de référence pendant celle-ci. Avoir un champ ne nourrit
      * personne — seule la récolte le fait, comme pour un champ du Nil.
      */
-    public static function pourUneQuinzaine(int $quinzainesDepuisSemis): int
+    public static function pourUneQuinzaine(int $quinzainesDepuisSemis, bool $jachereRaccourcie = false): int
     {
-        return EtapeDeChamp::Recolte === self::etape($quinzainesDepuisSemis)
+        return EtapeDeChamp::Recolte === self::etape($quinzainesDepuisSemis, $jachereRaccourcie)
             ? RendementDesChamps::RECOLTE_DE_REFERENCE
             : 0;
     }
