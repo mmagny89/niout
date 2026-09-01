@@ -57,7 +57,7 @@ final readonly class Prospection
     public const int CHANCES_SUR_UNE_CASE_VIERGE = 20;
 
     public function __construct(
-        private MissionCatalogue $missions,
+        private GeographieDeLaPartie $geographies,
         private Randomizer $hasard = new Randomizer(),
     ) {
     }
@@ -209,20 +209,11 @@ final readonly class Prospection
 
         $possibles = $terrain->estUnPointDEau()
             ? [Ressource::Poisson]
-            : GenerateurDeCarte::materiauxPossiblesSur($terrain, $this->geographieDe($partie)->ressourcesDeZone);
+            : GenerateurDeCarte::materiauxPossiblesSur($terrain, $this->geographies->pour($partie)->ressourcesDeZone);
 
         return array_values(array_filter(
             $possibles,
             static fn (Ressource $r): bool => null === $zone->gisementDe($r),
         ));
-    }
-
-    private function geographieDe(GameSave $partie): GeographieDeRegion
-    {
-        $numero = $partie->getMission();
-
-        return $partie->estCampagne() && null !== $numero
-            ? $this->missions->get($numero)->geographie
-            : LanceurDePartie::geographieDuModeAventure();
     }
 }

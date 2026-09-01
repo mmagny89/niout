@@ -40,6 +40,8 @@ use App\Game\Explorations;
 use App\Game\Fabrication;
 use App\Game\FabricationImpossible;
 use App\Game\FilRouge;
+use App\Game\GeographieDeLaPartie;
+use App\Game\GeographieDeRegion;
 use App\Game\Inscription;
 use App\Game\LanceurDePartie;
 use App\Game\Legs;
@@ -194,8 +196,10 @@ final class PartieController extends AbstractController
         MissionCatalogue $missions,
         Offrandes $offrandes,
         EtatDeLaVille $etat,
+        GeographieDeLaPartie $geographies,
     ): Response {
         $ville = $partie->getVille();
+        $geographie = $geographies->pour($partie);
         $onglets = $this->ongletsDeLaVille($ville);
         $ongletActif = $this->ongletDemande($onglets, $request->query->get('onglet'));
         $mission = $this->missionDe($partie, $missions);
@@ -308,7 +312,10 @@ final class PartieController extends AbstractController
             'enigmesDuTemple' => $this->enigmesDe($partie, $enigmes, TypeDeBatiment::Temple),
             'enigmesDeLAuberge' => $this->enigmesDe($partie, $enigmes, TypeDeBatiment::Auberge),
             'aUneAuberge' => $ville->possede(TypeDeBatiment::Auberge),
-            ...$this->donneesDuTemple($partie, $offrandes),
+            ...$this->donneesDuTemple($partie, $offrandes, $geographie),
+            // Sans Nil, il n'y a ni crue ni saison d'inondation (doc 02) : la
+            // barre de jeu n'annonce pas une crue dans un désert.
+            'connaitLaCrue' => $geographie->connaitLaCrue(),
         ]);
     }
 
@@ -930,6 +937,7 @@ final class PartieController extends AbstractController
         MissionCatalogue $missions,
         Prospection $prospection,
         EtatDeLaVille $etat,
+        GeographieDeLaPartie $geographies,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
@@ -941,6 +949,7 @@ final class PartieController extends AbstractController
             'zones' => $zones,
             'zoneDetaillee' => $detaillee,
             'signaux' => $etat->signaux($partie),
+            'connaitLaCrue' => $geographies->connaitLaCrue($partie),
             'expeditionEnCours' => null !== $detaillee ? $ville->aUneExpeditionVers($detaillee) : false,
             // Le prix dépend de la case : reconnaître ses propres abords ne
             // coûte pas d'or. L'écran doit donc annoncer celui de cette case-là.
@@ -1664,7 +1673,7 @@ final class PartieController extends AbstractController
      *
      * @return array<string, mixed>
      */
-    private function donneesDuTemple(GameSave $partie, Offrandes $offrandes): array
+    private function donneesDuTemple(GameSave $partie, Offrandes $offrandes, GeographieDeRegion $geographie): array
     {
         $ville = $partie->getVille();
         $temple = $ville->batimentDeType(TypeDeBatiment::Temple);
@@ -1688,6 +1697,11 @@ final class PartieController extends AbstractController
                 // prix d'un ordre commercial montre son effet avant
                 // l'engagement.
                 'supplementDeFete' => Offrandes::supplementDeFete($partie->dateDeJeu(), $divinite),
+                // Deux manques distincts : un système à venir, et un domaine
+                // qui n'existe pas dans cette région. Le second refuse
+                // l'offrande, le premier l'accepte.
+                'sansDomaineIci' => $divinite->estSansDomaineIci($geographie),
+                'attente' => $divinite->attenteDans($geographie),
             ];
         }
 

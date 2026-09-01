@@ -25,8 +25,17 @@
         {# Ce que la barre de jeu ne dit pas : ce que la saison change
            concrètement. Une ligne, pas un encadré — tout ce qui est fixe ici
            est de la hauteur en moins pour le panneau ouvert. #}
+        {# **Sans Nil, la saison ne dit rien de vrai** (doc 02) : « le Nil
+           déborde, les paysans libérés grossissent les chantiers » n'a aucun
+           sens au Levant ou au Sinaï, où rien ne déborde et où les chantiers
+           avancent au rythme ordinaire. Le calendrier reste égyptien — c'est
+           celui de la cour —, mais on n'y lit plus une crue absente. #}
         <p class="mt-2 text-xs text-encre-500">
-            {% if partie.dateDeJeu.saison %}
+            {% if not connaitLaCrue %}
+                <strong class="text-encre-700">{{ partie.dateDeJeu.libelle }}</strong> —
+                aucun fleuve ne monte ici : les saisons du Nil n'y règlent ni les
+                champs ni les chantiers.
+            {% elseif partie.dateDeJeu.saison %}
                 <strong class="text-encre-700">{{ partie.dateDeJeu.saison.libelle }}</strong>,
                 {{ partie.dateDeJeu.saison.sens }} — {{ partie.dateDeJeu.saison.description }}
             {% else %}
