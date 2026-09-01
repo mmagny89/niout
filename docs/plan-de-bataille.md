@@ -117,7 +117,8 @@ vues, pas de la conception.
 | **5** | Artisanat et commerce | `08`, `12`, `01` | ✅ |
 | **6** | Faveur divine et événements | `07` | ✅ |
 | **7** | Énigmes, enquêtes et fil rouge | `10` | ✅ |
-| **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | planifiée |
+| **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | ✅ |
+| **8 bis** | Finition : cohérence et lisibilité | — | ✅ |
 | **9** | Renommée, héritage et succession familiale | `13` | à cadrer |
 | **10** | Medjaÿ et combat automatique | `03` | à cadrer |
 | **11** | Mode Aventure : Memphis et succession des règnes | `14` | à cadrer |
@@ -717,7 +718,7 @@ jamais par un encart documentaire.
 
 ---
 
-### 5.9 Phase 8 — La campagne : dix missions, un pharaon chacune  *(à faire)*
+### 5.9 Phase 8 — La campagne : dix missions, un pharaon chacune  ✅
 
 **Sources** : doc `09` (lore, objectifs, quêtes de chantier, réussite
 partielle), `11` (les dix régions et leur difficulté), `10` (les trois actes).
@@ -958,13 +959,13 @@ abandonnée ensuite, et ce qui a été donné reste donné.
   Phase 9, avec le reste de ce qui se transmet.
 - **Le mode Aventure** : Phase 11.
 
-#### À trancher avec la joueuse
+#### Tranché en cours de route
 
-| Question | Enjeu |
+| Question | Décision |
 |---|---|
-| La mission 9 (camp minier) suit-elle les mêmes règles ? | Le doc laisse le choix entre règles communes et système allégé. Une ville sans habitants ni logement changerait beaucoup de mécaniques |
-| Le legs doit-il être **cosmétique** ou donner un vrai avantage ? | Le doc dit « bonus cosmétique ou petit avantage ». Un avantage rend les missions dépendantes ; du cosmétique risque de ne rien peser |
-| Les objectifs quantitatifs se **recalibrent-ils** sur l'économie mesurée ? | Les seuils du doc 09 datent d'avant les Phases 4 et 5, et l'un d'eux parle encore d'or comme monnaie |
+| La mission 9 (camp minier) suit-elle les mêmes règles ? | **Oui, les mêmes.** Un système allégé aurait dédoublé toutes les mécaniques pour une seule mission. C'est la géographie qui la distingue : ni fleuve ni mer, donc ni crue, ni Hâpi, ni Sobek, ni route par eau |
+| Le legs doit-il être cosmétique ou donner un vrai avantage ? | **Un vrai avantage, mais qui s'ajoute à la dotation sans la remplacer** : une première mission et une cinquième démarrent sur le même socle, ce qui garde chaque mission jouable seule |
+| Les objectifs quantitatifs se recalibrent-ils sur l'économie mesurée ? | **Oui**, et le tableau ci-dessus en garde la trace : les seuils du doc 09 datent d'avant les Phases 4 et 5, et comptaient encore en or |
 
 #### Définition de « fini »
 
@@ -982,13 +983,91 @@ qu'à son début.
 
 ---
 
-### 5.10 Phases 9 à 12 — à cadrer
+### 5.10 Phase 8 bis — Finition : cohérence et lisibilité  ✅
+
+Un lot sans document de conception attitré : ce que le jeu de bout en bout a
+révélé une fois jouable. Il ne pose aucune mécanique neuve, il rend jouable et
+cohérent ce qui existait.
+
+| Lot | Contenu | |
+|---|---|---|
+| F.1 | Rouvrir un filon épuisé — le rôle de Prospecteur | ✅ |
+| F.2 | Le Marché borné, distinct du commerce par caravanes | ✅ |
+| F.3 | Un onglet par bâtiment, la Résidence en point de chute | ✅ |
+| F.4 | Le tableau de bord de la ville, et la renommée enfin visible | ✅ |
+| F.5 | Fermer une carrière tarie, dire ce qui produit | ✅ |
+| F.6 | L'état de la ville lisible depuis la carte | ✅ |
+| F.7 | Rien du Nil là où il n'y a pas de Nil | ✅ |
+
+#### F.1 — Le filon épuisé n'est plus une impasse  ✅
+
+La dernière unité extraite d'une carrière fermait définitivement la production
+de ce matériau. Sur une petite carte, épuiser l'unique gisement d'argile figeait
+la partie sans qu'aucun geste ne puisse y remédier.
+
+Le **Prospecteur** est ce geste : un rôle d'exploration de plus, envoyé sur une
+case déjà reconnue. Retrouver une veine tarie est **certain** — les galeries
+sont creusées, la géologie connue ; l'épuisement doit coûter du temps et de
+l'argent, jamais fermer une région. Chercher du neuf reste un pari : 45 % sur
+une case déjà minéralisée, 20 % sur une case vierge, que le terrain infléchit
+ensuite.
+
+Le filon tari **se ferme de lui-même** et rend ses bras. Il les retenait, et le
+passage de cycle répétait son épuisement à chaque quinzaine, indéfiniment.
+
+#### F.2 — À qui vend-on ?  ✅
+
+Le Marché et l'Entrepôt faisaient doublon : les deux écoulaient du surplus,
+sans que rien ne les distingue. Le Marché vend désormais **aux gens de la ville
+et aux passants** — cours de base, encaissement immédiat, mais un débouché
+plafonné par quinzaine (`population × niveau × 4` deben). Les routes gardent
+les vrais volumes, à 150 ou 200 % du cours, contre le délai d'un convoi.
+
+#### F.3 et F.4 — Un onglet, un bâtiment  ✅
+
+L'écran de ville se découpait par thème — Direction, Commerce, Ateliers — et il
+fallait deviner dans quel panneau ranger quoi. Il porte un **onglet par bâtiment
+dressé**, chacun avec sa direction, ses ouvrages, ses routes, ses énigmes. La
+**Résidence familiale** recueille ce qui n'appartient à aucun bâtiment : elle
+est présente dès le premier jour, et l'y mettre est la seule façon que ces
+écrans restent atteignables pour une ville qui n'a rien dressé.
+
+Elle porte un **tableau de bord** — habitants, travail, réserves, bourse et
+renom — et les alertes, dites une fois. Deux valeurs y apparaissent qui
+n'existaient nulle part : les postes ouverts par les chefs, et l'autonomie en
+vivres.
+
+#### F.7 — Rien du Nil là où il n'y a pas de Nil  ✅
+
+`GeographieDeRegion::connaitLaCrue()` existait depuis le début et n'était
+appelée de nulle part. Quatre missions se jouent loin du fleuve, et le jeu y
+annonçait une crue chaque année, accélérait les chantiers d'Akhèt sous une
+inondation qui n'avait pas lieu, et laissait offrir à Hâpi dans un désert.
+
+L'audit a remonté deux défauts que personne ne cherchait :
+
+- **Le Fayoum n'avait aucune route commerciale atteignable.** Son unique
+  partenaire est fluvial, donc suspendu à un Port, donc à un point d'eau que sa
+  géographie ne produisait pas. Le Bahr Youssef, branche du Nil, alimente
+  pourtant le lac Moeris sur la rive duquel Shedet est bâtie : la région a de
+  l'eau, et Sobek — dont Shedet est le siège du culte — y était inerte.
+- **Le bilan démographique tombait dans le bloc de la crue**, et l'y laisser
+  aurait figé la population de quatre missions.
+
+Un test de cohérence garde désormais l'invariant région par région : aucune
+n'est murée, une route d'eau suppose de l'eau, et un dieu déclaré sans domaine
+l'est pour une raison vérifiable.
+
+---
+
+### 5.11 Phases 9 à 12 — à cadrer
 
 Chacune traduit un document déjà spécifié ; le cadrage technique se fera à son
 tour, comme pour les précédentes.
 
 | Phase | Sujet | Ce qu'elle apporte |
 |---|---|---|
+| **9 bis** — Finition (sans document) | Cohérence et lisibilité | ✅ fait : prospection, Marché borné, onglets par bâtiment, tableau de bord, régions sans Nil |
 | **9** — Renommée et héritage (`13`) | Succession familiale, carnet de contacts | La renommée existe déjà et bouge ; c'est l'héritage entre parties qui manque |
 | **10** — Medjaÿ et combat (`03`) | Recrutement militaire, équipement, zones à bandits | Réveille le trait « Bagarreur », l'usage des armes de la Forge, et le Chef d'expédition, dernier rôle d'exploration sans emploi |
 | **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre |
@@ -1133,4 +1212,10 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Spécialités sans système d'accueil | **Tirées et affichées, mais inertes**, et l'interface le dit — promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment du choix |
 | Affichage des PNJ | **Chiffré en interne, qualitatif à l'écran** (doc 03) : étoiles et libellés, jamais de compétence brute. Le salaire fait exception, déjà qualitatif par nature |
 | Noms des PNJ | **Aucun pour l'instant** : un employé se désigne par son poste, comme dans les documents |
+| Filon épuisé | La carrière **se ferme d'elle-même** et rend ses bras. Un **Prospecteur** retrouve une veine tarie à coup sûr ; chercher du neuf reste un pari. L'épuisement coûte du temps et de l'argent, il ne ferme jamais une région |
+| Marché contre Entrepôt | Le Marché vend **aux gens de la ville et aux passants** : cours de base, immédiat, mais plafonné par quinzaine. Les routes gardent les volumes et les prix, contre le délai d'un convoi |
+| Écran de ville | **Un onglet par bâtiment dressé**, chacun avec ce qui relève de sa fonction. La **Résidence familiale** recueille tout ce qui n'appartient à aucun bâtiment — c'est le point de chute par défaut de toute fonctionnalité qu'on ne sait pas rattacher |
+| Alertes et bonnes nouvelles | **Un seul service**, lu par la ville et par la carte. Le bon compte autant que le mauvais, et chaque signal nomme la cause **et** le geste |
+| Régions sans Nil | **Ni crue, ni saison d'inondation, ni Hâpi** — l'offrande y est refusée plutôt qu'encaissée pour rien. Sobek suit la même règle là où rien ne flotte. Le bilan démographique, lui, tombe partout |
+| Cohérence d'une région | **Aucune n'est murée** : un test vérifie, région par région, qu'au moins une route est ouvrable et qu'une route d'eau suppose de l'eau |
 | Chiffres de conception | **Provisoires par nature**, dans les documents comme dans le code. Ils se rectifient au fil de la conception ; le critère est l'équilibre et le fait de **pousser le joueur à se servir des mécaniques**, pas la fidélité au document |

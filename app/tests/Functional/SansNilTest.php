@@ -24,8 +24,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 /**
  * **Pas de crue là où il n'y a pas de fleuve.**.
  *
- * Cinq missions sur dix se jouent loin du Nil — Pount, Megiddo, les oasis,
- * l'Ouadi Hammamat, le Sinaï. Le jeu y annonçait pourtant une crue chaque
+ * Quatre missions sur dix se jouent loin du Nil — Pount, Megiddo, l'Ouadi
+ * Hammamat, le Sinaï. Le jeu y annonçait pourtant une crue chaque
  * année, en affichait la qualité dans la barre, accélérait les chantiers
  * pendant une inondation qui n'avait pas lieu, et laissait porter des offrandes
  * à Hâpi — le dieu du Nil — dans un désert.

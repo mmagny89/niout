@@ -36,11 +36,17 @@ final readonly class GeographieDeLaPartie
     }
 
     /**
-     * **Cinq missions sur dix se jouent loin du fleuve** — Pount, Megiddo, les
-     * oasis, l'Ouadi Hammamat, le Sinaï. Il n'y a là ni crue, ni saison
-     * d'inondation, ni divinité du Nil à honorer : annoncer une crue au Sinaï,
-     * ou laisser porter une offrande à Hâpi dans un désert, promettait un effet
-     * qui ne pouvait pas se produire.
+     * **Quatre missions sur dix se jouent loin du fleuve** — Pount, Megiddo,
+     * l'Ouadi Hammamat, le Sinaï. Il n'y a là ni crue, ni saison d'inondation,
+     * ni divinité du Nil à honorer : annoncer une crue au Sinaï, ou laisser
+     * porter une offrande à Hâpi dans un désert, promettait un effet qui ne
+     * pouvait pas se produire.
+     *
+     * Le Fayoum n'en est pas : le Bahr Youssef, une branche du Nil, alimente
+     * le lac Moeris et la région monte avec la crue. L'y avoir compté parmi
+     * les terres sèches lui retirait sa seule route commerciale — fluviale,
+     * donc suspendue à un Port — et rendait Sobek inerte dans la ville dont il
+     * est le dieu.
      */
     public function connaitLaCrue(GameSave $partie): bool
     {

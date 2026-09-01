@@ -320,8 +320,9 @@ final class PartieController extends AbstractController
     }
 
     /**
-     * Vend une ressource au Marché. La seule façon de gagner de l'or à ce stade
-     * du développement.
+     * Vend une ressource au Marché — aux gens de la ville et aux passants, dans
+     * la limite de ce que la place absorbe en une quinzaine. Les vrais volumes
+     * passent par les routes commerciales.
      */
     #[Route('/{id}/ville/vendre', name: 'app_partie_vendre', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted(PartieVoter::JOUER, subject: 'partie')]

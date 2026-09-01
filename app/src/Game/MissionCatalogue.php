@@ -92,7 +92,14 @@ final class MissionCatalogue
             new Mission(
                 8, 'Fayoum', 'Shedet', 'Ramsès III', TypeDeMission::Developper, 7,
                 'Capitale du Fayoum et siège du culte de Sobek. Le règne est prospère en apparence, mais traversé de tensions et de menaces extérieures.',
-                new GeographieDeRegion(desert: true, oasis: true, ressourcesDeZone: [Ressource::Argile, Ressource::BoisLocal, Ressource::Calcaire, Ressource::Natron]),
+                // **Le Fayoum a de l'eau** : le Bahr Youssef, une branche du
+                // Nil, alimente le lac Moeris sur la rive duquel Shedet est
+                // bâtie, et la région monte avec la crue. Sans ce `nil`, la
+                // mission n'avait aucune route commerciale atteignable — son
+                // unique partenaire est fluvial, donc suspendu à un Port, donc
+                // à un point d'eau que la carte ne produisait jamais. Et Sobek
+                // y était inerte, dans la ville dont il est le dieu.
+                new GeographieDeRegion(nil: true, desert: true, oasis: true, ressourcesDeZone: [Ressource::Argile, Ressource::BoisLocal, Ressource::Calcaire, Ressource::Natron]),
             ),
             new Mission(
                 9, 'Désert oriental', 'Ouadi Hammamat', 'Ramsès IV', TypeDeMission::Developper, 8,
