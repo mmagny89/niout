@@ -200,13 +200,15 @@ final class ModeDivinTest extends WebTestCase
     }
 
     /**
-     * L'autre moitié du mode : les dix régions, autrement hors d'atteinte tant
-     * que la Phase 8 n'a pas écrit l'enchaînement des missions.
+     * L'autre moitié du mode : les dix régions d'emblée, quand un joueur
+     * ordinaire doit les ouvrir une par une (lot 8.5). C'est à cela que sert
+     * le mode d'essai — éprouver une région sans jouer les heures qui y
+     * mènent.
      */
     public function testUneDiviniteOuvreLesDixMissions(): void
     {
         self::bootKernel();
-        $joueur = $this->creerJoueur('exploratrice@example.com');
+        $joueur = $this->creerJoueur('exploratrice@example.com', divinite: true);
 
         $partie = static::getContainer()->get(LanceurDePartie::class)
             ->lancerCampagne($joueur, 'Nakht', numeroDeMission: 7);

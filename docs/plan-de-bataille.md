@@ -740,8 +740,8 @@ lègue quelque chose pour la suite, et Thoutmôsis Ier m'envoie à Saï. »*
 | 8.2 | Achever une mission : réussite totale, réussite partielle | ✅ |
 | 8.3 | Les quêtes de chantier du pharaon | ✅ |
 | 8.4 | Les dix fils rouges | ✅ |
-| 8.5 | Enchaîner : de la mission N à la mission N+1 | |
-| 8.6 | Le legs du pharaon | |
+| 8.5 | Enchaîner : de la mission N à la mission N+1 | ✅ |
+| 8.6 | Le legs du pharaon | ✅ |
 
 #### 8.0 — Les objectifs, visibles dès le premier jour  ✅
 
@@ -910,26 +910,45 @@ un qui se trouve sur le terrain — sinon l'enquête n'aurait aucune porte
 d'entrée. C'est l'exercice d'`OuvertureDePartieTest`, appliqué aux dix
 histoires plutôt qu'aux dix cartes.
 
-#### 8.5 — Enchaîner les missions
+#### 8.5 — Enchaîner les missions  ✅
 
 L'ordre est imposé, de 1 à 10 (décision déjà actée). Ce qui manque est la
 **transition** : une mission achevée ouvre la suivante, et le joueur la lance
 depuis son compte. Rien ne se transporte d'une ville à l'autre — sauf le legs.
 
-**La mission 9 est un cas à part** (doc 09) : un camp minier temporaire, pas une
-ville. Le document laisse ouvert s'il suit les mêmes règles ou un système
-allégé. À trancher.
+**La mission 9 suit les mêmes règles** (décision de la joueuse) : on ne change
+pas de mécanisme pour un camp minier. Le Ouadi Hammamat est déjà une région
+sans Nil ni agriculture, ce qui suffit à le rendre différent sans qu'on lui
+écrive un jeu à part.
 
-#### 8.6 — Le legs du pharaon
+**Le contrôle vit dans le lanceur**, pas seulement dans le formulaire : un POST
+forgé n'ouvre pas le Sinaï à qui sort du Delta. Et **une réussite partielle
+ouvre la suite** comme une réussite pleine — ce serait la punir deux fois que
+de bloquer la campagne dessus.
+
+**On peut rejouer une mission déjà faite** : rien ne l'interdit, et cela vaut
+mieux que d'enfermer un joueur qui voudrait refaire Avaris autrement.
+
+#### 8.6 — Le legs du pharaon  ✅
 
 À la réussite, totale ou partielle : un bonus de renommée proportionnel au
 score, et un **objet légué** — un petit avantage de départ pour la mission
 suivante. C'est le premier fil entre deux parties, et la porte d'entrée de la
 Phase 9 (héritage familial, doc 13).
 
-**Le tenir modeste** : un legs qui change l'équilibre d'une mission rendrait la
-suivante dépendante de la précédente, ce qui punirait une réussite partielle
-deux fois.
+**Un vrai avantage, pas un ornement** (décision de la joueuse) : 120 deben pour
+une réussite pleine, et jusqu'à quatre points de renommée — le pharaon parle de
+vous à son successeur.
+
+**Mais modeste, et pour une raison précise** : il s'ajoute à la dotation
+royale, il ne la remplace pas. Une première mission et une cinquième démarrent
+donc sur le même socle, ce qui garde chaque mission jouable seule — un legs qui
+changerait l'équilibre rendrait la suivante dépendante de la précédente, et
+**punirait une réussite partielle deux fois**, une fois par le score et une
+fois par la difficulté de la suite.
+
+**Il est stocké sur la partie**, pas recalculé : celle qui l'a mérité peut être
+abandonnée ensuite, et ce qui a été donné reste donné.
 
 #### Hors périmètre, explicitement
 
