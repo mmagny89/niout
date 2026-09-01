@@ -851,6 +851,21 @@ construite — l'y mettre est la seule façon de garder ces écrans atteignables
 pour une ville qui n'a encore rien dressé. C'est aussi le point de chute par
 défaut de toute fonctionnalité qu'on ne sait pas rattacher à un bâtiment.
 
+**Une action ne renvoie jamais sur le premier onglet** (`retourALaVille()`,
+`retourDemande()`). Toute interaction de la ville se solde par une redirection,
+donc par un rechargement complet : sans reprise, vendre au Marché ramenait sur
+la Résidence familiale et il fallait rouvrir son onglet à chaque geste.
+L'onglet voyage par la **requête** — chaque formulaire porte un champ caché
+`onglet`, et le contrôleur le repasse en paramètre —, jamais par une session ni
+un fragment d'URL : un fragment ne parvient pas au serveur et ne survit pas à
+une redirection. L'adresse obtenue reste partageable, comme la case détaillée
+de la carte. Toute route qui redirige vers la ville passe par ces deux
+helpers ; toute forme ajoutée à un panneau doit porter le champ caché, sans
+quoi elle rouvre le premier onglet sans qu'aucun test ne le dise. Et **une clé
+venue de la requête est confrontée aux onglets réellement rendus**
+(`ongletDemande()`) : une clé forgée ouvrirait un panneau inexistant, laissant
+la barre entièrement fermée.
+
 Trois règles à ne pas défaire : les deux boucles du gabarit lisent **la même
 liste** dans le même ordre — `onglets_controller.js` apparie par rang, et deux
 listes construites séparément finiraient par diverger ; l'ordre est celui de

@@ -80,12 +80,19 @@ final class EcranDuTempleTest extends WebTestCase
 
         $client->request('POST', \sprintf('/partie/%d/temple/offrir', $partie->getId()), [
             '_token' => $jeton,
+            // Ce que le formulaire poste réellement : l'onglet d'où part le
+            // geste, pour y revenir après la redirection.
+            'onglet' => TypeDeBatiment::Temple->value,
             'divinite' => Divinite::Ptah->value,
             'ressource' => Ressource::Deben->value,
             'quantite' => 20,
         ]);
 
-        self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertResponseRedirects(\sprintf(
+            '/partie/%d/ville?onglet=%s',
+            $partie->getId(),
+            TypeDeBatiment::Temple->value,
+        ));
 
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'Ptah');
@@ -123,8 +130,9 @@ final class EcranDuTempleTest extends WebTestCase
     }
 
     /**
-     * L'ancienne adresse survit et ramène à la ville : un signet ne doit pas
-     * tomber sur du vide.
+     * L'ancienne adresse survit et ramène à la ville, **sur l'onglet du
+     * Temple** : un signet ne doit ni tomber sur du vide, ni obliger à
+     * retrouver soi-même le panneau qu'il désignait.
      */
     public function testLAncienneAdresseRamemeALaVille(): void
     {
@@ -133,7 +141,11 @@ final class EcranDuTempleTest extends WebTestCase
 
         $client->request('GET', \sprintf('/partie/%d/temple', $partie->getId()));
 
-        self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertResponseRedirects(\sprintf(
+            '/partie/%d/ville?onglet=%s',
+            $partie->getId(),
+            TypeDeBatiment::Temple->value,
+        ));
     }
 
     private function partieAvecTemple(KernelBrowser $client, string $email): GameSave

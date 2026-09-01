@@ -73,6 +73,7 @@
                 {% if partie.estEnCours %}
                     <form method="post" action="{{ path('app_partie_renvoyer', {id: partie.id}) }}" class="ml-auto">
                         <input type="hidden" name="_token" value="{{ csrf_token('renvoyer') }}">
+                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                         <input type="hidden" name="employe" value="{{ chef.id }}">
                         <button type="submit" class="text-sm text-encre-500 underline hover:text-terre-600">
                             Renvoyer
@@ -123,6 +124,7 @@
                         {% if partie.estEnCours %}
                             <form method="post" action="{{ path('app_partie_embaucher', {id: partie.id}) }}" class="mt-3">
                                 <input type="hidden" name="_token" value="{{ csrf_token('embaucher') }}">
+                                <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                                 <input type="hidden" name="batiment" value="{{ direction.batiment.type.value }}">
                                 <input type="hidden" name="rang" value="{{ loop.index0 }}">
                                 <button type="submit"
@@ -138,6 +140,7 @@
             {% if partie.estEnCours %}
                 <form method="post" action="{{ path('app_partie_embaucher', {id: partie.id}) }}" class="mt-3">
                     <input type="hidden" name="_token" value="{{ csrf_token('embaucher') }}">
+                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                     <input type="hidden" name="batiment" value="{{ direction.batiment.type.value }}">
                     <button type="submit" name="retirer" value="1"
                             class="text-sm text-encre-500 underline hover:text-terre-600">
@@ -148,6 +151,7 @@
         {% elseif direction.postesLibres > 0 and partie.estEnCours %}
             <form method="post" action="{{ path('app_partie_poster', {id: partie.id}) }}" class="mt-3">
                 <input type="hidden" name="_token" value="{{ csrf_token('poster') }}">
+                <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                 <input type="hidden" name="batiment" value="{{ direction.batiment.type.value }}">
                 <button type="submit"
                         class="rounded-sm border border-ocre-500/40 px-4 py-2 text-sm text-encre-700 hover:bg-ocre-500/10">

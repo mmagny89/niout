@@ -31,6 +31,7 @@
                     <form method="post" action="{{ path('app_partie_vendre', {id: partie.id}) }}"
                           class="flex flex-wrap items-baseline gap-x-4 gap-y-3">
                         <input type="hidden" name="_token" value="{{ csrf_token('vendre') }}">
+                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                         <input type="hidden" name="ressource" value="{{ lot.ressource.value }}">
 
                         <span class="font-display text-lg text-encre-900">{{ lot.ressource.libelle }}</span>

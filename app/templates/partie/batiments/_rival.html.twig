@@ -19,6 +19,7 @@
         {% if partie.estEnCours %}
             <form method="post" action="{{ path('app_partie_accord', {id: partie.id}) }}" class="mt-3">
                 <input type="hidden" name="_token" value="{{ csrf_token('accord') }}">
+                <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                 <button type="submit"
                         class="rounded-sm border border-ocre-500/40 px-4 py-2 text-sm text-encre-700 hover:bg-ocre-300/20">
                     Passer un accord — <span data-chiffres>{{ prixDeLAccord }}</span> deben

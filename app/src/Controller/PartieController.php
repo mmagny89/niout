@@ -175,6 +175,7 @@ final class PartieController extends AbstractController
     #[Route('/{id}/ville', name: 'app_partie_ville', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
     public function ville(
+        Request $request,
         GameSave $partie,
         CatalogueDeLaVille $catalogue,
         Marche $marche,
@@ -192,6 +193,8 @@ final class PartieController extends AbstractController
         Offrandes $offrandes,
     ): Response {
         $ville = $partie->getVille();
+        $onglets = $this->ongletsDeLaVille($ville);
+        $ongletActif = $this->ongletDemande($onglets, $request->query->get('onglet'));
         $mission = $this->missionDe($partie, $missions);
         $inscription = $ville->possede(TypeDeBatiment::MaisonDesScribes)
             ? $dechiffrage->proposition($partie)
@@ -200,7 +203,12 @@ final class PartieController extends AbstractController
         return $this->render('partie/ville.html.twig', [
             'partie' => $partie,
             'ville' => $ville,
-            'onglets' => $this->ongletsDeLaVille($ville),
+            'onglets' => $onglets,
+            // L'onglet ouvert au chargement. Une action de la ville se solde
+            // par une redirection, donc par un rechargement complet : sans
+            // cette reprise, vendre au Marché renvoyait sur la Résidence
+            // familiale, et il fallait rouvrir son onglet à chaque geste.
+            'ongletActif' => $ongletActif,
             'chantiers' => $ville->getChantiers(),
             'batimentsDresses' => $this->batimentsTriesParLibelle($ville),
             'offres' => $catalogue->pour($ville),
@@ -318,7 +326,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -354,7 +362,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -383,7 +391,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -416,7 +424,7 @@ final class PartieController extends AbstractController
                 $this->addFlash('succes', \sprintf('Votre étal ne propose plus de %s.', $ressource->libelle()));
             }
 
-            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+            return $this->retourALaVille($request, $partie);
         }
 
         $sens = SensDEchange::tryFrom((string) $request->request->get('sens'));
@@ -443,7 +451,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -472,7 +480,7 @@ final class PartieController extends AbstractController
             $modeDivin->combler($partie);
             $this->addFlash('succes', 'Les réserves sont de nouveau pleines.');
 
-            return $this->redirectToRoute($this->routeDeRetour($request), ['id' => $partie->getId()]);
+            return $this->retourDemande($request, $partie);
         }
 
         if ($partie->estEnModeDivin() && $request->request->has('brouillard')) {
@@ -481,14 +489,14 @@ final class PartieController extends AbstractController
                 ? 'La carte était déjà entièrement reconnue.'
                 : \sprintf('Le brouillard se lève sur %d case%s.', $levees, $levees > 1 ? 's' : ''));
 
-            return $this->redirectToRoute($this->routeDeRetour($request), ['id' => $partie->getId()]);
+            return $this->retourDemande($request, $partie);
         }
 
         $this->addFlash('succes', $modeDivin->basculer($partie)
             ? 'Cette partie devient une partie d\'essai : un million de chaque ressource, aucun plafond.'
             : 'Cette partie retrouve les règles ordinaires. Ce qui a été donné reste.');
 
-        return $this->redirectToRoute($this->routeDeRetour($request), ['id' => $partie->getId()]);
+        return $this->retourDemande($request, $partie);
     }
 
     /**
@@ -518,7 +526,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -543,7 +551,7 @@ final class PartieController extends AbstractController
             $recrutements->retirer($offre);
             $this->addFlash('succes', 'L\'annonce est retirée. Les candidats sont repartis.');
 
-            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+            return $this->retourALaVille($request, $partie);
         }
 
         try {
@@ -556,7 +564,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -585,7 +593,7 @@ final class PartieController extends AbstractController
         $recrutements->renvoyer($employe);
         $this->addFlash('succes', 'Le chef et les siens ont quitté la ville.');
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -614,7 +622,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -645,13 +653,13 @@ final class PartieController extends AbstractController
         } catch (DechiffrageImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
 
-            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+            return $this->retourALaVille($request, $partie);
         }
 
         if (!$lecture['juste']) {
             $this->addFlash('erreur', 'Ce n\'est pas ce que disent ces signes. Reprenez la clé et recommencez.');
 
-            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+            return $this->retourALaVille($request, $partie);
         }
 
         $this->addFlash('succes', \sprintf(
@@ -662,7 +670,7 @@ final class PartieController extends AbstractController
                 : \sprintf('Vos scribes apprennent un signe de plus : %s.', $lecture['apprend']->libelle()),
         ));
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -691,7 +699,7 @@ final class PartieController extends AbstractController
         } catch (EnigmeImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
 
-            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+            return $this->retourALaVille($request, $partie);
         }
 
         $this->addFlash(
@@ -701,7 +709,7 @@ final class PartieController extends AbstractController
                 : \sprintf('Ce n\'était pas la réponse. %s', $verdict['explication']),
         );
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -766,7 +774,7 @@ final class PartieController extends AbstractController
         } catch (EnqueteImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
 
-            return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+            return $this->retourALaVille($request, $partie);
         }
 
         $this->addFlash(
@@ -788,7 +796,7 @@ final class PartieController extends AbstractController
             },
         );
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -809,7 +817,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -834,7 +842,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -846,7 +854,10 @@ final class PartieController extends AbstractController
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
     public function temple(GameSave $partie): Response
     {
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->redirectToRoute('app_partie_ville', [
+            'id' => $partie->getId(),
+            'onglet' => TypeDeBatiment::Temple->value,
+        ]);
     }
 
     /**
@@ -882,7 +893,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -1133,7 +1144,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+        return $this->retourALaVille($request, $partie);
     }
 
     /**
@@ -1158,7 +1169,7 @@ final class PartieController extends AbstractController
             $this->addFlash('succes', $evenement);
         }
 
-        return $this->redirectToRoute($this->routeDeRetour($request), ['id' => $partie->getId()]);
+        return $this->retourDemande($request, $partie);
     }
 
     /**
@@ -1167,6 +1178,25 @@ final class PartieController extends AbstractController
      * La liste blanche n'est pas une précaution de style : sans elle, une valeur
      * soumise deviendrait un nom de route arbitraire.
      */
+    /**
+     * Renvoie le joueur là d'où il vient — la carte ou la ville —, **et sur
+     * l'onglet qu'il avait ouvert** quand c'est la ville.
+     *
+     * Avancer le temps depuis un panneau ne doit ni l'éjecter sur la carte, ni
+     * le ramener sur la Résidence familiale : la quinzaine se passe souvent
+     * plusieurs fois de suite depuis le même écran.
+     */
+    private function retourDemande(Request $request, GameSave $partie): Response
+    {
+        $route = $this->routeDeRetour($request);
+        $onglet = (string) $request->request->get('onglet', '');
+
+        return $this->redirectToRoute($route, array_filter([
+            'id' => $partie->getId(),
+            'onglet' => 'app_partie_ville' === $route && '' !== $onglet ? $onglet : null,
+        ], static fn (mixed $valeur): bool => null !== $valeur));
+    }
+
     private function routeDeRetour(Request $request): string
     {
         $demande = $request->request->get('retour');
@@ -1368,6 +1398,48 @@ final class PartieController extends AbstractController
         }
 
         return $ateliers;
+    }
+
+    /**
+     * L'onglet demandé par l'adresse, s'il existe encore — le premier sinon.
+     *
+     * **Une clé venue de la requête ne s'affiche jamais telle quelle** : elle
+     * est confrontée aux onglets réellement rendus. Un bâtiment peut avoir
+     * disparu entre deux gestes, et une clé forgée ouvrirait un panneau qui
+     * n'existe pas — la barre montrerait alors tous ses onglets fermés.
+     *
+     * @param list<array{cle: string, libelle: string, type: ?TypeDeBatiment, batiment: ?Building}> $onglets
+     */
+    private function ongletDemande(array $onglets, mixed $demande): string
+    {
+        $cles = array_column($onglets, 'cle');
+
+        return \is_string($demande) && \in_array($demande, $cles, true)
+            ? $demande
+            : ($cles[0] ?? '');
+    }
+
+    /**
+     * Ramène à l'écran de ville, **sur l'onglet d'où l'action est partie**.
+     *
+     * Toute action de la ville se solde par une redirection, donc par un
+     * rechargement complet : sans cette reprise, le joueur qui vendait au
+     * Marché ou embauchait à la Forge se retrouvait sur la Résidence familiale
+     * et devait rouvrir son onglet à chaque geste.
+     *
+     * L'onglet voyage par la **requête**, pas par une session ni un fragment
+     * d'URL : un fragment ne parvient jamais au serveur et ne survit pas à une
+     * redirection, et l'adresse obtenue reste partageable — même choix que la
+     * case détaillée de la carte.
+     */
+    private function retourALaVille(Request $request, GameSave $partie): Response
+    {
+        $onglet = (string) $request->request->get('onglet', '');
+
+        return $this->redirectToRoute('app_partie_ville', array_filter([
+            'id' => $partie->getId(),
+            'onglet' => '' !== $onglet ? $onglet : null,
+        ], static fn (mixed $valeur): bool => null !== $valeur));
     }
 
     /**
