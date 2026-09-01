@@ -39,6 +39,14 @@ porter un gisement à exploiter, une eau à pêcher une fois le Port dressé, ou
 champ à semer ; les champs traversent quatre étapes — semis, pousse, récolte,
 repos — et ne nourrissent qu'à la récolte, sur le Nil comme en terre.
 
+Un filon finit par se tarir : la carrière ferme alors d'elle-même et rend ses
+bras. Ce n'est pas une impasse — un prospecteur envoyé sur place retrouve la
+veine à coup sûr, et peut mettre au jour du neuf ailleurs, avec des chances qui
+dépendent de ce que la case a déjà livré et du sol qui la porte. Chaque
+bâtiment récapitule ce qu'il gouverne : le Grenier ses champs, l'Entrepôt ses
+carrières, le Port ses pêcheries — trouvées, ouvertes, taries, et ce qui rend
+vraiment quelque chose cette quinzaine.
+
 **Artisanat** — l'Atelier transforme : une jarre demande de l'argile et du bois
 pour la cuire, un pain du blé et un four, une bière des pains d'orge émiettés
 et mis à fermenter. Un ordre paie ses matières à l'engagement, occupe l'Atelier
@@ -100,6 +108,12 @@ peut le payer, le laisser se lasser, ou chercher sur quoi il tient : ses poids
 ne s'accordent pas, et ses tablettes déclarent moins qu'il ne charge. La
 dernière voie est la plus longue et la plus payante — il ne revient pas.
 
+**Marché** — on y vend aux gens de la ville et aux voyageurs de passage : au
+cours de base, payé sur l'heure, mais une place se sature — elle n'absorbe
+qu'un volume par quinzaine, que la population et le niveau du Marché
+déterminent. C'est l'appoint du début de partie et la seule source de renommée
+branchée à ce jour ; la vraie richesse passe par les routes.
+
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la
 traversée de la mer Rouge vers Pount. Ouvrir une route, c'est y envoyer une
@@ -118,6 +132,15 @@ objets, chacun avec un plafond que son niveau élève. Ce qui déborde ne rentre
 pas : il faut écouler son surplus au Marché, ou agrandir. Le deben, lui, ne
 s'entasse nulle part.
 
+**L'écran de ville** — un onglet par bâtiment dressé, chacun portant ce qui
+relève de sa fonction : sa direction et ses chefs, ses ouvrages, ses routes,
+ses énigmes. La Résidence familiale, présente dès le premier jour, recueille ce
+qui n'appartient à aucun bâtiment — un tableau de bord des chiffres qui servent
+à gouverner, la mission, la renommée, les chantiers, ce qui reste à bâtir — et
+dit d'une phrase ce qui demande attention et ce qui joue pour vous. L'état de
+la ville se lit aussi depuis la carte : on y passe des quinzaines entières, et
+la fièvre ou la disette ne doivent pas s'apprendre en rentrant.
+
 **Population et emploi** — la ville se compte en trois nombres : ceux qui
 travaillent, les enfants, les anciens. Elle les nourrit à chaque quinzaine, et
 sans vivres suffisantes la famine s'installe — d'abord le mécontentement, puis
@@ -127,10 +150,23 @@ se présentent, avec leurs étoiles, leurs traits et la famille qu'ils amènent.
 Chaque bâtiment, chaque carrière et chaque champ réclame des bras, et il faut
 les payer à chaque quinzaine — un poste qu'on ne paie plus s'arrête.
 
+**Missions** — les dix missions de la campagne s'enchaînent : objectifs visibles
+dès le premier jour, quêtes du pharaon, fil rouge à dénouer, reconnaissance
+totale ou partielle, et un legs qui s'ajoute à la dotation de la suivante. Une
+réussite partielle ouvre la suite ; on peut rejouer une mission déjà faite.
+
+**Ce que la région décide** — une mission n'est pas un décor. Quatre d'entre
+elles se jouent loin du Nil : il n'y a là ni crue annoncée, ni chantiers
+accélérés par une inondation, et Hâpi y refuse les offrandes — il n'a pas de
+fleuve à faire monter. Sobek fait de même là où rien ne flotte. Ce que le
+terrain ne porte pas ne s'y trouve pas non plus : le bois local ne pousse pas
+dans le sable, et l'argile sort bien plus souvent des berges que des ouadis.
+
 La boucle de jeu tient donc debout de bout en bout : fonder, doter, bâtir,
-explorer, produire, employer, nourrir. Restent le commerce et l'artisanat, les
-Medjaÿ, la faveur divine et les énigmes — feuille de route détaillée dans
-[`docs/plan-de-bataille.md`](docs/plan-de-bataille.md).
+explorer, produire, employer, nourrir, commercer, honorer, déchiffrer, enquêter
+et clore une mission. Restent les Medjaÿ et le combat, l'héritage entre
+parties, le mode Aventure et le découpage des sprites — feuille de route
+détaillée dans [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md).
 
 ## Stack
 

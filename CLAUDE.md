@@ -516,13 +516,28 @@ promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment
 même où il compare des candidats.
 
 **Rien du Nil là où il n'y a pas de Nil** (`GeographieDeLaPartie`,
-`Divinite::estSansDomaineIci()`). Cinq missions sur dix se jouent loin du
-fleuve — Pount, Megiddo, les oasis, l'Ouadi Hammamat, le Sinaï — et le jeu y
-annonçait une crue chaque année, l'affichait dans la barre, accélérait les
-chantiers d'Akhèt sous une inondation qui n'avait pas lieu, et laissait porter
-des offrandes à Hâpi dans un désert. `GeographieDeRegion::connaitLaCrue()`
-existait et n'était appelée de nulle part : le piège d'`ajusterRenommee()`, une
-règle écrite mais branchée sur rien.
+`Divinite::estSansDomaineIci()`). Quatre missions sur dix se jouent loin du
+fleuve — Pount, Megiddo, l'Ouadi Hammamat, le Sinaï — et le jeu y annonçait une
+crue chaque année, l'affichait dans la barre, accélérait les chantiers d'Akhèt
+sous une inondation qui n'avait pas lieu, et laissait porter des offrandes à
+Hâpi dans un désert. `GeographieDeRegion::connaitLaCrue()` existait et n'était
+appelée de nulle part : le piège d'`ajusterRenommee()`, une règle écrite mais
+branchée sur rien.
+
+**Sobek suit la même règle sur l'eau en général** : il ne raccourcit que les
+trajets par eau depuis le lot 6.3, et l'Ouadi Hammamat n'a ni mer, ni fleuve,
+ni rien qui flotte.
+
+**Aucune région n'est murée** (`CoherenceDesRegionsTest`) : le commerce est le
+débouché de tout ce qu'on extrait au-delà de ses propres chantiers, et une
+mission dont aucune route n'est atteignable joue avec un système en moins sans
+que rien ne le dise. C'est arrivé — le Fayoum n'avait qu'un partenaire fluvial,
+donc un Port, donc un point d'eau que sa géographie ne produisait pas. **Le
+Fayoum a de l'eau** : le Bahr Youssef, branche du Nil, alimente le lac Moeris
+sur la rive duquel Shedet est bâtie. Une mission est un jeu de paramètres —
+bords, ressources, partenaires — dont chacun peut être juste isolément sans que
+l'ensemble le soit ; c'est l'exercice d'`OuvertureDePartieTest`, appliqué à la
+géographie.
 
 Quatre points à ne pas défaire :
 
