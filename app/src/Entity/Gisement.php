@@ -96,6 +96,23 @@ class Gisement
     }
 
     /**
+     * Ferme l'exploitation. **Un filon épuisé se ferme de lui-même** : sans
+     * cela, la carrière restait « en activité » sur un vide — elle retenait son
+     * équipage, qui manquait ailleurs, et le passage de cycle répétait
+     * « le gisement est épuisé » à chaque quinzaine, indéfiniment.
+     *
+     * Le filon reste sur la carte : il se rouvre par une prospection, puis se
+     * remet en exploitation comme au premier jour. On ne rappelle pas des
+     * équipes qui sont parties.
+     */
+    public function fermer(): static
+    {
+        $this->exploitee = false;
+
+        return $this;
+    }
+
+    /**
      * Prélève sur le filon, sans jamais descendre sous zéro. Renvoie ce qui a
      * effectivement été extrait, qui peut être moindre que demandé sur la fin.
      *
@@ -119,9 +136,11 @@ class Gisement
      *
      * **Le seul chemin par lequel un gisement regagne de la matière.** Sans
      * lui, l'épuisement d'un matériau vital condamnait la région : plus rien à
-     * extraire, et rien à faire pour y remédier. L'exploitation en cours n'est
-     * pas interrompue — les équipes reprennent la veine là où elles l'avaient
-     * perdue.
+     * extraire, et rien à faire pour y remédier.
+     *
+     * **Le filon reste fermé** : `fermer()` l'a soldé au moment de
+     * l'épuisement, et l'on ne rappelle pas des équipes qui sont parties. Il
+     * faut rouvrir la carrière, comme au premier jour.
      */
     public function rouvrir(int $quantite): static
     {

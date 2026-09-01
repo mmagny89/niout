@@ -24,28 +24,26 @@ use Random\Randomizer;
  * porte pas ne se trouve pas : la prospection s'appuie sur la même règle que la
  * génération de la carte, jamais sur une seconde table.
  *
- * **Toutes les cases ne se valent pas** (décision de la joueuse) : sonder une
- * carrière encore en activité pour retrouver sa veine est certain, sonder du
- * sable vierge tient du pari. `chancesSur()` dit l'écart, et l'écran l'annonce
- * avant le départ — un pourcentage unique laissait croire qu'une case en vaut
- * une autre.
+ * **Toutes les cases ne se valent pas** (décision de la joueuse) : retrouver
+ * une veine tarie est certain — les galeries sont là, la géologie est connue —,
+ * tandis que sonder du sable vierge tient du pari. `chancesSur()` dit l'écart,
+ * et l'écran l'annonce avant le départ ; un pourcentage unique laissait croire
+ * qu'une case en vaut une autre.
  */
 final readonly class Prospection
 {
     /**
-     * **Rouvrir une veine qu'on exploite encore est certain.** Les équipes
-     * sont sur place, elles savent exactement où le filon s'est perdu : elles
-     * le suivent. C'est le seul cas à 100 % du jeu, et il récompense le joueur
-     * qui garde sa carrière en activité plutôt que de l'abandonner au premier
-     * tarissement.
+     * **Rouvrir une veine tarie est certain.** Les galeries sont creusées, la
+     * géologie est connue, on sait exactement où le filon s'est perdu : il
+     * reste à le suivre. C'est le seul cas à 100 % du jeu.
+     *
+     * Généreux à dessein. L'épuisement doit coûter du temps et de l'argent —
+     * quarante deben, quinze vivres et le trajet, puis rouvrir la carrière et
+     * la rééquiper —, **jamais fermer une région** : c'est le défaut que la
+     * prospection existe pour corriger. Chercher du **neuf**, en revanche,
+     * reste un pari, et c'est là que le hasard a sa place.
      */
-    public const int CHANCES_SUR_UNE_VEINE_EXPLOITEE = 100;
-
-    /**
-     * Rouvrir un filon tari et **abandonné** : la trace est là, mais il faut
-     * la retrouver.
-     */
-    public const int CHANCES_SUR_UNE_VEINE_DORMANTE = 75;
+    public const int CHANCES_SUR_UNE_VEINE_TARIE = 100;
 
     /**
      * Trouver du neuf sur une case **déjà minéralisée** : là où il y a un
@@ -142,11 +140,9 @@ final readonly class Prospection
         }
 
         if ([] !== $arouvrir) {
-            // Une veine encore en activité est une certitude : rien à moduler,
-            // les équipes sont dessus.
-            return $this->uneVeineEstExploitee($zone, $arouvrir)
-                ? self::CHANCES_SUR_UNE_VEINE_EXPLOITEE
-                : $this->modulerParLeTerrain(self::CHANCES_SUR_UNE_VEINE_DORMANTE, $zone);
+            // Rien à moduler : le terrain a déjà livré ce matériau ici, la
+            // question n'est plus de savoir s'il y en a.
+            return self::CHANCES_SUR_UNE_VEINE_TARIE;
         }
 
         return $this->modulerParLeTerrain(
@@ -156,26 +152,12 @@ final readonly class Prospection
     }
 
     /**
-     * @param list<Ressource> $tarisses
-     */
-    private function uneVeineEstExploitee(Zone $zone, array $tarisses): bool
-    {
-        foreach ($tarisses as $ressource) {
-            if ($zone->gisementDe($ressource)?->estExploitee() ?? false) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Ce que le sol laisse voir. Les berges et les terres travaillées livrent
      * leurs matériaux à qui sait regarder ; le sable les enfouit, et la forêt
      * les couvre.
      *
      * Le résultat reste dans [5, 95] : on ne promet jamais une certitude — elle
-     * est réservée à la veine qu'on exploite déjà — ni un départ perdu
+     * est réservée à la veine tarie qu'on vient rouvrir — ni un départ perdu
      * d'avance, qui serait un bouton pour rien.
      */
     private function modulerParLeTerrain(int $chances, Zone $zone): int

@@ -126,12 +126,19 @@ final readonly class Recoltes
                     }
                 }
 
+                // **Un filon épuisé se ferme de lui-même**, et le dit une
+                // seule fois. Tant qu'il restait « en activité » sur un vide,
+                // il retenait son équipage — qui manquait ailleurs — et le
+                // message revenait à chaque quinzaine. Le filon reste sur la
+                // carte : une prospection peut y retrouver la veine.
                 if ($gisement->estEpuise()) {
+                    $gisement->fermer();
                     $epuises[] = \sprintf(
-                        'Le %s (%d, %d) est épuisé.',
+                        'Le %s (%d, %d) est épuisé : la carrière ferme, et ses %d bras repassent au service de la ville.',
                         $gisement->libelle(),
                         $zone->getX(),
                         $zone->getY(),
+                        $equipages[$cle]['requis'] ?? Effectifs::TRAVAILLEURS_PAR_GISEMENT,
                     );
                 }
             }

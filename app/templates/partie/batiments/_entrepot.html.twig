@@ -14,5 +14,7 @@
     {% endif %}
 </p>
 
+{{ include('partie/batiments/_exploitations.html.twig', {titreDuRecap: 'Vos carrières et vos mines', recapVide: 'Aucun filon reconnu. Les gisements se découvrent en explorant.'}) }}
+
 {{ include('partie/batiments/_rival.html.twig') }}
 {{ include('partie/batiments/_routes.html.twig') }}
