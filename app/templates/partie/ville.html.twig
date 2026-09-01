@@ -73,6 +73,13 @@
 
 
             <nav class="mt-4 flex flex-wrap gap-1 text-sm" role="tablist" aria-label="Sections de la ville">
+                {% if mission %}
+                    <button type="button" role="tab" id="onglet-mission"
+                            aria-controls="panneau-mission" aria-selected="false" tabindex="-1"
+                            data-onglets-target="onglet" data-onglet-actif="false"
+                            data-action="onglets#choisir keydown->onglets#naviguer"
+                            class="border-b-2 px-3 py-2 hover:text-terre-600">Mission</button>
+                {% endif %}
                 <button type="button" role="tab" id="onglet-batiments"
                         aria-controls="panneau-batiments" aria-selected="true" tabindex="0"
                         data-onglets-target="onglet" data-onglet-actif="true"
@@ -124,6 +131,62 @@
                 {% endif %}
             </nav>
         </div>
+
+        {% if mission %}
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+                 id="panneau-mission" aria-labelledby="onglet-mission" data-onglets-target="panneau" hidden>
+
+                <h2 class="text-2xl text-encre-900">
+                    Mission <span data-chiffres>{{ mission.numero }}</span> sur 10 — {{ mission.ville }}
+                </h2>
+                <p class="mt-2 max-w-3xl text-sm text-encre-500">
+                    Commandée par <strong class="text-encre-700">{{ mission.pharaon }}</strong>.
+                    {{ mission.contexte }}
+                </p>
+
+                {# Le doc 09 veut les objectifs visibles dès le premier jour :
+                   découvrir tardivement une condition qu'on n'a pas pu
+                   anticiper serait injuste. #}
+                <h3 class="mt-6 text-lg text-encre-900">Ce que le pharaon attend</h3>
+                <ul class="mt-3 max-w-3xl space-y-3 list-none p-0">
+                    <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-3">
+                        <div class="flex flex-wrap items-baseline justify-between gap-3">
+                            <span class="text-encre-900">Résoudre le fil rouge de la mission</span>
+                            <span class="text-sm {{ filRouge and filRouge.value == 'accompli' ? 'text-lapis-500' : 'text-encre-500' }}">
+                                {{ filRouge ? filRouge.libelle : 'à venir' }}
+                            </span>
+                        </div>
+                        <p class="mt-1 text-xs text-encre-500">Obligatoire : sans lui, rien n'est accompli.</p>
+                    </li>
+
+                    {% for ligne in objectifs %}
+                        <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-3">
+                            <div class="flex flex-wrap items-baseline justify-between gap-3">
+                                <span class="text-encre-900">{{ ligne.objectif.libelle }}</span>
+                                <span class="text-sm {{ ligne.atteint ? 'text-lapis-500' : 'text-encre-500' }}" data-chiffres>
+                                    {% if ligne.avancement is null %}
+                                        mesure à venir
+                                    {% else %}
+                                        {{ ligne.avancement }} / {{ ligne.objectif.seuilMesure }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% if ligne.avancement is not null %}
+                                <div class="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                                    <div class="h-full {{ ligne.atteint ? 'bg-lapis-500' : 'bg-terre-500' }}"
+                                         style="width: {{ min(100, (ligne.avancement * 100 / max(1, ligne.objectif.seuilMesure))|round) }}%"></div>
+                                </div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <p class="mt-4 max-w-3xl text-xs text-encre-500">
+                    Le fil rouge résolu suffit à clore la mission : les objectifs
+                    non atteints donnent une reconnaissance plus modeste, jamais un échec.
+                </p>
+            </div>
+        {% endif %}
 
         <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
              id="panneau-batiments" aria-labelledby="onglet-batiments" data-onglets-target="panneau">

@@ -46,6 +46,8 @@ use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\ModeDivin;
 use App\Game\Negligence;
+use App\Game\ObjectifDeMission;
+use App\Game\ObjectifsDeMission;
 use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
@@ -170,8 +172,10 @@ final class PartieController extends AbstractController
         Enigmes $enigmes,
         Enquetes $enquetes,
         Rivaux $rivaux,
+        MissionCatalogue $missions,
     ): Response {
         $ville = $partie->getVille();
+        $mission = $this->missionDe($partie, $missions);
         $inscription = $ville->possede(TypeDeBatiment::MaisonDesScribes)
             ? $dechiffrage->proposition($partie)
             : null;
@@ -207,6 +211,18 @@ final class PartieController extends AbstractController
             'signesEnTout' => \count(SymboleHieroglyphique::cases()),
             'inscription' => $inscription,
             'filRouge' => FilRouge::court($partie) ? FilRouge::acte($partie) : null,
+            // Les objectifs sont affichés dès le premier jour (doc 09) : la
+            // transparence évite de découvrir tardivement des conditions
+            // qu'on n'a pas pu anticiper.
+            'mission' => $mission,
+            'objectifs' => array_map(
+                static fn (ObjectifDeMission $objectif): array => [
+                    'objectif' => $objectif,
+                    'avancement' => $objectif->avancement($partie),
+                    'atteint' => $objectif->estAtteint($partie),
+                ],
+                null !== $mission ? ObjectifsDeMission::pour($mission) : [],
+            ),
             // Les jetons sont mélangés **au rendu** : les laisser dans l'ordre
             // gravé donnerait la réponse par la seule lecture du HTML.
             'melange' => $inscription instanceof Inscription ? $this->melangerLesSignes($inscription) : [],
@@ -864,6 +880,7 @@ final class PartieController extends AbstractController
         Explorations $explorations,
         Enquetes $enquetes,
         Rivaux $rivaux,
+        MissionCatalogue $missions,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
@@ -1113,8 +1130,6 @@ final class PartieController extends AbstractController
         GameSave $partie,
         MissionCatalogue $missions,
         EntityManagerInterface $entityManager,
-        Enquetes $enquetes,
-        Rivaux $rivaux,
     ): Response {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('abandonner-partie', (string) $request->request->get('_token'))) {
