@@ -678,6 +678,14 @@ le garde-fou contre le piège d'`ajusterRenommee()`. **Les seuils sont
 recalibrés sur l'économie mesurée**, pas recopiés du doc 09 — qui les a
 chiffrés avant les Phases 4 et 5 et comptait encore en or.
 
+**Une tablette d'ouverture n'emploie que les quatre signes connus d'emblée**
+(`FilRouge::ouverture()`) : la clé de lecture repart de zéro à chaque mission,
+et un tutoriel qui demanderait un bâtiment n'ouvrirait sur rien. Les stèles
+finales en comptent cinq. **On ne ramasse que les indices de l'enquête qu'on
+peut mener ici** (`Enquete::seMeneDans()`) — fil rouge de la mission, les deux
+secondaires, celle du rival s'il est là ; et la tablette d'une autre mission ne
+se lit pas.
+
 **L'acte d'un fil rouge se déduit, il ne se stocke pas** (`FilRouge::acte()`) :
 il découle de faits déjà vrais — l'inscription d'ouverture est-elle lue,
 l'enquête principale résolue, la stèle finale relue. Une colonne « acte en

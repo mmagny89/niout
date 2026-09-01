@@ -739,7 +739,7 @@ lègue quelque chose pour la suite, et Thoutmôsis Ier m'envoie à Saï. »*
 | 8.1 | Mesurer l'avancement : ce que le jeu sait déjà compter, et ce qu'il ignore | ✅ |
 | 8.2 | Achever une mission : réussite totale, réussite partielle | ✅ |
 | 8.3 | Les quêtes de chantier du pharaon | ✅ |
-| 8.4 | Les dix fils rouges | |
+| 8.4 | Les dix fils rouges | ✅ |
 | 8.5 | Enchaîner : de la mission N à la mission N+1 | |
 | 8.6 | Le legs du pharaon | |
 
@@ -868,7 +868,7 @@ toujours meilleur que décliner, et le délai ne voudrait rien dire.
 **Le chantier d'Akhenaton ne rapporte aucune faveur**, et c'est
 historiquement juste : il n'honorait qu'Aton, absent du panthéon du jeu.
 
-#### 8.4 — Les dix fils rouges
+#### 8.4 — Les dix fils rouges  ✅
 
 La mission 1 en a un (lot 7.6). Les neuf autres suivent la même structure en
 trois actes, chacun avec son obstacle local cohérent avec son pharaon et son
@@ -876,10 +876,39 @@ type de mission : **fonder** (Akhetaton, Malkata, Saï), **restaurer ou
 développer** (Avaris, Shedet, Serabit, Mersa Gaouasis, Éléphantine),
 **sécuriser** (Megiddo).
 
-**C'est le plus gros morceau d'écriture de la phase**, et il vient après avoir
-joué le premier : chaque fil demande une inscription d'ouverture lisible avec
-la clé du moment, une enquête avec ses indices et ses fausses pistes, et une
-énigme finale.
+**C'est le plus gros morceau d'écriture de la phase.** Chacun porte une
+tablette d'ouverture, une enquête de quatre indices, quatre conclusions
+possibles et un dénouement.
+
+| # | Ville | L'obstacle |
+|---|---|---|
+| 1 | Avaris | Le passage coupé |
+| 2 | Saï | Les bornes déplacées |
+| 3 | Mersa Gaouasis | La flotte qui ne part pas |
+| 4 | Megiddo | La porte laissée ouverte |
+| 5 | Malkata | Le chantier qui n'avance pas |
+| 6 | Akhetaton | L'eau qui manque |
+| 7 | Éléphantine | L'or qui s'évapore |
+| 8 | Shedet | Le canal envasé |
+| 9 | Ouadi Hammamat | Les hommes qui désertent |
+| 10 | Serabit el-Khadim | La galerie effondrée |
+
+**Une contrainte que le jeu impose à l'écriture** : la clé de lecture repart de
+quatre signes à chaque mission. Les dix tablettes d'ouverture ne peuvent donc
+employer que ceux-là — eau, homme, maison, marche —, ce qui leur donne leur ton
+lapidaire. Les stèles finales, elles, en comptent cinq : à la fin d'une
+mission, les scribes ont appris. Un test le vérifie sur les dix.
+
+**On ne ramasse que les indices de son enquête** : trouver au Delta une borne
+déplacée du Sinaï remplirait un dossier qu'on n'ouvrirait jamais. De même,
+la tablette d'une autre mission ne se lit pas ici — elle ne raconte pas cette
+histoire-là.
+
+**Chaque fil doit pouvoir se dénouer**, et c'est testé sur les dix : assez
+d'indices concordants pour conclure, au moins un qui ne l'est pas, et au moins
+un qui se trouve sur le terrain — sinon l'enquête n'aurait aucune porte
+d'entrée. C'est l'exercice d'`OuvertureDePartieTest`, appliqué aux dix
+histoires plutôt qu'aux dix cartes.
 
 #### 8.5 — Enchaîner les missions
 

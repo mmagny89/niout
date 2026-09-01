@@ -226,8 +226,11 @@ final readonly class Enquetes
                 continue;
             }
 
-            // On ne démonte pas un marchand avant qu'il n'arrive.
-            if ($indice->enquete()->viseUnRival() && null === $ville->getRival()) {
+            // On ne ramasse que les indices des enquêtes qu'on peut mener
+            // ici : le fil rouge de cette mission, les deux secondaires, et
+            // celle du rival s'il est là. Trouver au Delta une borne déplacée
+            // du Sinaï remplirait un dossier qu'on n'ouvrira jamais.
+            if (!$indice->enquete()->seMeneDans($partie)) {
                 continue;
             }
 

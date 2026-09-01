@@ -155,9 +155,11 @@ final class AchevementDeMissionTest extends WebTestCase
 
         $this->lire($partie, Inscription::CommandeDAhmosis);
 
-        $dossier = $ville->ouvrirLeDossierDe(FilRouge::enquete());
+        $enquete = FilRouge::enquete($partie);
+        self::assertNotNull($enquete);
+        $dossier = $ville->ouvrirLeDossierDe($enquete);
 
-        foreach (FilRouge::enquete()->indices() as $indice) {
+        foreach ($enquete->indices() as $indice) {
             if (NatureDIndice::Concordant === $indice->nature()) {
                 $dossier->verser($indice);
             }
@@ -165,8 +167,8 @@ final class AchevementDeMissionTest extends WebTestCase
 
         static::getContainer()->get(Enquetes::class)->conclure(
             $partie,
-            FilRouge::enquete(),
-            FilRouge::enquete()->bonneConclusion(),
+            $enquete,
+            $enquete->bonneConclusion(),
         );
 
         foreach (Inscription::LaRouteEstRouverte->signes() as $signe) {

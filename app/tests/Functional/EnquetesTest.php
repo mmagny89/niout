@@ -185,14 +185,26 @@ final class EnquetesTest extends WebTestCase
     }
 
     /**
-     * Une seule enquête porte le fil rouge : c'est elle qui se rejouera
-     * jusqu'à être résolue, les autres pouvant se perdre.
+     * **Une principale par mission, et une seule** : c'est elle qui portera le
+     * fil rouge de cette région et se rejouera jusqu'à être résolue. Les
+     * secondaires, elles, sont communes à toutes les régions et peuvent se
+     * perdre.
      */
-    public function testUneSeuleEnqueteEstPrincipale(): void
+    public function testChaqueMissionAUneEtUneSeuleEnquetePrincipale(): void
     {
-        $principales = array_filter(Enquete::cases(), static fn (Enquete $e): bool => $e->estPrincipale());
+        $vues = [];
 
-        self::assertCount(1, $principales);
+        for ($mission = 1; $mission <= 10; ++$mission) {
+            $enquete = Enquete::duFilRouge($mission);
+
+            self::assertNotNull($enquete, \sprintf('Mission %d.', $mission));
+            self::assertTrue($enquete->estPrincipale());
+            self::assertNotContains($enquete, $vues, 'Deux missions ne partagent pas leur fil rouge.');
+            $vues[] = $enquete;
+        }
+
+        $principales = array_filter(Enquete::cases(), static fn (Enquete $e): bool => $e->estPrincipale());
+        self::assertCount(10, $principales, 'Dix missions, dix fils rouges, et rien de plus.');
     }
 
     /**
