@@ -115,6 +115,22 @@ class Gisement
     }
 
     /**
+     * Rouvre le filon de ce qu'une prospection y a retrouvé.
+     *
+     * **Le seul chemin par lequel un gisement regagne de la matière.** Sans
+     * lui, l'épuisement d'un matériau vital condamnait la région : plus rien à
+     * extraire, et rien à faire pour y remédier. L'exploitation en cours n'est
+     * pas interrompue — les équipes reprennent la veine là où elles l'avaient
+     * perdue.
+     */
+    public function rouvrir(int $quantite): static
+    {
+        $this->quantiteRestante += max(0, $quantite);
+
+        return $this;
+    }
+
+    /**
      * Désignation courte, pour les messages destinés au joueur. On ne creuse
      * pas un banc de poisson : le mot suit la chose.
      */

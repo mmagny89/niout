@@ -216,6 +216,32 @@
                         </form>
                     {% endif %}
 
+                    {# Un filon épuisé n'est pas une impasse : on peut envoyer
+                       sonder la case pour rouvrir la veine, ou en trouver une
+                       autre. Le départ n'est proposé que si quelque chose peut
+                       en sortir — annoncer une fouille qui ne peut rien
+                       rapporter serait un piège. #}
+                    {% if peutProspecter and partie.estEnCours %}
+                        <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}" class="mt-4">
+                            <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
+                            <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                            <input type="hidden" name="role" value="prospecteur">
+                            <button type="submit"
+                                    class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                                Envoyer un prospecteur
+                            </button>
+                            <span class="ml-3 text-sm text-encre-500" data-chiffres>
+                                {{ coutDuProspecteur }} deben · {{ provisionsDuProspecteur }} vivres
+                                · {{ dureeDuProspecteur }} cycle{{ dureeDuProspecteur > 1 ? 's' : '' }}
+                                · {{ chancesDeProspecter }} % de chances
+                            </span>
+                        </form>
+                        <p class="mt-2 text-sm text-encre-500">
+                            Ce que ce sol pourrait rendre :
+                            {% for filon in filonsAProspecter %}{{ filon.libelle|lower }}{{ not loop.last ? ', ' : '' }}{% endfor %}.
+                        </p>
+                    {% endif %}
+
                     {# Les cases « quelque chose s'y trame » sont posées depuis le
                        lot 3.2 et ne menaient nulle part : elles rendent désormais
                        un indice, une fois. #}

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
+use App\Entity\Building;
 use App\Entity\GameSave;
 use App\Entity\User;
+use App\Game\Enigme;
 use App\Game\FamilleDeRessource;
 use App\Game\LanceurDePartie;
 use App\Game\Ressource;
+use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -179,6 +182,52 @@ final class ErgonomieTest extends WebTestCase
         $fixe = $crawler->filter('section > div')->first()->html();
         self::assertStringNotContainsString('app_partie_divin', $fixe);
         self::assertStringNotContainsString('Passer en partie d\'essai', $fixe);
+    }
+
+    /**
+     * **Un onglet, un bâtiment** (décision de la joueuse) : le Temple,
+     * l'Auberge et la Maison des scribes se lisent chacun dans le sien, et
+     * chaque onglet n'apparaît qu'une fois son bâtiment dressé — un onglet sur
+     * du vide n'est pas un onglet.
+     *
+     * C'est aussi ce qui range les énigmes là où on les entend : celles de
+     * l'Auberge dans l'Auberge, plus toutes entassées chez les scribes.
+     */
+    public function testChaqueBatimentQuiSeLitASonPropreOnglet(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'un-onglet-un-batiment@example.com');
+        $ville = $partie->getVille();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        foreach (['temple', 'auberge', 'scribes'] as $lieu) {
+            self::assertCount(0, $crawler->filter('#onglet-'.$lieu), 'Sans le bâtiment, pas d\'onglet.');
+        }
+
+        foreach ([TypeDeBatiment::Temple, TypeDeBatiment::Auberge, TypeDeBatiment::MaisonDesScribes] as $type) {
+            $ville->ajouterBatiment(new Building($ville, $type, 1));
+        }
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        foreach (['temple', 'auberge', 'scribes'] as $lieu) {
+            self::assertCount(1, $crawler->filter('#onglet-'.$lieu));
+            self::assertCount(1, $crawler->filter('#panneau-'.$lieu));
+        }
+
+        // Les devinettes de l'Auberge se lisent dans l'Auberge, pas ailleurs.
+        $auberge = $crawler->filter('#panneau-auberge')->html();
+        self::assertStringContainsString(Enigme::DevinetteDuFleuve->enonce(), $auberge);
+        self::assertStringNotContainsString(
+            Enigme::DevinetteDuFleuve->enonce(),
+            $crawler->filter('#panneau-scribes')->html(),
+        );
+
+        // Et l'oracle se pose au Temple.
+        self::assertStringContainsString(
+            Enigme::OracleDeKarnak->enonce(),
+            $crawler->filter('#panneau-temple')->html(),
+        );
     }
 
     private function lancer(KernelBrowser $client, string $email, bool $divin = false): GameSave

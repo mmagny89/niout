@@ -8,14 +8,25 @@ use App\Entity\GameSave;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * La vente au Marché : échanger son surplus contre des deben (doc 01, doc 08).
+ * La vente au Marché : écouler son surplus sur la place, contre des deben
+ * (doc 01, doc 08).
  *
- * Version minimale et volontairement incomplète — l'achat, les prix fluctuants
- * selon l'offre et la demande, les lots simultanés et les caravanes de
- * l'Entrepôt relèvent de la Phase 5. Seule la vente est avancée ici, parce
- * qu'elle règle un blocage de fond : sans elle, **la monnaie n'a aucune source**. La
- * dotation royale en donne une fois pour toutes, chaque bâtiment en consomme,
- * et toute partie finissait donc par se figer, faute de pouvoir en gagner.
+ * **À qui vend-on ?** Aux gens de la ville et aux voyageurs qui passent — pas
+ * au vaste monde. C'est ce qui distingue le Marché de l'Entrepôt, et ce qui
+ * empêche les deux d'être un doublon (décision de la joueuse) :
+ *
+ * - le **Marché** paie au cours de base, tout de suite, mais son débouché est
+ *   borné par la quinzaine (`plafondDeLaQuinzaine()`) : une place ne peut pas
+ *   absorber plus que ce que ses habitants et ses passants achètent ;
+ * - l'**Entrepôt** et le **Port** vendent loin, à 150 % ou 200 % du cours, en
+ *   volumes autrement plus grands — mais il faut ouvrir une route, engager la
+ *   marchandise, et attendre le retour du convoi.
+ *
+ * Le Marché reste ainsi la source de monnaie du début de partie, sans jamais
+ * devenir celle de toute la partie : **la vraie richesse passe par les
+ * caravanes**. Sans lui, la monnaie n'aurait aucune source — la dotation
+ * royale en donne une fois pour toutes, chaque bâtiment en consomme, et toute
+ * partie finissait par se figer.
  *
  * C'est aussi ce qui donne enfin un sens à l'exploitation d'un gisement au-delà
  * de la construction : un filon de calcaire devient un revenu.
@@ -41,6 +52,16 @@ final readonly class Marche
      */
     public const int RECETTE_DUN_GROS_CONTRAT = 40;
 
+    /**
+     * Ce qu'un habitant absorbe par quinzaine et par niveau de Marché, en
+     * deben. **Valeur inventée**, calibrée sur l'ouverture : une ville de dix
+     * habitants dotée d'un Marché de niveau 1 écoule quarante deben par
+     * quinzaine — exactement un gros contrat, de quoi vivre sans jamais
+     * s'enrichir. Monter le Marché et peupler la ville élargissent la place ;
+     * s'enrichir vraiment demande les routes commerciales.
+     */
+    public const int DEBOUCHE_PAR_HABITANT = 4;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -65,14 +86,16 @@ final readonly class Marche
             throw new VenteImpossible('Il faut vendre au moins une unité.');
         }
 
+        $reste = $this->venteRestante($partie);
+
+        if ($reste < 1) {
+            throw new VenteImpossible('La place a fait son plein pour cette quinzaine. Attendez le prochain jour de marché, ou passez par vos routes commerciales.');
+        }
+
         $prix = PrixDuMarche::pour($ressource);
 
         if (null === $prix) {
             throw new VenteImpossible(\sprintf('Le %s ne se négocie pas : c\'est la monnaie.', $ressource->libelle()));
-        }
-
-        if (!$ville->debiterRessources([$ressource->value => $quantite])) {
-            throw new VenteImpossible(\sprintf('Vous n\'avez pas %d %s à vendre.', $quantite, $ressource->libelle()));
         }
 
         // Ce que vaut le Marché : ses bras et la compétence de ceux qui les
@@ -83,7 +106,21 @@ final readonly class Marche
             $prix * $quantite * EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Marche, $partie->getCycle()),
             Effectifs::RENDEMENT_PLEIN,
         );
+
+        // Le plafond se vérifie **avant** le débit, jamais après : un lot repris
+        // au stock repasserait par le plafond de réserve, et un Entrepôt plein
+        // le refuserait — le joueur perdrait sa marchandise pour avoir tenté
+        // une vente trop grosse.
+        if ($recette > $reste) {
+            throw new VenteImpossible(\sprintf('La place ne peut plus absorber que %d deben cette quinzaine, et ce lot en vaut %d. Vendez-en moins, ou passez par vos routes commerciales.', $reste, $recette));
+        }
+
+        if (!$ville->debiterRessources([$ressource->value => $quantite])) {
+            throw new VenteImpossible(\sprintf('Vous n\'avez pas %d %s à vendre.', $quantite, $ressource->libelle()));
+        }
+
         $ville->crediterRessources([Ressource::Deben->value => $recette]);
+        $ville->compterUneVenteAuMarche($recette);
         // Ce qui passe par le Marché compte au volume échangé, comme ce qui
         // passe par une caravane (doc 09).
         $ville->compterUnEchange($recette);
@@ -95,6 +132,32 @@ final readonly class Marche
         $this->entityManager->flush();
 
         return $recette;
+    }
+
+    /**
+     * Ce que la place peut absorber en une quinzaine, en deben : ses habitants
+     * et ses passants, autant que le Marché en accueille. Nul sans Marché.
+     */
+    public static function plafondDeLaQuinzaine(GameSave $partie): int
+    {
+        $ville = $partie->getVille();
+        $marche = $ville->batimentDeType(TypeDeBatiment::Marche);
+
+        if (null === $marche) {
+            return 0;
+        }
+
+        return $ville->population() * $marche->getNiveau() * self::DEBOUCHE_PAR_HABITANT;
+    }
+
+    /**
+     * Ce qu'il reste à écouler dans la quinzaine. Exposé pour que l'écran
+     * annonce la borne **avant** la vente, plutôt que de la révéler par un
+     * refus.
+     */
+    public function venteRestante(GameSave $partie): int
+    {
+        return max(0, self::plafondDeLaQuinzaine($partie) - $partie->getVille()->getVenduAuMarche());
     }
 
     /**

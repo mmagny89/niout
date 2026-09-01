@@ -580,6 +580,42 @@ class City
     }
 
     /**
+     * Ce que le Marché a déjà écoulé dans la quinzaine en cours, en deben.
+     *
+     * **Le Marché vend aux gens de la ville et aux passants**, pas au vaste
+     * monde : son débouché est celui d'une place, et il se sature. Ce compteur
+     * est ce qui l'empêche d'être un doublon du commerce par caravanes — l'un
+     * est un appoint immédiat et borné, l'autre écoule de vrais volumes, plus
+     * cher, mais avec le délai d'un convoi. Il repart de zéro à chaque
+     * quinzaine (`rouvrirLEtal()`), comme un jour de marché succède au
+     * précédent.
+     */
+    #[ORM\Column]
+    private int $venduAuMarche = 0;
+
+    public function getVenduAuMarche(): int
+    {
+        return $this->venduAuMarche;
+    }
+
+    public function compterUneVenteAuMarche(int $recette): static
+    {
+        $this->venduAuMarche += max(0, $recette);
+
+        return $this;
+    }
+
+    /**
+     * Nouveau jour de marché : le débouché de la quinzaine se reconstitue.
+     */
+    public function rouvrirLEtal(): static
+    {
+        $this->venduAuMarche = 0;
+
+        return $this;
+    }
+
+    /**
      * Ce qui ne rentrerait pas, ressource par ressource — les lignes qui
      * tiennent en entier en sont absentes.
      *

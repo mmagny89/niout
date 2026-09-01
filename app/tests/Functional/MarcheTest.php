@@ -9,6 +9,7 @@ use App\Entity\GameSave;
 use App\Entity\User;
 use App\Game\LanceurDePartie;
 use App\Game\Marche;
+use App\Game\PassageDeCycle;
 use App\Game\PrixDuMarche;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
@@ -87,14 +88,74 @@ final class MarcheTest extends KernelTestCase
         self::bootKernel();
         $partie = $this->lancerAvecMarche('mine-dor@example.com');
         $ville = $partie->getVille();
-        $ville->crediterRessources([Ressource::Or->value => 4]);
+        // Deux lingots, pas quatre : la place d'une ville neuve n'absorbe
+        // qu'une quarantaine de deben par quinzaine
+        // (`Marche::plafondDeLaQuinzaine()`), et un lot plus gros passerait
+        // par les routes commerciales.
+        $ville->crediterRessources([Ressource::Or->value => 2]);
         $debenAvant = $ville->getDeben();
 
-        $recette = $this->marche()->vendre($partie, Ressource::Or, 4);
+        $recette = $this->marche()->vendre($partie, Ressource::Or, 2);
 
-        self::assertSame(intdiv(4 * PrixDuMarche::pour(Ressource::Or), 2), $recette, 'Marché sans chef : moitié prix.');
+        self::assertSame(intdiv(2 * PrixDuMarche::pour(Ressource::Or), 2), $recette, 'Marché sans chef : moitié prix.');
         self::assertSame($debenAvant + $recette, $ville->getDeben());
         self::assertSame(0, $ville->quantite(Ressource::Or));
+    }
+
+    /**
+     * **Le Marché vend aux gens de la ville et aux passants**, pas au vaste
+     * monde : sa place se sature, et c'est ce qui l'empêche d'être un doublon
+     * du commerce par caravanes (décision de la joueuse). Un lot qui dépasse
+     * le débouché de la quinzaine est refusé — jamais vendu à moitié.
+     */
+    public function testLaPlaceNAbsorbeQuUnVolumeParQuinzaine(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('debouche@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Or->value => 200]);
+
+        $plafond = Marche::plafondDeLaQuinzaine($partie);
+        self::assertGreaterThan(0, $plafond, 'Un Marché dressé ouvre un débouché.');
+
+        $stockAvant = $ville->quantite(Ressource::Or);
+        $debenAvant = $ville->getDeben();
+
+        try {
+            $this->marche()->vendre($partie, Ressource::Or, 200);
+            self::fail('Un lot plus grand que le débouché de la quinzaine aurait dû être refusé.');
+        } catch (VenteImpossible $impossible) {
+            self::assertStringContainsString('absorber', $impossible->getMessage());
+            // **Le plafond se vérifie avant le débit** : un lot repris au stock
+            // repasserait par le plafond de réserve, et un Entrepôt plein le
+            // refuserait — le joueur perdrait sa marchandise.
+            self::assertSame($stockAvant, $ville->quantite(Ressource::Or), 'Un refus ne coûte pas la marchandise.');
+            self::assertSame($debenAvant, $ville->getDeben());
+        }
+    }
+
+    /**
+     * Un nouveau jour de marché rouvre le débouché : la borne appartient à la
+     * quinzaine, pas à la partie.
+     */
+    public function testLaQuinzaineSuivanteRouvreLaPlace(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('jour-de-marche@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Or->value => 200]);
+
+        $this->marche()->vendre($partie, Ressource::Or, 1);
+        $restantApresLaVente = $this->marche()->venteRestante($partie);
+        self::assertLessThan(Marche::plafondDeLaQuinzaine($partie), $restantApresLaVente);
+
+        static::getContainer()->get(PassageDeCycle::class)->passer($partie);
+
+        self::assertSame(
+            Marche::plafondDeLaQuinzaine($partie),
+            $this->marche()->venteRestante($partie),
+            'La place se reconstitue à chaque quinzaine.',
+        );
     }
 
     public function testUneQuantiteNulleOuNegativeEstRefusee(): void

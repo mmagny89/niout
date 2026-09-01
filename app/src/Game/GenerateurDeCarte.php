@@ -994,6 +994,27 @@ final readonly class GenerateurDeCarte
     }
 
     /**
+     * Ce que ce terrain peut réellement porter, parmi les matériaux d'une
+     * région. **Un tirage n'impose jamais un gisement que le terrain dément** :
+     * la prospection s'appuie sur la même règle que la génération plutôt que
+     * d'en recopier une seconde, qui finirait par en diverger et planterait des
+     * acacias en plein désert.
+     *
+     * @param list<Ressource> $possibles
+     *
+     * @return list<Ressource>
+     */
+    public static function materiauxPossiblesSur(TypeDeTerrain $terrain, array $possibles): array
+    {
+        $poids = self::poidsDesRessources($possibles, $terrain);
+
+        return array_values(array_filter(
+            $possibles,
+            static fn (Ressource $r): bool => isset($poids[$r->value]),
+        ));
+    }
+
+    /**
      * Quel matériau ce terrain livre, à poids inégaux.
      *
      * **Le bois local ne pousse pas n'importe où** (doc 02, doc 08) : il est
@@ -1013,7 +1034,7 @@ final readonly class GenerateurDeCarte
      *
      * @return array<string, int> valeur de Ressource => poids
      */
-    private static function poidsDesRessources(array $possibles, TypeDeTerrain $terrain): array
+    public static function poidsDesRessources(array $possibles, TypeDeTerrain $terrain): array
     {
         $poids = [];
 

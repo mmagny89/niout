@@ -106,6 +106,11 @@ final readonly class PassageDeCycle
 
         $partie->avancerDUnCycle();
 
+        // Nouveau jour de marché : la place peut de nouveau absorber du
+        // surplus. Après `avancerDUnCycle()`, jamais avant — le débouché
+        // appartient à la quinzaine qui s'ouvre, pas à celle qui se solde.
+        $partie->getVille()->rouvrirLEtal();
+
         // Tout ce qui se compte à l'année se résout ici, une fois la bascule
         // franchie — et pas au premier cycle d'une partie, où la ville vient
         // tout juste d'arriver.

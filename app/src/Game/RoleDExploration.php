@@ -11,16 +11,17 @@ namespace App\Game;
  * inconnue, puis une action complémentaire s'impose — ou non — selon ce qu'il a
  * trouvé. Le joueur ne décide jamais à l'avance d'envoyer une grosse équipe.
  *
- * Seul l'éclaireur est jouable pour l'instant : l'émissaire suppose des PNJ, le
- * chef d'expédition des zones lourdes, et l'escorte des Medjaÿ. La première
- * mission se joue en difficulté 0, sans aucune zone à bandits — l'éclaireur y
- * suffit.
+ * Deux rôles sont jouables : l'éclaireur, qui lève le brouillard, et le
+ * prospecteur, qui sonde une case déjà reconnue à la recherche d'un filon.
+ * L'émissaire suppose des PNJ, le chef d'expédition des zones lourdes, et
+ * l'escorte des Medjaÿ.
  */
 enum RoleDExploration: string
 {
     case Eclaireur = 'eclaireur';
     case Emissaire = 'emissaire';
     case ChefDExpedition = 'chef_expedition';
+    case Prospecteur = 'prospecteur';
 
     public function libelle(): string
     {
@@ -28,6 +29,7 @@ enum RoleDExploration: string
             self::Eclaireur => 'Éclaireur',
             self::Emissaire => 'Émissaire',
             self::ChefDExpedition => 'Chef d\'expédition',
+            self::Prospecteur => 'Prospecteur',
         };
     }
 
@@ -37,6 +39,7 @@ enum RoleDExploration: string
             self::Eclaireur => 'Reconnaît la case et en révèle le contenu. Rapide, peu coûteux, sans combat.',
             self::Emissaire => 'Va parler aux gens d\'une case déjà reconnue, et rapporte ce qui s\'y dit. Les témoignages nourrissent les enquêtes.',
             self::ChefDExpedition => 'Encadre une expédition lourde vers une mine ou une carrière éloignée.',
+            self::Prospecteur => 'Sonde une case déjà reconnue : il rouvre un filon épuisé ou en met un nouveau au jour. Il peut rentrer bredouille.',
         };
     }
 
@@ -51,7 +54,34 @@ enum RoleDExploration: string
      */
     public function viseUneCaseInconnue(): bool
     {
-        return self::Emissaire !== $this;
+        return match ($this) {
+            self::Eclaireur, self::ChefDExpedition => true,
+            // Le prospecteur sonde un sol qu'on connaît déjà : on ne cherche
+            // pas un filon là où l'on ignore encore ce qu'il y a.
+            self::Emissaire, self::Prospecteur => false,
+        };
+    }
+
+    /**
+     * Seul l'émissaire a besoin d'un endroit où consigner ce qu'on lui dit : un
+     * témoignage sans dossier se perd. Le prospecteur, lui, rapporte un filon,
+     * qui tient sur la carte et non dans un registre.
+     */
+    public function exigeLaMaisonDesScribes(): bool
+    {
+        return self::Emissaire === $this;
+    }
+
+    /**
+     * **Le rayon gratuit vaut pour la reconnaissance, pas pour le travail.**
+     * Ne pas faire payer le premier pas d'une partie neuve est une chose ;
+     * offrir la prospection sous les murs de la ville en serait une autre — le
+     * joueur rouvrirait ses filons épuisés sans jamais rien engager, et
+     * l'épuisement cesserait de compter.
+     */
+    public function beneficieDuRayonGratuit(): bool
+    {
+        return self::Prospecteur !== $this;
     }
 
     /**
@@ -63,6 +93,9 @@ enum RoleDExploration: string
             self::Eclaireur => 10,
             self::Emissaire => 30,
             self::ChefDExpedition => 50,
+            // Plus cher que l'éclaireur, moins que l'expédition lourde : une
+            // équipe de sondeurs, pas une caravane.
+            self::Prospecteur => 40,
         };
     }
 
@@ -79,7 +112,7 @@ enum RoleDExploration: string
      */
     public function coutPourUneDistance(int $distance): int
     {
-        return $distance < 3 ? 0 : $this->cout();
+        return $distance < 3 && $this->beneficieDuRayonGratuit() ? 0 : $this->cout();
     }
 
     /**
@@ -95,6 +128,7 @@ enum RoleDExploration: string
             self::Eclaireur => 5,
             self::Emissaire => 10,
             self::ChefDExpedition => 20,
+            self::Prospecteur => 15,
         };
     }
 
@@ -106,7 +140,7 @@ enum RoleDExploration: string
      */
     public function provisionsPourUneDistance(int $distance): int
     {
-        return $distance < 3 ? 0 : $this->provisions();
+        return $distance < 3 && $this->beneficieDuRayonGratuit() ? 0 : $this->provisions();
     }
 
     /**
@@ -116,6 +150,6 @@ enum RoleDExploration: string
      */
     public static function disponibles(): array
     {
-        return [self::Eclaireur];
+        return [self::Eclaireur, self::Prospecteur];
     }
 }

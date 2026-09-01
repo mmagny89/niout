@@ -55,6 +55,7 @@ use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
 use App\Game\Progression;
+use App\Game\Prospection;
 use App\Game\QueteImpossible;
 use App\Game\QuetesDeChantier;
 use App\Game\Recette;
@@ -187,6 +188,7 @@ final class PartieController extends AbstractController
         Enquetes $enquetes,
         Rivaux $rivaux,
         MissionCatalogue $missions,
+        Offrandes $offrandes,
     ): Response {
         $ville = $partie->getVille();
         $mission = $this->missionDe($partie, $missions);
@@ -202,6 +204,11 @@ final class PartieController extends AbstractController
             'offres' => $catalogue->pour($ville),
             'aUnMarche' => $ville->possede(TypeDeBatiment::Marche),
             'etal' => $ville->possede(TypeDeBatiment::Marche) ? $marche->etalPour($partie) : [],
+            // Le débouché de la quinzaine se lit **avant** la vente : découvrir
+            // la borne par un refus serait la subir au lieu de la jouer.
+            'plafondDuMarche' => Marche::plafondDeLaQuinzaine($partie),
+            'venteRestante' => $marche->venteRestante($partie),
+            'niveauDuMarche' => $ville->batimentDeType(TypeDeBatiment::Marche)?->getNiveau() ?? 0,
             'palier' => $partie->getFamille()->palier(),
             'coutDUnAppel' => $appels->cout($partie),
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
@@ -257,13 +264,14 @@ final class PartieController extends AbstractController
             // Les propositions sont mélangées au rendu, comme les jetons du
             // déchiffrage : la bonne réponse est toujours la première dans le
             // catalogue, et se lirait sinon dans la source de la page.
-            'enigmes' => array_map(
-                static fn (Enigme $enigme): array => [
-                    'enigme' => $enigme,
-                    'propositions' => self::melanger($enigmes->propositionsMontrees($partie, $enigme)),
-                ],
-                $ville->possede(TypeDeBatiment::MaisonDesScribes) ? $enigmes->disponibles($partie) : [],
-            ),
+            // **Un onglet, un bâtiment** : les énigmes se rangent là où on les
+            // entend, plutôt que toutes dans le panneau des scribes. C'est
+            // `Enigme::lieu()` qui décide, pas l'écran.
+            'enigmesDesScribes' => $this->enigmesDe($partie, $enigmes, TypeDeBatiment::MaisonDesScribes),
+            'enigmesDuTemple' => $this->enigmesDe($partie, $enigmes, TypeDeBatiment::Temple),
+            'enigmesDeLAuberge' => $this->enigmesDe($partie, $enigmes, TypeDeBatiment::Auberge),
+            'aUneAuberge' => $ville->possede(TypeDeBatiment::Auberge),
+            ...$this->donneesDuTemple($partie, $offrandes),
         ]);
     }
 
@@ -818,56 +826,15 @@ final class PartieController extends AbstractController
     }
 
     /**
-     * Le Temple : à qui l'on donne, et ce que les dieux en pensent.
-     *
-     * Écran à part plutôt qu'une section de la ville : huit divinités, leurs
-     * paliers et leurs effets ne tiennent pas dans la marge d'une liste de
-     * bâtiments, et le geste d'offrande mérite qu'on s'y arrête.
+     * L'ancienne adresse du Temple. Il est désormais un onglet de la ville —
+     * **un onglet, un bâtiment** (décision de la joueuse) —, mais la route
+     * survit : un lien mis de côté ou un signet ne doit pas tomber sur du vide.
      */
     #[Route('/{id}/temple', name: 'app_partie_temple', requirements: ['id' => '\\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function temple(GameSave $partie, Offrandes $offrandes): Response
+    public function temple(GameSave $partie): Response
     {
-        $ville = $partie->getVille();
-        $temple = $ville->batimentDeType(TypeDeBatiment::Temple);
-
-        $pantheon = [];
-
-        foreach (Divinite::pantheon() as $divinite) {
-            $suivie = $ville->faveurDe($divinite);
-            $pantheon[] = [
-                'divinite' => $divinite,
-                'faveur' => $ville->faveurEnvers($divinite),
-                'palier' => $ville->palierDe($divinite),
-                // Un dieu qui commence à se détourner doit le dire avant que
-                // son effet ne cesse, sinon le joueur ne l'apprend qu'une fois
-                // le palier perdu.
-                'seDetourne' => null !== $suivie
-                    && $suivie->getQuinzainesSansOffrande() > Negligence::QUINZAINES_DE_GRACE
-                    && $suivie->getFaveur() > Negligence::PLANCHER,
-                'quinzainesSansOffrande' => $suivie?->getQuinzainesSansOffrande() ?? 0,
-                // Le supplément de fête se lit **avant** de donner, comme le
-                // prix d'un ordre commercial montre son effet avant
-                // l'engagement.
-                'supplementDeFete' => Offrandes::supplementDeFete($partie->dateDeJeu(), $divinite),
-            ];
-        }
-
-        return $this->render('partie/temple.html.twig', [
-            'partie' => $partie,
-            'ville' => $ville,
-            'pantheon' => $pantheon,
-            'aUnTemple' => null !== $temple,
-            'niveauDuTemple' => $temple?->getNiveau() ?? 0,
-            'divinitesPortables' => Temple::divinitesPortables($ville),
-            'plafond' => Temple::plafondDeFaveur($ville),
-            'honorees' => $ville->divinitesHonorees(),
-            'corbeille' => $offrandes->corbeillePour($partie),
-            'pointsParOffrande' => Offrandes::POINTS_PAR_OFFRANDE,
-            'debenParOffrande' => Offrandes::DEBEN_PAR_OFFRANDE,
-            'fete' => $partie->feteEnCours(),
-            'pointsDeFete' => Offrandes::POINTS_DE_FETE,
-        ]);
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
     }
 
     /**
@@ -903,7 +870,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_temple', ['id' => $partie->getId()]);
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
     }
 
     /**
@@ -921,6 +888,7 @@ final class PartieController extends AbstractController
         Enquetes $enquetes,
         Rivaux $rivaux,
         MissionCatalogue $missions,
+        Prospection $prospection,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
@@ -967,6 +935,27 @@ final class PartieController extends AbstractController
             // c'est ce qui dit au joueur qu'une carrière tourne à moitié faute
             // de bras, plutôt que de le lui laisser deviner au stock.
             'equipages' => Effectifs::repartirLeTerritoire($ville, $partie->getCycle()),
+            // Le prospecteur sonde une case déjà reconnue. On ne propose le
+            // départ que si quelque chose peut en sortir : un filon épuisé à
+            // rouvrir, ou de la place pour un nouveau que le terrain accepte.
+            // Annoncer un départ qui ne peut rien rapporter serait un piège.
+            'filonsAProspecter' => $detaillee instanceof Zone && $detaillee->estDecouverte()
+                ? $prospection->filonsPossibles($partie, $detaillee)
+                : [],
+            'peutProspecter' => $detaillee instanceof Zone
+                && $detaillee->estDecouverte()
+                && !$ville->aUneExpeditionVers($detaillee)
+                && [] !== $prospection->filonsPossibles($partie, $detaillee),
+            'coutDuProspecteur' => $detaillee instanceof Zone
+                ? $explorations->coutVers($partie, $detaillee, RoleDExploration::Prospecteur)
+                : RoleDExploration::Prospecteur->cout(),
+            'provisionsDuProspecteur' => $detaillee instanceof Zone
+                ? $explorations->provisionsVers($partie, $detaillee, RoleDExploration::Prospecteur)
+                : RoleDExploration::Prospecteur->provisions(),
+            'dureeDuProspecteur' => $detaillee instanceof Zone
+                ? $explorations->dureeVers($partie, $detaillee)
+                : null,
+            'chancesDeProspecter' => Prospection::CHANCES_DE_TROUVER,
         ]);
     }
 
@@ -1050,7 +1039,8 @@ final class PartieController extends AbstractController
     }
 
     /**
-     * Envoie un éclaireur reconnaître une case.
+     * Envoie quelqu'un sur une case : un éclaireur pour la reconnaître, un
+     * émissaire pour parler à ses gens, un prospecteur pour y chercher un filon.
      */
     #[Route('/{id}/carte/explorer', name: 'app_partie_explorer', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
@@ -1074,7 +1064,11 @@ final class PartieController extends AbstractController
             $this->addFlash('succes', \sprintf(
                 '%s part%s. Il sera sur place dans %d cycle%s.',
                 $role->libelle(),
-                RoleDExploration::Emissaire === $role ? '' : ' en reconnaissance',
+                match ($role) {
+                    RoleDExploration::Emissaire => '',
+                    RoleDExploration::Prospecteur => ' sonder la case',
+                    default => ' en reconnaissance',
+                },
                 $expedition->getDureeEnCycles(),
                 $expedition->getDureeEnCycles() > 1 ? 's' : '',
             ));
@@ -1388,6 +1382,77 @@ final class PartieController extends AbstractController
     /**
      * La mission en cours, ou null en mode Aventure — qui suit des règnes.
      */
+    /**
+     * Les énigmes qu'on entend dans ce bâtiment-là, prêtes à l'affichage.
+     *
+     * Les propositions sont mélangées **au rendu**, comme les jetons du
+     * déchiffrage : la bonne réponse est toujours la première du catalogue, et
+     * se lirait sinon dans la source de la page.
+     *
+     * @return list<array{enigme: Enigme, propositions: list<string>}>
+     */
+    private function enigmesDe(GameSave $partie, Enigmes $enigmes, TypeDeBatiment $lieu): array
+    {
+        return array_values(array_map(
+            fn (Enigme $enigme): array => [
+                'enigme' => $enigme,
+                'propositions' => self::melanger($enigmes->propositionsMontrees($partie, $enigme)),
+            ],
+            array_filter(
+                $enigmes->disponibles($partie),
+                static fn (Enigme $enigme): bool => $enigme->lieu() === $lieu,
+            ),
+        ));
+    }
+
+    /**
+     * Ce que l'onglet du Temple affiche : le panthéon, ses paliers, et ce qu'il
+     * est possible d'offrir.
+     *
+     * @return array<string, mixed>
+     */
+    private function donneesDuTemple(GameSave $partie, Offrandes $offrandes): array
+    {
+        $ville = $partie->getVille();
+        $temple = $ville->batimentDeType(TypeDeBatiment::Temple);
+
+        $pantheon = [];
+
+        foreach (Divinite::pantheon() as $divinite) {
+            $suivie = $ville->faveurDe($divinite);
+            $pantheon[] = [
+                'divinite' => $divinite,
+                'faveur' => $ville->faveurEnvers($divinite),
+                'palier' => $ville->palierDe($divinite),
+                // Un dieu qui commence à se détourner doit le dire avant que
+                // son effet ne cesse, sinon le joueur ne l'apprend qu'une fois
+                // le palier perdu.
+                'seDetourne' => null !== $suivie
+                    && $suivie->getQuinzainesSansOffrande() > Negligence::QUINZAINES_DE_GRACE
+                    && $suivie->getFaveur() > Negligence::PLANCHER,
+                'quinzainesSansOffrande' => $suivie?->getQuinzainesSansOffrande() ?? 0,
+                // Le supplément de fête se lit **avant** de donner, comme le
+                // prix d'un ordre commercial montre son effet avant
+                // l'engagement.
+                'supplementDeFete' => Offrandes::supplementDeFete($partie->dateDeJeu(), $divinite),
+            ];
+        }
+
+        return [
+            'pantheon' => $pantheon,
+            'aUnTemple' => null !== $temple,
+            'niveauDuTemple' => $temple?->getNiveau() ?? 0,
+            'divinitesPortables' => Temple::divinitesPortables($ville),
+            'plafond' => Temple::plafondDeFaveur($ville),
+            'honorees' => $ville->divinitesHonorees(),
+            'corbeille' => null !== $temple ? $offrandes->corbeillePour($partie) : [],
+            'pointsParOffrande' => Offrandes::POINTS_PAR_OFFRANDE,
+            'debenParOffrande' => Offrandes::DEBEN_PAR_OFFRANDE,
+            'fete' => $partie->feteEnCours(),
+            'pointsDeFete' => Offrandes::POINTS_DE_FETE,
+        ];
+    }
+
     private function missionDe(GameSave $partie, MissionCatalogue $missions): ?Mission
     {
         if (!$partie->estCampagne() || null === $partie->getMission()) {
