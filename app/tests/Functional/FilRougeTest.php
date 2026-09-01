@@ -10,12 +10,14 @@ use App\Entity\User;
 use App\Game\ActeDuFilRouge;
 use App\Game\Dechiffrage;
 use App\Game\DechiffrageImpossible;
+use App\Game\Enquete;
 use App\Game\Enquetes;
 use App\Game\FilRouge;
 use App\Game\Inscription;
 use App\Game\LanceurDePartie;
 use App\Game\NatureDIndice;
 use App\Game\Ressource;
+use App\Game\SourceDIndice;
 use App\Game\SymboleHieroglyphique;
 use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -98,9 +100,11 @@ final class FilRougeTest extends WebTestCase
         self::assertSame(ActeDuFilRouge::Obstacle, FilRouge::acte($partie));
 
         // Acte II : l'enquête, qu'il faut résoudre — et elle seule fait avancer.
-        $dossier = $ville->ouvrirLeDossierDe(FilRouge::enquete());
+        $enquete = FilRouge::enquete($partie);
+        self::assertNotNull($enquete);
+        $dossier = $ville->ouvrirLeDossierDe($enquete);
 
-        foreach (FilRouge::enquete()->indices() as $indice) {
+        foreach ($enquete->indices() as $indice) {
             if (NatureDIndice::Concordant === $indice->nature()) {
                 $dossier->verser($indice);
             }
@@ -110,8 +114,8 @@ final class FilRougeTest extends WebTestCase
 
         static::getContainer()->get(Enquetes::class)->conclure(
             $partie,
-            FilRouge::enquete(),
-            FilRouge::enquete()->bonneConclusion(),
+            $enquete,
+            $enquete->bonneConclusion(),
         );
         self::assertSame(ActeDuFilRouge::Accomplissement, FilRouge::acte($partie));
 
@@ -155,15 +159,44 @@ final class FilRougeTest extends WebTestCase
      * **Le fil rouge ne court que sur la mission qu'il raconte.** Ailleurs, ses
      * inscriptions redeviennent ordinaires plutôt que de rester inaccessibles.
      */
-    public function testAilleursLesInscriptionsDuFilRougeSontOrdinaires(): void
+    public function testChaqueMissionALeSienEtNeLitPasCeluiDesAutres(): void
     {
         self::bootKernel();
-        $partie = $this->villeAvecScribes('aventure@example.com');
+        $partie = $this->villeAvecScribes('autre-mission@example.com');
         $partie->commencerALaMission(3);
 
-        self::assertFalse(FilRouge::court($partie));
-        self::assertTrue(FilRouge::inscriptionOuverte($partie, Inscription::LaRouteEstRouverte));
-        self::assertNull(FilRouge::inscriptionDeLActe($partie));
+        self::assertTrue(FilRouge::court($partie), 'Les dix missions ont leur fil rouge.');
+        self::assertSame(Inscription::OuvertureDeMersa, FilRouge::inscriptionDeLActe($partie));
+
+        // La tablette d'une autre mission ne se lit pas ici : elle ne raconte
+        // pas cette histoire-là.
+        self::assertFalse(FilRouge::inscriptionOuverte($partie, Inscription::CommandeDAhmosis));
+        self::assertFalse(FilRouge::inscriptionOuverte($partie, Inscription::LaRouteEstRouverte));
+    }
+
+    /**
+     * Les dix ouvertures n'emploient que les quatre signes connus d'emblée :
+     * la clé repart de zéro à chaque mission, et un tutoriel ne peut pas
+     * demander un bâtiment.
+     */
+    public function testLesDixOuverturesSeLisentSansRienAvoirAppris(): void
+    {
+        $base = \array_slice(SymboleHieroglyphique::ordreDApprentissage(), 0, 4);
+
+        for ($mission = 1; $mission <= 10; ++$mission) {
+            $ouverture = FilRouge::ouverture($mission);
+            $stele = FilRouge::stele($mission);
+
+            self::assertNotNull($ouverture, \sprintf('Mission %d.', $mission));
+            self::assertNotNull($stele);
+
+            foreach ($ouverture->signes() as $signe) {
+                self::assertContains($signe, $base, \sprintf('Mission %d : %s.', $mission, $signe->libelle()));
+            }
+
+            self::assertCount(5, $stele->signes(), 'La stèle finale en compte cinq.');
+            self::assertNotSame('', $stele->lecture());
+        }
     }
 
     /**
@@ -190,6 +223,63 @@ final class FilRougeTest extends WebTestCase
 
         self::assertSelectorTextContains('#panneau-scribes', 'Acte I');
         self::assertSelectorTextContains('#panneau-scribes', 'Ahmôsis');
+    }
+
+    /**
+     * **Chaque fil rouge doit pouvoir se dénouer** : assez d'indices
+     * concordants pour conclure, et au moins un qui ne l'est pas — sinon il
+     * n'y aurait rien à démêler. C'est l'exercice d'`OuvertureDePartieTest`,
+     * appliqué aux dix histoires plutôt qu'aux dix cartes.
+     */
+    public function testChaqueFilRougeSeDenoue(): void
+    {
+        for ($mission = 1; $mission <= 10; ++$mission) {
+            $enquete = Enquete::duFilRouge($mission);
+            self::assertNotNull($enquete);
+
+            $concordants = 0;
+            $autres = 0;
+            $terrain = 0;
+
+            foreach ($enquete->indices() as $indice) {
+                if (NatureDIndice::Concordant === $indice->nature()) {
+                    ++$concordants;
+                } else {
+                    ++$autres;
+                }
+
+                if (SourceDIndice::Terrain === $indice->source()) {
+                    ++$terrain;
+                }
+            }
+
+            self::assertGreaterThanOrEqual(
+                $enquete->indicesRequis(),
+                $concordants,
+                \sprintf('« %s » ne peut pas se conclure.', $enquete->libelle()),
+            );
+            self::assertGreaterThan(0, $autres, \sprintf('« %s » n\'a rien à démêler.', $enquete->libelle()));
+            self::assertGreaterThan(0, $terrain, \sprintf('« %s » ne se fouille nulle part.', $enquete->libelle()));
+            self::assertCount(4, $enquete->conclusions());
+            self::assertNotSame('', $enquete->denouement());
+        }
+    }
+
+    /**
+     * **On ne ramasse que les indices de son enquête.** Trouver au Delta une
+     * borne déplacée du Sinaï remplirait un dossier qu'on n'ouvrira jamais.
+     */
+    public function testOnNeRamasseQueLesIndicesDeSonEnquete(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecScribes('indices-ailleurs@example.com');
+
+        self::assertTrue(Enquete::PassageCoupe->seMeneDans($partie));
+        self::assertFalse(Enquete::GalerieEffondree->seMeneDans($partie));
+        // Les secondaires se mènent partout.
+        self::assertTrue(Enquete::CarrieresAbandonnees->seMeneDans($partie));
+        // Celle du rival attend un rival.
+        self::assertFalse(Enquete::MalversationDuRival->seMeneDans($partie));
     }
 
     private function lire(GameSave $partie, Inscription $inscription): void
