@@ -30,6 +30,7 @@ final readonly class PassageDeCycle
         private Providence $providence,
         private Epidemies $epidemies,
         private Rivaux $rivaux,
+        private QuetesDeChantier $quetes,
         private AchevementDeMission $achevement,
         private DepartsNaturels $departs,
         private TirageDeLaCrue $crues,
@@ -99,6 +100,8 @@ final readonly class PassageDeCycle
             // Et ce que la renommée attire : un marchand qui vient disputer
             // une route (doc 08).
             ...$this->rivaux->avancerDUnCycle($partie),
+            // Et ce que le pharaon réclame pour ses propres chantiers.
+            ...$this->quetes->avancerDUnCycle($partie),
         ];
 
         $partie->avancerDUnCycle();
