@@ -16,13 +16,6 @@
         <div class="flex flex-wrap items-baseline justify-between gap-4">
             <h1 class="font-display text-2xl text-encre-900">{{ ville.nom }}</h1>
             <div class="flex flex-wrap items-baseline gap-4">
-                {# Le Temple ne se visite qu'une fois dressé : proposer l'écran
-                   d'un bâtiment qu'on n'a pas ferait une porte sur du vide. #}
-                {% if ville.possede(constant('App\\Game\\TypeDeBatiment::Temple')) %}
-                    <a href="{{ path('app_partie_temple', {id: partie.id}) }}" class="text-sm text-lapis-500">
-                        Temple
-                    </a>
-                {% endif %}
                 <a href="{{ path('app_partie_carte', {id: partie.id}) }}" class="text-sm text-lapis-500">
                     ← Retour au territoire
                 </a>
@@ -115,6 +108,20 @@
                         data-onglets-target="onglet" data-onglet-actif="false"
                         data-action="onglets#choisir keydown->onglets#naviguer"
                         class="border-b-2 px-3 py-2 hover:text-terre-600">À bâtir</button>
+                {% if aUnTemple %}
+                    <button type="button" role="tab" id="onglet-temple"
+                            aria-controls="panneau-temple" aria-selected="false" tabindex="-1"
+                            data-onglets-target="onglet" data-onglet-actif="false"
+                            data-action="onglets#choisir keydown->onglets#naviguer"
+                            class="border-b-2 px-3 py-2 hover:text-terre-600">Temple</button>
+                {% endif %}
+                {% if aUneAuberge %}
+                    <button type="button" role="tab" id="onglet-auberge"
+                            aria-controls="panneau-auberge" aria-selected="false" tabindex="-1"
+                            data-onglets-target="onglet" data-onglet-actif="false"
+                            data-action="onglets#choisir keydown->onglets#naviguer"
+                            class="border-b-2 px-3 py-2 hover:text-terre-600">Auberge</button>
+                {% endif %}
                 {% if aUneMaisonDesScribes %}
                     <button type="button" role="tab" id="onglet-scribes"
                             aria-controls="panneau-scribes" aria-selected="false" tabindex="-1"
@@ -314,10 +321,21 @@
            renommée branchée à ce jour (doc 13). #}
         {% if aUnMarche %}
             <h2 class="mt-10 text-2xl text-encre-900">Marché</h2>
-            <p class="mt-2 text-sm text-encre-500">
-                Écoulez votre surplus. C'est pour l'instant la seule façon de
-                gagner des deben — l'achat et les caravanes viendront avec le
-                commerce longue distance. Un gros contrat vous fait un nom.
+            <p class="mt-2 max-w-2xl text-sm text-encre-500">
+                Vous vendez ici <strong class="text-encre-700">aux gens de la ville
+                et aux voyageurs de passage</strong> : au cours de base, payé sur
+                l'heure, mais une place n'absorbe qu'un temps. Pour écouler de
+                vrais volumes, et plus cher, il faut une route commerciale et la
+                patience d'un convoi. Un gros contrat vous fait un nom.
+            </p>
+
+            <p class="mt-3 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
+                La place peut encore absorber
+                <span data-chiffres>{{ venteRestante }}</span> deben cette quinzaine,
+                sur <span data-chiffres>{{ plafondDuMarche }}</span> —
+                <span data-chiffres>{{ ville.population }}</span> habitants pour un
+                Marché de niveau <span data-chiffres>{{ niveauDuMarche }}</span>.
+                Peupler la ville ou agrandir le Marché élargit le débouché.
             </p>
 
             {% if etal is empty %}
@@ -891,6 +909,37 @@
 
         </div>
 
+        {# **Un onglet, un bâtiment** (décision de la joueuse) : Temple,
+           Auberge et Maison des scribes se lisent chacun dans le sien, dans
+           l'ordre de leurs onglets — `onglets_controller.js` apparie les deux
+           listes **par rang**, pas par identifiant. #}
+        {% if aUnTemple %}
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+                 id="panneau-temple" aria-labelledby="onglet-temple" data-onglets-target="panneau" hidden>
+                {{ include('partie/_temple.html.twig') }}
+                {{ include('partie/_enigmes.html.twig', {enigmes: enigmesDuTemple, titre: 'Ce que l\'oracle demande'}) }}
+            </div>
+        {% endif %}
+
+        {% if aUneAuberge %}
+            <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
+                 id="panneau-auberge" aria-labelledby="onglet-auberge" data-onglets-target="panneau" hidden>
+                <h2 class="text-2xl text-encre-900">L'Auberge {{ ville.avecPreposition }}</h2>
+                <p class="mt-2 max-w-2xl text-sm text-encre-500">
+                    Voyageurs de passage, bateliers, porteurs de nouvelles : on y
+                    boit, on y parle, et l'on s'y pose des devinettes. Rien de ce
+                    qui s'y dit n'engage la ville — mais on y apprend des choses.
+                </p>
+                {{ include('partie/_enigmes.html.twig', {enigmes: enigmesDeLAuberge, titre: 'Ce qu\'on se demande à la table'}) }}
+                {% if enigmesDeLAuberge is empty %}
+                    <p class="mt-6 text-sm text-encre-500">
+                        La salle est calme ce soir : on a déjà répondu à tout ce
+                        qui s'y demandait.
+                    </p>
+                {% endif %}
+            </div>
+        {% endif %}
+
         {% if aUneMaisonDesScribes %}
             <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
                  id="panneau-scribes" aria-labelledby="onglet-scribes" data-onglets-target="panneau" hidden>
@@ -1064,41 +1113,7 @@
                     </ul>
                 {% endif %}
 
-                {% if enigmes is not empty %}
-                    <h2 class="mt-8 text-2xl text-encre-900">Questions en suspens</h2>
-                    <p class="mt-2 max-w-2xl text-sm text-encre-500">
-                        Rien ne vous oblige à y répondre — mais on ne répond
-                        qu'une fois. Juste ou faux, vous saurez pourquoi.
-                    </p>
-
-                    <ul class="mt-4 space-y-4 list-none p-0">
-                        {% for question in enigmes %}
-                            <li class="max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
-                                <div class="flex flex-wrap items-baseline justify-between gap-3">
-                                    <p class="text-encre-900">{{ question.enigme.enonce }}</p>
-                                    <span class="text-xs text-encre-500">
-                                        {{ question.enigme.lieu.libelle }} ·
-                                        {{ question.enigme.sourceAttestee ? 'd\'après les sources' : 'dans leur esprit' }}
-                                    </span>
-                                </div>
-
-                                <form method="post" action="{{ path('app_partie_enigme', {id: partie.id}) }}"
-                                      class="mt-4 flex flex-col gap-2">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('enigme') }}">
-                                    <input type="hidden" name="enigme" value="{{ question.enigme.value }}">
-
-                                    {% for proposition in question.propositions %}
-                                        <button type="submit" name="reponse" value="{{ proposition }}"
-                                                class="rounded-sm border border-ocre-500/40 bg-sable-100 px-4 py-2 text-left
-                                                       text-sm text-encre-700 hover:bg-ocre-300/20">
-                                            {{ proposition }}
-                                        </button>
-                                    {% endfor %}
-                                </form>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
+                {{ include('partie/_enigmes.html.twig', {enigmes: enigmesDesScribes, titre: 'Questions en suspens'}) }}
 
                 <h2 class="mt-8 text-2xl text-encre-900">Clé de lecture</h2>
                 <p class="mt-2 max-w-2xl text-sm text-encre-500">

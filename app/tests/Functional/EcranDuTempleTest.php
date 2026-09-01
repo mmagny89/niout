@@ -16,7 +16,12 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
- * L'écran du Temple (lot 6.1) : ce que le joueur voit et ce qu'il peut faire.
+ * L'onglet du Temple : ce que le joueur voit et ce qu'il peut faire.
+ *
+ * Le Temple a quitté son écran propre pour un onglet de la ville — **un
+ * onglet, un bâtiment**. Les panneaux restent tous dans le document, seulement
+ * masqués, donc les assertions de contenu tiennent sans exécuter le
+ * JavaScript.
  */
 final class EcranDuTempleTest extends WebTestCase
 {
@@ -29,7 +34,7 @@ final class EcranDuTempleTest extends WebTestCase
         $client = static::createClient();
         $partie = $this->partieAvecTemple($client, 'ecran-temple@example.com');
 
-        $client->request('GET', \sprintf('/partie/%d/temple', $partie->getId()));
+        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
         self::assertResponseIsSuccessful();
 
@@ -50,7 +55,7 @@ final class EcranDuTempleTest extends WebTestCase
         $client = static::createClient();
         $partie = $this->partieAvecTemple($client, 'dieux-inertes@example.com');
 
-        $client->request('GET', \sprintf('/partie/%d/temple', $partie->getId()));
+        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
         $attenteDIsis = Divinite::Isis->attente();
         self::assertNotNull($attenteDIsis);
@@ -69,7 +74,7 @@ final class EcranDuTempleTest extends WebTestCase
         $client = static::createClient();
         $partie = $this->partieAvecTemple($client, 'porter@example.com');
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/temple', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         $jeton = $crawler->filter(\sprintf('form[action="/partie/%d/temple/offrir"] input[name="_token"]', $partie->getId()))
             ->first()->attr('value');
 
@@ -80,7 +85,7 @@ final class EcranDuTempleTest extends WebTestCase
             'quantite' => 20,
         ]);
 
-        self::assertResponseRedirects(\sprintf('/partie/%d/temple', $partie->getId()));
+        self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
 
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'Ptah');
@@ -96,23 +101,39 @@ final class EcranDuTempleTest extends WebTestCase
     }
 
     /**
-     * **Une porte sur du vide n'est pas une porte** : la ville ne propose le
+     * **Un onglet sur du vide n'est pas un onglet** : la ville ne propose le
      * Temple qu'une fois le Temple dressé.
      */
-    public function testLeLienNapparaitQuUneFoisLeTempleDresse(): void
+    public function testLOngletNapparaitQuUneFoisLeTempleDresse(): void
     {
         $client = static::createClient();
         $joueur = $this->connecter($client, 'lien-temple@example.com');
         $partie = $this->lancer($joueur);
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorNotExists(\sprintf('a[href="/partie/%d/temple"]', $partie->getId()));
+        self::assertSelectorNotExists('#onglet-temple');
+        self::assertSelectorNotExists('#panneau-temple');
 
         $partie->getVille()->ajouterBatiment(new Building($partie->getVille(), TypeDeBatiment::Temple, 1));
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorExists(\sprintf('a[href="/partie/%d/temple"]', $partie->getId()));
+        self::assertSelectorExists('#onglet-temple');
+        self::assertSelectorExists('#panneau-temple');
+    }
+
+    /**
+     * L'ancienne adresse survit et ramène à la ville : un signet ne doit pas
+     * tomber sur du vide.
+     */
+    public function testLAncienneAdresseRamemeALaVille(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partieAvecTemple($client, 'ancienne-adresse@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/temple', $partie->getId()));
+
+        self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
     }
 
     private function partieAvecTemple(KernelBrowser $client, string $email): GameSave

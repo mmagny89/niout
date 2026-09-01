@@ -367,6 +367,31 @@ qui ne porte qu'une case d'eau poissonneuse. Il se pêche depuis un Port, ne se
 creuse jamais (`Exploitations::exploiter()`), et l'interface écrit
 « inépuisable » là où les autres gisements affichent leurs unités restantes.
 
+**Un filon épuisé n'est pas une impasse** (`Prospection`,
+`RoleDExploration::Prospecteur`, décision de la joueuse) : on envoie sonder une
+case **déjà reconnue**, et la fouille rouvre la veine tarie
+(`Gisement::rouvrir()`) ou met au jour un filon neuf. Sans elle, la dernière
+unité extraite fermait la production d'un matériau pour toujours, et épuiser
+l'unique gisement d'argile d'une petite carte figeait la partie. Trois règles à
+ne pas défaire : **le rayon gratuit ne vaut pas pour le prospecteur** — offrir
+la fouille sous les murs de la ville ferait de l'épuisement une formalité —, un
+départ qui ne peut rien rapporter est **refusé à l'envoi** plutôt qu'annoncé
+puis déçu, et la prospection s'appuie sur
+`GenerateurDeCarte::materiauxPossiblesSur()`, jamais sur une seconde table de
+terrains : deux tables divergeraient, et l'une planterait des acacias en plein
+désert.
+
+**Le Marché vend aux gens de la ville, l'Entrepôt vend au monde**
+(`Marche::plafondDeLaQuinzaine()`, décision de la joueuse). Sans cette borne,
+les deux faisaient doublon. Le Marché paie au cours de base, **sur l'heure**,
+mais sa place n'absorbe que `population × niveau × 4` deben par quinzaine, et
+le compteur repart à zéro au cycle suivant (`City::rouvrirLEtal()`). Le
+commerce par routes paie 150 à 200 % du cours, sur de vrais volumes, contre le
+délai d'un convoi. **Le plafond se vérifie avant le débit** : un lot repris au
+stock repasserait par le plafond de réserve, et un Entrepôt plein le refuserait
+— le joueur perdrait sa marchandise pour avoir visé trop gros. Et un lot trop
+grand est **refusé**, jamais vendu à moitié.
+
 **Le mode divin est un outil d'essai, pas une fonctionnalité** (`ModeDivin`,
 `User::ROLE_DIVIN`) : un million de chaque ressource, plafonds de réserve levés,
 brouillard levé d'un geste, les dix missions ouvertes à la création. **Le rôle ne s'accorde qu'en console**
@@ -783,6 +808,15 @@ ressource « bois » ni ressource « pierre ».
 `transform: scale()` sur la grille entière, jamais un redimensionnement des
 tuiles — la couche cliquable subit ainsi exactement la même transformation que
 l'image, et les losanges continuent de tomber juste.
+
+**Un onglet, un bâtiment** (décision de la joueuse) : Temple, Auberge et Maison
+des scribes se lisent chacun dans le sien, et un onglet n'apparaît qu'une fois
+son bâtiment dressé — un onglet sur du vide n'est pas un onglet. Le Temple avait
+son écran propre : porter une offrande obligeait à quitter la ville, et rien ne
+disait que ces trois bâtiments se lisaient de trois façons. Son ancienne adresse
+survit et redirige, un signet ne devant pas tomber dans le vide. Conséquence
+pour les énigmes : c'est `Enigme::lieu()` qui décide dans quel panneau elles
+tombent, jamais l'écran — les devinettes de l'Auberge se posent à l'Auberge.
 
 **Onglets et panneaux s'apparient par rang**, pas par identifiant
 (`onglets_controller.js`) : un panneau ajouté ailleurs que dans l'ordre de son
