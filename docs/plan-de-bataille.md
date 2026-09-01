@@ -116,8 +116,8 @@ vues, pas de la conception.
 | **4** | Population : recrutement, chefs et travailleurs | `01`, `02`, `03`, `05`, `13` | ✅ |
 | **5** | Artisanat et commerce | `08`, `12`, `01` | ✅ |
 | **6** | Faveur divine et événements | `07` | ✅ |
-| **7** | Énigmes, enquêtes et fil rouge | `10` | en cours — 8 lots sur 9 |
-| **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | à cadrer |
+| **7** | Énigmes, enquêtes et fil rouge | `10` | ✅ |
+| **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | planifiée |
 | **9** | Renommée, héritage et succession familiale | `13` | à cadrer |
 | **10** | Medjaÿ et combat automatique | `03` | à cadrer |
 | **11** | Mode Aventure : Memphis et succession des règnes | `14` | à cadrer |
@@ -141,13 +141,13 @@ montée au lot 3.7, le recrutement et les chefs restant en Phase 4.
 
 ## 5. Les phases, dans l'ordre
 
-Les sept premières (Phases 0 à 6) sont livrées et résumées ici : intention,
+Les huit premières (Phases 0 à 7) sont livrées et résumées ici : intention,
 lots, règles qui en sortent, pièges payés, ce qu'elles laissent ouvert. Le
 détail des conventions qui en découlent vit dans [`CLAUDE.md`](../CLAUDE.md) ;
 l'historique complet est dans les messages de commit.
 
-**La Phase 7 est cadrée et pas encore écrite** : elle garde le format détaillé,
-lot par lot, jusqu'à sa livraison — comme les Phases 5 et 6 avant elle.
+**La Phase 8 est cadrée et pas encore écrite** : elle garde le format détaillé,
+lot par lot, jusqu'à sa livraison — comme les Phases 5, 6 et 7 avant elle.
 
 ### 5.1 Phase 0 — Fondations techniques  ✅
 
@@ -615,328 +615,275 @@ offrande est un pari.
 
 ---
 
-### 5.8 Phase 7 — Énigmes, enquêtes et fil rouge  *(à faire)*
+### 5.8 Phase 7 — Énigmes, enquêtes et fil rouge  ✅
 
-**Sources** : doc `10` (énigmes, enquêtes, structure en trois actes), doc `09`
-(lore et fil rouge de chaque mission), doc `01` (Maison des scribes), doc `04`
-(rôles d'exploration), doc `02` (l'événement de zone comme point d'entrée).
+**Sources** : doc `10` (énigmes, enquêtes, trois actes), `09` (lore et fil
+rouge), `01` (Maison des scribes), `04` (rôles d'exploration), `08` (rivaux).
 
-**Intention.** Le jeu sait faire prospérer une ville ; il ne sait rien
-**raconter**. La Maison des scribes se construit sans rien porter, les cases
-d'événement de la carte sont posées depuis le lot 3.2 et ne mènent nulle part,
-et la « commande du pharaon » affichée au lancement d'une partie n'a aucune
-suite. Cette phase branche les trois.
+**Intention.** Le jeu savait faire prospérer une ville ; il ne savait rien
+**raconter**. La Maison des scribes se construisait sans rien porter, les cases
+d'événement de la carte étaient posées depuis le lot 3.2 et ne menaient nulle
+part, et la commande du pharaon affichée au lancement n'avait pas de suite.
+Cette phase branche les trois.
 
-Elle porte aussi le seul objectif **pédagogique** explicite du projet (doc 10) :
-faire découvrir l'écriture, l'iconographie et l'astronomie égyptiennes **en
-jouant**, jamais par un encart documentaire.
-
-À la fin de la phase, on doit pouvoir raconter : *« une inscription trouvée sur
-une stèle mêle l'eau, la route et le danger ; ma clé de lecture me dit qu'un
-passage du fleuve est coupé. J'envoie un émissaire parler aux gens d'une case
-déjà reconnue, et il rapporte une rumeur qui contredit la première. Trois indices plus tard, je conclus — mal —, ce qui
-me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
+Elle porte aussi le seul objectif **pédagogique** explicite du projet : faire
+découvrir l'écriture, l'iconographie et l'astronomie égyptiennes **en jouant**,
+jamais par un encart documentaire.
 
 | Lot | Contenu | |
 |---|---|---|
-| 7.0 | La clé de lecture : vingt symboles, et la Maison des scribes qui les ouvre | ✅ |
-| 7.1 | Le déchiffrage : reconstituer une inscription | ✅ |
-| 7.2 | Devinettes, oracles et associations | ✅ |
+| 7.0 | La clé de lecture : vingt signes, et la Maison des scribes qui les ouvre | ✅ |
+| 7.1 | Le déchiffrage : remettre les sens en face des signes | ✅ |
+| 7.2 | Devinettes, oracles, associations et astronomie | ✅ |
 | 7.3 | Le dossier d'enquête : collecter des indices | ✅ |
-| 7.4 | L'écran de déduction, et le droit de se tromper | ✅ |
+| 7.4 | La déduction, et le droit de se tromper | ✅ |
 | 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | ✅ |
 | 7.6 | Le fil rouge en trois actes, sur la mission 1 | ✅ |
 | 7.7 | Les deux Scribes, et Thot qui cesse d'attendre | ✅ |
 | 7.8 | Les marchands rivaux, reportés de la Phase 5 | ✅ |
 
-#### 7.0 — La clé de lecture  ✅
+**Les règles qui en sortent**
 
-Vingt symboles au total (doc 10), tirés d'un sous-ensemble lisible de la **liste
-de Gardiner** — la classification académique de référence, ~700 signes. On
-retient ceux qui parlent au jeu : eau, homme, maison, route, bateau, désert,
-temple, roi.
+- **Les signes sont vrais, les combinaisons sont du jeu.** Vingt hiéroglyphes de
+  la liste de Gardiner, avec leur vrai code, leur vrai glyphe et une glose
+  fidèle ; les inscriptions, elles, sont des **indices en rébus**, jamais des
+  phrases d'égyptien. Le dire évite de faire croire au joueur qu'il apprend à
+  lire.
+- **Quatre signes sont connus d'emblée**, pour que la première énigme soit
+  tentable avant d'avoir rien bâti — sans quoi le tutoriel de l'acte I
+  n'ouvrirait sur rien.
+- **La clé s'enrichit par deux voies, une seule est persistée** : ce que le
+  niveau ouvre se calcule, ce qu'une énigme apprend se stocke.
+- **Une énigme ne punit jamais** : se tromper sur une inscription ne coûte ni
+  ressource ni cycle. Une énigme qui punit est une énigme qu'on cesse de
+  tenter.
+- **Une question à choix multiple ne se retente pas**, en revanche : avec
+  quatre propositions et un droit de reprise, on essaie tout et il ne reste
+  qu'un formulaire.
+- **L'explication tombe qu'on ait raison ou tort.** Le vrai gain d'une énigme
+  est ce qu'elle apprend ; la récompense passe.
+- **Une enquête se démêle, elle ne se compte pas** : seuls les indices
+  concordants rapprochent de la conclusion, et **le joueur ne sait jamais**
+  lequel est une fausse piste.
+- **Une principale se rejoue, une secondaire se perd** (décision de la
+  joueuse) : le temps est la seule monnaie d'une erreur.
+- **Un éclaireur va vers l'inconnu, un émissaire va vers les gens.**
+- **L'acte d'un fil rouge se déduit, il ne se stocke pas.**
+- **Un rival rogne, il ne ferme rien**, et c'est la renommée qui l'attire.
 
-**Quatre connus d'emblée, puis deux par niveau de Maison des scribes** jusqu'à
-vingt au niveau 8. Le bâtiment cesse ainsi d'être décoratif, et la difficulté
-des inscriptions monte d'elle-même.
+**Ce qui a trouvé son emploi**
 
-**Une contradiction du doc 10, tranchée** : il annonce « 4 symboles aux niveaux
-1-2, puis 2 par niveau, jusqu'à 20 au niveau 8 » — les trois nombres ne
-s'accordent pas, 4 puis 2 par niveau donnant 16 au niveau 8. On garde les deux
-bornes, qui sont les affirmations fortes, et la progression s'en déduit :
-`4 + 2 × niveau`.
-
-**Les quatre du départ ne sont pas décoratifs** : l'eau, l'homme, la maison et
-la marche permettent de lire « quelqu'un est allé quelque part », donc de tenter
-la première énigme **avant d'avoir rien bâti** — sans quoi le tutoriel de
-l'acte 1 serait inatteignable.
-
-Répartition état / contenu, comme le panthéon : les symboles, leur sens et leur
-tracé sont du **contenu** ; seuls les signes **appris par énigme** sont
-persistés — le reste se recalcule du niveau.
-
-**Ce que le joueur apprend est vrai** : chaque signe porte son vrai code de
-Gardiner, son vrai glyphe (Unicode, aucune image à découper) et une glose
-fidèle. Un test garde l'ensemble — codes bien formés, uniques, vingt signes.
-
-**Le Delta ne lira jamais toute la clé** : la borne régionale de la mission 1
-plafonne la Maison des scribes bien en deçà du huitième niveau. La clé complète
-est une affaire de campagne, comme le craft de luxe.
-
-#### 7.1 — Le déchiffrage  ✅
-
-Les signes sont gravés dans leur ordre ; le joueur remet **les sens** en face,
-dans cet ordre-là. C'est ce qui fait apprendre la clé plutôt que de la
-consulter.
-
-**Le clavier d'abord, le glisser-déposer par-dessus.** Toute la mécanique passe
-par deux gestes — placer un sens, retirer un sens — et le glisser-déposer ne
-fait qu'appeler ces mêmes actions. Une interaction bâtie autour du seul
-`dragstart` est inutilisable au clavier, et **aucun test fonctionnel ne le
-signalerait** : la parade est une assertion de structure sur les actions
-portées par chaque bouton.
-
-**Ce qui est vrai et ce qui est du jeu, dit nettement.** Les signes et leurs
-sens sont réels ; les **combinaisons** sont du jeu — des indices en rébus,
-comme l'exemple du doc 10 (« eau + route + danger »), jamais des phrases
-d'égyptien. La distinction dit au joueur ce qu'il apprend vraiment, et ce qu'il
-ne doit pas croire avoir appris.
-
-**Trois garde-fous** : on ne propose que ce que la ville sait entièrement lire
-(une énigme dont un signe manque est un mur), les jetons sont **mélangés au
-rendu** (sinon la réponse se lit dans la source de la page), et une inscription
-ne se relit pas — sa récompense serait sinon infinie.
-
-**Réussir apprend un signe de plus** : c'est la seconde voie du doc 10, et elle
-referme la boucle du lot 7.0 — on lit ce qu'on sait, et lire fait savoir
-davantage. C'est aussi ce qui permet à une ville dont la Maison des scribes
-plafonne, comme au Delta, de continuer d'apprendre.
-
-**Se tromper ne coûte rien** : ni ressource, ni cycle, et l'inscription reste à
-tenter. Le coût d'une énigme est le temps qu'on y passe — une énigme qui punit
-est une énigme qu'on cesse de tenter, ce qui est le contraire de l'objectif
-pédagogique. La pénalité de deux cycles du doc 10 vaut pour les **déductions
-d'enquête** (lot 7.4), pas pour la lecture d'une pierre.
-
-#### 7.2 — Devinettes, oracles et associations  ✅
-
-Trois formes courtes, toutes à choix multiples :
-
-- **La devinette et l'oracle** (Auberge, Temple). Ancrage réel : les oracles
-  d'Amon à Karnak tranchaient des affaires judiciaires et personnelles. Le
-  corpus est **moitié attesté, moitié original écrit dans le même esprit**
-  (doc 10) — se limiter aux sources restreindrait trop.
-- **L'association symbolique** : l'ibis et Thot, le chacal et Anubis, le faucon
-  et Horus. C'est de l'iconographie réelle, et elle rejoint le panthéon de la
-  Phase 6.
-- **La reconnaissance astronomique** : Sopdet — Sirius — dont le lever
-  héliaque précédait la crue et ouvrait l'année, Sah — Orion — qui est Osiris
-  au ciel, et les trente-six décans qui servaient d'horloge. Réutilise le
-  calendrier existant, sans le dupliquer.
-
-**Une seule tentative par énigme**, et c'est ce qui en fait des questions :
-avec quatre propositions et un droit de reprise, on essaie tout et il n'y a
-plus qu'un formulaire. C'est la contrepartie de leur caractère facultatif —
-elles ne bloquent rien, donc elles peuvent se perdre. La décision de la joueuse
-sur les enquêtes secondaires, appliquée à ce qui l'est aussi.
-
-**L'explication tombe dans les deux cas.** Le vrai gain d'une énigme est ce
-qu'elle apprend ; la récompense en deben passe. Une énigme ratée qui
-n'expliquerait rien punirait deux fois et n'enseignerait pas — le contraire de
-l'objet du doc 10.
-
-**Chaque énigme dit d'où elle vient** (`sourceAttestee()`) : d'après les
-sources, ou écrite dans leur esprit. Tout présenter comme antique tromperait ;
-tout présenter comme inventé effacerait ce qui est vrai.
-
-**Le lieu compte** : une devinette s'entend à l'Auberge, un oracle au Temple.
-L'Auberge trouve ici sa première raison d'exister.
-
-**Ce que ce lot ne fait pas encore** : la répartition des cinq à huit énigmes
-**par mission** (doc 10) suppose la campagne, donc la Phase 8. Le catalogue est
-pour l'instant commun, et se filtre par les bâtiments dressés.
-
-#### 7.3 — Le dossier d'enquête  ✅
-
-Trois à cinq indices par enquête, **dont certains optionnels ou trompeurs** — le
-doc y tient, et c'est ce qui distingue une enquête d'une case à cocher. Le
-dossier est persisté (une enquête traverse des dizaines de quinzaines) ; les
-indices eux-mêmes sont du contenu.
-
-Deux sources : le **terrain**, qui se fouille, et le **témoignage**, qui se
-recueille. Les seconds sont au catalogue mais attendent l'Émissaire (lot 7.5) ;
-les premiers se trouvent déjà.
-
-**Les cases « quelque chose s'y trame » trouvent enfin leur emploi.** Posées
-par la génération de carte depuis le lot 3.2, elles ne menaient nulle part :
-elles rendent désormais un indice — **une seule fois**, sans quoi la même case
-livrerait tout un dossier et l'exploration cesserait d'avoir un coût.
-
-**Il faut des scribes pour enquêter** : sans la Maison des scribes, un indice
-n'irait dans aucun dossier — fouiller rendrait une phrase que rien ne
-retiendrait. C'est ce que le doc 01 dit du bâtiment lui-même, et sa seconde
-raison d'exister.
-
-**Le joueur ne sait pas qu'un indice est trompeur** : l'écran ne l'écrit
-jamais. « À vérifier » vaut pour une fausse piste comme pour un indice de
-contexte — afficher la nature réelle résoudrait l'enquête à sa place. Un test
-verrouille l'indistinction.
-
-**Un dossier n'existe qu'à partir du premier indice**, comme la faveur d'un
-dieu : ouvrir trois dossiers vides au lancement de chaque partie ne dirait
-rien, et il faudrait les migrer à chaque enquête ajoutée.
-
-#### 7.4 — La déduction, et le droit de se tromper  ✅
-
-Une fois assez d'indices **concordants** réunis, un écran de conclusions au
-choix. On ne tranche pas sans savoir : sinon l'écran ne serait qu'un tirage à
-quatre.
-
-**Les deux familles se séparent ici**, et c'est la décision de la joueuse qui
-les sépare :
-
-| | Se tromper coûte | Pourquoi |
+| Posé depuis | Ce qui dormait | Réveillé par |
 |---|---|---|
-| **Principale** | 2 cycles, puis on rejoue | Son échec définitif bloquerait la campagne |
-| **Secondaire** | L'affaire s'enterre | Sans ce risque, conclure au hasard puis recommencer serait toujours la meilleure stratégie |
+| Lot 3.2 | Le contenu `Evenement` d'une case | La fouille (7.3) |
+| Lot 3.4 | Le rôle d'Émissaire, qui doublait l'éclaireur en trois fois plus cher | Les témoignages (7.5) |
+| Lot 4.2 | Les spécialités Déchiffreur et Oraculaire | 7.7 |
+| Phase 2 | La Maison des scribes, l'Auberge | La clé (7.0), les devinettes (7.2) |
+| Phase 6 | Thot, dieu offrable et inerte | 7.7 |
 
-**Aucune ne retire de ressource** (doc 10) : le temps est la seule monnaie
-d'une erreur. Et **le dénouement se dit dans les deux cas**, comme
-l'explication d'une énigme — le vrai gain d'une enquête est de savoir ce qui
-s'est passé.
+**Pièges payés pendant la phase**
 
-Une enquête résolue rapporte des deben et **un point de renommée** : on parle
-d'une famille qui a démêlé une affaire.
+- **Deux contradictions de documents**, tranchées comme celle du doc 07 au lot
+  6.0 : le doc 10 annonce « 4 signes aux niveaux 1-2, puis 2 par niveau,
+  jusqu'à 20 au niveau 8 » — les trois nombres ne s'accordent pas.
+- **Fouiller sans Maison des scribes** rendait un indice qu'aucun dossier ne
+  recueillait. C'est le bâtiment qui conduit les enquêtes (doc 01) : sans lui,
+  on ne fouille pas.
+- **La réponse se lisait dans la source de la page** : jetons du déchiffrage,
+  propositions d'énigme et conclusions d'enquête sont mélangés **au rendu**.
+- **Une interaction bâtie sur le seul `dragstart`** est inutilisable au clavier,
+  et aucun test fonctionnel ne le signalerait. Le clavier d'abord, la souris
+  par-dessus.
 
-#### 7.5 — D'où viennent les indices  ✅
+**Ce que la phase laisse ouvert**
 
-Le doc 10 les rattache à l'exploration : l'**Éclaireur** rapporte les indices
-physiques, l'**Émissaire** les témoignages.
+- **Les dix fils rouges** : Phase 8. Un seul est écrit, celui de la mission 1 —
+  écrire les dix avant d'avoir joué le premier reviendrait à écrire dix fois la
+  même erreur.
+- **La répartition des énigmes secondaires par mission** (5 à 8, doc 10) :
+  Phase 8. Le catalogue est commun et se filtre par les bâtiments dressés.
+- **Le Chef d'expédition**, dernier rôle d'exploration sans emploi : Phase 10.
+- **Le débauchage d'un contact commercial** par un rival (doc 08) : il suppose
+  le carnet d'adresses de la Phase 9.
+- **Isis** et le trait « Bagarreur », tous deux pour la Phase 10.
 
-**Un éclaireur va vers l'inconnu, un émissaire va vers les gens.** C'est la
-règle qui donne enfin à l'Émissaire un emploi propre : jusqu'ici il faisait le
-travail de l'éclaireur en trois fois plus cher. Il ne part que vers une case
-**déjà reconnue** — on ne parle pas à des gens qu'on n'a pas trouvés — et il
-faut des scribes pour consigner ce qu'il rapporte, même règle que la fouille.
-
-**Il peut revenir bredouille**, et l'écran le dit : faire semblant d'avoir
-appris quelque chose serait pire que de l'avouer.
-
-Le `ChefDExpedition`, lui, reste sans emploi : il encadre une expédition lourde
-vers une mine éloignée, ce qui relève de la Phase 10.
-
-#### 7.6 — Le fil rouge, sur la mission 1  ✅
-
-La structure en trois actes du doc 10, écrite **pour une seule mission** :
-
-- **Acte I — la commande du pharaon.** Ahmôsis fait porter une tablette
-  scellée : trois signes, tous connus d'emblée. Le tutoriel du système ne peut
-  pas demander un bâtiment.
-- **Acte II — l'obstacle.** Une terre fertile que personne ne cultive.
-  L'enquête « Le passage coupé » la résout — celle qui se rejoue jusqu'à être
-  résolue, puisque son échec bloquerait la mission.
-- **Acte III — l'accomplissement.** Une stèle de cinq signes, qui demande une
-  Maison des scribes déjà montée.
-
-**L'acte se déduit, il ne se stocke pas.** Il découle de trois faits déjà
-vrais — la tablette est-elle lue, l'enquête est-elle résolue, la stèle
-est-elle relue. Une colonne « acte en cours » à tenir à jour finirait par
-diverger de ces trois faits, et cela ne se verrait qu'en partie.
-
-**On ne lit pas la conclusion avant l'obstacle** : la stèle finale est réservée
-à son acte. Et **ce que le roi attend passe avant le reste** : tant qu'une
-inscription du fil rouge est lisible et due, c'est elle qu'on propose.
-
-**Le fil rouge ne court que sur la mission qu'il raconte.** Ailleurs — les
-autres missions, le mode Aventure — ses inscriptions redeviennent ordinaires
-plutôt que de rester à jamais inaccessibles.
-
-**Une couture à assumer** : l'Acte 3 « déclenche la fin de la mission », or la
-fin de mission et l'enchaînement des dix relèvent de la **Phase 8**. La Phase 7
-livre donc la machinerie et un fil rouge complet pour la mission 1 ; la Phase 8
-la généralise. Écrire les dix fils rouges avant d'avoir joué le premier serait
-écrire dix fois la même erreur.
-
-#### 7.7 — Les deux Scribes, et Thot  ✅
-
-`ScribesDechiffreur` et `ScribesOraculaire` dormaient depuis le lot 4.2 en
-annonçant leur inertie. Ils se réveillent ici, par le canal des chefs dont
-l'effet n'est pas une production — celui du Négociateur et du Dévot, jamais la
-qualité de direction.
-
-- Le **Déchiffreur** lit deux signes que le niveau du bâtiment n'ouvre pas
-  encore : c'est ce que vaut un homme qui a passé sa vie sur les pierres.
-- L'**Oraculaire** écarte une mauvaise proposition sur chaque question. Il ne
-  donne pas la réponse, **il resserre le doute** — ce qui est exactement ce
-  qu'un oracle faisait. L'écart se fait à l'affichage seulement : la bonne
-  réponse reste la bonne.
-
-**Thot** cesse du même coup d'être un dieu offrable et inerte, et par deux
-canaux : sa faveur **ouvre des signes** (un au palier Favorable, deux au
-Dévoué) et **abrège la reprise d'un dossier mal conclu** — de deux quinzaines
-à une, jamais à zéro : une erreur sans conséquence n'en serait plus une.
-
-**Ce qui dort encore, et rien d'autre** : Isis parmi les dieux, le trait
-« Bagarreur », l'Acheteur du Marché, les deux Instructeurs et le Commerçant
-naval. Un test verrouille la liste — elle doit rétrécir, jamais s'allonger en
-silence.
-
-#### 7.8 — Les marchands rivaux  ✅
-
-Reportés en bloc de la Phase 5 (décision de la joueuse) parce que **l'une de
-leurs trois issues est une enquête** : les écrire sans elle revenait à les
-réécrire ensuite. Ils trouvent ici leur place, et rendent au commerce
-l'adversité qui lui manque.
-
-#### Hors périmètre, explicitement
-
-- **Les dix fils rouges** : Phase 8, avec la campagne.
-- **Les autres rôles d'exploration** (hors Éclaireur et Émissaire) : Phase 10.
-- **Le projet des décans** : le doc 10 l'écarte nommément. La reconnaissance
-  astronomique reste un mini-jeu d'association, jamais un simulateur de ciel.
-
-#### Points tranchés avec la joueuse
+**Points tranchés avec la joueuse**
 
 | Question | Décision |
 |---|---|
-| Le déchiffrage se fait-il par glisser-déposer ? | **Oui**, comme le doc 10 le prévoit — la manipulation des signes fait partie de ce qu'on apprend |
-| Les énigmes secondaires sont-elles obligatoires ? | **Toutes les missions en portent**, mais **aucune n'est requise** pour finir la mission : elles récompensent la curiosité, elles ne bloquent jamais |
+| Le déchiffrage se fait-il par glisser-déposer ? | **Oui** — la manipulation des signes fait partie de ce qu'on apprend |
+| Les énigmes secondaires sont-elles obligatoires ? | **Toutes les missions en portent, aucune n'est requise** pour finir la mission |
 | Une enquête peut-elle échouer définitivement ? | **Une secondaire, oui. Une principale, non** — elle se rejoue jusqu'à être résolue |
-
-Cette dernière décision est structurante : elle sépare nettement les deux
-familles d'enquêtes. Une enquête **principale** porte le fil rouge d'une
-mission, donc son échec définitif bloquerait la campagne — elle se rejoue, au
-prix des deux cycles de retard du doc 10. Une enquête **secondaire** peut se
-perdre pour de bon, et c'est ce qui donne du poids à une déduction : sans ce
-risque, conclure au hasard puis recommencer serait toujours la meilleure
-stratégie.
-
-#### Définition de « fini »
-
-Parcours de bout en bout : ouvrir la Maison des scribes → y lire sa clé de
-lecture → déchiffrer une première inscription → explorer une case d'événement →
-y trouver un indice → envoyer un émissaire chercher un témoignage → ouvrir le
-dossier d'enquête → conclure, de travers d'abord, puis juste → voir le fil
-rouge de la mission 1 avancer d'un acte.
-
-Tests sur les invariants : une clé de lecture ne donne jamais un symbole qu'un
-niveau n'a pas ouvert, une enquête ne se conclut pas sans le nombre d'indices
-requis, une mauvaise déduction ne retire jamais de ressource, et **aucune
-énigme ne peut rendre une partie injouable**.
-
-Les quatre portes qualité au vert, et l'accessibilité au clavier vérifiée sur
-l'écran de déchiffrage — c'est le premier du jeu où elle peut se perdre.
 
 ---
 
-### 5.9 Phases 8 à 12 — à cadrer
+### 5.9 Phase 8 — La campagne : dix missions, un pharaon chacune  *(à faire)*
+
+**Sources** : doc `09` (lore, objectifs, quêtes de chantier, réussite
+partielle), `11` (les dix régions et leur difficulté), `10` (les trois actes).
+
+**Intention.** Dix missions existent déjà — leur région, leur ville, leur
+pharaon, leur difficulté et leur carte. Ce qui manque est **ce qui en fait une
+campagne** : on ne peut ni gagner une mission, ni passer à la suivante. Une
+partie s'ouvre sur la commande d'un roi et n'a aucune façon de s'achever
+autrement que par la famine.
+
+À la fin de la phase, on doit pouvoir raconter : *« Avaris est repeuplée, la
+route rouverte, et la stèle dressée. Ahmôsis me reconnaît une réussite aux
+trois quarts — je n'ai pas atteint le volume d'échanges qu'il attendait. Il me
+lègue quelque chose pour la suite, et Thoutmôsis Ier m'envoie à Saï. »*
+
+| Lot | Contenu |
+|---|---|
+| 8.0 | Les objectifs d'une mission, visibles dès le premier jour |
+| 8.1 | Mesurer l'avancement : ce que le jeu sait déjà compter, et ce qu'il ignore |
+| 8.2 | Achever une mission : réussite totale, réussite partielle |
+| 8.3 | Les quêtes de chantier du pharaon |
+| 8.4 | Les dix fils rouges |
+| 8.5 | Enchaîner : de la mission N à la mission N+1 |
+| 8.6 | Le legs du pharaon |
+
+#### 8.0 — Les objectifs, visibles dès le premier jour
+
+Le doc 09 tranche deux choses, et elles vont ensemble : chaque mission combine
+**un objectif narratif obligatoire** — le fil rouge résolu — et **deux à trois
+objectifs quantitatifs** tirés d'un pool de six (richesse, population,
+commerce, infrastructure, renommée, ressource précise).
+
+**Ils sont affichés dès le début**, façon liste de quêtes : « la transparence
+évite au joueur de découvrir tardivement des conditions qu'il n'a pas pu
+anticiper ». Ce n'est pas un jeu de mystère sur ses propres objectifs.
+
+Les seuils croissent avec la difficulté de la région (doc 09) : richesse
+`200 + 50 × difficulté`, population `20 + 10 × difficulté`, commerce
+`500 + 100 × difficulté`, ressource `100 + 20 × difficulté`, infrastructure
+niveau `4 + difficulté / 3`, renommée palier `2 + difficulté / 4`.
+
+**À vérifier avant de figer** : ces seuils sont d'une autre échelle que
+l'économie mesurée aux lots 4.6 et 5.x. « Employer 20 travailleurs » quand la
+ville d'exemple en emploie 15 au bout d'un an est un objectif ; « accumuler
+200 or » n'a plus de sens depuis que l'or est un métal et le deben la monnaie
+(lot 4.0). Le pool sera relu ligne à ligne, comme la dotation royale l'a été.
+
+#### 8.1 — Mesurer l'avancement
+
+Quatre des six mesures existent déjà : la trésorerie, la population, la
+renommée et le niveau d'un bâtiment se lisent sans rien ajouter. **Deux
+manquent** :
+
+- **La valeur totale échangée** (Marché + convois) : rien ne la cumule
+  aujourd'hui. C'est un compteur à ajouter sur la partie, alimenté aux deux
+  endroits où des deben changent de main.
+- **La quantité d'une ressource « récoltée/rapportée »** : à distinguer du
+  stock courant, qui monte et descend. Un objectif atteint puis dépensé doit
+  rester atteint — sans quoi on serait puni d'avoir joué.
+
+**Le piège du lot 4.8, à ne pas repayer** : avant d'indexer un objectif sur une
+valeur, vérifier qu'une source la fait bouger.
+
+#### 8.2 — Achever une mission
+
+**Pas de « game over » brutal** (doc 09), et la réussite partielle est tranchée
+par le document : la mission **se termine quand même** si le fil rouge est
+résolu, même objectifs quantitatifs non atteints. Le score vaut
+`objectifs atteints / objectifs totaux`, affiché comme un résultat partiel et
+non comme un échec.
+
+Conséquence sur `StatutDePartie`, qui ne connaît aujourd'hui que `EnCours` et
+`Echouee` : il lui faut un état **achevé**, avec son score. Une partie achevée
+reste consultable, comme une partie échouée — c'est le principe du doc 00.
+
+**Une couture à traiter** : la famine reste la seule cause d'échec. Une mission
+achevée ne doit pas pouvoir basculer en échec ensuite, ni l'inverse.
+
+#### 8.3 — Les quêtes de chantier
+
+Le pharaon commanditaire réclame ponctuellement des ressources pour un chantier
+qu'il a **réellement fait bâtir** : la pyramide d'Ahmôsis à Abydos, les
+obélisques de Thoutmôsis Ier, Deir el-Bahari pour Hatchepsout, l'Akh-menou de
+Thoutmôsis III, les talatat d'Akhenaton, Médinet Habou pour Ramsès III.
+
+Tous les quatre cycles, 20 à 50 unités, `+5` de renommée et `+10` de faveur
+envers la divinité du monument. **Refuser coûte 2 points de renommée et rien
+d'autre** — le joueur reste libre de sa stratégie.
+
+Chaque quête porte **deux ou trois phrases pédagogiques** sur le monument
+réel : c'est la même exigence qu'aux lots 7.0 et 7.2, et le même garde-fou —
+ce qu'on apprend doit être vrai.
+
+#### 8.4 — Les dix fils rouges
+
+La mission 1 en a un (lot 7.6). Les neuf autres suivent la même structure en
+trois actes, chacun avec son obstacle local cohérent avec son pharaon et son
+type de mission : **fonder** (Akhetaton, Malkata, Saï), **restaurer ou
+développer** (Avaris, Shedet, Serabit, Mersa Gaouasis, Éléphantine),
+**sécuriser** (Megiddo).
+
+**C'est le plus gros morceau d'écriture de la phase**, et il vient après avoir
+joué le premier : chaque fil demande une inscription d'ouverture lisible avec
+la clé du moment, une enquête avec ses indices et ses fausses pistes, et une
+énigme finale.
+
+#### 8.5 — Enchaîner les missions
+
+L'ordre est imposé, de 1 à 10 (décision déjà actée). Ce qui manque est la
+**transition** : une mission achevée ouvre la suivante, et le joueur la lance
+depuis son compte. Rien ne se transporte d'une ville à l'autre — sauf le legs.
+
+**La mission 9 est un cas à part** (doc 09) : un camp minier temporaire, pas une
+ville. Le document laisse ouvert s'il suit les mêmes règles ou un système
+allégé. À trancher.
+
+#### 8.6 — Le legs du pharaon
+
+À la réussite, totale ou partielle : un bonus de renommée proportionnel au
+score, et un **objet légué** — un petit avantage de départ pour la mission
+suivante. C'est le premier fil entre deux parties, et la porte d'entrée de la
+Phase 9 (héritage familial, doc 13).
+
+**Le tenir modeste** : un legs qui change l'équilibre d'une mission rendrait la
+suivante dépendante de la précédente, ce qui punirait une réussite partielle
+deux fois.
+
+#### Hors périmètre, explicitement
+
+- **L'héritage familial complet** et le carnet de contacts : Phase 9.
+- **L'héritage commercial inter-missions** (doc 12), reporté de la Phase 5 :
+  il suppose l'enchaînement, donc il devient possible — mais il relève de la
+  Phase 9, avec le reste de ce qui se transmet.
+- **Le mode Aventure** : Phase 11.
+
+#### À trancher avec la joueuse
+
+| Question | Enjeu |
+|---|---|
+| La mission 9 (camp minier) suit-elle les mêmes règles ? | Le doc laisse le choix entre règles communes et système allégé. Une ville sans habitants ni logement changerait beaucoup de mécaniques |
+| Le legs doit-il être **cosmétique** ou donner un vrai avantage ? | Le doc dit « bonus cosmétique ou petit avantage ». Un avantage rend les missions dépendantes ; du cosmétique risque de ne rien peser |
+| Les objectifs quantitatifs se **recalibrent-ils** sur l'économie mesurée ? | Les seuils du doc 09 datent d'avant les Phases 4 et 5, et l'un d'eux parle encore d'or comme monnaie |
+
+#### Définition de « fini »
+
+Parcours de bout en bout : lancer la mission 1 → voir ses objectifs dès le
+premier écran → les voir avancer → résoudre le fil rouge → recevoir la
+reconnaissance du pharaon, totale ou partielle → recevoir un legs → lancer la
+mission 2 depuis son compte.
+
+Tests sur les invariants : un objectif atteint le reste, une mission achevée ne
+bascule jamais en échec, refuser une quête de chantier ne bloque rien, et
+**aucun seuil n'est inatteignable** — un test qui vérifie, région par région,
+que les objectifs tiennent dans ce que la carte et l'économie permettent. C'est
+l'exercice d'`OuvertureDePartieTest`, appliqué à la fin d'une mission plutôt
+qu'à son début.
+
+---
+
+### 5.10 Phases 9 à 12 — à cadrer
 
 Chacune traduit un document déjà spécifié ; le cadrage technique se fera à son
 tour, comme pour les précédentes.
 
 | Phase | Sujet | Ce qu'elle apporte |
 |---|---|---|
-| **8** — Campagne (`09`, `11`) | Les 10 missions, leurs objectifs, l'enchaînement | Prérequis de l'héritage commercial inter-missions (doc 12) |
 | **9** — Renommée et héritage (`13`) | Succession familiale, carnet de contacts | La renommée existe déjà et bouge ; c'est l'héritage entre parties qui manque |
 | **10** — Medjaÿ et combat (`03`) | Recrutement militaire, équipement, zones à bandits | Réveille le trait « Bagarreur », l'usage des armes de la Forge, et le Chef d'expédition, dernier rôle d'exploration sans emploi |
 | **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre |
