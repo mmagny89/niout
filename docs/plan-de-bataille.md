@@ -736,7 +736,7 @@ lègue quelque chose pour la suite, et Thoutmôsis Ier m'envoie à Saï. »*
 | Lot | Contenu | |
 |---|---|---|
 | 8.0 | Les objectifs d'une mission, visibles dès le premier jour | ✅ |
-| 8.1 | Mesurer l'avancement : ce que le jeu sait déjà compter, et ce qu'il ignore | |
+| 8.1 | Mesurer l'avancement : ce que le jeu sait déjà compter, et ce qu'il ignore | ✅ |
 | 8.2 | Achever une mission : réussite totale, réussite partielle | |
 | 8.3 | Les quêtes de chantier du pharaon | |
 | 8.4 | Les dix fils rouges | |
@@ -792,7 +792,7 @@ dans l'ordre de son onglet décalait tout ce qui suit — on cliquait sur Missio
 et l'on ouvrait les Bâtiments. C'est pour cela que le test compare les deux
 listes **dans l'ordre**.
 
-#### 8.1 — Mesurer l'avancement
+#### 8.1 — Mesurer l'avancement  ✅
 
 Quatre des six mesures existent déjà : la trésorerie, la population, la
 renommée et le niveau d'un bâtiment se lisent sans rien ajouter. **Deux
@@ -805,8 +805,21 @@ manquent** :
   stock courant, qui monte et descend. Un objectif atteint puis dépensé doit
   rester atteint — sans quoi on serait puni d'avoir joué.
 
-**Le piège du lot 4.8, à ne pas repayer** : avant d'indexer un objectif sur une
-valeur, vérifier qu'une source la fait bouger.
+**Les deux comptes se tiennent au seul passage obligé.** Les ressources
+rapportées se cumulent dans `City::crediterRessources()` — même raison que le
+plafond de réserve : le poser ailleurs obligerait chaque nouvelle source à s'en
+souvenir, et l'une d'elles finirait par l'oublier. La valeur échangée se compte
+au Marché et **au retour d'un convoi**, jamais à son départ : au départ, la
+marchandise est engagée, elle n'est pas encore échangée.
+
+**Le piège du lot 4.8, évité autrement qu'annoncé.** Le lot 8.0 portait un
+drapeau `seMesureDeja()` disant quels types n'étaient pas encore mesurés ; une
+fois les six mesures en place, ce drapeau devenait un mensonge que PHPStan a
+signalé (une branche `null` devenue inatteignable). Il a été **remplacé par un
+test qui fait bouger chaque mesure, une par une** — un drapeau déclaratif
+n'aurait de toute façon pas empêché un objectif indexé sur une valeur inerte ;
+ce test-là, si, et tout type ajouté au pool y tombera tant que rien ne le fait
+avancer.
 
 #### 8.2 — Achever une mission
 

@@ -517,8 +517,64 @@ class City
                 continue;
             }
 
-            $this->ligneDe(Ressource::from($valeur))->ajouter($tient);
+            $ressource = Ressource::from($valeur);
+            $this->ligneDe($ressource)->ajouter($tient);
+
+            // Ce qui est entré une fois reste entré : c'est ici, au seul
+            // passage obligé, qu'on en tient le compte (lot 8.1).
+            if (!$ressource->estLaMonnaie()) {
+                $cle = $ressource->value;
+                $this->ressourcesRapportees[$cle] = ($this->ressourcesRapportees[$cle] ?? 0) + $tient;
+            }
         }
+
+        return $this;
+    }
+
+    /**
+     * Ce qui est **entré** dans la ville depuis le début de la partie,
+     * ressource par ressource — récolté, extrait, pêché, fabriqué, acheté,
+     * offert par un dieu.
+     *
+     * **À distinguer du stock**, qui monte et descend. Un objectif de mission
+     * s'appuie là-dessus : une ressource rapportée puis dépensée reste
+     * rapportée, sans quoi le joueur serait puni d'avoir joué.
+     *
+     * Le compte se tient dans `crediterRessources()` parce que c'est le
+     * **seul passage obligé** : le poser ailleurs obligerait chaque nouvelle
+     * source à s'en souvenir, et l'une d'elles finirait par l'oublier — comme
+     * le plafond de réserve, pour la même raison.
+     *
+     * @var array<string, int>
+     */
+    #[ORM\Column(type: 'json')]
+    private array $ressourcesRapportees = [];
+
+    public function ressourceRapportee(Ressource $ressource): int
+    {
+        return $this->ressourcesRapportees[$ressource->value] ?? 0;
+    }
+
+    /**
+     * La valeur cumulée de ce qui s'est échangé, en deben : ventes au Marché
+     * et convois rentrés. C'est la mesure du doc 09 — « quantité ou valeur
+     * totale de marchandises échangées (Marché + Entrepôt) ».
+     *
+     * **Un échange conclu compte une fois.** Un convoi se compte **au
+     * retour**, quand l'affaire est faite : au départ, la marchandise est
+     * engagée, elle n'est pas encore échangée.
+     */
+    #[ORM\Column]
+    private int $valeurEchangee = 0;
+
+    public function getValeurEchangee(): int
+    {
+        return $this->valeurEchangee;
+    }
+
+    public function compterUnEchange(int $valeurEnDeben): static
+    {
+        $this->valeurEchangee += max(0, $valeurEnDeben);
 
         return $this;
     }

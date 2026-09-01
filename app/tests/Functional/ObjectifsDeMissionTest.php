@@ -9,6 +9,7 @@ use App\Entity\GameSave;
 use App\Entity\User;
 use App\Game\CataloguePartenaires;
 use App\Game\LanceurDePartie;
+use App\Game\Marche;
 use App\Game\MissionCatalogue;
 use App\Game\ObjectifDeMission;
 use App\Game\ObjectifsDeMission;
@@ -148,19 +149,52 @@ final class ObjectifsDeMissionTest extends WebTestCase
     }
 
     /**
-     * **Deux mesures n'existent pas encore** — la valeur échangée et la
-     * ressource rapportée —, et l'écran le dit plutôt que d'afficher un zéro
-     * qui ne bougerait jamais. Ce test verrouille la liste : elle doit
-     * rétrécir au lot 8.1, jamais s'allonger.
+     * **Chaque type d'objectif a une mesure qui bouge**, et c'est vérifié une
+     * par une plutôt que déclaré.
+     *
+     * C'est le garde-fou contre le piège d'`ajusterRenommee()` — un objectif
+     * indexé sur une valeur que rien ne fait changer. Un drapeau « pas encore
+     * mesuré » ne l'aurait pas évité : ce test-ci, si. Tout type ajouté au
+     * pool tombera ici tant que rien ne le fait avancer.
      */
-    public function testCeQuiNeSeMesurePasEncoreEtRienDautre(): void
+    public function testChaqueTypeDObjectifAUneMesureQuiBouge(): void
     {
-        $aMesurer = array_filter(TypeDObjectif::cases(), static fn (TypeDObjectif $t): bool => !$t->seMesureDeja());
+        self::bootKernel();
 
-        self::assertSame(
-            [TypeDObjectif::Commerce, TypeDObjectif::Ressource],
-            array_values($aMesurer),
-        );
+        foreach (TypeDObjectif::cases() as $type) {
+            $partie = $this->lancerPartie(\sprintf('mesure-%s@example.com', $type->value));
+            $objectif = $this->unObjectifDe($type);
+
+            $avant = $objectif->avancement($partie);
+            $this->faireBouger($partie, $type);
+            $apres = $objectif->avancement($partie);
+
+            self::assertGreaterThan(
+                $avant,
+                $apres,
+                \sprintf('Rien ne fait avancer un objectif de type « %s ».', $type->libelle()),
+            );
+        }
+    }
+
+    /**
+     * Et les deux mesures ajoutées au lot 8.1 ne se confondent pas avec le
+     * stock : **une ressource rapportée puis dépensée reste rapportée**, sans
+     * quoi le joueur serait puni d'avoir joué.
+     */
+    public function testUneRessourceDepenseeResteRapportee(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('rapportee@example.com');
+        $ville = $partie->getVille();
+
+        $ville->crediterRessources([Ressource::Calcaire->value => 40]);
+        self::assertSame(40, $ville->ressourceRapportee(Ressource::Calcaire));
+
+        $ville->debiterRessources([Ressource::Calcaire->value => 40]);
+
+        self::assertSame(0, $ville->quantite(Ressource::Calcaire), 'Le stock est vide.');
+        self::assertSame(40, $ville->ressourceRapportee(Ressource::Calcaire), 'Le compte, lui, tient.');
     }
 
     /**
@@ -187,17 +221,46 @@ final class ObjectifsDeMissionTest extends WebTestCase
     }
 
     /**
-     * Un objectif dont la mesure n'existe pas encore n'est **jamais** compté
-     * comme atteint : mieux vaut un objectif en attente qu'un objectif faux.
+     * **Ce qui passe par le Marché compte au volume échangé**, comme ce qui
+     * passe par une caravane (doc 09).
      */
-    public function testUnObjectifNonMesureNestJamaisAtteint(): void
+    public function testUneVenteAuMarcheCompteAuVolumeEchange(): void
     {
         self::bootKernel();
-        $partie = $this->lancerPartie('non-mesure@example.com');
+        $partie = $this->lancerPartie('marche-echange@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Marche, 1));
+        $ville->crediterRessources([Ressource::Calcaire->value => 20]);
 
-        $commerce = new ObjectifDeMission(TypeDObjectif::Commerce, 1);
-        self::assertNull($commerce->avancement($partie));
-        self::assertFalse($commerce->estAtteint($partie));
+        self::assertSame(0, $ville->getValeurEchangee());
+
+        $recette = static::getContainer()->get(Marche::class)->vendre($partie, Ressource::Calcaire, 10);
+
+        self::assertGreaterThan(0, $recette);
+        self::assertSame($recette, $ville->getValeurEchangee());
+    }
+
+    private function unObjectifDe(TypeDObjectif $type): ObjectifDeMission
+    {
+        return match ($type) {
+            TypeDObjectif::Infrastructure => new ObjectifDeMission($type, 1, batiment: TypeDeBatiment::Entrepot),
+            TypeDObjectif::Ressource => new ObjectifDeMission($type, 1, ressource: Ressource::Calcaire),
+            default => new ObjectifDeMission($type, 1),
+        };
+    }
+
+    private function faireBouger(GameSave $partie, TypeDObjectif $type): void
+    {
+        $ville = $partie->getVille();
+
+        match ($type) {
+            TypeDObjectif::Richesse => $ville->crediterRessources([Ressource::Deben->value => 50]),
+            TypeDObjectif::Population => $ville->accueillir(3, 1, 0),
+            TypeDObjectif::Renommee => $partie->getFamille()->ajusterRenommee(5),
+            TypeDObjectif::Infrastructure => $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Entrepot, 2)),
+            TypeDObjectif::Commerce => $ville->compterUnEchange(120),
+            TypeDObjectif::Ressource => $ville->crediterRessources([Ressource::Calcaire->value => 30]),
+        };
     }
 
     /**
