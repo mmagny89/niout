@@ -40,10 +40,12 @@ use App\Game\FabricationImpossible;
 use App\Game\FilRouge;
 use App\Game\Inscription;
 use App\Game\LanceurDePartie;
+use App\Game\Legs;
 use App\Game\Marche;
 use App\Game\Mecontentement;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
+use App\Game\MissionFermee;
 use App\Game\ModeDivin;
 use App\Game\Negligence;
 use App\Game\ObjectifDeMission;
@@ -52,6 +54,7 @@ use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\Progression;
 use App\Game\QueteImpossible;
 use App\Game\QuetesDeChantier;
 use App\Game\Recette;
@@ -86,6 +89,8 @@ final class PartieController extends AbstractController
         LanceurDePartie $lanceur,
         GameSaveRepository $parties,
         MissionCatalogue $missions,
+        Progression $progression,
+        Legs $legs,
     ): Response {
         /** @var User $joueur */
         $joueur = $this->getUser();
@@ -96,13 +101,14 @@ final class PartieController extends AbstractController
             return $this->redirectToRoute('app_compte');
         }
 
-        // Les dix régions ne s'ouvrent qu'au mode divin : pour un joueur
-        // ordinaire, le champ n'existe pas et un POST forgé ne le rétablit pas.
+        // Ce que le joueur a ouvert : ses missions accomplies, et la
+        // suivante (doc 09). Le mode d'essai les ouvre toutes. Le lanceur
+        // refait le contrôle de son côté — un POST forgé n'ouvre pas le Sinaï
+        // à qui sort du Delta.
         $ouvertes = [];
-        if ($joueur->estDivinite()) {
-            foreach ($missions->toutes() as $mission) {
-                $ouvertes[\sprintf('%d — %s (%s)', $mission->numero, $mission->ville, $mission->region)] = $mission->numero;
-            }
+        foreach ($progression->missionsOuvertes($joueur) as $numero) {
+            $mission = $missions->get($numero);
+            $ouvertes[\sprintf('%d — %s (%s)', $mission->numero, $mission->ville, $mission->region)] = $mission->numero;
         }
 
         $form = $this->createForm(NouvellePartieType::class, options: ['missionsOuvertes' => $ouvertes]);
@@ -112,21 +118,27 @@ final class PartieController extends AbstractController
             /** @var array{mode: GameMode, nomDeFamille: string, difficulte: int, tailleGrille: int, mission?: int} $donnees */
             $donnees = $form->getData();
 
-            $partie = GameMode::Campagne === $donnees['mode']
-                ? $lanceur->lancerCampagne($joueur, $donnees['nomDeFamille'], $donnees['mission'] ?? null)
-                : $lanceur->lancerAventure(
-                    $joueur,
-                    $donnees['nomDeFamille'],
-                    $donnees['difficulte'],
-                    $donnees['tailleGrille'],
-                );
+            try {
+                $partie = GameMode::Campagne === $donnees['mode']
+                    ? $lanceur->lancerCampagne($joueur, $donnees['nomDeFamille'], $donnees['mission'] ?? null)
+                    : $lanceur->lancerAventure(
+                        $joueur,
+                        $donnees['nomDeFamille'],
+                        $donnees['difficulte'],
+                        $donnees['tailleGrille'],
+                    );
 
-            return $this->redirectToRoute('app_partie_commande', ['id' => $partie->getId()]);
+                return $this->redirectToRoute('app_partie_commande', ['id' => $partie->getId()]);
+            } catch (MissionFermee $fermee) {
+                $this->addFlash('erreur', $fermee->getMessage());
+            }
         }
 
         return $this->render('partie/nouvelle.html.twig', [
             'form' => $form,
-            'premiereMission' => $missions->get(1),
+            'premiereMission' => $missions->get($progression->prochaineMission($joueur)),
+            'legsEnDeben' => $legs->debenPour($joueur, $progression->prochaineMission($joueur)),
+            'campagneAchevee' => $progression->campagneAchevee($joueur),
             'villeAventure' => LanceurDePartie::VILLE_DU_MODE_AVENTURE,
         ]);
     }

@@ -358,6 +358,26 @@ class GameSave
         return $this->scoreDeMission;
     }
 
+    /**
+     * Ce que le pharaon précédent a légué à cette partie, en deben. Stocké
+     * plutôt que recalculé : la partie qui l'a mérité peut être abandonnée
+     * ensuite, et ce qui a été donné reste donné.
+     */
+    #[ORM\Column]
+    private int $legsEnDeben = 0;
+
+    public function getLegsEnDeben(): int
+    {
+        return $this->legsEnDeben;
+    }
+
+    public function recevoirEnLegs(int $deben): static
+    {
+        $this->legsEnDeben = max(0, $deben);
+
+        return $this;
+    }
+
     public function estAchevee(): bool
     {
         return StatutDePartie::Achevee === $this->statut;

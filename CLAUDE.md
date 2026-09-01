@@ -663,6 +663,17 @@ défaut `0` — sans cycle, aucun chef n'est en poste et aucun bonus ne
 s'applique. C'est le défaut sûr : un appel qui l'oublie sous-estime la clé, il
 ne l'invente pas.
 
+**L'ordre des missions se vérifie dans le lanceur, pas dans le formulaire**
+(`Progression`, `LanceurDePartie`) : un POST forgé n'ouvre pas le Sinaï à qui
+sort du Delta. Une **réussite partielle ouvre la suite** comme une pleine, et
+l'on peut **rejouer** une mission déjà faite. Le mode d'essai ouvre les dix.
+
+**Le legs s'ajoute à la dotation, il ne la remplace pas** (`Legs`) : une
+première mission et une cinquième démarrent sur le même socle, ce qui garde
+chaque mission jouable seule. Un legs qui changerait l'équilibre punirait une
+réussite partielle deux fois. Il est **stocké sur la partie** — celle qui l'a
+mérité peut être abandonnée ensuite, et ce qui a été donné reste donné.
+
 **Un objectif atteint le reste** (`ObjectifDeMission`, doc 09) : une
 trésorerie qu'on dépense, une population qui fond, une ressource qu'on vend ne
 doivent jamais reprendre ce qui a été obtenu — le joueur serait puni d'avoir

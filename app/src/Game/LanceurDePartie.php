@@ -34,6 +34,8 @@ final readonly class LanceurDePartie
         private GenerateurDeCarte $carte,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
+        private Progression $progression,
+        private Legs $legs,
     ) {
     }
 
@@ -49,11 +51,25 @@ final readonly class LanceurDePartie
     {
         $this->refuserSiPlafondAtteint($joueur);
 
-        $mission = $this->missions->get($numeroDeMission ?? GameSave::PREMIERE_MISSION);
+        // La mission suivante ne s'ouvre qu'en ayant accompli la précédente
+        // (doc 09). Le contrôle est ici, pas seulement dans le formulaire :
+        // un POST forgé ne doit pas ouvrir le Sinaï à qui sort du Delta.
+        $numero = $numeroDeMission ?? $this->progression->prochaineMission($joueur);
+
+        if (!$this->progression->peutLancer($joueur, $numero)) {
+            throw new MissionFermee(\sprintf('La mission %d ne vous est pas encore ouverte : accomplissez d\'abord la précédente.', $numero));
+        }
+
+        $mission = $this->missions->get($numero);
         $ville = new City($mission->ville, $mission->difficulte, $mission->tailleDeGrille());
 
         $partie = GameSave::pourCampagne($joueur, new Family($nomDeFamille), $ville);
         $partie->commencerALaMission($mission->numero);
+
+        // Ce que le pharaon précédent lègue : un vrai avantage, proportionnel
+        // à ce qu'on a accompli pour lui.
+        $partie->recevoirEnLegs($this->legs->debenPour($joueur, $numero));
+        $partie->getFamille()->ajusterRenommee($this->legs->renommeePour($joueur, $numero));
 
         return $this->doterEtEnregistrer($partie, $mission->geographie);
     }
@@ -104,6 +120,13 @@ final readonly class LanceurDePartie
 
         $dotation = DotationRoyale::pour($ville->getDifficulte(), $ville->consommationDeNourriture());
         $ville->crediterRessources($dotation->enRessources());
+
+        // Le legs du pharaon précédent s'ajoute à la dotation, il ne la
+        // remplace pas : une première mission et une cinquième démarrent sur
+        // le même socle, et c'est ce qui garde chaque mission jouable seule.
+        if ($partie->getLegsEnDeben() > 0) {
+            $ville->crediterRessources([Ressource::Deben->value => $partie->getLegsEnDeben()]);
+        }
 
         // La crue de la première année est déjà jouée quand le joueur arrive :
         // elle conditionne la moisson qu'il prépare dès maintenant.
