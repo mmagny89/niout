@@ -152,10 +152,11 @@ enum Divinite: string
      * manques différents, et la différence compte pour le joueur : le premier
      * est une promesse pour plus tard, le second ne se lèvera jamais ici.
      *
-     * **Hâpi est le seul concerné** : il incline la crue, et cinq missions sur
-     * dix se jouent loin du fleuve — Pount, Megiddo, les oasis, l'Ouadi
-     * Hammamat, le Sinaï. Lui porter une offrande dans un désert achetait un
-     * effet qui ne pouvait pas se produire.
+     * **Deux dieux sont concernés.** Hâpi incline la crue, et quatre missions
+     * se jouent loin du fleuve — Pount, Megiddo, l'Ouadi Hammamat, le Sinaï.
+     * Sobek raccourcit les trajets par eau, et l'Ouadi Hammamat n'a ni mer, ni
+     * fleuve, ni route navigable : rien n'y flotte. Leur porter une offrande
+     * achetait un effet qui ne pouvait pas se produire.
      */
     public function agitDans(GeographieDeRegion $geographie): bool
     {
@@ -173,7 +174,14 @@ enum Divinite: string
      */
     public function estSansDomaineIci(GeographieDeRegion $geographie): bool
     {
-        return self::Hapi === $this && !$geographie->connaitLaCrue();
+        return match ($this) {
+            self::Hapi => !$geographie->connaitLaCrue(),
+            // Sobek s'en tient à la navigation depuis le lot 6.3 — la pêche
+            // passe déjà par la qualité de direction du Port. Sans une goutte
+            // d'eau, il ne lui reste rien à raccourcir.
+            self::Sobek => !$geographie->aUnPointDEau(),
+            default => false,
+        };
     }
 
     /**
@@ -181,8 +189,10 @@ enum Divinite: string
      */
     public function attenteDans(GeographieDeRegion $geographie): ?string
     {
-        if (self::Hapi === $this && !$geographie->connaitLaCrue()) {
-            return 'Aucun fleuve ne monte sur cette terre : il n\'y a pas de crue à incliner ici.';
+        if ($this->estSansDomaineIci($geographie)) {
+            return self::Hapi === $this
+                ? 'Aucun fleuve ne monte sur cette terre : il n\'y a pas de crue à incliner ici.'
+                : 'Rien ne flotte sur cette terre : aucun trajet par eau à raccourcir ici.';
         }
 
         return $this->attente();
