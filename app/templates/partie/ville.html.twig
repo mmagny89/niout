@@ -22,21 +22,6 @@
             </div>
         </div>
 
-        {# Une fièvre qui ne se voit pas est une production qui baisse sans
-           raison apparente : elle s'annonce avant toute autre chose. #}
-        {% if ville.estFrappeeParUneEpidemie %}
-            <p class="mt-2 rounded-sm border border-terre-600/50 bg-terre-500/10 px-4 py-2 text-xs text-encre-700">
-                <span class="font-display text-lg text-encre-900">La fièvre est dans la ville.</span>
-                <span data-chiffres>{{ ville.malades }}</span> bras sur
-                <span data-chiffres>{{ ville.actifs }}</span> restent couchés, encore
-                <span data-chiffres>{{ ville.quinzainesDepidemie }}</span>
-                quinzaine{{ ville.quinzainesDepidemie > 1 ? 's' : '' }}. Nul n'en meurt.
-                {% if ville.possede(constant('App\\Game\\TypeDeBatiment::Temple')) %}
-                    Une offrande à Sekhmet, dont les prêtres soignent, en abrégerait le cours.
-                {% endif %}
-            </p>
-        {% endif %}
-
         {# Ce que la barre de jeu ne dit pas : ce que la saison change
            concrètement. Une ligne, pas un encadré — tout ce qui est fixe ici
            est de la hauteur en moins pour le panneau ouvert. #}
@@ -50,20 +35,11 @@
             {% endif %}
         </p>
 
-        {# Le mécontentement est une spirale : la subir sans la comprendre
-           serait injuste. L'écran dit la cause et le remède. #}
-        {% if villeMecontente %}
-            <p class="mt-4 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-4 py-3 text-sm text-encre-700">
-                <strong class="text-encre-900">La ville est mécontente</strong>
-                depuis {{ mecontentement }} quinzaine{{ mecontentement > 1 ? 's' : '' }} :
-                on n'y mange pas à sa faim, ou l'on n'y est pas payé.
-                La production tombe à <span data-chiffres>{{ rendementDeLHumeur }} %</span>,
-                les départs s'accélèrent, et votre renom s'en ressent.
-                Nourrissez et payez vos gens : la colère retombe aussi lentement
-                qu'elle est montée.
-            </p>
-        {% endif %}
-
+        {# L'état de la ville, le bon comme le mauvais, sur la même ligne que
+           la saison : les deux encadrés d'avant — la fièvre et le
+           mécontentement — prenaient à eux seuls la hauteur d'un tiers de
+           panneau, et ne disaient que les ennuis. #}
+        {{ include('partie/_signaux.html.twig') }}
 
             {# **Un onglet, un bâtiment** (décision de la joueuse) : chaque
                bâtiment porte ce qui relève de sa fonction — sa direction, ses

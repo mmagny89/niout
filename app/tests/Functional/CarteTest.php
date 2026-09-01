@@ -245,6 +245,32 @@ final class CarteTest extends WebTestCase
         ));
     }
 
+    /**
+     * **La case sélectionnée survit à la quinzaine.** On avance souvent le
+     * temps en surveillant une expédition, un chantier ou une carrière :
+     * repartir d'une carte sans sélection obligeait à retrouver sa case à
+     * chaque cycle.
+     */
+    public function testLaCaseSelectionneeSurvitAuPassageDuTemps(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'case-apres-cycle@example.com');
+        $partie = $this->lancer($joueur);
+        $zone = $partie->getVille()->getZones()->first();
+        self::assertNotFalse($zone);
+
+        $adresse = \sprintf('/partie/%d/carte?zone=%d-%d', $partie->getId(), $zone->getX(), $zone->getY());
+        $crawler = $client->request('GET', $adresse);
+        $client->submit($crawler->selectButton('Quinzaine suivante')->form());
+
+        self::assertResponseRedirects(\sprintf(
+            '/partie/%d/carte?zone=%d-%d',
+            $partie->getId(),
+            $zone->getX(),
+            $zone->getY(),
+        ));
+    }
+
     public function testAvancerLeTempsDepuisLaCarteYRamene(): void
     {
         $client = static::createClient();

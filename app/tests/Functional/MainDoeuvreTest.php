@@ -132,6 +132,10 @@ final class MainDoeuvreTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         self::assertSelectorTextContains('#panneau-residence_familiale', 'Vos maisons sont pleines');
         self::assertSelectorTextContains('#panneau-residence_familiale', 'Dressez un Quartier d\'habitation');
+        // Et le même fait se lit depuis la carte, en pastille : on ne doit pas
+        // changer d'écran pour savoir où en est sa ville.
+        $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+        self::assertSelectorTextContains('body', 'Vos maisons sont pleines');
     }
 
     /**
