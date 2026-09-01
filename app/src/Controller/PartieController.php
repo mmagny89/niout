@@ -32,6 +32,7 @@ use App\Game\Enigmes;
 use App\Game\Enquete;
 use App\Game\EnqueteImpossible;
 use App\Game\Enquetes;
+use App\Game\EtatDeLaVille;
 use App\Game\ExploitationImpossible;
 use App\Game\Exploitations;
 use App\Game\ExplorationImpossible;
@@ -192,6 +193,7 @@ final class PartieController extends AbstractController
         Rivaux $rivaux,
         MissionCatalogue $missions,
         Offrandes $offrandes,
+        EtatDeLaVille $etat,
     ): Response {
         $ville = $partie->getVille();
         $onglets = $this->ongletsDeLaVille($ville);
@@ -205,6 +207,13 @@ final class PartieController extends AbstractController
             'partie' => $partie,
             'ville' => $ville,
             'onglets' => $onglets,
+            // Le bon comme le mauvais, sur les deux écrans : un joueur ne doit
+            // pas changer de page pour savoir où en est sa ville.
+            'signaux' => $etat->signaux($partie),
+            'ennuis' => $etat->ennuis($partie),
+            'bonnesNouvelles' => $etat->bonnesNouvelles($partie),
+            'autonomie' => $etat->autonomieEnVivres($partie),
+            'quinzainesDeVivresInquietantes' => EtatDeLaVille::QUINZAINES_DE_VIVRES_INQUIETANTES,
             // L'onglet ouvert au chargement. Une action de la ville se solde
             // par une redirection, donc par un rechargement complet : sans
             // cette reprise, vendre au Marché renvoyait sur la Résidence
@@ -920,6 +929,7 @@ final class PartieController extends AbstractController
         Rivaux $rivaux,
         MissionCatalogue $missions,
         Prospection $prospection,
+        EtatDeLaVille $etat,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
@@ -930,6 +940,7 @@ final class PartieController extends AbstractController
             'ville' => $ville,
             'zones' => $zones,
             'zoneDetaillee' => $detaillee,
+            'signaux' => $etat->signaux($partie),
             'expeditionEnCours' => null !== $detaillee ? $ville->aUneExpeditionVers($detaillee) : false,
             // Le prix dépend de la case : reconnaître ses propres abords ne
             // coûte pas d'or. L'écran doit donc annoncer celui de cette case-là.
@@ -1187,21 +1198,29 @@ final class PartieController extends AbstractController
      * soumise deviendrait un nom de route arbitraire.
      */
     /**
-     * Renvoie le joueur là d'où il vient — la carte ou la ville —, **et sur
-     * l'onglet qu'il avait ouvert** quand c'est la ville.
+     * Renvoie le joueur là d'où il vient — la carte ou la ville —, **et
+     * exactement où il en était** : l'onglet qu'il avait ouvert dans la ville,
+     * la case qu'il avait sélectionnée sur la carte.
      *
-     * Avancer le temps depuis un panneau ne doit ni l'éjecter sur la carte, ni
-     * le ramener sur la Résidence familiale : la quinzaine se passe souvent
-     * plusieurs fois de suite depuis le même écran.
+     * La quinzaine se passe souvent plusieurs fois de suite depuis le même
+     * écran, en surveillant une expédition, un chantier ou un champ : avancer
+     * le temps ne doit ni éjecter le joueur, ni lui faire retrouver sa place à
+     * chaque cycle.
      */
     private function retourDemande(Request $request, GameSave $partie): Response
     {
         $route = $this->routeDeRetour($request);
         $onglet = (string) $request->request->get('onglet', '');
+        $zone = (string) $request->request->get('zone', '');
 
         return $this->redirectToRoute($route, array_filter([
             'id' => $partie->getId(),
             'onglet' => 'app_partie_ville' === $route && '' !== $onglet ? $onglet : null,
+            // La case détaillée survit à la quinzaine, comme l'onglet ouvert :
+            // on avance souvent le temps en surveillant une expédition, un
+            // champ ou une carrière, et repartir sur une carte sans sélection
+            // obligeait à retrouver sa case à chaque cycle.
+            'zone' => 'app_partie_carte' === $route && '' !== $zone ? $zone : null,
         ], static fn (mixed $valeur): bool => null !== $valeur));
     }
 

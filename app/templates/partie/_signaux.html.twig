@@ -1,0 +1,38 @@
+{# L'état de la ville, en une ligne de pastilles.
+
+   **Le joueur ne doit pas changer d'écran pour savoir où en est sa ville.** La
+   fièvre, le mécontentement et la famine ne se lisaient que dans la ville,
+   alors qu'on passe des quinzaines entières sur la carte : on découvrait la
+   maladie en revenant, plusieurs quinzaines trop tard.
+
+   **Une ligne, pas des encadrés.** Dans la coque du jeu, tout ce qui ne défile
+   pas est de la hauteur en moins pour le panneau ouvert, et un bandeau qui
+   dépasse la fenêtre coupe le bas sans avertissement. Le détail vit donc dans
+   un volet `<details>` natif — il s'ouvre au clavier et ne coûte pas un
+   contrôleur.
+
+   **Le bon compte autant que le mauvais** : un écran qui ne signalerait que
+   les ennuis ferait du jeu une liste de pannes, et l'on manquerait les moments
+   à saisir — une fête, une crue forte, des dieux acquis. #}
+{% if signaux is not empty %}
+    <ul class="mt-2 flex flex-wrap items-center gap-2 list-none p-0">
+        {% for signal in signaux %}
+            <li>
+                <details class="relative">
+                    <summary class="cursor-pointer list-none rounded-sm border px-2.5 py-1 text-xs
+                                    {{ signal.ton == 'mauvais'
+                                        ? 'border-terre-600/50 bg-terre-500/10 text-terre-700'
+                                        : 'border-lapis-500/50 bg-lapis-500/5 text-lapis-600' }}">
+                        <span aria-hidden="true">{{ signal.ton == 'mauvais' ? '▲' : '◆' }}</span>
+                        {{ signal.titre }}
+                    </summary>
+
+                    <div class="absolute left-0 top-full z-30 mt-1 w-72 rounded-sm border border-ocre-500/30
+                                bg-sable-50 p-3 text-sm text-encre-600 shadow-lg">
+                        {{ signal.detail }}
+                    </div>
+                </details>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

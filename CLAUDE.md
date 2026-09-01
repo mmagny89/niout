@@ -887,6 +887,20 @@ illisible ce que le tableau existe pour rendre lisible. Chaque alerte nomme la
 cause **et** le geste — un diagnostic sans remède se subit —, et une ville sans
 souci le dit plutôt que d'afficher une liste vide.
 
+**L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,
+`_signaux.html.twig`). La fièvre, la disette et le mécontentement ne
+s'affichaient que dans la ville, alors qu'on passe des quinzaines entières sur
+la carte à explorer et à exploiter : on découvrait la maladie en rentrant,
+plusieurs quinzaines trop tard. Un seul service produit la liste, et les deux
+écrans la lisent — deux listes écrites séparément auraient fini par diverger,
+et c'est la carte qui aurait cessé de dire la vérité. **Le bon compte autant
+que le mauvais** (décision de la joueuse) : une fête, une crue forte, des dieux
+acquis, un renom qui attire sont des moments à saisir, et n'annoncer que les
+ennuis ferait du jeu une liste de pannes. Chaque signal nomme la **cause et le
+geste** — un diagnostic sans remède se subit. Sur la carte et en tête de ville,
+ils tiennent en une ligne de pastilles avec leur détail dans un `<details>`
+natif : tout ce qui ne défile pas est de la hauteur en moins.
+
 **Une action ne renvoie jamais sur le premier onglet** (`retourALaVille()`,
 `retourDemande()`). Toute interaction de la ville se solde par une redirection,
 donc par un rechargement complet : sans reprise, vendre au Marché ramenait sur
@@ -897,7 +911,9 @@ un fragment d'URL : un fragment ne parvient pas au serveur et ne survit pas à
 une redirection. L'adresse obtenue reste partageable, comme la case détaillée
 de la carte. Toute route qui redirige vers la ville passe par ces deux
 helpers ; toute forme ajoutée à un panneau doit porter le champ caché, sans
-quoi elle rouvre le premier onglet sans qu'aucun test ne le dise. Et **une clé
+quoi elle rouvre le premier onglet sans qu'aucun test ne le dise. **La case
+sélectionnée suit la même règle** : elle survit à la quinzaine, qu'on avance
+souvent en surveillant une expédition ou une carrière. Et **une clé
 venue de la requête est confrontée aux onglets réellement rendus**
 (`ongletDemande()`) : une clé forgée ouvrirait un panneau inexistant, laissant
 la barre entièrement fermée.

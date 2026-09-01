@@ -152,6 +152,15 @@
                             {% if ongletActif is defined %}
                                 <input type="hidden" name="onglet" value="{{ ongletActif }}">
                             {% endif %}
+                            {# Et la case sélectionnée voyage de même : on
+                               avance souvent le temps en surveillant une
+                               expédition ou une carrière, et repartir d'une
+                               carte sans sélection obligeait à retrouver sa
+                               case à chaque cycle. #}
+                            {% if zoneDetaillee is defined and zoneDetaillee %}
+                                <input type="hidden" name="zone"
+                                       value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                            {% endif %}
                             <button type="submit"
                                     class="rounded-sm bg-lapis-500 px-4 py-1.5 text-sm font-medium text-sable-50 hover:bg-lapis-600">
                                 Quinzaine suivante
