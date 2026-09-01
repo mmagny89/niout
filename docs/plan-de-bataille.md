@@ -737,7 +737,7 @@ lègue quelque chose pour la suite, et Thoutmôsis Ier m'envoie à Saï. »*
 |---|---|---|
 | 8.0 | Les objectifs d'une mission, visibles dès le premier jour | ✅ |
 | 8.1 | Mesurer l'avancement : ce que le jeu sait déjà compter, et ce qu'il ignore | ✅ |
-| 8.2 | Achever une mission : réussite totale, réussite partielle | |
+| 8.2 | Achever une mission : réussite totale, réussite partielle | ✅ |
 | 8.3 | Les quêtes de chantier du pharaon | |
 | 8.4 | Les dix fils rouges | |
 | 8.5 | Enchaîner : de la mission N à la mission N+1 | |
@@ -821,7 +821,7 @@ n'aurait de toute façon pas empêché un objectif indexé sur une valeur inerte
 ce test-là, si, et tout type ajouté au pool y tombera tant que rien ne le fait
 avancer.
 
-#### 8.2 — Achever une mission
+#### 8.2 — Achever une mission  ✅
 
 **Pas de « game over » brutal** (doc 09), et la réussite partielle est tranchée
 par le document : la mission **se termine quand même** si le fil rouge est
@@ -833,8 +833,14 @@ Conséquence sur `StatutDePartie`, qui ne connaît aujourd'hui que `EnCours` et
 `Echouee` : il lui faut un état **achevé**, avec son score. Une partie achevée
 reste consultable, comme une partie échouée — c'est le principe du doc 00.
 
-**Une couture à traiter** : la famine reste la seule cause d'échec. Une mission
-achevée ne doit pas pouvoir basculer en échec ensuite, ni l'inverse.
+**La couture est traitée dans les deux sens** : `GameSave::achever()` ne fait
+rien sur une partie déjà close, et `echouer()` ne fait rien sur une partie
+accomplie. La famine qui rattraperait une mission accomplie n'a plus d'objet —
+la volonté du roi est accomplie, et c'est ce qui compte.
+
+**Le score est celui du moment où le fil rouge se résout**, et ne se recalcule
+jamais : une ville qui s'enrichirait après coup ne doit pas voir sa réussite
+monter, ni une ville qui se viderait la voir se dégrader. La mission est finie.
 
 #### 8.3 — Les quêtes de chantier
 

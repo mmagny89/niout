@@ -30,6 +30,7 @@ final readonly class PassageDeCycle
         private Providence $providence,
         private Epidemies $epidemies,
         private Rivaux $rivaux,
+        private AchevementDeMission $achevement,
         private DepartsNaturels $departs,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
@@ -118,6 +119,10 @@ final readonly class PassageDeCycle
             // s'en retire, qui s'éteint.
             $evenements = [...$evenements, ...$this->demographie->bilanDeLAnnee($partie)];
         }
+
+        // En dernier : la mission peut s'être accomplie dans cette quinzaine,
+        // et il faut que tout ce qui la mesure soit déjà à jour.
+        $evenements = [...$evenements, ...$this->achevement->verifier($partie)];
 
         $this->entityManager->flush();
 

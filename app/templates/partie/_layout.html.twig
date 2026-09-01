@@ -149,6 +149,12 @@
                                 Quinzaine suivante
                             </button>
                         </form>
+                    {% elseif partie.estAchevee %}
+                        {# La volonté du roi est accomplie : le temps ne s'avance
+                           plus, et la partie reste consultable avec son score. #}
+                        <span class="rounded-sm bg-lapis-500/15 px-4 py-1.5 text-sm font-medium text-lapis-600">
+                            Mission accomplie — <span data-chiffres>{{ partie.scoreDeMission }} %</span>
+                        </span>
                     {% else %}
                         {# La famine a eu raison de la ville : le temps ne
                            s'avance plus, mais la partie reste consultable

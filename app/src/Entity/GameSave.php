@@ -345,8 +345,48 @@ class GameSave
      * conclut en échec, conservée plutôt que supprimée — « chaque partie est
      * une run complète » (doc 00), y compris quand elle finit mal.
      */
+    /**
+     * Le score final, en centièmes : la part des objectifs chiffrés atteints
+     * au moment où le fil rouge a été résolu (doc 09). Nul tant que la mission
+     * n'est pas close.
+     */
+    #[ORM\Column]
+    private int $scoreDeMission = 0;
+
+    public function getScoreDeMission(): int
+    {
+        return $this->scoreDeMission;
+    }
+
+    public function estAchevee(): bool
+    {
+        return StatutDePartie::Achevee === $this->statut;
+    }
+
+    /**
+     * Clôt la mission. **Une partie achevée ne rebascule jamais** : ni en
+     * cours, ni en échec. La famine qui la rattraperait ensuite n'a plus
+     * d'objet — la volonté du roi est accomplie, et c'est ce qui compte.
+     */
+    public function achever(int $score): static
+    {
+        if ($this->statut->estClose()) {
+            return $this;
+        }
+
+        $this->statut = StatutDePartie::Achevee;
+        $this->scoreDeMission = max(0, min(100, $score));
+
+        return $this;
+    }
+
     public function echouer(): static
     {
+        // Une mission accomplie ne s'échoue pas après coup.
+        if (StatutDePartie::Achevee === $this->statut) {
+            return $this;
+        }
+
         $this->statut = StatutDePartie::Echouee;
 
         return $this;
