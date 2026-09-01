@@ -275,9 +275,12 @@ refusent de démarrer si l'un d'eux manque — c'est voulu.
 
 | Document | Contenu |
 |---|---|
-| [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md) | Cadrage technique, phases, décisions actées |
+| [`CLAUDE.md`](CLAUDE.md) | Stack, commandes, architecture — le point d'entrée |
+| [`docs/regles-du-jeu.md`](docs/regles-du-jeu.md) | Les invariants du jeu et leur raison d'être |
+| [`docs/interface.md`](docs/interface.md) | Les écrans : coques, barre de jeu, onglets, carte |
+| [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md) | Feuille de route, ce qui vient, décisions actées |
+| [`docs/phases-livrees.md`](docs/phases-livrees.md) | Journal des phases : intention, lots, pièges payés |
 | [`README.docker.md`](README.docker.md) | Détail du stack Docker, environnements, observabilité |
-| [`CLAUDE.md`](CLAUDE.md) | Contexte projet pour Claude Code : commandes, conventions, pièges |
 
 La conception du jeu (systèmes, économie, lore, direction artistique) vit dans un
 dossier Google Drive séparé, en seize documents numérotés `00` à `15`. Ils font
