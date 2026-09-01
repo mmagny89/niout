@@ -1,140 +1,262 @@
 {# **La Résidence familiale recueille tout ce qui n'appartient à aucun
    bâtiment** (décision de la joueuse) : elle est le foyer de la lignée,
-   présente dès le premier jour et jamais construite. La mission, la renommée,
-   les chantiers et la liste de ce qui reste à bâtir y vivent — les envoyer
-   dans un bâtiment les rendrait inaccessibles à une ville qui n'a encore rien
-   dressé. #}
+   présente dès le premier jour et jamais construite. Le tableau de bord, la
+   mission, la renommée, les chantiers et la liste de ce qui reste à bâtir y
+   vivent — les envoyer dans un bâtiment les rendrait inaccessibles à une ville
+   qui n'a encore rien dressé. #}
 {{ include('partie/batiments/_entete.html.twig') }}
 
-{# La renommée est le compteur du doc 13 : elle fixe le prix d'un appel
-   d'habitants, fait venir des maisonnées toutes seules à partir de
-   « Respectée », et attire les rivaux. Elle n'était nulle part à l'écran, donc
-   ce qu'elle change se subissait sans se comprendre. #}
-<div class="mt-6 max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
-    <div class="flex flex-wrap items-baseline justify-between gap-3">
-        <h3 class="font-display text-lg text-encre-900">Renommée des {{ partie.famille.nom }}</h3>
-        <span class="text-sm text-encre-900" data-chiffres>
-            {{ partie.famille.renommee }} / {{ renommeeMax }} · {{ palier.libelle }}
-        </span>
-    </div>
+{# **Le tableau de bord : tout ce qui se gouverne, en un coup d'œil.**
 
-    <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
-        <div class="h-full bg-or-300" style="width: {{ partie.famille.renommee }}%"></div>
-    </div>
+   Ces chiffres vivaient en trois cartes de prose qui les noyaient — il fallait
+   lire une phrase pour retrouver un nombre, et comparer deux nombres demandait
+   de lire deux phrases. Quatre petits tableaux les rangent par domaine ; ce qui
+   cloche est dit **en dessous**, une fois, plutôt qu'à côté de chaque ligne.
 
-    <p class="mt-3 text-sm text-encre-600">{{ palier.attractivite }}</p>
+   Quatre tableaux et non un seul : chacun porte sa légende, et un lecteur
+   d'écran annonce ainsi le domaine avant la ligne. Chaque intitulé est un
+   `<th scope="row">`, ce qui lie la valeur à ce qu'elle mesure. #}
+<h3 class="mt-6 text-xl text-encre-900">Tableau de bord</h3>
 
+{% set autonomie = ville.consommationDeNourriture > 0
+    ? (ville.nourriture // ville.consommationDeNourriture)
+    : null %}
+
+<div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <table class="w-full border-collapse rounded-sm border border-ocre-500/30 bg-sable-50 text-sm">
+        <caption class="px-4 pt-3 text-left font-display text-lg text-encre-900">Habitants</caption>
+        <tbody data-chiffres>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Population</th>
+                <td class="px-4 py-2 text-right text-encre-900">{{ ville.population }}</td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Actifs</th>
+                <td class="px-4 py-2 text-right text-encre-900">{{ ville.actifs }}</td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                    À charge
+                    <span class="block text-xs text-encre-500">enfants et anciens</span>
+                </th>
+                <td class="px-4 py-2 text-right text-encre-900">{{ ville.inactifs }}</td>
+            </tr>
+            {% if ville.estFrappeeParUneEpidemie %}
+                <tr class="border-t border-ocre-500/20">
+                    <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Alités</th>
+                    <td class="px-4 py-2 text-right text-terre-600">{{ ville.malades }}</td>
+                </tr>
+            {% endif %}
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Maisonnées logées</th>
+                <td class="px-4 py-2 text-right {{ ville.manqueDeLogements ? 'text-terre-600' : 'text-encre-900' }}">
+                    {{ ville.foyersOccupes }} / {{ ville.capaciteEnFoyers }}
+                </td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Places libres</th>
+                <td class="px-4 py-2 text-right {{ ville.manqueDeLogements ? 'text-terre-600' : 'text-encre-900' }}">
+                    {{ ville.foyersLibres }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="w-full border-collapse rounded-sm border border-ocre-500/30 bg-sable-50 text-sm">
+        <caption class="px-4 pt-3 text-left font-display text-lg text-encre-900">Travail</caption>
+        <tbody data-chiffres>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                    Bras disponibles
+                    <span class="block text-xs text-encre-500">chefs déduits</span>
+                </th>
+                <td class="px-4 py-2 text-right text-encre-900">{{ mainDoeuvre.bras }}</td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Postes ouverts</th>
+                <td class="px-4 py-2 text-right text-encre-900">{{ mainDoeuvre.requis }}</td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Postes tenus</th>
+                <td class="px-4 py-2 text-right text-encre-900">{{ mainDoeuvre.affectes }}</td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                    Sans ouvrage
+                    <span class="block text-xs text-encre-500">ils mangent et ne produisent rien</span>
+                </th>
+                <td class="px-4 py-2 text-right {{ mainDoeuvre.oisifs > 0 ? 'text-terre-600' : 'text-encre-900' }}">
+                    {{ mainDoeuvre.oisifs }}
+                </td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Postes vides</th>
+                <td class="px-4 py-2 text-right {{ mainDoeuvre.manquants > 0 ? 'text-terre-600' : 'text-encre-900' }}">
+                    {{ mainDoeuvre.manquants }}
+                </td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Mécontentement</th>
+                <td class="px-4 py-2 text-right {{ villeMecontente ? 'text-terre-600' : 'text-encre-900' }}">
+                    {{ mecontentement }} quinzaine{{ mecontentement > 1 ? 's' : '' }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="w-full border-collapse rounded-sm border border-ocre-500/30 bg-sable-50 text-sm">
+        <caption class="px-4 pt-3 text-left font-display text-lg text-encre-900">Réserves</caption>
+        <tbody data-chiffres>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                    Vivres
+                    <span class="block text-xs text-encre-500">au Grenier</span>
+                </th>
+                <td class="px-4 py-2 text-right {{ ville.vivresPresqueSatures ? 'text-terre-600' : 'text-encre-900' }}">
+                    {{ ville.nourriture }} / {{ ville.plafondDesVivres }}
+                </td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Mangés par quinzaine</th>
+                <td class="px-4 py-2 text-right text-encre-900">{{ ville.consommationDeNourriture }}</td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                    Autonomie
+                    <span class="block text-xs text-encre-500">sans rien récolter</span>
+                </th>
+                <td class="px-4 py-2 text-right {{ autonomie is not null and autonomie < 4 ? 'text-terre-600' : 'text-encre-900' }}">
+                    {% if autonomie is null %}
+                        —
+                    {% else %}
+                        {{ autonomie }} quinzaine{{ autonomie > 1 ? 's' : '' }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                    Matériaux et ouvrages
+                    <span class="block text-xs text-encre-500">à l'Entrepôt</span>
+                </th>
+                <td class="px-4 py-2 text-right {{ ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-900' }}">
+                    {{ ville.materiaux }} / {{ ville.plafondDesMateriaux }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="w-full border-collapse rounded-sm border border-ocre-500/30 bg-sable-50 text-sm">
+        <caption class="px-4 pt-3 text-left font-display text-lg text-encre-900">Bourse et renom</caption>
+        <tbody data-chiffres>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                    Deben en caisse
+                    <span class="block text-xs text-encre-500">sans plafond</span>
+                </th>
+                <td class="px-4 py-2 text-right text-encre-900">{{ ville.deben }}</td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                    Salaires
+                    <span class="block text-xs text-encre-500">dus à chaque quinzaine</span>
+                </th>
+                <td class="px-4 py-2 text-right {{ masseSalariale > ville.deben ? 'text-terre-600' : 'text-encre-900' }}">
+                    {{ masseSalariale }}
+                </td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Renommée</th>
+                <td class="px-4 py-2 text-right text-encre-900">
+                    {{ partie.famille.renommee }} / {{ renommeeMax }}
+                </td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Votre famille est</th>
+                <td class="px-4 py-2 text-right text-encre-900">{{ palier.libelle }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+{# **Ce qui cloche est dit une fois, ici**, et non à côté de chaque chiffre :
+   une remarque par ligne du tableau rendrait illisible ce qu'il est censé
+   rendre lisible. Chaque alerte nomme la cause **et** le geste — un diagnostic
+   sans remède se subit. #}
+{% set alertes = [] %}
+
+{% if ville.manqueDeLogements %}
+    {% set alertes = alertes|merge([{
+        titre: 'Vos maisons sont pleines',
+        texte: 'Personne de plus ne s\'installera : ni une maisonnée appelée, ni celle d\'un chef que vous embaucheriez, et aucun enfant ne naîtra tant qu\'il n\'y aura pas de place. '
+            ~ (ville.possede(constant('App\\Game\\TypeDeBatiment::QuartierDHabitation'))
+                ? 'Montez le Quartier d\'habitation : chaque niveau loge ' ~ famillesParNiveauDeQuartier ~ ' maisonnées de plus.'
+                : 'Dressez un Quartier d\'habitation : il en logera ' ~ famillesParNiveauDeQuartier ~ ' dès son premier niveau.'),
+    }]) %}
+{% endif %}
+
+{% if mainDoeuvre.manquants > 0 %}
+    {% set alertes = alertes|merge([{
+        titre: 'Il vous manque ' ~ mainDoeuvre.manquants ~ ' bras',
+        texte: 'Les bâtiments sont servis avant le territoire, et chacun tourne à proportion de ce qu\'il a reçu — jamais sous la moitié. Faites venir du monde, ou renvoyez un chef dont vous ne pouvez pas tenir le bâtiment.',
+    }]) %}
+{% elseif mainDoeuvre.oisifs > 0 %}
+    {% set alertes = alertes|merge([{
+        titre: mainDoeuvre.oisifs ~ ' bras sont sans ouvrage',
+        texte: 'Ils mangent et ne produisent rien. Embauchez un chef quelque part — c\'est le chef qui recrute —, semez un champ ou ouvrez une carrière.',
+    }]) %}
+{% endif %}
+
+{% if masseSalariale > ville.deben %}
+    {% set alertes = alertes|merge([{
+        titre: 'Votre caisse ne suit plus les salaires',
+        texte: 'Les équipes que vous ne pourrez pas payer cesseront le travail — une unité impayée rend moins qu\'une unité vacante, qui tourne encore à moitié. Renvoyez qui vous ne pouvez plus payer, ou vendez.',
+    }]) %}
+{% endif %}
+
+{% if autonomie is not null and autonomie < 4 %}
+    {% set alertes = alertes|merge([{
+        titre: 'Vos vivres ne tiennent que ' ~ autonomie ~ ' quinzaine' ~ (autonomie > 1 ? 's' : ''),
+        texte: 'Quatre quinzaines sans manger mènent au mécontentement, douze à la perte de la partie. Semez, pêchez, ou achetez.',
+    }]) %}
+{% endif %}
+
+{% if ville.vivresPresqueSatures or ville.materiauxPresqueSatures %}
+    {% set alertes = alertes|merge([{
+        titre: 'Vos réserves débordent bientôt',
+        texte: 'Ce qui rentrerait au-delà du plafond se perd, sans que rien ne le dise sur le moment. Écoulez au Marché, offrez au Temple, ou agrandissez le Grenier et l\'Entrepôt.',
+    }]) %}
+{% endif %}
+
+{% if alertes is not empty %}
+    <h3 class="mt-8 text-xl text-encre-900">Ce qui demande votre attention</h3>
+    <ul class="mt-3 max-w-3xl space-y-3 list-none p-0">
+        {% for alerte in alertes %}
+            <li class="rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-3">
+                <p class="text-encre-900">{{ alerte.titre }}</p>
+                <p class="mt-1 text-sm text-encre-600">{{ alerte.texte }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="mt-6 max-w-3xl text-sm text-encre-500">
+        Rien ne presse : vos gens sont logés, employés, payés et nourris.
+    </p>
+{% endif %}
+
+{# L'attractivité du palier n'est pas une alerte mais une conséquence à
+   connaître : elle décide du prix d'un appel d'habitants et de la migration
+   spontanée. #}
+<p class="mt-6 max-w-3xl text-sm text-encre-600">
+    {{ palier.attractivite }}
     {% if palierSuivant %}
-        <p class="mt-1 text-sm text-encre-500" data-chiffres>
+        <span class="text-encre-500" data-chiffres>
             Encore {{ seuilDuPalierSuivant - partie.famille.renommee }} points pour être
             {{ palierSuivant.libelle|lower }} : un gros contrat au Marché en vaut un.
-        </p>
-    {% else %}
-        <p class="mt-1 text-sm text-encre-500">
-            Votre nom porte aussi loin qu'il le peut.
-        </p>
-    {% endif %}
-</div>
-
-{# **Le logement est le verrou des deux voies de peuplement** : ni un appel
-   d'habitants ni un chef qui arrive avec sa maisonnée n'entrent dans une ville
-   pleine, et `CHANCE_NAISSANCE_PAR_ACTIF` tombe à zéro — la ville ne déborde
-   jamais de son logement.
-
-   Le diagnostic vit ici et pas seulement dans l'onglet du Quartier
-   d'habitation : **sans Quartier, cet onglet n'existe pas**, et c'est
-   précisément la ville qui en manque qui a besoin de l'apprendre. #}
-<div class="mt-6 max-w-3xl rounded-sm border p-5
-            {{ ville.manqueDeLogements ? 'border-terre-600/50 bg-terre-500/5' : 'border-ocre-500/30 bg-sable-50' }}">
-    <div class="flex flex-wrap items-baseline justify-between gap-3">
-        <h3 class="font-display text-lg text-encre-900">Logements</h3>
-        <span class="text-sm {{ ville.manqueDeLogements ? 'text-terre-600' : 'text-encre-900' }}" data-chiffres>
-            {{ ville.foyersOccupes }} / {{ ville.capaciteEnFoyers }} maisonnées
         </span>
-    </div>
-
-    <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
-        <div class="h-full {{ ville.manqueDeLogements ? 'bg-terre-600' : 'bg-lapis-500' }}"
-             style="width: {{ min(100, (ville.foyersOccupes * 100 / max(1, ville.capaciteEnFoyers))|round) }}%"></div>
-    </div>
-
-    {% if ville.manqueDeLogements %}
-        <p class="mt-3 text-sm text-terre-600">
-            <strong class="font-medium">Vos maisons sont pleines.</strong>
-            Personne de plus ne s'installera : ni une maisonnée appelée, ni celle
-            d'un chef que vous embaucheriez, et aucun enfant ne naîtra tant qu'il
-            n'y aura pas de place.
-            {% if ville.possede(constant('App\\Game\\TypeDeBatiment::QuartierDHabitation')) %}
-                Montez le Quartier d'habitation : chaque niveau loge
-                <span data-chiffres>{{ famillesParNiveauDeQuartier }}</span> maisonnées de plus.
-            {% else %}
-                Dressez un Quartier d'habitation : il logera
-                <span data-chiffres>{{ famillesParNiveauDeQuartier }}</span> maisonnées dès son
-                premier niveau.
-            {% endif %}
-        </p>
     {% else %}
-        <p class="mt-3 text-sm text-encre-600" data-chiffres>
-            Il reste de la place pour {{ ville.foyersLibres }}
-            maisonnée{{ ville.foyersLibres > 1 ? 's' : '' }}.
-            {% if not ville.possede(constant('App\\Game\\TypeDeBatiment::QuartierDHabitation')) %}
-                <span class="text-encre-500">
-                    Sans Quartier d'habitation, la Résidence familiale n'en abrite
-                    qu'une : bâtissez avant d'être à l'étroit.
-                </span>
-            {% endif %}
-        </p>
+        <span class="text-encre-500">Votre nom porte aussi loin qu'il le peut.</span>
     {% endif %}
-</div>
-
-{# **Embaucher un chef ouvre des postes** (doc 05) : un bâtiment sans chef ne
-   réclame personne et tourne au plancher, un bâtiment dirigé réclame ses
-   travailleurs. Sans ce bilan, retenir un candidat faisait baisser le
-   rendement ailleurs sans que rien ne dise pourquoi — les bras servis à la
-   Forge n'étaient plus au Grenier. #}
-<div class="mt-6 max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
-    <div class="flex flex-wrap items-baseline justify-between gap-3">
-        <h3 class="font-display text-lg text-encre-900">Main-d'œuvre</h3>
-        <span class="text-sm text-encre-500" data-chiffres>
-            {{ mainDoeuvre.affectes }} / {{ mainDoeuvre.requis }} postes tenus
-        </span>
-    </div>
-
-    <p class="mt-2 text-sm text-encre-600" data-chiffres>
-        {{ ville.population }} habitants, dont {{ ville.actifs }} en âge de travailler
-        et {{ ville.inactifs }} à charge. {{ mainDoeuvre.bras }} bras disponibles,
-        les chefs déduits — ils ne s'encadrent pas eux-mêmes.
-    </p>
-
-    {% if mainDoeuvre.manquants > 0 %}
-        <p class="mt-3 text-sm text-terre-600" data-chiffres>
-            <strong class="font-medium">Il vous manque {{ mainDoeuvre.manquants }} bras.</strong>
-            Les bâtiments sont servis avant le territoire, et chacun tourne à
-            proportion de ce qu'il a reçu — jamais sous la moitié. Faites venir
-            du monde, ou renvoyez un chef dont vous ne pouvez pas tenir le
-            bâtiment.
-        </p>
-    {% elseif mainDoeuvre.oisifs > 0 %}
-        <p class="mt-3 text-sm text-encre-500" data-chiffres>
-            <strong class="font-medium text-encre-700">{{ mainDoeuvre.oisifs }} bras sont sans ouvrage.</strong>
-            Ils mangent et ne produisent rien. Embauchez un chef quelque part —
-            c'est le chef qui recrute —, semez un champ ou ouvrez une carrière.
-        </p>
-    {% else %}
-        <p class="mt-3 text-sm text-encre-500">
-            Chaque bras est à l'ouvrage et chaque poste est tenu.
-        </p>
-    {% endif %}
-
-    <p class="mt-2 text-sm {{ masseSalariale > ville.deben ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-        Masse salariale : <strong class="font-medium">{{ masseSalariale }} deben</strong> par
-        quinzaine, pour {{ ville.consommationDeNourriture }} vivres de rations.
-        {% if masseSalariale > ville.deben %}
-            Votre caisse ne suit plus : les équipes que vous ne pourrez pas payer
-            cesseront le travail.
-        {% endif %}
-    </p>
-</div>
+</p>
 
 {% if mission %}
         <h2 class="text-2xl text-encre-900">

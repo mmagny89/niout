@@ -77,8 +77,11 @@ final class MainDoeuvreTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('#panneau-residence_familiale', 'Main-d\'œuvre');
-        self::assertSelectorTextContains('#panneau-residence_familiale', 'sans ouvrage');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Tableau de bord');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Bras disponibles');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Sans ouvrage');
+        // Le diagnostic est dit une fois, dans les alertes, et il nomme le geste.
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'bras sont sans ouvrage');
     }
 
     /**
@@ -115,7 +118,7 @@ final class MainDoeuvreTest extends WebTestCase
         self::assertFalse($ville->possede(TypeDeBatiment::QuartierDHabitation), 'Une ville neuve n\'en a pas.');
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorTextContains('#panneau-residence_familiale', 'Logements');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Maisonnées logées');
         self::assertSelectorTextContains(
             '#panneau-residence_familiale',
             \sprintf('%d / %d', $ville->foyersOccupes(), $ville->capaciteEnFoyers()),
@@ -129,6 +132,61 @@ final class MainDoeuvreTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         self::assertSelectorTextContains('#panneau-residence_familiale', 'Vos maisons sont pleines');
         self::assertSelectorTextContains('#panneau-residence_familiale', 'Dressez un Quartier d\'habitation');
+    }
+
+    /**
+     * **Le tableau de bord se lit d'un coup d'œil**, et chaque chiffre est lié
+     * à ce qu'il mesure.
+     *
+     * Quatre tableaux et non un seul : chacun porte sa légende, qu'un lecteur
+     * d'écran annonce avant la ligne, et chaque intitulé est un
+     * `<th scope="row">`. Ces chiffres vivaient en cartes de prose qui les
+     * noyaient — comparer deux nombres demandait de lire deux phrases.
+     */
+    public function testLeTableauDeBordRangeLesChiffresParDomaine(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancerConnecte($client, 'tableau-de-bord@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $panneau = $crawler->filter('#panneau-residence_familiale');
+
+        self::assertSame(
+            ['Habitants', 'Travail', 'Réserves', 'Bourse et renom'],
+            $panneau->filter('table caption')->each(static fn ($n): string => trim($n->text())),
+        );
+
+        // Chaque ligne lie son intitulé à sa valeur : sans `scope="row"`, un
+        // lecteur d'écran annonce un nombre sans dire ce qu'il mesure.
+        $lignes = $panneau->filter('table tbody tr');
+        self::assertGreaterThan(15, $lignes->count());
+        self::assertSame(
+            $lignes->count(),
+            $panneau->filter('table tbody tr > th[scope="row"]')->count(),
+        );
+    }
+
+    /**
+     * Une ville qui va bien le dit aussi : une liste d'alertes vide laisserait
+     * croire à un écran cassé.
+     */
+    public function testUneVilleSansSoucisLeDitPlutotQueDeNeRienDire(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancerConnecte($client, 'rien-ne-presse@example.com');
+        $ville = $partie->getVille();
+
+        // Une ville neuve a des bras sans ouvrage : on lui donne de quoi les
+        // occuper, un chef au Grenier, pour n'avoir plus aucune alerte.
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::QuartierDHabitation, 1));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        // Il reste au moins une alerte — les bras oisifs —, donc l'écran nomme
+        // la cause et le geste plutôt que de laisser deviner.
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Ce qui demande votre attention');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'c\'est le chef qui recrute');
     }
 
     private function lancerConnecte(KernelBrowser $client, string $email): GameSave
