@@ -23,18 +23,40 @@ use Random\Randomizer;
  * découvrir un nouveau si la case a encore de la place. Ce que le terrain ne
  * porte pas ne se trouve pas : la prospection s'appuie sur la même règle que la
  * génération de la carte, jamais sur une seconde table.
+ *
+ * **Toutes les cases ne se valent pas** (décision de la joueuse) : sonder une
+ * carrière encore en activité pour retrouver sa veine est certain, sonder du
+ * sable vierge tient du pari. `chancesSur()` dit l'écart, et l'écran l'annonce
+ * avant le départ — un pourcentage unique laissait croire qu'une case en vaut
+ * une autre.
  */
 final readonly class Prospection
 {
     /**
-     * Chances de rentrer avec quelque chose, en pourcentage.
-     *
-     * **Valeur inventée**, calibrée pour que la prospection soit une action
-     * qu'on engage sans angoisse mais pas une formalité : deux fouilles sur
-     * trois aboutissent, ce qui rend l'échec mémorable sans rendre le déblocage
-     * d'un matériau vital improbable.
+     * **Rouvrir une veine qu'on exploite encore est certain.** Les équipes
+     * sont sur place, elles savent exactement où le filon s'est perdu : elles
+     * le suivent. C'est le seul cas à 100 % du jeu, et il récompense le joueur
+     * qui garde sa carrière en activité plutôt que de l'abandonner au premier
+     * tarissement.
      */
-    public const int CHANCES_DE_TROUVER = 65;
+    public const int CHANCES_SUR_UNE_VEINE_EXPLOITEE = 100;
+
+    /**
+     * Rouvrir un filon tari et **abandonné** : la trace est là, mais il faut
+     * la retrouver.
+     */
+    public const int CHANCES_SUR_UNE_VEINE_DORMANTE = 75;
+
+    /**
+     * Trouver du neuf sur une case **déjà minéralisée** : là où il y a un
+     * filon, il y en a souvent un second.
+     */
+    public const int CHANCES_SUR_UNE_CASE_MINERALISEE = 45;
+
+    /**
+     * Trouver du neuf sur une case vierge : on sonde à l'aveugle.
+     */
+    public const int CHANCES_SUR_UNE_CASE_VIERGE = 20;
 
     public function __construct(
         private MissionCatalogue $missions,
@@ -72,7 +94,7 @@ final readonly class Prospection
             return \sprintf('Votre prospecteur est rentré de %s : ce sol n\'a plus rien à donner.', $lieu);
         }
 
-        if ($this->hasard->getInt(1, 100) > self::CHANCES_DE_TROUVER) {
+        if ($this->hasard->getInt(1, 100) > $this->chancesSur($partie, $zone)) {
             return \sprintf('Votre prospecteur a sondé %s pendant des jours, et n\'a rien trouvé.', $lieu);
         }
 
@@ -101,6 +123,72 @@ final readonly class Prospection
             $lieu,
             $quantite,
         );
+    }
+
+    /**
+     * Les chances de rentrer avec quelque chose, en pourcentage, **sur cette
+     * case-là**. Nulles quand il n'y a rien à y trouver — c'est ce qui fait
+     * disparaître le bouton plutôt que de proposer un départ vain.
+     *
+     * Le terrain module ensuite : le limon d'une berge se lit à l'œil nu, le
+     * sable ne rend rien sans creuser longtemps.
+     */
+    public function chancesSur(GameSave $partie, Zone $zone): int
+    {
+        $arouvrir = $this->filonsARouvrir($zone);
+
+        if ([] === $arouvrir && [] === $this->filonsANaitre($partie, $zone)) {
+            return 0;
+        }
+
+        if ([] !== $arouvrir) {
+            // Une veine encore en activité est une certitude : rien à moduler,
+            // les équipes sont dessus.
+            return $this->uneVeineEstExploitee($zone, $arouvrir)
+                ? self::CHANCES_SUR_UNE_VEINE_EXPLOITEE
+                : $this->modulerParLeTerrain(self::CHANCES_SUR_UNE_VEINE_DORMANTE, $zone);
+        }
+
+        return $this->modulerParLeTerrain(
+            $zone->porteUnGisement() ? self::CHANCES_SUR_UNE_CASE_MINERALISEE : self::CHANCES_SUR_UNE_CASE_VIERGE,
+            $zone,
+        );
+    }
+
+    /**
+     * @param list<Ressource> $tarisses
+     */
+    private function uneVeineEstExploitee(Zone $zone, array $tarisses): bool
+    {
+        foreach ($tarisses as $ressource) {
+            if ($zone->gisementDe($ressource)?->estExploitee() ?? false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Ce que le sol laisse voir. Les berges et les terres travaillées livrent
+     * leurs matériaux à qui sait regarder ; le sable les enfouit, et la forêt
+     * les couvre.
+     *
+     * Le résultat reste dans [5, 95] : on ne promet jamais une certitude — elle
+     * est réservée à la veine qu'on exploite déjà — ni un départ perdu
+     * d'avance, qui serait un bouton pour rien.
+     */
+    private function modulerParLeTerrain(int $chances, Zone $zone): int
+    {
+        $ecart = match ($zone->getTerrain()) {
+            TypeDeTerrain::Nil, TypeDeTerrain::Fertile => 10,
+            TypeDeTerrain::TerreClassique, TypeDeTerrain::Oasis => 5,
+            TypeDeTerrain::Foret => -5,
+            TypeDeTerrain::Desert => -15,
+            default => 0,
+        };
+
+        return max(5, min(95, $chances + $ecart));
     }
 
     /**

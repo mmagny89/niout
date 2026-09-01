@@ -188,6 +188,87 @@ final class ProspectionTest extends KernelTestCase
     }
 
     /**
+     * **Toutes les cases ne se valent pas** (décision de la joueuse). Une
+     * carrière encore en activité dont la veine s'est tarie se retrouve à coup
+     * sûr — les équipes sont dessus, elles savent où le filon s'est perdu ; du
+     * sable vierge tient du pari. Un pourcentage unique laissait croire le
+     * contraire.
+     */
+    public function testUneVeineEncoreExploiteeSeRetrouveACoupSur(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('veine-exploitee@example.com');
+        $zone = $this->caseAGisement($partie);
+        $gisement = $this->filonTarissable($zone);
+        $gisement->extraire($gisement->getQuantiteRestante());
+
+        // Filon tari mais abandonné : la trace est là, il faut la retrouver.
+        self::assertSame(
+            Prospection::CHANCES_SUR_UNE_VEINE_DORMANTE,
+            $this->prospection()->chancesSur($partie, $zone) - $this->ecartDeTerrain($zone),
+        );
+
+        $gisement->exploiter();
+
+        self::assertSame(
+            Prospection::CHANCES_SUR_UNE_VEINE_EXPLOITEE,
+            $this->prospection()->chancesSur($partie, $zone),
+            'Une carrière en activité retrouve sa veine à coup sûr.',
+        );
+    }
+
+    /**
+     * Une case dont rien ne peut sortir annonce zéro : c'est ce qui fait
+     * disparaître le bouton plutôt que de proposer un départ vain.
+     */
+    public function testUneCaseSterileAnnonceZeroChance(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('sterile@example.com');
+        $zone = $this->caseSansRien($partie);
+
+        self::assertSame(0, $this->prospection()->chancesSur($partie, $zone));
+    }
+
+    /**
+     * **Le sable enfouit ce que le limon laisse voir** : à situation égale, une
+     * berge rend davantage qu'un désert. Les chances restent dans [5, 95] hors
+     * du cas certain — jamais un bouton perdu d'avance, jamais une promesse.
+     */
+    public function testLeTerrainInflechitLesChancesSansJamaisLesAnnuler(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('terrain-chances@example.com');
+
+        foreach ($partie->getVille()->getZones() as $zone) {
+            $zone->decouvrir();
+            $chances = $this->prospection()->chancesSur($partie, $zone);
+
+            if (0 === $chances) {
+                continue;
+            }
+
+            self::assertGreaterThanOrEqual(5, $chances);
+            self::assertLessThanOrEqual(100, $chances);
+        }
+    }
+
+    /**
+     * L'écart que le terrain applique, pour isoler la situation de la case du
+     * sol qui la porte.
+     */
+    private function ecartDeTerrain(Zone $zone): int
+    {
+        return match ($zone->getTerrain()) {
+            TypeDeTerrain::Nil, TypeDeTerrain::Fertile => 10,
+            TypeDeTerrain::TerreClassique, TypeDeTerrain::Oasis => 5,
+            TypeDeTerrain::Foret => -5,
+            TypeDeTerrain::Desert => -15,
+            default => 0,
+        };
+    }
+
+    /**
      * Une case reconnue qui porte au moins un gisement, pour y tarir puis y
      * rouvrir une veine.
      */

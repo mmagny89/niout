@@ -200,7 +200,7 @@ final class ErgonomieTest extends WebTestCase
         $ville = $partie->getVille();
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        foreach (['temple', 'auberge', 'scribes'] as $lieu) {
+        foreach (['temple', 'auberge', 'maison_des_scribes'] as $lieu) {
             self::assertCount(0, $crawler->filter('#onglet-'.$lieu), 'Sans le bâtiment, pas d\'onglet.');
         }
 
@@ -210,7 +210,7 @@ final class ErgonomieTest extends WebTestCase
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        foreach (['temple', 'auberge', 'scribes'] as $lieu) {
+        foreach (['temple', 'auberge', 'maison_des_scribes'] as $lieu) {
             self::assertCount(1, $crawler->filter('#onglet-'.$lieu));
             self::assertCount(1, $crawler->filter('#panneau-'.$lieu));
         }
@@ -220,13 +220,44 @@ final class ErgonomieTest extends WebTestCase
         self::assertStringContainsString(Enigme::DevinetteDuFleuve->enonce(), $auberge);
         self::assertStringNotContainsString(
             Enigme::DevinetteDuFleuve->enonce(),
-            $crawler->filter('#panneau-scribes')->html(),
+            $crawler->filter('#panneau-maison_des_scribes')->html(),
         );
 
         // Et l'oracle se pose au Temple.
         self::assertStringContainsString(
             Enigme::OracleDeKarnak->enonce(),
             $crawler->filter('#panneau-temple')->html(),
+        );
+    }
+
+    /**
+     * **Un onglet par bâtiment dressé**, et rien d'autre : le découpage par
+     * thème obligeait le joueur à deviner dans quel panneau ranger quoi. La
+     * Résidence familiale est là dès le premier jour — elle recueille tout ce
+     * qui n'appartient à aucun bâtiment.
+     */
+    public function testChaqueBatimentDresseAUnOngletEtRienDePlus(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'onglet-par-batiment@example.com');
+        $ville = $partie->getVille();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertSame(
+            ['panneau-residence_familiale'],
+            $crawler->filter('[role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls')),
+            'Une ville neuve n\'a que le foyer de sa lignée.',
+        );
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier, 1));
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Port, 1));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertSame(
+            ['panneau-residence_familiale', 'panneau-grenier', 'panneau-port'],
+            $crawler->filter('[role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls')),
+            'L\'ordre suit celui de TypeDeBatiment, stable d\'un rendu à l\'autre.',
         );
     }
 

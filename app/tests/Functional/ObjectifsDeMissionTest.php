@@ -282,10 +282,10 @@ final class ObjectifsDeMissionTest extends WebTestCase
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
-        self::assertSelectorExists('#panneau-mission');
-        self::assertSelectorTextContains('#panneau-mission', 'Ahmôsis');
-        self::assertSelectorTextContains('#panneau-mission', 'Résoudre le fil rouge');
-        self::assertSelectorTextContains('#panneau-mission', 'Échanger pour');
+        self::assertSelectorExists('#panneau-residence_familiale');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Ahmôsis');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Résoudre le fil rouge');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Échanger pour');
     }
 
     private function lancerPartie(string $email): GameSave

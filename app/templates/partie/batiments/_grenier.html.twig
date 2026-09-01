@@ -1,0 +1,20 @@
+{# Le Grenier tient les vivres, et **gouverne les champs** : son niveau élargit
+   l'équipage réclamé par un champ semé et son rendement (lot 4.5). Ce qui se
+   sème et se moissonne est sur la carte ; ce qui se conserve se lit ici. #}
+{{ include('partie/batiments/_entete.html.twig') }}
+{{ include('partie/batiments/_direction.html.twig') }}
+
+<h3 class="mt-8 text-xl text-encre-900">La réserve</h3>
+<p class="mt-2 max-w-3xl text-sm {{ ville.vivresPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+    {{ ville.nourriture }} vivres sur {{ ville.plafondDesVivres }}.
+    La ville en mange {{ ville.consommationDeNourriture }} par quinzaine —
+    deux demi-rations par actif, une par bouche à charge.
+    {% if ville.vivresPresqueSatures %}
+        Le Grenier est presque plein : ce qui rentrerait au-delà se perd.
+    {% endif %}
+</p>
+
+<p class="mt-2 max-w-3xl text-sm text-encre-500">
+    Monter le Grenier, c'est conserver davantage <em>et</em> mieux moissonner :
+    les champs du territoire sont gouvernés d'ici.
+</p>

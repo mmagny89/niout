@@ -1,0 +1,54 @@
+{# Le Quartier d'habitation **plafonne**, il ne peuple pas (doc 01) : vingt
+   maisonnées par niveau. C'est donc ici que se lit le logement, et ici qu'on
+   appelle du monde — les deux verrous, la place et la bourse, annoncés avant
+   que la joueuse ne s'engage. #}
+{{ include('partie/batiments/_entete.html.twig') }}
+{{ include('partie/batiments/_direction.html.twig') }}
+
+<h3 class="mt-8 text-xl text-encre-900">Qui vit ici</h3>
+<p class="mt-2 text-sm text-encre-500">
+    {{ ville.population }} habitants, dont {{ ville.actifs }} en âge de
+    travailler et {{ ville.inactifs }} à charge.
+    {{ ville.foyersOccupes }} maisonnées sur {{ ville.capaciteEnFoyers }} logées.
+    {{ brasDisponibles }} bras restent à placer dans les bâtiments.
+</p>
+<p class="mt-2 text-sm {{ masseSalariale > ville.deben ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+    Masse salariale : <strong class="font-medium">{{ masseSalariale }} deben</strong> par quinzaine,
+    pour {{ ville.consommationDeNourriture }} vivres de rations.
+    {% if masseSalariale > ville.deben %}
+        Votre caisse ne suit plus : les équipes que vous ne pourrez pas
+        payer cesseront le travail.
+    {% endif %}
+</p>
+
+<div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+    <p class="text-sm text-encre-600">
+        Votre famille est <strong class="font-medium text-encre-900">{{ palier.libelle|lower }}</strong> :
+        {{ palier.attractivite }}
+    </p>
+
+    {% if ville.manqueDeLogements %}
+        <p class="mt-3 text-sm text-encre-500">
+            Vos maisons sont pleines. Montez le Quartier d'habitation
+            avant d'espérer faire venir du monde — et sachez qu'aucun
+            enfant ne naîtra tant qu'il n'y aura pas de place.
+        </p>
+    {% elseif partie.estEnCours %}
+        <form method="post" action="{{ path('app_partie_appeler', {id: partie.id}) }}"
+              class="mt-3 flex flex-wrap items-baseline gap-4">
+            {# Jeton classique : « appeler » n'est pas dans
+               stateless_token_ids, donc pas de contrôleur Stimulus —
+               il écraserait un jeton valide par un jeton généré. #}
+            <input type="hidden" name="_token" value="{{ csrf_token('appeler') }}">
+
+            <span class="text-sm text-encre-500" data-chiffres>
+                {{ coutDUnAppel }} deben la maisonnée
+            </span>
+
+            <button type="submit"
+                    class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                Faire venir une maisonnée
+            </button>
+        </form>
+    {% endif %}
+</div>

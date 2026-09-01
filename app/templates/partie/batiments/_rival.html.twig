@@ -1,0 +1,29 @@
+{# Un rival rogne, il ne ferme rien (doc 08) : il prend 10 à 20 % du volume
+   d'**une** route et s'en va de lui-même si on le laisse faire. Les trois
+   issues sont ouvertes — ignorer, payer, enquêter —, et ne rien faire en est
+   une. #}
+{% if rival %}
+    <div class="mt-8 max-w-3xl rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-4">
+        <h3 class="font-display text-lg text-encre-900">{{ rival.nom }}</h3>
+        <p class="mt-1 text-sm text-encre-700">
+            Il s'est installé sur une de vos routes et vous prend
+            <span data-chiffres>{{ rival.malusEnCentiemes }} %</span> de ce qui passe.
+            Il se lassera dans <span data-chiffres>{{ rival.quinzainesRestantes }}</span>
+            quinzaine(s) si vous le laissez faire.
+        </p>
+        <p class="mt-2 text-sm text-encre-500">
+            Vous pouvez le payer pour qu'il s'écarte, ou chercher sur quoi il tient —
+            vos gens trouveront de quoi le démonter, et il ne reviendra pas.
+        </p>
+
+        {% if partie.estEnCours %}
+            <form method="post" action="{{ path('app_partie_accord', {id: partie.id}) }}" class="mt-3">
+                <input type="hidden" name="_token" value="{{ csrf_token('accord') }}">
+                <button type="submit"
+                        class="rounded-sm border border-ocre-500/40 px-4 py-2 text-sm text-encre-700 hover:bg-ocre-300/20">
+                    Passer un accord — <span data-chiffres>{{ prixDeLAccord }}</span> deben
+                </button>
+            </form>
+        {% endif %}
+    </div>
+{% endif %}

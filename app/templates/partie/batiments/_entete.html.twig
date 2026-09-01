@@ -1,0 +1,31 @@
+{# L'en-tête commun à tout panneau de bâtiment : son nom, son niveau, sa
+   fonction et ses bras.
+
+   Le même bandeau partout : le joueur apprend une fois où lire le niveau et
+   le rendement, puis le retrouve dans chaque onglet sans avoir à chercher. #}
+<div class="flex flex-wrap items-baseline justify-between gap-3">
+    <h2 class="text-2xl text-encre-900">{{ onglet.libelle }}</h2>
+    {% if onglet.batiment %}
+        <span class="text-sm text-encre-500" data-chiffres>
+            Niveau {{ onglet.batiment.niveau }} sur {{ onglet.batiment.niveauMaxAtteignable }}
+        </span>
+    {% endif %}
+</div>
+
+<p class="mt-2 max-w-3xl text-sm text-encre-600">{{ onglet.type.fonction }}</p>
+
+{% if onglet.batiment %}
+    {# Une jauge, pas un recrutement : les ouvriers se puisent dans le vivier
+       d'actifs (doc 05), le joueur ne les embauche pas un par un. #}
+    {% set effectif = effectifs[onglet.type.value] ?? null %}
+    {% if effectif %}
+        <p class="mt-2 text-sm {{ effectif.rendement < 100 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+            {% if effectif.requis == 0 %}
+                Sans chef : {{ effectif.rendement }} % de rendement.
+            {% else %}
+                {{ effectif.affectes }} / {{ effectif.requis }} travailleurs ·
+                {{ effectif.rendement }} % de rendement
+            {% endif %}
+        </p>
+    {% endif %}
+{% endif %}

@@ -1,0 +1,211 @@
+{# La Maison des scribes : ce qu'on y déchiffre, ce qu'on y enquête, et ce
+   qu'elle ouvre de la clé de lecture. #}
+{{ include('partie/batiments/_entete.html.twig') }}
+{{ include('partie/batiments/_direction.html.twig') }}
+
+        {# Le fil rouge d'abord : c'est ce que le roi attend, et un fil
+   dont on ne sait pas ce qu'il demande n'est qu'une décoration. #}
+{% if filRouge %}
+    <div class="max-w-3xl rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-4">
+        <h3 class="font-display text-lg text-encre-900">{{ filRouge.libelle }}</h3>
+        <p class="mt-1 text-sm text-encre-700">{{ filRouge.consigne }}</p>
+    </div>
+{% endif %}
+
+{# L'inscription passe avant la clé : c'est ce qu'on vient
+   faire ici, la clé n'est que l'outil. #}
+{% if inscription %}
+    <h3 class="mt-8 text-xl text-encre-900">Une inscription à lire</h3>
+    <p class="mt-2 max-w-2xl text-sm text-encre-500">{{ inscription.provenance }}</p>
+
+    <form method="post" action="{{ path('app_partie_dechiffrer', {id: partie.id}) }}"
+          class="mt-4 max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5"
+          data-controller="dechiffrage">
+        <input type="hidden" name="_token" value="{{ csrf_token('dechiffrer') }}">
+        <input type="hidden" name="inscription" value="{{ inscription.value }}">
+        <input type="hidden" name="ordre" value="" data-dechiffrage-target="reponse">
+
+        <p class="text-center font-display text-5xl leading-tight text-encre-900" aria-hidden="true">
+            {%- for signe in inscription.signes %}{{ signe.signe }}{% endfor -%}
+        </p>
+        <p class="mt-1 text-center text-xs text-encre-500">
+            <span data-chiffres>{{ inscription.signes|length }}</span> signes, gravés dans cet ordre.
+        </p>
+
+        <p class="mt-5 text-sm text-encre-600">
+            Placez les sens dans l'ordre des signes. Cliquez un mot pour le
+            poser, une case pour la vider — ou faites-les glisser.
+        </p>
+
+        <ol class="mt-3 flex flex-wrap justify-center gap-3 list-none p-0">
+            {% for rang in 1..inscription.signes|length %}
+                <li>
+                    <button type="button" data-dechiffrage-target="case"
+                            data-action="click->dechiffrage#retirer dragover->dechiffrage#survoler drop->dechiffrage#deposer"
+                            aria-label="Case {{ rang }}, vide"
+                            class="flex h-16 w-16 items-center justify-center rounded-sm border-2 border-dashed
+                                   border-ocre-500/50 bg-sable-100 font-display text-3xl text-encre-900"></button>
+                </li>
+            {% endfor %}
+        </ol>
+
+        <ul class="mt-5 flex flex-wrap justify-center gap-2 list-none p-0"
+            data-dechiffrage-target="reserve">
+            {% for signe in melange %}
+                <li>
+                    <button type="button" draggable="true"
+                            data-signe="{{ signe.value }}"
+                            data-glyphe="{{ signe.signe }}"
+                            data-libelle="{{ signe.libelle }}"
+                            data-action="click->dechiffrage#placer dragstart->dechiffrage#prendre"
+                            class="rounded-sm border border-ocre-500/40 bg-sable-100 px-3 py-2 text-sm
+                                   text-encre-700 hover:bg-ocre-300/20">
+                        {{ signe.libelle }}
+                    </button>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div class="mt-5 text-center">
+            <button type="submit" data-dechiffrage-target="valider" disabled
+                    class="rounded-sm bg-terre-500 px-5 py-2 text-sm font-medium text-sable-50
+                           hover:bg-terre-600 disabled:cursor-not-allowed disabled:opacity-40">
+                Lire l'inscription
+            </button>
+        </div>
+    </form>
+{% elseif inscriptionsLues > 0 %}
+    <h3 class="mt-8 text-xl text-encre-900">Rien à lire pour l'instant</h3>
+    <p class="mt-2 max-w-2xl text-sm text-encre-500">
+        Vos scribes ont lu tout ce qui leur est passé sous les yeux.
+        De nouveaux signes ouvriront de nouvelles inscriptions.
+    </p>
+{% endif %}
+
+{% if inscriptionsLues > 0 %}
+    <h3 class="mt-8 text-xl text-encre-900">Déjà lues</h3>
+    <ul class="mt-3 space-y-2 list-none p-0">
+        {% for lue in ville.inscriptionsDechiffrees %}
+            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3 text-sm">
+                <span class="font-display text-2xl align-middle" aria-hidden="true">
+                    {%- for signe in lue.signes %}{{ signe.signe }}{% endfor -%}
+                </span>
+                <span class="ml-3 text-encre-700">{{ lue.lecture }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% if dossiers is not empty %}
+    <h3 class="mt-8 text-xl text-encre-900">Dossiers d'enquête</h3>
+    <p class="mt-2 max-w-2xl text-sm text-encre-500">
+        Ce que vos gens ont rapporté. Tout ne concourt pas :
+        c'est à vous de démêler ce qui tient de ce qui égare.
+    </p>
+
+    <ul class="mt-4 space-y-4 list-none p-0">
+        {% for entree in dossiers %}
+            {% set dossier = entree.dossier %}
+            <li class="max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                <div class="flex flex-wrap items-baseline justify-between gap-3">
+                    <h3 class="font-display text-lg text-encre-900">
+                        {{ dossier.enquete.libelle }}
+                        {% if dossier.enquete.estPrincipale %}
+                            <span class="ml-2 text-xs text-terre-600">fil rouge</span>
+                        {% endif %}
+                    </h3>
+                    <span class="text-sm text-encre-500" data-chiffres>
+                        {{ dossier.concordantsReunis }} / {{ dossier.enquete.indicesRequis }}
+                        indices concordants
+                    </span>
+                </div>
+
+                <p class="mt-2 text-sm text-encre-600">{{ dossier.enquete.question }}</p>
+
+                <ul class="mt-3 space-y-2 list-none p-0">
+                    {% for indice in dossier.indices %}
+                        <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-l-2 border-ocre-500/40 pl-3 text-sm">
+                            <span class="text-encre-700">{{ indice.texte }}</span>
+                            <span class="text-xs text-encre-500">
+                                {{ indice.source.libelle }} · {{ indice.nature.libelleAffiche|lower }}
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                {% if dossier.statut.value != 'en_cours' %}
+                    <p class="mt-3 text-sm {{ dossier.statut.value == 'resolue' ? 'text-lapis-500' : 'text-terre-600' }}">
+                        {{ dossier.statut.libelle }}. {{ dossier.enquete.denouement }}
+                    </p>
+                {% elseif entree.peutConclure %}
+                    <p class="mt-4 text-sm text-encre-700">
+                        Vous en savez assez pour trancher.
+                        {% if dossier.enquete.estPrincipale %}
+                            Se tromper coûtera deux quinzaines, et rien d'autre.
+                        {% else %}
+                            Se tromper enterrera l'affaire.
+                        {% endif %}
+                    </p>
+
+                    <form method="post" action="{{ path('app_partie_conclure', {id: partie.id}) }}"
+                          class="mt-3 flex flex-col gap-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('conclure') }}">
+                        <input type="hidden" name="enquete" value="{{ dossier.enquete.value }}">
+
+                        {% for conclusion in entree.conclusions %}
+                            <button type="submit" name="conclusion" value="{{ conclusion }}"
+                                    class="rounded-sm border border-ocre-500/40 bg-sable-100 px-4 py-2 text-left
+                                           text-sm text-encre-700 hover:bg-ocre-300/20">
+                                {{ conclusion }}
+                            </button>
+                        {% endfor %}
+                    </form>
+                {% elseif dossier.rejouableAuCycle > partie.cycle %}
+                    <p class="mt-3 text-sm text-encre-500">
+                        Vos scribes reprennent le dossier depuis le début : encore
+                        <span data-chiffres>{{ dossier.rejouableAuCycle - partie.cycle }}</span>
+                        quinzaine(s).
+                    </p>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{{ include('partie/_enigmes.html.twig', {enigmes: enigmesDesScribes, titre: 'Questions en suspens'}) }}
+
+<h3 class="mt-8 text-xl text-encre-900">Clé de lecture</h3>
+<p class="mt-2 max-w-2xl text-sm text-encre-500">
+    Les signes que vos scribes savent lire, tirés de la liste de
+    Gardiner — la classification de référence des hiéroglyphes.
+    Chacun porte son vrai code et son vrai sens : ce que vous
+    apprenez ici est ce qu'un égyptologue lirait.
+    <span data-chiffres>{{ cleDeLecture|length }}</span> sur
+    <span data-chiffres>{{ signesEnTout }}</span>.
+</p>
+
+{% if prochainSigne %}
+    <p class="mt-3 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
+        Monter la Maison des scribes ouvrirait le signe suivant :
+        <span class="font-display text-2xl align-middle">{{ prochainSigne.signe }}</span>
+        {{ prochainSigne.libelle|lower }} ({{ prochainSigne.codeDeGardiner }}).
+    </p>
+{% else %}
+    <p class="mt-3 text-sm text-encre-600">
+        Vos scribes lisent tout ce que cette clé contient.
+    </p>
+{% endif %}
+
+<ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
+    {% for symbole in cleDeLecture %}
+        <li class="flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+            <span class="font-display text-4xl leading-none text-encre-900"
+                  aria-hidden="true">{{ symbole.signe }}</span>
+            <span>
+                <span class="block text-encre-900">{{ symbole.libelle }}</span>
+                <span class="block text-xs text-encre-500" data-chiffres>{{ symbole.codeDeGardiner }}</span>
+                <span class="mt-1 block text-sm text-encre-600">{{ symbole.sens }}</span>
+            </span>
+        </li>
+    {% endfor %}
+</ul>

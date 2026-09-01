@@ -386,6 +386,68 @@ final class GenerateurDeCarteTest extends TestCase
     }
 
     /**
+     * **L'argile du désert existe, mais elle est rare.**.
+     *
+     * L'Égypte en connaissait deux : le limon du Nil, déposé par la crue sur
+     * les berges, et l'argile marneuse tirée de dépôts calcaires dans les
+     * ouadis du désert — Qena, Ballas, Sohag —, celle des vases fins de
+     * couleur claire. Une carrière d'argile en plein sable n'est donc pas une
+     * invention, mais elle suppose un affleurement de calcaire, pas une dune.
+     *
+     * Le test mesure l'écart plutôt que l'interdit : sur un grand nombre de
+     * cartes, l'argile doit sortir nettement plus souvent des terres que du
+     * sable. Interdire tout à fait serait faux ; laisser à parts égales l'était
+     * aussi, et se voyait en jeu.
+     */
+    public function testLArgileSortPlusSouventDesTerresQueDuSable(): void
+    {
+        $surTerre = 0;
+        $surSable = 0;
+        $casesDeTerre = 0;
+        $casesDeSable = 0;
+
+        for ($graine = 1; $graine <= 60; ++$graine) {
+            $ville = new City('Avaris', 0, 7);
+            $this->generer(
+                $ville,
+                new GeographieDeRegion(nil: true, desert: true, ressourcesDeZone: [Ressource::Argile, Ressource::Calcaire]),
+                $graine,
+            );
+
+            foreach ($ville->getZones() as $zone) {
+                $sable = TypeDeTerrain::Desert === $zone->getTerrain();
+                $eau = $zone->getTerrain()->estUnPointDEau();
+
+                if ($eau) {
+                    continue;
+                }
+
+                $sable ? ++$casesDeSable : ++$casesDeTerre;
+
+                if (null === $zone->gisementDe(Ressource::Argile)) {
+                    continue;
+                }
+
+                $sable ? ++$surSable : ++$surTerre;
+            }
+        }
+
+        self::assertGreaterThan(0, $casesDeSable, 'Cette géographie doit produire du désert.');
+        self::assertGreaterThan(0, $casesDeTerre);
+
+        // Par case disponible, et non en valeur absolue : les deux terrains ne
+        // couvrent pas la même surface.
+        $densiteSurTerre = $surTerre / $casesDeTerre;
+        $densiteSurSable = $surSable / $casesDeSable;
+
+        self::assertGreaterThan(
+            $densiteSurSable * 1.5,
+            $densiteSurTerre,
+            \sprintf('Argile : %.3f par case de terre contre %.3f par case de sable.', $densiteSurTerre, $densiteSurSable),
+        );
+    }
+
+    /**
      * Un matériau non alimentaire garanti près de la ville (anneau des 8
      * cases) ne s'y trouve qu'en un seul exemplaire : sur une carte assez
      * grande pour laisser le choix, rien ne doit forcer un doublon local

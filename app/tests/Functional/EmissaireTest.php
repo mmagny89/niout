@@ -134,6 +134,38 @@ final class EmissaireTest extends WebTestCase
     }
 
     /**
+     * **On ne propose pas un départ qui ne peut rien rapporter.** Une fois
+     * tous les témoignages versés, l'émissaire ne ramènerait qu'un « rien
+     * appris de neuf » payé trente deben : le bouton disparaît de la carte
+     * plutôt que de mentir. Même règle que la prospection.
+     */
+    public function testLeBoutonDeLEmissaireDisparaitQuandIlNyAPlusRienAApprendre(): void
+    {
+        $client = static::createClient();
+        $partie = $this->villeAvecScribes('bouton-emissaire@example.com');
+        $client->loginUser($partie->getJoueur());
+
+        $zone = $this->uneCase($partie, decouverte: true);
+        $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
+        $gestionnaire->flush();
+
+        $adresse = \sprintf('/partie/%d/carte?zone=%d-%d', $partie->getId(), $zone->getX(), $zone->getY());
+
+        $client->request('GET', $adresse);
+        self::assertSelectorTextContains('body', 'Envoyer un émissaire');
+
+        foreach (Indice::cases() as $indice) {
+            if (SourceDIndice::Temoignage === $indice->source()) {
+                $partie->getVille()->ouvrirLeDossierDe($indice->enquete())->verser($indice);
+            }
+        }
+        $gestionnaire->flush();
+
+        $client->request('GET', $adresse);
+        self::assertSelectorTextNotContains('body', 'Envoyer un émissaire');
+    }
+
+    /**
      * Le catalogue porte bien les deux sources : un témoignage ne se ramasse
      * pas sur le terrain, et réciproquement.
      */

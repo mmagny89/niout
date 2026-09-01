@@ -1,0 +1,18 @@
+{# L'Auberge : voyageurs de passage, rumeurs, devinettes. **Un onglet, un
+   bâtiment** — les énigmes qu'on y entend s'y posent, et pas chez les
+   scribes. #}
+{{ include('partie/batiments/_entete.html.twig') }}
+{{ include('partie/batiments/_direction.html.twig') }}
+
+<p class="mt-6 max-w-3xl text-sm text-encre-500">
+    Bateliers, porteurs de nouvelles, marchands en chemin : on y boit, on y
+    parle, et l'on s'y pose des devinettes. Rien de ce qui s'y dit n'engage la
+    ville — mais on y apprend des choses.
+</p>
+
+{{ include('partie/_enigmes.html.twig', {enigmes: enigmesDeLAuberge, titre: 'Ce qu\'on se demande à la table'}) }}
+{% if enigmesDeLAuberge is empty %}
+    <p class="mt-6 text-sm text-encre-500">
+        La salle est calme ce soir : on a déjà répondu à tout ce qui s'y demandait.
+    </p>
+{% endif %}

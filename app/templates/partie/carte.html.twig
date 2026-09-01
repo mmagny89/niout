@@ -237,6 +237,12 @@
                             </span>
                         </form>
                         <p class="mt-2 text-sm text-encre-500">
+                            {% if chancesDeProspecter >= 100 %}
+                                La veine est encore en activité : vos gens savent
+                                exactement où elle s'est perdue, ils la retrouveront.
+                            {% elseif chancesDeProspecter < 30 %}
+                                Ce sol n'a jamais rien livré : on y sonde à l'aveugle.
+                            {% endif %}
                             Ce que ce sol pourrait rendre :
                             {% for filon in filonsAProspecter %}{{ filon.libelle|lower }}{{ not loop.last ? ', ' : '' }}{% endfor %}.
                         </p>

@@ -183,17 +183,17 @@ final class CleDeLectureTest extends WebTestCase
         $partie = static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorNotExists('#onglet-scribes');
+        self::assertSelectorNotExists('#onglet-maison_des_scribes');
 
         $ville = $partie->getVille();
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::MaisonDesScribes, 1));
         $gestionnaire->flush();
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorExists('#onglet-scribes');
-        self::assertSelectorTextContains('#panneau-scribes', 'Clé de lecture');
-        self::assertSelectorTextContains('#panneau-scribes', 'N35');
-        self::assertSelectorTextContains('#panneau-scribes', 'Gardiner');
+        self::assertSelectorExists('#onglet-maison_des_scribes');
+        self::assertSelectorTextContains('#panneau-maison_des_scribes', 'Clé de lecture');
+        self::assertSelectorTextContains('#panneau-maison_des_scribes', 'N35');
+        self::assertSelectorTextContains('#panneau-maison_des_scribes', 'Gardiner');
     }
 
     private function lancerPartie(string $email): GameSave
