@@ -79,9 +79,9 @@
                 {% for onglet in onglets %}
                     <button type="button" role="tab" id="onglet-{{ onglet.cle }}"
                             aria-controls="panneau-{{ onglet.cle }}"
-                            aria-selected="{{ loop.first ? 'true' : 'false' }}"
-                            tabindex="{{ loop.first ? '0' : '-1' }}"
-                            data-onglets-target="onglet" data-onglet-actif="{{ loop.first ? 'true' : 'false' }}"
+                            aria-selected="{{ onglet.cle == ongletActif ? 'true' : 'false' }}"
+                            tabindex="{{ onglet.cle == ongletActif ? '0' : '-1' }}"
+                            data-onglets-target="onglet" data-onglet-actif="{{ onglet.cle == ongletActif ? 'true' : 'false' }}"
                             data-action="onglets#choisir keydown->onglets#naviguer"
                             class="border-b-2 px-3 py-2 hover:text-terre-600">{{ onglet.libelle }}</button>
                 {% endfor %}
@@ -91,7 +91,7 @@
         {% for onglet in onglets %}
             <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
                  id="panneau-{{ onglet.cle }}" aria-labelledby="onglet-{{ onglet.cle }}"
-                 data-onglets-target="panneau" {{ loop.first ? '' : 'hidden' }}>
+                 data-onglets-target="panneau" {{ onglet.cle == ongletActif ? '' : 'hidden' }}>
                 {{ include('partie/batiments/_' ~ onglet.cle ~ '.html.twig') }}
             </div>
         {% endfor %}

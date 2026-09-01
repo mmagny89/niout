@@ -72,6 +72,7 @@
                         <form method="post" action="{{ path('app_partie_fabriquer', {id: partie.id}) }}"
                               class="mt-3 flex flex-wrap items-baseline gap-3">
                             <input type="hidden" name="_token" value="{{ csrf_token('fabriquer') }}">
+                            <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                             <input type="hidden" name="recette" value="{{ offre.recette.value }}">
 
                             <label for="lots-{{ offre.recette.value }}" class="text-sm text-encre-600">Lots</label>

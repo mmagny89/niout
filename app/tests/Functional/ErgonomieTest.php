@@ -261,6 +261,68 @@ final class ErgonomieTest extends WebTestCase
         );
     }
 
+    /**
+     * **Une action ne renvoie jamais sur le premier onglet.**.
+     *
+     * Toute interaction de la ville se solde par une redirection, donc par un
+     * rechargement complet : sans reprise, vendre au Marché ramenait sur la
+     * Résidence familiale, et il fallait rouvrir son onglet à chaque geste.
+     * L'onglet voyage par la requête — un fragment d'URL ne parvient jamais au
+     * serveur et ne survit pas à une redirection.
+     */
+    public function testUneActionRamemeSurLOngletDouElleEstPartie(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'retour-onglet@example.com');
+        $ville = $partie->getVille();
+
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Marche, 1));
+        $ville->crediterRessources([Ressource::Calcaire->value => 5]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $client->submit($crawler->filter(\sprintf('form[action="/partie/%d/ville/vendre"]', $partie->getId()))->form());
+
+        self::assertResponseRedirects(\sprintf(
+            '/partie/%d/ville?onglet=%s',
+            $partie->getId(),
+            TypeDeBatiment::Marche->value,
+        ));
+
+        // Et l'onglet est bien celui qui s'ouvre au rechargement.
+        $crawler = $client->followRedirect();
+        self::assertSame(
+            'true',
+            $crawler->filter('#onglet-'.TypeDeBatiment::Marche->value)->attr('data-onglet-actif'),
+        );
+        self::assertCount(0, $crawler->filter('#panneau-'.TypeDeBatiment::Marche->value.'[hidden]'));
+    }
+
+    /**
+     * **Une clé venue de l'adresse ne s'affiche jamais telle quelle** : un
+     * bâtiment peut avoir disparu entre deux gestes, et une clé forgée
+     * ouvrirait un panneau qui n'existe pas — la barre montrerait alors tous
+     * ses onglets fermés.
+     */
+    public function testUnOngletInconnuRetombeSurLePremier(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'onglet-forge@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=nimporte-quoi', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSame(
+            1,
+            $crawler->filter('[data-onglet-actif="true"]')->count(),
+            'Exactement un onglet est ouvert, quoi que dise l\'adresse.',
+        );
+        self::assertSame(
+            'true',
+            $crawler->filter('#onglet-'.TypeDeBatiment::ResidenceFamiliale->value)->attr('data-onglet-actif'),
+        );
+    }
+
     private function lancer(KernelBrowser $client, string $email, bool $divin = false): GameSave
     {
         $user = new User();
