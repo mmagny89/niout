@@ -10,6 +10,7 @@ use App\Entity\GameSave;
 use App\Entity\User;
 use App\Enum\StatutDePartie;
 use App\Game\Divinite;
+use App\Game\GeographieDeLaPartie;
 use App\Game\LanceurDePartie;
 use App\Game\Offrandes;
 use App\Game\PalierDeFaveur;
@@ -240,7 +241,10 @@ final class ProvidenceTest extends KernelTestCase
     {
         // Semé : l'événement doit finir par tomber, sans que le test dépende
         // du tirage de la machine qui l'exécute.
-        return new Providence(new Randomizer(new Mt19937(20260831)));
+        return new Providence(
+            static::getContainer()->get(GeographieDeLaPartie::class),
+            new Randomizer(new Mt19937(20260831)),
+        );
     }
 
     private function lancerPartie(string $email): GameSave

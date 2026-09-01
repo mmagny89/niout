@@ -27,6 +27,11 @@ use App\Entity\GameSave;
  */
 final readonly class EtatDeLaVille
 {
+    public function __construct(
+        private GeographieDeLaPartie $geographies,
+    ) {
+    }
+
     /**
      * En dessous de combien de quinzaines de vivres la réserve inquiète.
      *
@@ -173,7 +178,12 @@ final readonly class EtatDeLaVille
             ];
         }
 
-        if (QualiteDeCrue::Forte === $partie->getCrue()) {
+        $geographie = $this->geographies->pour($partie);
+
+        // **Pas de crue là où il n'y a pas de fleuve.** Annoncer une crue
+        // généreuse au Sinaï promettait une moisson qu'aucun limon ne
+        // viendrait nourrir.
+        if ($geographie->connaitLaCrue() && QualiteDeCrue::Forte === $partie->getCrue()) {
             $signaux[] = [
                 'ton' => 'bon',
                 'titre' => 'La crue est forte cette année',
@@ -184,7 +194,10 @@ final readonly class EtatDeLaVille
         $acquis = [];
 
         foreach ($ville->divinitesHonorees() as $divinite) {
-            if ($ville->palierDe($divinite)->estAuDessusDuNeutre()) {
+            // Un dieu sans prise sur cette région n'est pas un atout, quelle
+            // que soit sa faveur : le compter parmi les acquis serait annoncer
+            // un effet qui ne se produit pas.
+            if ($ville->palierDe($divinite)->estAuDessusDuNeutre() && $divinite->agitDans($geographie)) {
                 $acquis[] = $divinite->libelle();
             }
         }

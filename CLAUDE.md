@@ -515,6 +515,33 @@ système d'accueil reste inerte et le dit** (`SpecialiteDeChef::agitDeja()`),
 promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment
 même où il compare des candidats.
 
+**Rien du Nil là où il n'y a pas de Nil** (`GeographieDeLaPartie`,
+`Divinite::estSansDomaineIci()`). Cinq missions sur dix se jouent loin du
+fleuve — Pount, Megiddo, les oasis, l'Ouadi Hammamat, le Sinaï — et le jeu y
+annonçait une crue chaque année, l'affichait dans la barre, accélérait les
+chantiers d'Akhèt sous une inondation qui n'avait pas lieu, et laissait porter
+des offrandes à Hâpi dans un désert. `GeographieDeRegion::connaitLaCrue()`
+existait et n'était appelée de nulle part : le piège d'`ajusterRenommee()`, une
+règle écrite mais branchée sur rien.
+
+Quatre points à ne pas défaire :
+
+- **La géographie d'une partie ne se retrouve que par `GeographieDeLaPartie`.**
+  Elle n'est jamais persistée — seule la mission l'est —, et chaque appelant qui
+  refaisait le détour par le catalogue pour son compte finissait par l'oublier.
+- **Un dieu sans prise ici refuse l'offrande**, là où `agitDeja()` se contente
+  de prévenir : ce sont deux manques différents. Isis attend un système qui
+  viendra, sa promesse est datée ; Hâpi dans un désert n'aura jamais de crue à
+  incliner, et encaisser serait prendre pour rien. Il ne se manifeste pas non
+  plus par la Providence, et ne compte pas parmi les dieux acquis.
+- **Le bilan démographique tombe partout** : on naît et l'on meurt au Levant
+  comme au Delta. Le sortir du bloc de la crue est ce qui évite qu'une région
+  sans fleuve cesse de vieillir.
+- **`|default(true)` ne teste pas l'absence** (piège payé) : le filtre Twig se
+  déclenche sur une valeur *vide* autant que sur une variable absente, et
+  `false` est vide — la crue restait affichée partout. Écrire
+  `x is not defined or x`.
+
 **Le panthéon est du contenu, la faveur est de l'état** (`Divinite`,
 `FaveurDivine`) : nom, domaine et effet d'un dieu vivent dans l'enum, seule sa
 **clé** et la valeur de sa faveur sont persistées — comme les partenaires

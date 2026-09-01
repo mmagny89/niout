@@ -145,6 +145,50 @@ enum Divinite: string
     }
 
     /**
+     * Un dieu dont le domaine n'existe pas **dans cette région-là** le dit
+     * aussi.
+     *
+     * `agitDeja()` parle d'un système que le jeu n'a pas encore ; ce sont deux
+     * manques différents, et la différence compte pour le joueur : le premier
+     * est une promesse pour plus tard, le second ne se lèvera jamais ici.
+     *
+     * **Hâpi est le seul concerné** : il incline la crue, et cinq missions sur
+     * dix se jouent loin du fleuve — Pount, Megiddo, les oasis, l'Ouadi
+     * Hammamat, le Sinaï. Lui porter une offrande dans un désert achetait un
+     * effet qui ne pouvait pas se produire.
+     */
+    public function agitDans(GeographieDeRegion $geographie): bool
+    {
+        return $this->agitDeja() && !$this->estSansDomaineIci($geographie);
+    }
+
+    /**
+     * Ce dieu-ci n'aura **jamais** de prise sur cette région.
+     *
+     * À distinguer d'`agitDeja()`, qui parle d'un système que le jeu n'a pas
+     * encore : Isis reste offrable, sa promesse est seulement datée. Hâpi dans
+     * un désert n'aura pas de crue à incliner un jour prochain — il n'en aura
+     * jamais, et c'est ce qui justifie de refuser l'offrande plutôt que de
+     * simplement prévenir.
+     */
+    public function estSansDomaineIci(GeographieDeRegion $geographie): bool
+    {
+        return self::Hapi === $this && !$geographie->connaitLaCrue();
+    }
+
+    /**
+     * Ce qu'on répond au joueur qui veut honorer un dieu sans emploi ici.
+     */
+    public function attenteDans(GeographieDeRegion $geographie): ?string
+    {
+        if (self::Hapi === $this && !$geographie->connaitLaCrue()) {
+            return 'Aucun fleuve ne monte sur cette terre : il n\'y a pas de crue à incliner ici.';
+        }
+
+        return $this->attente();
+    }
+
+    /**
      * @return list<self>
      */
     public static function pantheon(): array
