@@ -11,6 +11,12 @@ import { Controller } from '@hotwired/stimulus';
  * est rendue d'un bloc par le serveur, changer d'onglet ne demande donc aucun
  * aller-retour, et le contenu reste lisible par une recherche de page comme par
  * un lecteur d'écran qui parcourt le document.
+ *
+ * **Onglets et panneaux s'apparient par rang**, pas par identifiant : un
+ * panneau ajouté ailleurs que dans l'ordre de son onglet décale tout ce qui
+ * suit, et l'on ouvre alors le voisin. Défaut réel, attrapé par le test qui
+ * compare les deux listes dans l'ordre — c'est pour cela qu'il les compare
+ * dans l'ordre.
  */
 export default class extends Controller {
     static targets = ['onglet', 'panneau'];

@@ -663,6 +663,15 @@ défaut `0` — sans cycle, aucun chef n'est en poste et aucun bonus ne
 s'applique. C'est le défaut sûr : un appel qui l'oublie sous-estime la clé, il
 ne l'invente pas.
 
+**Un objectif atteint le reste** (`ObjectifDeMission`, doc 09) : une
+trésorerie qu'on dépense, une population qui fond, une ressource qu'on vend ne
+doivent jamais reprendre ce qui a été obtenu — le joueur serait puni d'avoir
+joué. **Un objectif dont la mesure n'existe pas encore vaut `null`, jamais
+zéro**, et n'est jamais compté comme atteint : afficher un zéro qui ne bougera
+pas est le piège d'`ajusterRenommee()` rendu visible. **Les seuils sont
+recalibrés sur l'économie mesurée**, pas recopiés du doc 09 — qui les a
+chiffrés avant les Phases 4 et 5 et comptait encore en or.
+
 **L'acte d'un fil rouge se déduit, il ne se stocke pas** (`FilRouge::acte()`) :
 il découle de faits déjà vrais — l'inscription d'ouverture est-elle lue,
 l'enquête principale résolue, la stèle finale relue. Une colonne « acte en
@@ -749,6 +758,11 @@ ressource « bois » ni ressource « pierre ».
 `transform: scale()` sur la grille entière, jamais un redimensionnement des
 tuiles — la couche cliquable subit ainsi exactement la même transformation que
 l'image, et les losanges continuent de tomber juste.
+
+**Onglets et panneaux s'apparient par rang**, pas par identifiant
+(`onglets_controller.js`) : un panneau ajouté ailleurs que dans l'ordre de son
+onglet décale tout ce qui suit, et l'on ouvre le voisin. `ErgonomieTest`
+compare les deux listes **dans l'ordre** — c'est pour cela.
 
 **L'écran de ville est en onglets** (`onglets_controller.js`), et **tous les
 panneaux restent dans le document**, seulement masqués : la page est rendue

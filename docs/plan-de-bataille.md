@@ -733,17 +733,17 @@ route rouverte, et la stèle dressée. Ahmôsis me reconnaît une réussite aux
 trois quarts — je n'ai pas atteint le volume d'échanges qu'il attendait. Il me
 lègue quelque chose pour la suite, et Thoutmôsis Ier m'envoie à Saï. »*
 
-| Lot | Contenu |
-|---|---|
-| 8.0 | Les objectifs d'une mission, visibles dès le premier jour |
-| 8.1 | Mesurer l'avancement : ce que le jeu sait déjà compter, et ce qu'il ignore |
-| 8.2 | Achever une mission : réussite totale, réussite partielle |
-| 8.3 | Les quêtes de chantier du pharaon |
-| 8.4 | Les dix fils rouges |
-| 8.5 | Enchaîner : de la mission N à la mission N+1 |
-| 8.6 | Le legs du pharaon |
+| Lot | Contenu | |
+|---|---|---|
+| 8.0 | Les objectifs d'une mission, visibles dès le premier jour | ✅ |
+| 8.1 | Mesurer l'avancement : ce que le jeu sait déjà compter, et ce qu'il ignore | |
+| 8.2 | Achever une mission : réussite totale, réussite partielle | |
+| 8.3 | Les quêtes de chantier du pharaon | |
+| 8.4 | Les dix fils rouges | |
+| 8.5 | Enchaîner : de la mission N à la mission N+1 | |
+| 8.6 | Le legs du pharaon | |
 
-#### 8.0 — Les objectifs, visibles dès le premier jour
+#### 8.0 — Les objectifs, visibles dès le premier jour  ✅
 
 Le doc 09 tranche deux choses, et elles vont ensemble : chaque mission combine
 **un objectif narratif obligatoire** — le fil rouge résolu — et **deux à trois
@@ -759,11 +759,38 @@ Les seuils croissent avec la difficulté de la région (doc 09) : richesse
 `500 + 100 × difficulté`, ressource `100 + 20 × difficulté`, infrastructure
 niveau `4 + difficulté / 3`, renommée palier `2 + difficulté / 4`.
 
-**À vérifier avant de figer** : ces seuils sont d'une autre échelle que
-l'économie mesurée aux lots 4.6 et 5.x. « Employer 20 travailleurs » quand la
-ville d'exemple en emploie 15 au bout d'un an est un objectif ; « accumuler
-200 or » n'a plus de sens depuis que l'or est un métal et le deben la monnaie
-(lot 4.0). Le pool sera relu ligne à ligne, comme la dotation royale l'a été.
+**Les seuils ont été recalibrés sur l'économie du jeu** (décision de la
+joueuse), pas recopiés : le document les a chiffrés avant les Phases 4 et 5, et
+comptait encore en or comme si c'était la monnaie. Les documents du Drive
+seront repris ensuite.
+
+| Type | Doc 09 | Retenu | Étalon |
+|---|---|---|---|
+| Richesse | `200 + 50 × d` **en or** | `250 + 75 × d` **en deben** | La ville d'exemple du lot 4.6 dégage une trentaine de deben nets par quinzaine |
+| Population | `20 + 10 × d` travailleurs | `12 + 4 × d` habitants | Deux cents parties de vingt ans : une ville à Quartier 1 monte à treize |
+| Commerce | `500 + 100 × d` | `400 + 120 × d` | Un gros contrat vaut 40 deben |
+| Ressource | `100 + 20 × d` | `60 + 15 × d` | Une extraction rend une vingtaine d'unités par quinzaine, au plein rendement |
+| Infrastructure | `4 + d / 3` | inchangé | Seul seuil du document qui tienne : la borne régionale (`5 + d`) est plus généreuse à toutes les missions |
+| Renommée | palier `2 + d / 4` | inchangé | Le Marché donne un point par gros contrat |
+
+**Une contradiction entre documents, tranchée par l'histoire** : le doc 09
+demande de l'or à Éléphantine, le doc 08 place les mines d'or ailleurs. Les
+deux ont raison — Éléphantine était un **poste douanier**, l'or de Nubie y
+transitait sans qu'on l'y extraie. L'objectif tient donc, mais par le commerce.
+L'invariant testé n'est pas « la ressource est sur le terrain » mais **« un
+chemin y mène »** : le terrain, ou une route que la région ouvre.
+
+**Deux mesures n'existent pas encore** — la valeur échangée et la ressource
+rapportée. L'écran l'écrit (« mesure à venir ») plutôt que d'afficher un zéro
+qui ne bougerait jamais, et un objectif non mesuré n'est **jamais** compté
+comme atteint. Un test verrouille la liste : elle doit rétrécir au lot 8.1,
+jamais s'allonger.
+
+**Un défaut d'ergonomie attrapé au passage** : le contrôleur d'onglets apparie
+onglets et panneaux **par rang**. Ajouter le panneau « Mission » ailleurs que
+dans l'ordre de son onglet décalait tout ce qui suit — on cliquait sur Mission
+et l'on ouvrait les Bâtiments. C'est pour cela que le test compare les deux
+listes **dans l'ordre**.
 
 #### 8.1 — Mesurer l'avancement
 
