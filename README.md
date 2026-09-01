@@ -94,6 +94,12 @@ commerce. Une terre fertile que personne ne cultive vous arrête, il faut
 comprendre pourquoi ; et quand la route est reprise, on grave une stèle qu'il
 faut relire avant de la dresser.
 
+**Des rivaux** — à mesure qu'on parle de votre famille, un marchand finit par
+s'installer sur une de vos routes et par prendre sa part de ce qui passe. On
+peut le payer, le laisser se lasser, ou chercher sur quoi il tient : ses poids
+ne s'accordent pas, et ses tablettes déclarent moins qu'il ne charge. La
+dernière voie est la plus longue et la plus payante — il ne revient pas.
+
 **Commerce** — chaque région a ses cités partenaires, sur des routes réellement
 attestées : le Chemin d'Horus vers Canaan, le Bahr Yousef vers le Fayoum, la
 traversée de la mer Rouge vers Pount. Ouvrir une route, c'est y envoyer une

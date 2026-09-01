@@ -670,6 +670,18 @@ cours » finirait par diverger de ces faits, et cela ne se verrait qu'en partie.
 Le fil rouge **ne court que sur la mission qu'il raconte** ; ailleurs, ses
 inscriptions redeviennent ordinaires plutôt que de rester inaccessibles.
 
+**Un rival rogne, il ne ferme rien** (`Rivaux`, `RivalCommercial`, doc 08) :
+il prend 10 à 20 % du volume d'**une** route, jamais moins d'une unité par
+convoi, et **s'en va de lui-même** si on le laisse faire. Les trois issues du
+doc 08 sont toutes ouvertes — ignorer, payer, enquêter —, et ne rien faire en
+est une. **C'est la renommée qui l'attire** : une famille obscure ne dérange
+personne, ce qui fait de la renommée autre chose qu'un compteur qui monte.
+**Une seule rivalité à la fois** (question laissée ouverte par le doc,
+tranchée ici) : deux malus deviendraient deux choses à suivre, et l'enquête
+qui en démonte un cesserait de dire lequel. Ses indices ne se ramassent pas
+tant qu'aucun rival n'est là — on ne démonte pas un marchand avant qu'il
+n'arrive.
+
 **Une principale se rejoue, une secondaire se perd** (décision de la joueuse,
 `Enquetes::conclure()`) : l'échec définitif d'une enquête qui porte le fil
 rouge bloquerait la campagne, donc elle coûte deux cycles et se retente ; une

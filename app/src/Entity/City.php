@@ -895,6 +895,35 @@ class City
         return $dossier;
     }
 
+    /**
+     * **Une seule rivalité à la fois** (question laissée ouverte par le
+     * doc 08, tranchée ici) : deux marchands rivaux sur deux routes
+     * deviendraient deux malus à suivre, et l'enquête qui en démonte un
+     * cesserait de dire lequel. Une gêne qu'on identifie vaut mieux que deux
+     * qu'on subit.
+     */
+    #[ORM\OneToOne(mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private ?RivalCommercial $rival = null;
+
+    public function getRival(): ?RivalCommercial
+    {
+        return $this->rival;
+    }
+
+    public function installerUnRival(RivalCommercial $rival): static
+    {
+        $this->rival = $rival;
+
+        return $this;
+    }
+
+    public function chasserLeRival(): static
+    {
+        $this->rival = null;
+
+        return $this;
+    }
+
     public function estEnModeDivin(): bool
     {
         return $this->modeDivin;

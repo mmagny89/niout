@@ -54,6 +54,7 @@ use App\Game\Recette;
 use App\Game\RecrutementImpossible;
 use App\Game\Recrutements;
 use App\Game\Ressource;
+use App\Game\Rivaux;
 use App\Game\RoleDExploration;
 use App\Game\Salaires;
 use App\Game\SensDEchange;
@@ -168,6 +169,7 @@ final class PartieController extends AbstractController
         Dechiffrage $dechiffrage,
         Enigmes $enigmes,
         Enquetes $enquetes,
+        Rivaux $rivaux,
     ): Response {
         $ville = $partie->getVille();
         $inscription = $ville->possede(TypeDeBatiment::MaisonDesScribes)
@@ -209,6 +211,8 @@ final class PartieController extends AbstractController
             // gravé donnerait la réponse par la seule lecture du HTML.
             'melange' => $inscription instanceof Inscription ? $this->melangerLesSignes($inscription) : [],
             'inscriptionsLues' => \count($ville->inscriptionsDechiffrees()),
+            'rival' => $ville->getRival(),
+            'prixDeLAccord' => $rivaux->prixDeLAccord($partie),
             'dossiers' => array_map(
                 static fn ($dossier): array => [
                     'dossier' => $dossier,
@@ -737,6 +741,27 @@ final class PartieController extends AbstractController
     }
 
     /**
+     * Passe un accord avec le marchand rival : la plus rapide des trois
+     * issues du doc 08, et la seule qui coûte des deben plutôt que du temps.
+     */
+    #[Route('/{id}/ville/accord', name: 'app_partie_accord', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function passerUnAccord(Request $request, GameSave $partie, Rivaux $rivaux): Response
+    {
+        if (!$this->isCsrfTokenValid('accord', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        try {
+            $this->addFlash('succes', $rivaux->passerUnAccord($partie));
+        } catch (CommerceImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
      * Le Temple : à qui l'on donne, et ce que les dieux en pensent.
      *
      * Écran à part plutôt qu'une section de la ville : huit divinités, leurs
@@ -838,6 +863,7 @@ final class PartieController extends AbstractController
         GameSave $partie,
         Explorations $explorations,
         Enquetes $enquetes,
+        Rivaux $rivaux,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
@@ -1088,6 +1114,7 @@ final class PartieController extends AbstractController
         MissionCatalogue $missions,
         EntityManagerInterface $entityManager,
         Enquetes $enquetes,
+        Rivaux $rivaux,
     ): Response {
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('abandonner-partie', (string) $request->request->get('_token'))) {
