@@ -36,6 +36,57 @@
     {% endif %}
 </div>
 
+{# **Le logement est le verrou des deux voies de peuplement** : ni un appel
+   d'habitants ni un chef qui arrive avec sa maisonnée n'entrent dans une ville
+   pleine, et `CHANCE_NAISSANCE_PAR_ACTIF` tombe à zéro — la ville ne déborde
+   jamais de son logement.
+
+   Le diagnostic vit ici et pas seulement dans l'onglet du Quartier
+   d'habitation : **sans Quartier, cet onglet n'existe pas**, et c'est
+   précisément la ville qui en manque qui a besoin de l'apprendre. #}
+<div class="mt-6 max-w-3xl rounded-sm border p-5
+            {{ ville.manqueDeLogements ? 'border-terre-600/50 bg-terre-500/5' : 'border-ocre-500/30 bg-sable-50' }}">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+        <h3 class="font-display text-lg text-encre-900">Logements</h3>
+        <span class="text-sm {{ ville.manqueDeLogements ? 'text-terre-600' : 'text-encre-900' }}" data-chiffres>
+            {{ ville.foyersOccupes }} / {{ ville.capaciteEnFoyers }} maisonnées
+        </span>
+    </div>
+
+    <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+        <div class="h-full {{ ville.manqueDeLogements ? 'bg-terre-600' : 'bg-lapis-500' }}"
+             style="width: {{ min(100, (ville.foyersOccupes * 100 / max(1, ville.capaciteEnFoyers))|round) }}%"></div>
+    </div>
+
+    {% if ville.manqueDeLogements %}
+        <p class="mt-3 text-sm text-terre-600">
+            <strong class="font-medium">Vos maisons sont pleines.</strong>
+            Personne de plus ne s'installera : ni une maisonnée appelée, ni celle
+            d'un chef que vous embaucheriez, et aucun enfant ne naîtra tant qu'il
+            n'y aura pas de place.
+            {% if ville.possede(constant('App\\Game\\TypeDeBatiment::QuartierDHabitation')) %}
+                Montez le Quartier d'habitation : chaque niveau loge
+                <span data-chiffres>{{ famillesParNiveauDeQuartier }}</span> maisonnées de plus.
+            {% else %}
+                Dressez un Quartier d'habitation : il logera
+                <span data-chiffres>{{ famillesParNiveauDeQuartier }}</span> maisonnées dès son
+                premier niveau.
+            {% endif %}
+        </p>
+    {% else %}
+        <p class="mt-3 text-sm text-encre-600" data-chiffres>
+            Il reste de la place pour {{ ville.foyersLibres }}
+            maisonnée{{ ville.foyersLibres > 1 ? 's' : '' }}.
+            {% if not ville.possede(constant('App\\Game\\TypeDeBatiment::QuartierDHabitation')) %}
+                <span class="text-encre-500">
+                    Sans Quartier d'habitation, la Résidence familiale n'en abrite
+                    qu'une : bâtissez avant d'être à l'étroit.
+                </span>
+            {% endif %}
+        </p>
+    {% endif %}
+</div>
+
 {# **Embaucher un chef ouvre des postes** (doc 05) : un bâtiment sans chef ne
    réclame personne et tourne au plancher, un bâtiment dirigé réclame ses
    travailleurs. Sans ce bilan, retenir un candidat faisait baisser le
