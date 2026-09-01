@@ -1039,9 +1039,11 @@ final readonly class GenerateurDeCarte
         $poids = [];
 
         foreach ($possibles as $ressource) {
-            $part = Ressource::BoisLocal === $ressource
-                ? self::poidsDuBoisLocal($terrain)
-                : self::POIDS_DUN_MATERIAU;
+            $part = match ($ressource) {
+                Ressource::BoisLocal => self::poidsDuBoisLocal($terrain),
+                Ressource::Argile => self::poidsDeLArgile($terrain),
+                default => self::POIDS_DUN_MATERIAU,
+            };
 
             if ($part > 0) {
                 $poids[$ressource->value] = $part;
@@ -1049,6 +1051,31 @@ final readonly class GenerateurDeCarte
         }
 
         return $poids;
+    }
+
+    /**
+     * **L'argile du désert existe, mais ce n'est pas la même argile.**.
+     *
+     * L'Égypte en connaissait deux : le **limon du Nil**, déposé par la crue
+     * sur les berges, dont on faisait la brique crue et la poterie commune ; et
+     * l'**argile marneuse**, tirée de dépôts calcaires dans les ouadis du
+     * désert — Qena, Ballas, Sohag —, celle des vases fins de couleur claire.
+     *
+     * Une carrière d'argile en plein sable n'est donc pas une invention, mais
+     * elle est rare : elle suppose du calcaire affleurant, pas une dune. D'où
+     * un poids réduit au tiers au désert, plein partout où l'eau a travaillé la
+     * terre. Sans cette distinction, l'argile sortait du sable aussi souvent
+     * que des berges, ce qui se voyait comme une erreur — et en était une pour
+     * moitié.
+     */
+    private static function poidsDeLArgile(TypeDeTerrain $terrain): int
+    {
+        return match ($terrain) {
+            // La marne des ouadis : réelle, mais il faut tomber sur le bon
+            // affleurement.
+            TypeDeTerrain::Desert => max(1, intdiv(self::POIDS_DUN_MATERIAU, 3)),
+            default => self::POIDS_DUN_MATERIAU,
+        };
     }
 
     private static function poidsDuBoisLocal(TypeDeTerrain $terrain): int

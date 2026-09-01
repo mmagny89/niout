@@ -156,6 +156,17 @@ Ne jamais réintroduire un compteur générique ni une famille de matériaux : u
 « bois » qui agrégerait roseaux et cèdre cacherait au joueur ce qu'il possède
 réellement, ce qui a été le défaut corrigé ici.
 
+**L'argile du désert existe, mais elle est rare** (`poidsDeLArgile()`).
+L'Égypte en connaissait deux : le **limon du Nil**, déposé par la crue sur les
+berges, dont on faisait la brique crue et la poterie commune ; et l'**argile
+marneuse**, tirée de dépôts calcaires dans les ouadis du désert — Qena, Ballas,
+Sohag —, celle des vases fins de couleur claire. Une carrière d'argile en plein
+sable n'est donc pas une invention, mais elle suppose un affleurement de
+calcaire, pas une dune : d'où un poids réduit au tiers au désert, plein partout
+où l'eau a travaillé la terre. À parts égales, l'argile sortait du sable aussi
+souvent que des berges, ce qui se voyait comme une erreur — et l'était pour
+moitié.
+
 **Trois matériaux sont vitaux**, pas deux (`Ressource::materiauxVitaux()`) :
 roseaux, argile et **bois local**, dont tout bâtiment réclame depuis le doc 01
 révisé. Chacun a sa garantie de génération, et celle du bois local lui est
@@ -380,6 +391,21 @@ puis déçu, et la prospection s'appuie sur
 `GenerateurDeCarte::materiauxPossiblesSur()`, jamais sur une seconde table de
 terrains : deux tables divergeraient, et l'une planterait des acacias en plein
 désert.
+
+**Toutes les cases ne se valent pas** (`Prospection::chancesSur()`, décision de
+la joueuse) : rouvrir une veine **qu'on exploite encore** est certain — les
+équipes sont sur place et savent où le filon s'est perdu, c'est le seul 100 % du
+jeu et il récompense qui garde sa carrière en activité ; un filon abandonné se
+retrouve à 75 %, une case déjà minéralisée livre du neuf à 45 %, une case vierge
+à 20 %. Le terrain module ensuite — le limon d'une berge se lit à l'œil nu, le
+sable enfouit —, sans jamais sortir de [5, 95] : ni bouton perdu d'avance, ni
+promesse. Zéro est réservé au cas « rien à trouver », qui fait disparaître le
+bouton.
+
+**On ne propose jamais un départ qui ne peut rien rapporter.** Vaut pour le
+prospecteur comme pour l'émissaire (`Enquetes::resteUnTemoignageARecueillir()`) :
+tous les témoignages versés, l'émissaire ne ramènerait qu'un « rien appris de
+neuf » payé trente deben. Le bouton disparaît plutôt que de mentir.
 
 **Le Marché vend aux gens de la ville, l'Entrepôt vend au monde**
 (`Marche::plafondDeLaQuinzaine()`, décision de la joueuse). Sans cette borne,
@@ -809,14 +835,41 @@ ressource « bois » ni ressource « pierre ».
 tuiles — la couche cliquable subit ainsi exactement la même transformation que
 l'image, et les losanges continuent de tomber juste.
 
-**Un onglet, un bâtiment** (décision de la joueuse) : Temple, Auberge et Maison
-des scribes se lisent chacun dans le sien, et un onglet n'apparaît qu'une fois
-son bâtiment dressé — un onglet sur du vide n'est pas un onglet. Le Temple avait
-son écran propre : porter une offrande obligeait à quitter la ville, et rien ne
-disait que ces trois bâtiments se lisaient de trois façons. Son ancienne adresse
-survit et redirige, un signet ne devant pas tomber dans le vide. Conséquence
-pour les énigmes : c'est `Enigme::lieu()` qui décide dans quel panneau elles
-tombent, jamais l'écran — les devinettes de l'Auberge se posent à l'Auberge.
+**Un onglet, un bâtiment** (décision de la joueuse, `ongletsDeLaVille()`,
+`templates/partie/batiments/`) : l'écran de ville porte **un onglet par bâtiment
+dressé**, chacun avec ce qui relève de sa fonction — sa direction, ses ouvrages,
+ses routes, ses énigmes. Le découpage par thème (« Direction », « Commerce »,
+« Ateliers ») obligeait à deviner dans quel panneau ranger quoi, et le Temple
+avait même son écran propre : porter une offrande obligeait à quitter la ville.
+Son ancienne adresse survit et redirige, un signet ne devant pas tomber dans le
+vide.
+
+**La Résidence familiale recueille tout ce qui n'appartient à aucun bâtiment** :
+mission, objectifs, renommée, main-d'œuvre, chantiers, liste de ce qui reste à
+bâtir. Elle est le foyer de la lignée, présente dès le premier jour et jamais
+construite — l'y mettre est la seule façon de garder ces écrans atteignables
+pour une ville qui n'a encore rien dressé. C'est aussi le point de chute par
+défaut de toute fonctionnalité qu'on ne sait pas rattacher à un bâtiment.
+
+Trois règles à ne pas défaire : les deux boucles du gabarit lisent **la même
+liste** dans le même ordre — `onglets_controller.js` apparie par rang, et deux
+listes construites séparément finiraient par diverger ; l'ordre est celui de
+`TypeDeBatiment`, stable d'un rendu à l'autre ; et c'est `Enigme::lieu()` qui
+décide où tombe une énigme, jamais l'écran.
+
+**Embaucher un chef ouvre des postes** (`Effectifs::bilan()`) : un bâtiment sans
+chef ne réclame personne et tourne au plancher, un bâtiment dirigé réclame ses
+travailleurs. Retenir un candidat faisait donc baisser le rendement ailleurs
+sans que rien ne le dise — les bras servis à la Forge n'étaient plus au Grenier.
+L'écran nomme désormais les deux situations, **des bras oisifs** ou **des postes
+vides**, qui ne peuvent pas coexister : la répartition sert jusqu'à épuisement,
+bâtiments d'abord, territoire ensuite.
+
+**La renommée s'affiche** (`PalierDeRenommee::suivant()`, `seuilDEntree()`) :
+elle fixe le prix d'un appel d'habitants, fait venir des maisonnées seules à
+partir de « Respectée » et attire les rivaux, mais n'était nulle part à l'écran
+— ce qu'elle change se subissait sans se comprendre. Elle dit aussi ce qui reste
+à faire pour le palier suivant : un compteur nu se subit, un objectif se joue.
 
 **Onglets et panneaux s'apparient par rang**, pas par identifiant
 (`onglets_controller.js`) : un panneau ajouté ailleurs que dans l'ordre de son

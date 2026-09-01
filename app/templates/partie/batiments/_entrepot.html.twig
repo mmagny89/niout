@@ -1,0 +1,18 @@
+{# L'Entrepôt tient les matériaux et les ouvrages, **gouverne les carrières**,
+   et arme les routes de terre. Le rival, quand il y en a un, rogne ce qui
+   passe par elles : il se traite donc ici. #}
+{{ include('partie/batiments/_entete.html.twig') }}
+{{ include('partie/batiments/_direction.html.twig') }}
+
+<h3 class="mt-8 text-xl text-encre-900">La réserve</h3>
+<p class="mt-2 max-w-3xl text-sm {{ ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+    {{ ville.materiaux }} unités sur {{ ville.plafondDesMateriaux }}.
+    Les ressources d'une même réserve se partagent ce plafond : dix roseaux
+    rangés, c'est dix de moins pour l'argile.
+    {% if ville.materiauxPresqueSatures %}
+        Au-delà, ce qui rentre se perd — écoulez, offrez, ou agrandissez.
+    {% endif %}
+</p>
+
+{{ include('partie/batiments/_rival.html.twig') }}
+{{ include('partie/batiments/_routes.html.twig') }}

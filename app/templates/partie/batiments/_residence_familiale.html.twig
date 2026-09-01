@@ -1,0 +1,319 @@
+{# **La Résidence familiale recueille tout ce qui n'appartient à aucun
+   bâtiment** (décision de la joueuse) : elle est le foyer de la lignée,
+   présente dès le premier jour et jamais construite. La mission, la renommée,
+   les chantiers et la liste de ce qui reste à bâtir y vivent — les envoyer
+   dans un bâtiment les rendrait inaccessibles à une ville qui n'a encore rien
+   dressé. #}
+{{ include('partie/batiments/_entete.html.twig') }}
+
+{# La renommée est le compteur du doc 13 : elle fixe le prix d'un appel
+   d'habitants, fait venir des maisonnées toutes seules à partir de
+   « Respectée », et attire les rivaux. Elle n'était nulle part à l'écran, donc
+   ce qu'elle change se subissait sans se comprendre. #}
+<div class="mt-6 max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+        <h3 class="font-display text-lg text-encre-900">Renommée des {{ partie.famille.nom }}</h3>
+        <span class="text-sm text-encre-900" data-chiffres>
+            {{ partie.famille.renommee }} / {{ renommeeMax }} · {{ palier.libelle }}
+        </span>
+    </div>
+
+    <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+        <div class="h-full bg-or-300" style="width: {{ partie.famille.renommee }}%"></div>
+    </div>
+
+    <p class="mt-3 text-sm text-encre-600">{{ palier.attractivite }}</p>
+
+    {% if palierSuivant %}
+        <p class="mt-1 text-sm text-encre-500" data-chiffres>
+            Encore {{ seuilDuPalierSuivant - partie.famille.renommee }} points pour être
+            {{ palierSuivant.libelle|lower }} : un gros contrat au Marché en vaut un.
+        </p>
+    {% else %}
+        <p class="mt-1 text-sm text-encre-500">
+            Votre nom porte aussi loin qu'il le peut.
+        </p>
+    {% endif %}
+</div>
+
+{# **Embaucher un chef ouvre des postes** (doc 05) : un bâtiment sans chef ne
+   réclame personne et tourne au plancher, un bâtiment dirigé réclame ses
+   travailleurs. Sans ce bilan, retenir un candidat faisait baisser le
+   rendement ailleurs sans que rien ne dise pourquoi — les bras servis à la
+   Forge n'étaient plus au Grenier. #}
+<div class="mt-6 max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+        <h3 class="font-display text-lg text-encre-900">Main-d'œuvre</h3>
+        <span class="text-sm text-encre-500" data-chiffres>
+            {{ mainDoeuvre.affectes }} / {{ mainDoeuvre.requis }} postes tenus
+        </span>
+    </div>
+
+    <p class="mt-2 text-sm text-encre-600" data-chiffres>
+        {{ ville.population }} habitants, dont {{ ville.actifs }} en âge de travailler
+        et {{ ville.inactifs }} à charge. {{ mainDoeuvre.bras }} bras disponibles,
+        les chefs déduits — ils ne s'encadrent pas eux-mêmes.
+    </p>
+
+    {% if mainDoeuvre.manquants > 0 %}
+        <p class="mt-3 text-sm text-terre-600" data-chiffres>
+            <strong class="font-medium">Il vous manque {{ mainDoeuvre.manquants }} bras.</strong>
+            Les bâtiments sont servis avant le territoire, et chacun tourne à
+            proportion de ce qu'il a reçu — jamais sous la moitié. Faites venir
+            du monde, ou renvoyez un chef dont vous ne pouvez pas tenir le
+            bâtiment.
+        </p>
+    {% elseif mainDoeuvre.oisifs > 0 %}
+        <p class="mt-3 text-sm text-encre-500" data-chiffres>
+            <strong class="font-medium text-encre-700">{{ mainDoeuvre.oisifs }} bras sont sans ouvrage.</strong>
+            Ils mangent et ne produisent rien. Embauchez un chef quelque part —
+            c'est le chef qui recrute —, semez un champ ou ouvrez une carrière.
+        </p>
+    {% else %}
+        <p class="mt-3 text-sm text-encre-500">
+            Chaque bras est à l'ouvrage et chaque poste est tenu.
+        </p>
+    {% endif %}
+
+    <p class="mt-2 text-sm {{ masseSalariale > ville.deben ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+        Masse salariale : <strong class="font-medium">{{ masseSalariale }} deben</strong> par
+        quinzaine, pour {{ ville.consommationDeNourriture }} vivres de rations.
+        {% if masseSalariale > ville.deben %}
+            Votre caisse ne suit plus : les équipes que vous ne pourrez pas payer
+            cesseront le travail.
+        {% endif %}
+    </p>
+</div>
+
+{% if mission %}
+        <h2 class="text-2xl text-encre-900">
+            Mission <span data-chiffres>{{ mission.numero }}</span> sur 10 — {{ mission.ville }}
+        </h2>
+        <p class="mt-2 max-w-3xl text-sm text-encre-500">
+            Commandée par <strong class="text-encre-700">{{ mission.pharaon }}</strong>.
+            {{ mission.contexte }}
+        </p>
+
+        {# Le doc 09 veut les objectifs visibles dès le premier jour :
+           découvrir tardivement une condition qu'on n'a pas pu
+           anticiper serait injuste. #}
+        <h4 class="mt-6 text-lg text-encre-900">Ce que le pharaon attend</h4>
+        <ul class="mt-3 max-w-3xl space-y-3 list-none p-0">
+            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-3">
+                <div class="flex flex-wrap items-baseline justify-between gap-3">
+                    <span class="text-encre-900">Résoudre le fil rouge de la mission</span>
+                    <span class="text-sm {{ filRouge and filRouge.value == 'accompli' ? 'text-lapis-500' : 'text-encre-500' }}">
+                        {{ filRouge ? filRouge.libelle : 'à venir' }}
+                    </span>
+                </div>
+                <p class="mt-1 text-xs text-encre-500">Obligatoire : sans lui, rien n'est accompli.</p>
+            </li>
+
+            {% for ligne in objectifs %}
+                <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-3">
+                    <div class="flex flex-wrap items-baseline justify-between gap-3">
+                        <span class="text-encre-900">{{ ligne.objectif.libelle }}</span>
+                        <span class="text-sm {{ ligne.atteint ? 'text-lapis-500' : 'text-encre-500' }}" data-chiffres>
+                            {{ ligne.avancement }} / {{ ligne.objectif.seuilMesure }}
+                        </span>
+                    </div>
+                    <div class="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                        <div class="h-full {{ ligne.atteint ? 'bg-lapis-500' : 'bg-terre-500' }}"
+                             style="width: {{ min(100, (ligne.avancement * 100 / max(1, ligne.objectif.seuilMesure))|round) }}%"></div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        {# Les requêtes du pharaon ne comptent pas dans la réussite :
+           elles font gagner du renom et de la faveur, et refuser ne
+           coûte que deux points (doc 09). #}
+        {% if quete %}
+            <h4 class="mt-8 text-lg text-encre-900">Une requête du pharaon</h4>
+            <div class="mt-3 max-w-3xl rounded-sm border-l-4 border-or-300 bg-or-300/10 px-5 py-4">
+                <p class="text-encre-900">
+                    {{ mission.pharaon }} réclame
+                    <span data-chiffres>{{ quete.quantite }}</span> {{ quete.ressource.libelle }}
+                    pour {{ quete.chantier.libelle }}.
+                </p>
+                <p class="mt-1 text-sm text-encre-500">
+                    Encore <span data-chiffres>{{ quete.quinzainesRestantes }}</span> quinzaine(s).
+                    Laisser filer le délai revient à décliner.
+                </p>
+
+                {% if partie.estEnCours %}
+                    <form method="post" action="{{ path('app_partie_quete', {id: partie.id}) }}"
+                          class="mt-3 flex flex-wrap items-center gap-3">
+                        <input type="hidden" name="_token" value="{{ csrf_token('quete') }}">
+                        <button type="submit"
+                                class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                            Envoyer le chargement
+                        </button>
+                        <button type="submit" name="refuser" value="1"
+                                class="text-sm text-encre-500 underline hover:text-terre-600">
+                            Décliner
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <p class="mt-4 max-w-3xl text-xs text-encre-500">
+            Le fil rouge résolu suffit à clore la mission : les objectifs
+            non atteints donnent une reconnaissance plus modeste, jamais un échec.
+        </p>
+{% endif %}
+
+{% if chantiers|length > 0 %}
+    <h3 class="mt-8 text-xl text-encre-900">Chantiers en cours</h3>
+    <ul class="mt-4 space-y-3 list-none p-0">
+        {% for chantier in chantiers %}
+            <li class="rounded-sm border border-ocre-500/40 bg-ocre-300/10 p-5">
+                <div class="flex flex-wrap items-baseline justify-between gap-3">
+                    <h3 class="font-display text-lg text-encre-900">
+                        {{ chantier.type.libelle }}
+                        {% if chantier.estUneAmelioration %}
+                            <span class="font-sans text-sm text-encre-500" data-chiffres>
+                                · vers le niveau {{ chantier.niveauVise }}
+                            </span>
+                        {% endif %}
+                    </h3>
+                    <span class="text-sm text-encre-500" data-chiffres>
+                        encore {{ chantier.cyclesRestants }} cycle{{ chantier.cyclesRestants > 1 ? 's' : '' }}
+                    </span>
+                </div>
+
+                <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                    <div class="h-full bg-terre-500" style="width: {{ chantier.pourcentageDAvancement }}%"></div>
+                </div>
+
+                {# Les quatre étapes du doc 01, toutes affichées : un
+                   chantier court en traverse deux par quinzaine, et
+                   n'en montrer qu'une escamoterait la moitié du contenu
+                   pédagogique. Celles de la quinzaine en cours portent
+                   leur explication, les autres leur seul intitulé. #}
+                <ol class="mt-4 space-y-2 list-none p-0">
+                    {% for rang in chantier.etapes(partie.dateDeJeu.saison) %}
+                        <li class="flex gap-3 {{ rang.etat.value == 'a_venir' ? 'opacity-50' : '' }}">
+                            <span aria-hidden="true"
+                                  class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-xs
+                                         {{ rang.etat.value == 'terminee' ? 'bg-terre-500 text-sable-50'
+                                            : (rang.etat.value == 'en_cours' ? 'border-2 border-terre-500 text-terre-600'
+                                            : 'border border-ocre-500/50 text-encre-500') }}"
+                                  data-chiffres>{{ rang.etat.value == 'terminee' ? '✓' : rang.numero }}</span>
+                            <div>
+                                <p class="text-sm {{ rang.etat.value == 'en_cours' ? 'font-medium text-encre-900' : 'text-encre-600' }}">
+                                    {{ rang.etape.nom }}
+                                    {% if rang.etat.value == 'terminee' %}
+                                        <span class="sr-only">— étape terminée</span>
+                                    {% elseif rang.etat.value == 'en_cours' %}
+                                        <span class="sr-only">— étape en cours</span>
+                                    {% else %}
+                                        <span class="sr-only">— étape à venir</span>
+                                    {% endif %}
+                                </p>
+                                {% if rang.etat.value == 'en_cours' %}
+                                    <p class="mt-1 text-sm text-encre-500">{{ rang.etape.explication }}</p>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<h3 class="mt-8 text-xl text-encre-900">Bâtiments dressés</h3>
+<ul class="mt-4 space-y-3 list-none p-0">
+    {% for batiment in batimentsDresses %}
+        <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+            <div class="flex flex-wrap items-baseline justify-between gap-3">
+                <h3 class="font-display text-lg text-encre-900">{{ batiment.type.libelle }}</h3>
+                <span class="text-sm text-encre-500" data-chiffres>
+                    Niveau {{ batiment.niveau }} sur {{ batiment.niveauMaxAtteignable }}
+                </span>
+            </div>
+            <p class="mt-2 text-sm text-encre-600">{{ batiment.type.fonction }}</p>
+
+            {# Une jauge, pas un recrutement : les ouvriers se puisent
+               dans le vivier d'actifs (doc 05), le joueur ne les
+               embauche pas un par un. #}
+            {% set effectif = effectifs[batiment.type.value] %}
+            <p class="mt-2 text-sm {{ effectif.rendement < 100 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+                {% if effectif.requis == 0 %}
+                    Sans chef : {{ effectif.rendement }} % de rendement.
+                {% else %}
+                    {{ effectif.affectes }} / {{ effectif.requis }} travailleurs ·
+                    {{ effectif.rendement }} % de rendement
+                {% endif %}
+            </p>
+        </li>
+    {% endfor %}
+</ul>
+
+<h3 class="mt-8 text-xl text-encre-900">À bâtir</h3>
+<p class="mt-2 text-sm text-encre-500">
+    Les ressources sont payées à l'engagement du chantier ; les travaux
+    n'avancent ensuite qu'aux quinzaines que vous déclenchez. Pendant la crue
+    d'Akhèt, la main-d'œuvre libérée les fait progresser de moitié plus vite.
+</p>
+
+<ul class="mt-5 space-y-3 list-none p-0">
+    {% for offre in offres %}
+        <li class="rounded-sm border p-5
+                   {{ offre.estRealisable
+                       ? 'border-ocre-500/30 bg-sable-50'
+                       : 'border-ocre-500/20 bg-sable-50/40' }}">
+            <div class="flex flex-wrap items-baseline justify-between gap-3">
+                <h3 class="font-display text-lg {{ offre.estRealisable ? 'text-encre-900' : 'text-encre-500' }}">
+                    {{ offre.type.libelle }}
+                    {% if offre.estDejaDressé %}
+                        <span class="font-sans text-sm text-encre-500" data-chiffres>
+                            · niveau {{ offre.existant.niveau }}
+                        </span>
+                    {% endif %}
+                </h3>
+                <span class="text-xs uppercase tracking-wide text-encre-500">
+                    {{ offre.libelleDeLAction }}
+                </span>
+            </div>
+
+            <p class="mt-2 text-sm text-encre-600">{{ offre.type.fonction }}</p>
+
+            {% if offre.cout %}
+                <dl class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm" data-chiffres>
+                    {% for ressource, quantite in offre.cout.detail %}
+                        <div class="flex gap-1.5">
+                            <dt class="text-encre-500">{{ ressource }}</dt>
+                            <dd class="text-encre-900">{{ quantite }}</dd>
+                        </div>
+                    {% endfor %}
+                    <div class="flex gap-1.5">
+                        <dt class="text-encre-500">chantier</dt>
+                        <dd class="text-encre-900">
+                            {{ offre.type.dureeDeBase + (offre.existant ? offre.existant.niveau + 1 : 1) }} cycles
+                        </dd>
+                    </div>
+                </dl>
+            {% endif %}
+
+            {% if not partie.estEnCours %}
+                {# La partie a échoué : plus aucun chantier ne s'engage. #}
+            {% elseif offre.empechement %}
+                <p class="mt-3 text-sm text-terre-600">{{ offre.empechement }}</p>
+            {% elseif ville.aUnChantierPour(offre.type) %}
+                <p class="mt-3 text-sm text-encre-500">Travaux déjà en cours.</p>
+            {% else %}
+                <form method="post" action="{{ path('app_partie_batir', {id: partie.id}) }}" class="mt-4">
+                    <input type="hidden" name="_token" value="{{ csrf_token('batir') }}">
+                    <input type="hidden" name="type" value="{{ offre.type.value }}">
+                    <button type="submit"
+                            class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        {{ offre.libelleDeLAction }}
+                    </button>
+                </form>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>

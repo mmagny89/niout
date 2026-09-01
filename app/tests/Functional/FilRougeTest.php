@@ -221,8 +221,8 @@ final class FilRougeTest extends WebTestCase
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
-        self::assertSelectorTextContains('#panneau-scribes', 'Acte I');
-        self::assertSelectorTextContains('#panneau-scribes', 'Ahmôsis');
+        self::assertSelectorTextContains('#panneau-maison_des_scribes', 'Acte I');
+        self::assertSelectorTextContains('#panneau-maison_des_scribes', 'Ahmôsis');
     }
 
     /**

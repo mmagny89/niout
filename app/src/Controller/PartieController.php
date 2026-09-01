@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Building;
 use App\Entity\City;
+use App\Entity\Family;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Entity\Zone;
@@ -199,6 +200,7 @@ final class PartieController extends AbstractController
         return $this->render('partie/ville.html.twig', [
             'partie' => $partie,
             'ville' => $ville,
+            'onglets' => $this->ongletsDeLaVille($ville),
             'chantiers' => $ville->getChantiers(),
             'batimentsDresses' => $this->batimentsTriesParLibelle($ville),
             'offres' => $catalogue->pour($ville),
@@ -209,7 +211,13 @@ final class PartieController extends AbstractController
             'plafondDuMarche' => Marche::plafondDeLaQuinzaine($partie),
             'venteRestante' => $marche->venteRestante($partie),
             'niveauDuMarche' => $ville->batimentDeType(TypeDeBatiment::Marche)?->getNiveau() ?? 0,
+            // La renommée était nulle part à l'écran : ce qu'elle change — le
+            // prix d'un appel, la migration spontanée, l'arrivée d'un rival —
+            // se subissait sans se comprendre.
             'palier' => $partie->getFamille()->palier(),
+            'palierSuivant' => $partie->getFamille()->palier()->suivant(),
+            'seuilDuPalierSuivant' => $partie->getFamille()->palier()->suivant()?->seuilDEntree() ?? Family::RENOMMEE_MAX,
+            'renommeeMax' => Family::RENOMMEE_MAX,
             'coutDUnAppel' => $appels->cout($partie),
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
             'ateliers' => $this->ateliersDeLaVille($partie, $fabrication),
@@ -217,6 +225,10 @@ final class PartieController extends AbstractController
             'etals' => $this->etalsDesRoutesOuvertes($partie, $commerce),
             'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
             'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
+            // Embaucher un chef ouvre des postes : sans ce bilan, le joueur
+            // voyait son rendement baisser ailleurs sans comprendre que ses
+            // bras étaient partis tenir le nouveau bâtiment.
+            'mainDoeuvre' => Effectifs::bilan($ville, $partie->getCycle()),
             // Les deux indicateurs de santé de la ville, côte à côte : les
             // bouches et les bras.
             'masseSalariale' => $salaires->masseSalariale($ville, $partie->getCycle()),
@@ -917,11 +929,16 @@ final class PartieController extends AbstractController
             'peutFouiller' => $detaillee instanceof Zone && $enquetes->peutFouiller($ville, $detaillee),
             // L'émissaire ne va que là où l'on sait déjà qu'il y a quelqu'un,
             // et il lui faut des scribes pour consigner ce qu'il rapporte.
+            // **On ne propose pas un départ qui ne peut rien rapporter** :
+            // tous les témoignages versés, l'émissaire ne ramènerait qu'un
+            // « rien appris de neuf » payé trente deben. Même règle que la
+            // prospection — le bouton disparaît plutôt que de mentir.
             'peutEnvoyerUnEmissaire' => $detaillee instanceof Zone
                 && $detaillee->estDecouverte()
                 && !$detaillee->porteLaVille()
                 && $ville->possede(TypeDeBatiment::MaisonDesScribes)
-                && !$ville->aUneExpeditionVers($detaillee),
+                && !$ville->aUneExpeditionVers($detaillee)
+                && $enquetes->resteUnTemoignageARecueillir($partie),
             'coutDeLEmissaire' => $detaillee instanceof Zone
                 ? $explorations->coutVers($partie, $detaillee, RoleDExploration::Emissaire)
                 : RoleDExploration::Emissaire->cout(),
@@ -955,7 +972,12 @@ final class PartieController extends AbstractController
             'dureeDuProspecteur' => $detaillee instanceof Zone
                 ? $explorations->dureeVers($partie, $detaillee)
                 : null,
-            'chancesDeProspecter' => Prospection::CHANCES_DE_TROUVER,
+            // Toutes les cases ne se valent pas : une veine encore exploitée
+            // se retrouve à coup sûr, du sable vierge tient du pari. L'écran
+            // dit lequel des deux **avant** l'engagement.
+            'chancesDeProspecter' => $detaillee instanceof Zone
+                ? $prospection->chancesSur($partie, $detaillee)
+                : 0,
         ]);
     }
 
@@ -1322,7 +1344,7 @@ final class PartieController extends AbstractController
      * L'Atelier et la Forge partagent tout : un seul gabarit les rend, une
      * seule boucle les prépare.
      *
-     * @return list<array{type: TypeDeBatiment, niveau: int, lotsMaximum: int, recettes: list<array{recette: Recette, matieres: array<string, int>, realisable: bool, empechement: ?string}>, ordre: ?\App\Entity\OrdreDeFabrication}>
+     * @return array<string, array{type: TypeDeBatiment, niveau: int, lotsMaximum: int, recettes: list<array{recette: Recette, matieres: array<string, int>, realisable: bool, empechement: ?string}>, ordre: ?\App\Entity\OrdreDeFabrication}>
      */
     private function ateliersDeLaVille(GameSave $partie, Fabrication $fabrication): array
     {
@@ -1336,7 +1358,7 @@ final class PartieController extends AbstractController
                 continue;
             }
 
-            $ateliers[] = [
+            $ateliers[$type->value] = [
                 'type' => $type,
                 'niveau' => $batiment->getNiveau(),
                 'lotsMaximum' => Fabrication::lotsMaximum($batiment->getNiveau()),
@@ -1349,14 +1371,64 @@ final class PartieController extends AbstractController
     }
 
     /**
-     * L'état du recrutement, bâtiment par bâtiment : qui le dirige, combien
-     * de postes restent, quelle annonce est affichée.
+     * Les onglets de l'écran de ville : **un onglet par bâtiment** (décision
+     * de la joueuse). Chaque bâtiment porte ce qui relève de sa fonction — sa
+     * direction, ses ouvrages, ses routes —, ce qui remplace l'ancien
+     * découpage par thème où le joueur devait deviner dans quel panneau ranger
+     * quoi.
+     *
+     * **La Résidence familiale recueille tout ce qui n'appartient à aucun
+     * bâtiment** : elle est le foyer de la lignée, présente dès le premier
+     * jour et jamais construite. La mission, la renommée, les chantiers et la
+     * liste de ce qui reste à bâtir y vivent — les envoyer ailleurs les
+     * rendrait inaccessibles à une ville qui n'a encore rien dressé.
+     *
+     * L'ordre est celui de `TypeDeBatiment`, stable d'un rendu à l'autre :
+     * `onglets_controller.js` apparie onglets et panneaux **par rang**, et les
+     * deux boucles du gabarit lisent cette même liste.
+     *
+     * @return list<array{cle: string, libelle: string, type: ?TypeDeBatiment, batiment: ?Building}>
+     */
+    private function ongletsDeLaVille(City $ville): array
+    {
+        $onglets = [];
+
+        foreach (TypeDeBatiment::cases() as $type) {
+            $batiment = $ville->batimentDeType($type);
+
+            // Le foyer de la lignée est là dès le premier jour, sans chantier
+            // ni entrée dans la liste des bâtiments dressés.
+            if (!$type->estLeBatimentDeDepart() && null === $batiment) {
+                continue;
+            }
+
+            $onglets[] = [
+                'cle' => $type->value,
+                'libelle' => $type->libelle(),
+                'type' => $type,
+                'batiment' => $batiment,
+            ];
+        }
+
+        // Le mode d'essai n'est pas un bâtiment : il ferme la barre, comme
+        // avant, et n'existe que pour un compte qui porte le rôle.
+        if ($this->isGranted(User::ROLE_DIVIN)) {
+            $onglets[] = ['cle' => 'essai', 'libelle' => 'Essai', 'type' => null, 'batiment' => null];
+        }
+
+        return $onglets;
+    }
+
+    /**
+     * L'état du recrutement, **indexé par type de bâtiment** : chaque panneau
+     * de bâtiment y lit sa propre direction. Une liste obligerait le gabarit à
+     * la parcourir pour retrouver la sienne.
      *
      * Les trois bâtiments sans spécialité en sont écartés — Résidence
      * familiale, Quartier d'habitation, Auberge : la famille les tient
      * elle-même, leur proposer une annonce n'aurait aucun sens.
      *
-     * @return list<array{batiment: Building, chefs: list<\App\Entity\Employee>, postesLibres: int, offre: ?\App\Entity\JobOffer}>
+     * @return array<string, array{batiment: Building, chefs: list<\App\Entity\Employee>, postesLibres: int, offre: ?\App\Entity\JobOffer}>
      */
     private function directionsDesBatiments(GameSave $partie, Recrutements $recrutements): array
     {
@@ -1368,7 +1440,7 @@ final class PartieController extends AbstractController
                 continue;
             }
 
-            $directions[] = [
+            $directions[$batiment->getType()->value] = [
                 'batiment' => $batiment,
                 'chefs' => $ville->chefsDe($batiment->getType()),
                 'postesLibres' => $recrutements->postesLibres($batiment),

@@ -185,7 +185,7 @@ final class EnigmesTest extends WebTestCase
         self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'Anubis');
-        self::assertSelectorTextNotContains('#panneau-scribes', Enigme::ChacalDAnubis->enonce());
+        self::assertSelectorTextNotContains('#panneau-maison_des_scribes', Enigme::ChacalDAnubis->enonce());
     }
 
     private function villeAvecLieux(string $email, ?KernelBrowser $client = null): GameSave
