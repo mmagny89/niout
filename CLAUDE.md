@@ -851,6 +851,17 @@ construite — l'y mettre est la seule façon de garder ces écrans atteignables
 pour une ville qui n'a encore rien dressé. C'est aussi le point de chute par
 défaut de toute fonctionnalité qu'on ne sait pas rattacher à un bâtiment.
 
+**La Résidence porte un tableau de bord, et les alertes sont dites une fois.**
+Les chiffres de gouvernement — habitants, travail, réserves, bourse et renom —
+vivaient en cartes de prose qui les noyaient : comparer deux nombres demandait
+de lire deux phrases. Ils sont rangés en quatre petits tableaux, un par
+domaine, chacun avec sa légende et des `<th scope="row">` — un lecteur d'écran
+annonce ainsi le domaine puis ce que le nombre mesure. **Ce qui cloche est dit
+en dessous, une seule fois** : une remarque accrochée à chaque ligne rendrait
+illisible ce que le tableau existe pour rendre lisible. Chaque alerte nomme la
+cause **et** le geste — un diagnostic sans remède se subit —, et une ville sans
+souci le dit plutôt que d'afficher une liste vide.
+
 **Une action ne renvoie jamais sur le premier onglet** (`retourALaVille()`,
 `retourDemande()`). Toute interaction de la ville se solde par une redirection,
 donc par un rechargement complet : sans reprise, vendre au Marché ramenait sur
