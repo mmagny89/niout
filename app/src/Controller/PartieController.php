@@ -55,6 +55,7 @@ use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\Population;
 use App\Game\Progression;
 use App\Game\Prospection;
 use App\Game\QueteImpossible;
@@ -237,6 +238,9 @@ final class PartieController extends AbstractController
             // voyait son rendement baisser ailleurs sans comprendre que ses
             // bras étaient partis tenir le nouveau bâtiment.
             'mainDoeuvre' => Effectifs::bilan($ville, $partie->getCycle()),
+            // Ce qu'un niveau de Quartier ajoute, pour que l'écran dise le
+            // remède avec un chiffre plutôt qu'en général.
+            'famillesParNiveauDeQuartier' => Population::FAMILLES_PAR_NIVEAU_DE_QUARTIER,
             // Les deux indicateurs de santé de la ville, côte à côte : les
             // bouches et les bras.
             'masseSalariale' => $salaires->masseSalariale($ville, $partie->getCycle()),
