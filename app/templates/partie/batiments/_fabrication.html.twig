@@ -1,0 +1,93 @@
+{# L'ouvrage d'un atelier — l'Atelier et la Forge partagent tout, c'est la
+   recette qui dit où elle se travaille (doc 08).
+
+   **Un seul ordre à la fois et par bâtiment** : chacun est un lieu, pas une
+   file, et c'est ce qui donne son coût d'opportunité à la fabrication —
+   tisser, c'est ne pas cuire. Les deux se rendent donc par le même gabarit,
+   chacun dans son propre onglet. #}
+{% set atelier = ateliers[onglet.type.value] ?? null %}
+{% if atelier %}
+    <h3 class="mt-8 text-xl text-encre-900">À l'ouvrage</h3>
+
+    {% if atelier.ordre %}
+        <div class="mt-4 rounded-sm border border-ocre-500/40 bg-ocre-300/10 p-5">
+            <div class="flex flex-wrap items-baseline justify-between gap-3">
+                <h3 class="font-display text-lg text-encre-900">{{ atelier.ordre.recette.libelle }}</h3>
+                <span class="text-sm text-encre-500" data-chiffres>
+                    encore {{ atelier.ordre.cyclesRestants }} quinzaine{{ atelier.ordre.cyclesRestants > 1 ? 's' : '' }}
+                </span>
+            </div>
+
+            <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                <div class="h-full bg-terre-500" style="width: {{ atelier.ordre.pourcentageDAvancement }}%"></div>
+            </div>
+
+            <p class="mt-3 text-sm text-encre-500" data-chiffres>
+                {{ atelier.ordre.lots }} lot{{ atelier.ordre.lots > 1 ? 's' : '' }} —
+                {{ atelier.ordre.piecesAttendues }} pièces à l'achèvement.
+                Les matières sont déjà payées ; rien ne rentre avant la fin.
+            </p>
+        </div>
+    {% else %}
+        <p class="mt-2 text-sm text-encre-500">
+            Un lot consomme ses matières à l'engagement et rend plusieurs
+            pièces à l'achèvement. Ce bâtiment en mène jusqu'à
+            <span data-chiffres>{{ atelier.lotsMaximum }}</span> à la fois, et les
+            bras qui le tiennent en décident le rythme.
+        </p>
+
+        <ul class="mt-4 space-y-3 list-none p-0">
+            {% for offre in atelier.recettes %}
+                <li class="rounded-sm border p-5
+                           {{ offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
+                    <div class="flex flex-wrap items-baseline justify-between gap-3">
+                        <h3 class="font-display text-lg {{ offre.realisable ? 'text-encre-900' : 'text-encre-500' }}">
+                            {{ offre.recette.libelle }}
+                        </h3>
+                        <span class="text-sm text-encre-500" data-chiffres>
+                            {{ offre.recette.piecesDunLot }} pièces le lot ·
+                            {{ offre.recette.quinzainesDunLot }} quinzaine{{ offre.recette.quinzainesDunLot > 1 ? 's' : '' }}
+                        </span>
+                    </div>
+
+                    <p class="mt-2 text-sm text-encre-600" data-chiffres>
+                        Un lot :
+                        {%- for libelle, quantite in offre.matieres %}
+                            {{ quantite }} {{ libelle }}{{ not loop.last ? ',' : '' }}
+                        {%- endfor %}
+                    </p>
+
+                    {# Promettre un usage qui n'existe nulle part
+                       tromperait le joueur au moment où il engage ses
+                       matières. #}
+                    {% if offre.recette.produitDortEnAttendantSonUsage %}
+                        <p class="mt-2 text-sm text-encre-500">
+                            Se vend, mais n'a pas encore d'usage propre.
+                        </p>
+                    {% endif %}
+
+                    {% if offre.empechement %}
+                        <p class="mt-2 text-sm text-terre-600">{{ offre.empechement }}</p>
+                    {% elseif partie.estEnCours %}
+                        <form method="post" action="{{ path('app_partie_fabriquer', {id: partie.id}) }}"
+                              class="mt-3 flex flex-wrap items-baseline gap-3">
+                            <input type="hidden" name="_token" value="{{ csrf_token('fabriquer') }}">
+                            <input type="hidden" name="recette" value="{{ offre.recette.value }}">
+
+                            <label for="lots-{{ offre.recette.value }}" class="text-sm text-encre-600">Lots</label>
+                            <input type="number" id="lots-{{ offre.recette.value }}" name="lots"
+                                   value="1" min="1" max="{{ atelier.lotsMaximum }}"
+                                   class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
+                                   data-chiffres>
+
+                            <button type="submit"
+                                    class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                Mettre à l'ouvrage
+                            </button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endif %}

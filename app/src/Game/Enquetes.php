@@ -203,6 +203,20 @@ final readonly class Enquetes
     }
 
     /**
+     * Reste-t-il un témoignage à recueillir ?
+     *
+     * **On ne propose pas un départ qui ne peut rien rapporter** : une fois
+     * tous les indices de témoignage versés aux dossiers, l'émissaire ne
+     * ramènerait qu'un « on lui a beaucoup parlé, et rien appris de neuf »
+     * payé trente deben. Même règle que la prospection : le bouton disparaît
+     * plutôt que de mentir.
+     */
+    public function resteUnTemoignageARecueillir(GameSave $partie): bool
+    {
+        return null !== $this->indiceDisponible($partie, SourceDIndice::Temoignage);
+    }
+
+    /**
      * Un indice de terrain qu'on n'a pas encore. Le tirage passe par le
      * `Randomizer` injecté, comme la crue et les candidats : semé en test, il
      * rend la fouille reproductible.
@@ -213,6 +227,30 @@ final readonly class Enquetes
     }
 
     private function tirerUnIndice(GameSave $partie, SourceDIndice $source): ?Indice
+    {
+        $restants = $this->indicesRestants($partie, $source);
+
+        if ([] === $restants) {
+            return null;
+        }
+
+        return $restants[$this->hasard->getInt(0, \count($restants) - 1)];
+    }
+
+    /**
+     * Un indice de cette source encore à trouver, sans tirage — sert aux écrans
+     * qui doivent savoir s'il y a quelque chose à chercher avant de proposer
+     * d'y aller.
+     */
+    private function indiceDisponible(GameSave $partie, SourceDIndice $source): ?Indice
+    {
+        return $this->indicesRestants($partie, $source)[0] ?? null;
+    }
+
+    /**
+     * @return list<Indice>
+     */
+    private function indicesRestants(GameSave $partie, SourceDIndice $source): array
     {
         $ville = $partie->getVille();
         $restants = [];
@@ -237,10 +275,6 @@ final readonly class Enquetes
             $restants[] = $indice;
         }
 
-        if ([] === $restants) {
-            return null;
-        }
-
-        return $restants[$this->hasard->getInt(0, \count($restants) - 1)];
+        return $restants;
     }
 }

@@ -239,7 +239,7 @@ final class EnquetesTest extends WebTestCase
         self::assertSelectorTextContains('body', 'Versé au dossier');
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorTextContains('#panneau-scribes', 'Dossiers d\'enquête');
+        self::assertSelectorTextContains('#panneau-maison_des_scribes', 'Dossiers d\'enquête');
     }
 
     /**

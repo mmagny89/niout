@@ -186,6 +186,43 @@ final readonly class Effectifs
     }
 
     /**
+     * Le bilan de la main-d'œuvre : combien de bras la ville a, combien de
+     * postes elle a ouverts, et de quel côté penche l'écart.
+     *
+     * **Embaucher un chef ouvre des postes** (`Effectifs`, doc 05) : un
+     * bâtiment sans chef ne réclame personne et tourne au plancher, un
+     * bâtiment dirigé réclame ses travailleurs. Le joueur qui retenait un
+     * candidat voyait donc son rendement baisser ailleurs sans comprendre
+     * pourquoi — les bras servis à la Forge n'étaient plus au Grenier. Ce
+     * bilan nomme les deux situations : **des bras oisifs** qu'aucun poste
+     * n'emploie, ou **des postes vides** que personne ne tient.
+     *
+     * Les deux ne peuvent pas coexister : la répartition sert jusqu'à
+     * épuisement, bâtiments d'abord, territoire ensuite.
+     *
+     * @return array{bras: int, requis: int, affectes: int, oisifs: int, manquants: int}
+     */
+    public static function bilan(City $ville, int $cycle): array
+    {
+        $bras = self::brasDisponibles($ville, $cycle);
+        $requis = 0;
+        $affectes = 0;
+
+        foreach ([...self::repartir($ville, $cycle), ...self::repartirLeTerritoire($ville, $cycle)] as $ligne) {
+            $requis += $ligne['requis'];
+            $affectes += $ligne['affectes'];
+        }
+
+        return [
+            'bras' => $bras,
+            'requis' => $requis,
+            'affectes' => $affectes,
+            'oisifs' => max(0, $bras - $affectes),
+            'manquants' => max(0, $requis - $affectes),
+        ];
+    }
+
+    /**
      * Le bâtiment qui gouverne une exploitation : le Grenier pour les champs,
      * l'Entrepôt pour les carrières, le Port pour les pêcheries.
      *

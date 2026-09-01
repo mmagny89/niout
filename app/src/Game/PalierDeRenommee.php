@@ -36,6 +36,38 @@ enum PalierDeRenommee: string
         };
     }
 
+    /**
+     * La renommée à partir de laquelle ce palier commence.
+     *
+     * Exposé pour que l'écran dise **ce qui reste à faire** plutôt qu'un
+     * simple nombre : « encore douze points pour être reconnue » se joue, un
+     * compteur nu se subit.
+     */
+    public function seuilDEntree(): int
+    {
+        return match ($this) {
+            self::Inconnue => 0,
+            self::Modeste => 20,
+            self::Reconnue => 40,
+            self::Respectee => 60,
+            self::Illustre => 80,
+        };
+    }
+
+    /**
+     * Le palier d'après — null au sommet, où il n'y a plus rien à viser.
+     */
+    public function suivant(): ?self
+    {
+        return match ($this) {
+            self::Inconnue => self::Modeste,
+            self::Modeste => self::Reconnue,
+            self::Reconnue => self::Respectee,
+            self::Respectee => self::Illustre,
+            self::Illustre => null,
+        };
+    }
+
     public function libelle(): string
     {
         return match ($this) {
