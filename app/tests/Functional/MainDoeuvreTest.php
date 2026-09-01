@@ -9,6 +9,7 @@ use App\Entity\GameSave;
 use App\Entity\User;
 use App\Game\Effectifs;
 use App\Game\LanceurDePartie;
+use App\Game\Population;
 use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -98,6 +99,36 @@ final class MainDoeuvreTest extends WebTestCase
             '#panneau-residence_familiale',
             $partie->getFamille()->palier()->libelle(),
         );
+    }
+
+    /**
+     * **Le logement se lit dans la Résidence familiale**, et pas seulement dans
+     * l'onglet du Quartier d'habitation : sans Quartier, cet onglet n'existe
+     * pas — et c'est précisément la ville qui en manque qui doit l'apprendre.
+     */
+    public function testLeManqueDeLogementsSeVoitDansLaResidenceFamiliale(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancerConnecte($client, 'logements@example.com');
+        $ville = $partie->getVille();
+
+        self::assertFalse($ville->possede(TypeDeBatiment::QuartierDHabitation), 'Une ville neuve n\'en a pas.');
+
+        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Logements');
+        self::assertSelectorTextContains(
+            '#panneau-residence_familiale',
+            \sprintf('%d / %d', $ville->foyersOccupes(), $ville->capaciteEnFoyers()),
+        );
+
+        // On remplit la ville jusqu'à la dernière place.
+        $ville->accueillir($ville->foyersLibres() * Population::PERSONNES_PAR_FOYER, 0, 0);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+        self::assertTrue($ville->manqueDeLogements());
+
+        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Vos maisons sont pleines');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'Dressez un Quartier d\'habitation');
     }
 
     private function lancerConnecte(KernelBrowser $client, string $email): GameSave
