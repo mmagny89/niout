@@ -21,6 +21,7 @@ final readonly class Explorations
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Enquetes $enquetes,
+        private Prospection $prospection,
     ) {
     }
 
@@ -35,17 +36,22 @@ final readonly class Explorations
             throw new ExplorationImpossible('Cette case n\'appartient pas à votre territoire.');
         }
 
-        // Un éclaireur va vers l'inconnu, un émissaire va vers les gens : il
-        // n'y a personne à qui parler sur une case que nul n'a jamais vue.
+        // Un éclaireur va vers l'inconnu ; l'émissaire et le prospecteur vont
+        // vers une case déjà reconnue — il n'y a personne à qui parler, ni rien
+        // à sonder, sur une case que nul n'a jamais vue.
         if ($role->viseUneCaseInconnue() && $destination->estDecouverte()) {
             throw new ExplorationImpossible('Cette case est déjà reconnue.');
         }
 
         if (!$role->viseUneCaseInconnue() && !$destination->estDecouverte()) {
-            throw new ExplorationImpossible('Envoyez d\'abord un éclaireur : on ne parle pas à des gens qu\'on n\'a pas trouvés.');
+            throw new ExplorationImpossible('Envoyez d\'abord un éclaireur : on ne parle pas à des gens qu\'on n\'a pas trouvés, et l\'on ne sonde pas une terre qu\'on n\'a pas vue.');
         }
 
-        if (!$role->viseUneCaseInconnue() && !$ville->possede(TypeDeBatiment::MaisonDesScribes)) {
+        if (RoleDExploration::Prospecteur === $role && [] === $this->prospection->filonsPossibles($partie, $destination)) {
+            throw new ExplorationImpossible('Cette case n\'a plus rien à donner : aucun filon à rouvrir, et rien de neuf à y trouver.');
+        }
+
+        if ($role->exigeLaMaisonDesScribes() && !$ville->possede(TypeDeBatiment::MaisonDesScribes)) {
             throw new ExplorationImpossible('Sans Maison des scribes, personne ne consignerait ce qu\'on vous rapporterait.');
         }
 
@@ -97,12 +103,11 @@ final readonly class Explorations
 
             $zone = $expedition->getDestination();
 
-            if ($expedition->getRole()->viseUneCaseInconnue()) {
-                $zone->decouvrir();
-                $evenements[] = $this->rapportDe($zone);
-            } else {
-                $evenements[] = $this->rapportDeLEmissaire($partie);
-            }
+            $evenements[] = match ($expedition->getRole()) {
+                RoleDExploration::Emissaire => $this->rapportDeLEmissaire($partie),
+                RoleDExploration::Prospecteur => $this->prospection->fouiller($partie, $zone),
+                default => $this->rapportDeLaReconnaissance($zone),
+            };
 
             $ville->retirerExpedition($expedition);
             $this->entityManager->remove($expedition);
@@ -171,8 +176,9 @@ final readonly class Explorations
     /**
      * Ce que l'éclaireur rapporte : le terrain, et ce qu'il y a trouvé.
      */
-    private function rapportDe(Zone $zone): string
+    private function rapportDeLaReconnaissance(Zone $zone): string
     {
+        $zone->decouvrir();
         $lieu = \sprintf('%s (%d, %d)', $zone->getTerrain()->libelle(), $zone->getX(), $zone->getY());
 
         if ($zone->porteUnGisement()) {
