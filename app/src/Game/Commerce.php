@@ -239,6 +239,11 @@ final readonly class Commerce
                 continue;
             }
 
+            // L'affaire est faite : c'est maintenant qu'elle compte au
+            // volume échangé de la mission (lot 8.1), et pas au départ, où la
+            // marchandise n'était qu'engagée.
+            $ville->compterUnEchange($convoi->valeur());
+
             if (SensDEchange::Vendre === $convoi->getSens()) {
                 $ville->crediterRessources([Ressource::Deben->value => $convoi->valeur()]);
                 $messages[] = \sprintf(

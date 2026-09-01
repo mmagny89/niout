@@ -164,19 +164,13 @@
                             <div class="flex flex-wrap items-baseline justify-between gap-3">
                                 <span class="text-encre-900">{{ ligne.objectif.libelle }}</span>
                                 <span class="text-sm {{ ligne.atteint ? 'text-lapis-500' : 'text-encre-500' }}" data-chiffres>
-                                    {% if ligne.avancement is null %}
-                                        mesure à venir
-                                    {% else %}
-                                        {{ ligne.avancement }} / {{ ligne.objectif.seuilMesure }}
-                                    {% endif %}
+                                    {{ ligne.avancement }} / {{ ligne.objectif.seuilMesure }}
                                 </span>
                             </div>
-                            {% if ligne.avancement is not null %}
-                                <div class="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
-                                    <div class="h-full {{ ligne.atteint ? 'bg-lapis-500' : 'bg-terre-500' }}"
-                                         style="width: {{ min(100, (ligne.avancement * 100 / max(1, ligne.objectif.seuilMesure))|round) }}%"></div>
-                                </div>
-                            {% endif %}
+                            <div class="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                                <div class="h-full {{ ligne.atteint ? 'bg-lapis-500' : 'bg-terre-500' }}"
+                                     style="width: {{ min(100, (ligne.avancement * 100 / max(1, ligne.objectif.seuilMesure))|round) }}%"></div>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>

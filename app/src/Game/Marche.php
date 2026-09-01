@@ -84,6 +84,9 @@ final readonly class Marche
             Effectifs::RENDEMENT_PLEIN,
         );
         $ville->crediterRessources([Ressource::Deben->value => $recette]);
+        // Ce qui passe par le Marché compte au volume échangé, comme ce qui
+        // passe par une caravane (doc 09).
+        $ville->compterUnEchange($recette);
 
         if ($recette >= self::RECETTE_DUN_GROS_CONTRAT) {
             $partie->getFamille()->ajusterRenommee(1);

@@ -666,9 +666,15 @@ ne l'invente pas.
 **Un objectif atteint le reste** (`ObjectifDeMission`, doc 09) : une
 trésorerie qu'on dépense, une population qui fond, une ressource qu'on vend ne
 doivent jamais reprendre ce qui a été obtenu — le joueur serait puni d'avoir
-joué. **Un objectif dont la mesure n'existe pas encore vaut `null`, jamais
-zéro**, et n'est jamais compté comme atteint : afficher un zéro qui ne bougera
-pas est le piège d'`ajusterRenommee()` rendu visible. **Les seuils sont
+joué. D'où deux compteurs **cumulatifs** sur la ville : `ressourcesRapportees`,
+tenu dans `crediterRessources()` parce que c'est le **seul passage obligé**
+(même raison que le plafond de réserve), et `valeurEchangee`, comptée au Marché
+et **au retour d'un convoi** — au départ, la marchandise est engagée, pas
+encore échangée.
+
+**Chaque type d'objectif doit avoir une mesure qui bouge**, et c'est vérifié
+une par une (`ObjectifsDeMissionTest`), jamais déclaré par un drapeau : c'est
+le garde-fou contre le piège d'`ajusterRenommee()`. **Les seuils sont
 recalibrés sur l'économie mesurée**, pas recopiés du doc 09 — qui les a
 chiffrés avant les Phases 4 et 5 et comptait encore en or.
 

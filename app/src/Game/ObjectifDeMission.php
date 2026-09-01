@@ -49,10 +49,15 @@ final readonly class ObjectifDeMission
     }
 
     /**
-     * Où en est le joueur. **Nul quand la mesure n'existe pas encore** — mieux
-     * vaut le dire que d'afficher un zéro qui ne bougera jamais.
+     * Où en est le joueur.
+     *
+     * **Les six mesures existent, et chacune bouge** — c'est vérifié une par
+     * une, pas déclaré. Un objectif indexé sur une valeur que rien ne fait
+     * changer est le piège d'`ajusterRenommee()` ; un drapeau « pas encore
+     * mesuré » ne l'aurait pas évité, un test qui fait bouger chaque mesure
+     * si.
      */
-    public function avancement(GameSave $partie): ?int
+    public function avancement(GameSave $partie): int
     {
         $ville = $partie->getVille();
 
@@ -63,7 +68,10 @@ final readonly class ObjectifDeMission
             TypeDObjectif::Infrastructure => null !== $this->batiment
                 ? ($ville->batimentDeType($this->batiment)?->getNiveau() ?? 0)
                 : 0,
-            TypeDObjectif::Commerce, TypeDObjectif::Ressource => null,
+            TypeDObjectif::Commerce => $ville->getValeurEchangee(),
+            TypeDObjectif::Ressource => null !== $this->ressource
+                ? $ville->ressourceRapportee($this->ressource)
+                : 0,
         };
     }
 
@@ -81,9 +89,7 @@ final readonly class ObjectifDeMission
 
     public function estAtteint(GameSave $partie): bool
     {
-        $avancement = $this->avancement($partie);
-
-        return null !== $avancement && $avancement >= $this->seuilMesure();
+        return $this->avancement($partie) >= $this->seuilMesure();
     }
 
     /**
