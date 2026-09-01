@@ -74,6 +74,7 @@
                                     <form method="post" action="{{ path('app_partie_etal', {id: partie.id}) }}"
                                           class="flex flex-wrap items-baseline gap-x-3 gap-y-2">
                                         <input type="hidden" name="_token" value="{{ csrf_token('etal') }}">
+                                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                                         <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
                                         <input type="hidden" name="ressource" value="{{ ligne.ressource.value }}">
                                         <input type="hidden" name="sens" value="{{ ligne.sens.value }}">
@@ -130,6 +131,7 @@
                     <form method="post" action="{{ path('app_partie_commercer', {id: partie.id}) }}"
                           class="mt-3 flex flex-wrap items-baseline gap-3">
                         <input type="hidden" name="_token" value="{{ csrf_token('commercer') }}">
+                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                         <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
                         <span class="text-sm text-encre-500" data-chiffres>{{ offre.cout }} deben</span>
                         <button type="submit"

@@ -236,7 +236,13 @@ final class CarteTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         $client->submit($crawler->selectButton('Quinzaine suivante')->form());
 
-        self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
+        // Et sur l'onglet d'où l'on est parti : on passe souvent plusieurs
+        // quinzaines de suite depuis le même panneau.
+        self::assertResponseRedirects(\sprintf(
+            '/partie/%d/ville?onglet=%s',
+            $partie->getId(),
+            TypeDeBatiment::ResidenceFamiliale->value,
+        ));
     }
 
     public function testAvancerLeTempsDepuisLaCarteYRamene(): void

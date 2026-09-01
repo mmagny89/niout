@@ -40,6 +40,7 @@
                stateless_token_ids, donc pas de contrôleur Stimulus —
                il écraserait un jeton valide par un jeton généré. #}
             <input type="hidden" name="_token" value="{{ csrf_token('appeler') }}">
+            <input type="hidden" name="onglet" value="{{ onglet.cle }}">
 
             <span class="text-sm text-encre-500" data-chiffres>
                 {{ coutDUnAppel }} deben la maisonnée

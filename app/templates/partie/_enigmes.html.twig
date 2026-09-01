@@ -24,6 +24,7 @@
                 <form method="post" action="{{ path('app_partie_enigme', {id: partie.id}) }}"
                       class="mt-4 flex flex-col gap-2">
                     <input type="hidden" name="_token" value="{{ csrf_token('enigme') }}">
+                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                     <input type="hidden" name="enigme" value="{{ question.enigme.value }}">
 
                     {% for proposition in question.propositions %}

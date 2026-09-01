@@ -248,7 +248,13 @@ final class VilleTest extends WebTestCase
 
         $client->submit($formulaire->form());
 
-        self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
+        // On revient sur l'onglet d'où l'appel est parti — le Quartier
+        // d'habitation, qui porte le logement.
+        self::assertResponseRedirects(\sprintf(
+            '/partie/%d/ville?onglet=%s',
+            $partie->getId(),
+            TypeDeBatiment::QuartierDHabitation->value,
+        ));
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'maisonnée s\'installe');
 

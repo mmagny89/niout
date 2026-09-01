@@ -26,6 +26,7 @@
         <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}"
               class="mt-3 flex flex-wrap items-center gap-3">
             <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
+            <input type="hidden" name="onglet" value="{{ onglet.cle }}">
             <input type="hidden" name="retour" value="app_partie_ville">
             <button type="submit"
                     class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">

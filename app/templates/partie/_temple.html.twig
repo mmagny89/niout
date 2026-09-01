@@ -86,6 +86,7 @@
                     <form method="post" action="{{ path('app_partie_offrir', {id: partie.id}) }}"
                           class="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-3">
                         <input type="hidden" name="_token" value="{{ csrf_token('offrir') }}">
+                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                         <input type="hidden" name="divinite" value="{{ dieu.divinite.value }}">
 
                         <label for="offrande-{{ dieu.divinite.value }}" class="text-sm text-encre-600">Offrir</label>

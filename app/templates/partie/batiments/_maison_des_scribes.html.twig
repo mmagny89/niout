@@ -22,6 +22,7 @@
           class="mt-4 max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5"
           data-controller="dechiffrage">
         <input type="hidden" name="_token" value="{{ csrf_token('dechiffrer') }}">
+        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
         <input type="hidden" name="inscription" value="{{ inscription.value }}">
         <input type="hidden" name="ordre" value="" data-dechiffrage-target="reponse">
 
@@ -150,6 +151,7 @@
                     <form method="post" action="{{ path('app_partie_conclure', {id: partie.id}) }}"
                           class="mt-3 flex flex-col gap-2">
                         <input type="hidden" name="_token" value="{{ csrf_token('conclure') }}">
+                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                         <input type="hidden" name="enquete" value="{{ dossier.enquete.value }}">
 
                         {% for conclusion in entree.conclusions %}

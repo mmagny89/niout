@@ -144,6 +144,14 @@
                             {# Le joueur revient où il était : avancer le temps
                                depuis la ville ne doit pas l'éjecter sur la carte. #}
                             <input type="hidden" name="retour" value="{{ app.request.attributes.get('_route') }}">
+                            {# L'onglet ouvert voyage avec la quinzaine : on la
+                               passe souvent plusieurs fois de suite depuis le
+                               même panneau, et repartir de la Résidence
+                               familiale à chaque fois serait une reprise à
+                               refaire. #}
+                            {% if ongletActif is defined %}
+                                <input type="hidden" name="onglet" value="{{ ongletActif }}">
+                            {% endif %}
                             <button type="submit"
                                     class="rounded-sm bg-lapis-500 px-4 py-1.5 text-sm font-medium text-sable-50 hover:bg-lapis-600">
                                 Quinzaine suivante
