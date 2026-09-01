@@ -323,6 +323,44 @@ final class ErgonomieTest extends WebTestCase
         );
     }
 
+    /**
+     * **Chaque message se ferme.**.
+     *
+     * Le journal d'une quinzaine est long — fièvre, salaires, récoltes, dieux
+     * —, et dans la coque du jeu la pile flotte au-dessus du contenu jusqu'à la
+     * navigation suivante : elle recouvrait le haut du panneau ouvert, et il
+     * fallait avancer d'une quinzaine pour retrouver son écran.
+     *
+     * Un test fonctionnel n'exécute pas le JavaScript et ne peut donc pas
+     * prouver que le message disparaît. La parade est la même que pour le jeton
+     * CSRF sans état : une **assertion de structure** sur le contrôleur et
+     * l'action qui le pilotent.
+     */
+    public function testChaqueMessageDeLaPartiePeutEtreFerme(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'fermer-message@example.com');
+
+        // Le geste qui en produit le plus : une quinzaine, dont le journal
+        // empile tout ce qui s'est passé.
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->submit($crawler->selectButton('Quinzaine suivante')->form());
+        $crawler = $client->followRedirect();
+
+        $messages = $crawler->filter('[role="alert"], [role="status"]');
+
+        self::assertGreaterThan(0, $messages->count(), 'Une quinzaine passée se raconte au joueur.');
+        self::assertSame(
+            $messages->count(),
+            $crawler->filter('[data-controller="flash"]')->count(),
+            'Sans le contrôleur, Stimulus ne charge jamais le script qui ferme le message.',
+        );
+        self::assertSame(
+            $messages->count(),
+            $crawler->filter('[data-controller="flash"] button[data-action="flash#fermer"]')->count(),
+        );
+    }
+
     private function lancer(KernelBrowser $client, string $email, bool $divin = false): GameSave
     {
         $user = new User();

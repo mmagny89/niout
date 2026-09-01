@@ -188,32 +188,34 @@ final class ProspectionTest extends KernelTestCase
     }
 
     /**
-     * **Toutes les cases ne se valent pas** (décision de la joueuse). Une
-     * carrière encore en activité dont la veine s'est tarie se retrouve à coup
-     * sûr — les équipes sont dessus, elles savent où le filon s'est perdu ; du
-     * sable vierge tient du pari. Un pourcentage unique laissait croire le
-     * contraire.
+     * **Retrouver une veine tarie est certain**, et c'est voulu : l'épuisement
+     * doit coûter du temps et de l'argent — le trajet, quarante deben, puis
+     * rouvrir la carrière et la rééquiper —, jamais fermer une région. Les
+     * galeries sont creusées et la géologie connue ; la question n'est plus de
+     * savoir s'il y a du matériau ici.
+     *
+     * Chercher du **neuf**, en revanche, reste un pari : c'est là que le hasard
+     * a sa place.
      */
-    public function testUneVeineEncoreExploiteeSeRetrouveACoupSur(): void
+    public function testRetrouverUneVeineTarieEstCertainMaisTrouverDuNeufEstUnPari(): void
     {
         self::bootKernel();
-        $partie = $this->lancerPartie('veine-exploitee@example.com');
+        $partie = $this->lancerPartie('veine-tarie@example.com');
         $zone = $this->caseAGisement($partie);
         $gisement = $this->filonTarissable($zone);
-        $gisement->extraire($gisement->getQuantiteRestante());
 
-        // Filon tari mais abandonné : la trace est là, il faut la retrouver.
-        self::assertSame(
-            Prospection::CHANCES_SUR_UNE_VEINE_DORMANTE,
-            $this->prospection()->chancesSur($partie, $zone) - $this->ecartDeTerrain($zone),
+        $avant = $this->prospection()->chancesSur($partie, $zone);
+        self::assertLessThan(
+            Prospection::CHANCES_SUR_UNE_VEINE_TARIE,
+            $avant,
+            'Tant que le filon donne, prospecter cherche du neuf : ce n\'est pas acquis.',
         );
 
-        $gisement->exploiter();
+        $gisement->extraire($gisement->getQuantiteRestante());
 
         self::assertSame(
-            Prospection::CHANCES_SUR_UNE_VEINE_EXPLOITEE,
+            Prospection::CHANCES_SUR_UNE_VEINE_TARIE,
             $this->prospection()->chancesSur($partie, $zone),
-            'Une carrière en activité retrouve sa veine à coup sûr.',
         );
     }
 
@@ -251,21 +253,6 @@ final class ProspectionTest extends KernelTestCase
             self::assertGreaterThanOrEqual(5, $chances);
             self::assertLessThanOrEqual(100, $chances);
         }
-    }
-
-    /**
-     * L'écart que le terrain applique, pour isoler la situation de la case du
-     * sol qui la porte.
-     */
-    private function ecartDeTerrain(Zone $zone): int
-    {
-        return match ($zone->getTerrain()) {
-            TypeDeTerrain::Nil, TypeDeTerrain::Fertile => 10,
-            TypeDeTerrain::TerreClassique, TypeDeTerrain::Oasis => 5,
-            TypeDeTerrain::Foret => -5,
-            TypeDeTerrain::Desert => -15,
-            default => 0,
-        };
     }
 
     /**

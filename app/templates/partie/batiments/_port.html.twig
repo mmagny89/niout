@@ -6,11 +6,12 @@
 {{ include('partie/batiments/_entete.html.twig') }}
 {{ include('partie/batiments/_direction.html.twig') }}
 
-<h3 class="mt-8 text-xl text-encre-900">La pêche</h3>
-<p class="mt-2 max-w-3xl text-sm text-encre-500">
+<p class="mt-6 max-w-3xl text-sm text-encre-500">
     Le niveau du Port élargit l'équipage d'une pêcherie et ce qu'elle rend.
-    Les bancs se choisissent sur le territoire :
-    <a href="{{ path('app_partie_carte', {id: partie.id}) }}" class="text-lapis-500">ouvrir la carte</a>.
+    <strong class="text-encre-700">Le poisson ne s'épuise jamais</strong> : un
+    banc se reconstitue d'une quinzaine à l'autre.
 </p>
+
+{{ include('partie/batiments/_exploitations.html.twig', {titreDuRecap: 'Vos pêcheries', recapVide: 'Aucun banc reconnu. Les eaux poissonneuses se repèrent en explorant.'}) }}
 
 {{ include('partie/batiments/_routes.html.twig') }}
