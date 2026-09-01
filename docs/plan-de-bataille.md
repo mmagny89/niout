@@ -647,7 +647,7 @@ me coûte deux quinzaines ; à la reprise, je vois ce que j'avais négligé. »*
 | 7.5 | D'où viennent les indices : l'Éclaireur et l'Émissaire | ✅ |
 | 7.6 | Le fil rouge en trois actes, sur la mission 1 | ✅ |
 | 7.7 | Les deux Scribes, et Thot qui cesse d'attendre | ✅ |
-| 7.8 | Les marchands rivaux, reportés de la Phase 5 | |
+| 7.8 | Les marchands rivaux, reportés de la Phase 5 | ✅ |
 
 #### 7.0 — La clé de lecture  ✅
 
@@ -881,7 +881,7 @@ Dévoué) et **abrège la reprise d'un dossier mal conclu** — de deux quinzain
 naval. Un test verrouille la liste — elle doit rétrécir, jamais s'allonger en
 silence.
 
-#### 7.8 — Les marchands rivaux
+#### 7.8 — Les marchands rivaux  ✅
 
 Reportés en bloc de la Phase 5 (décision de la joueuse) parce que **l'une de
 leurs trois issues est une enquête** : les écrire sans elle revenait à les

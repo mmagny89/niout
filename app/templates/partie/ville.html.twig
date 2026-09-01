@@ -505,6 +505,35 @@
 
         <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-10 pt-4" role="tabpanel"
              id="panneau-commerce" aria-labelledby="onglet-commerce" data-onglets-target="panneau" hidden>
+        {# Un rival ne détruit rien : il prend une part de ce qui passe. Les
+           trois issues du doc 08 sont ouvertes, et l'une d'elles est de ne
+           rien faire. #}
+        {% if rival %}
+            <div class="max-w-3xl rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-4">
+                <h2 class="font-display text-lg text-encre-900">{{ rival.nom }}</h2>
+                <p class="mt-1 text-sm text-encre-700">
+                    Il s'est installé sur une de vos routes et vous prend
+                    <span data-chiffres>{{ rival.malusEnCentiemes }} %</span> de ce qui passe.
+                    Il se lassera dans <span data-chiffres>{{ rival.quinzainesRestantes }}</span>
+                    quinzaine(s) si vous le laissez faire.
+                </p>
+                <p class="mt-2 text-sm text-encre-500">
+                    Vous pouvez le payer pour qu'il s'écarte, ou chercher sur quoi il tient —
+                    vos gens trouveront de quoi le démonter, et il ne reviendra pas.
+                </p>
+
+                {% if partie.estEnCours %}
+                    <form method="post" action="{{ path('app_partie_accord', {id: partie.id}) }}" class="mt-3">
+                        <input type="hidden" name="_token" value="{{ csrf_token('accord') }}">
+                        <button type="submit"
+                                class="rounded-sm border border-ocre-500/40 px-4 py-2 text-sm text-encre-700 hover:bg-ocre-300/20">
+                            Passer un accord — <span data-chiffres>{{ prixDeLAccord }}</span> deben
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+
         {# Les routes commerciales. Ce ne sont pas des cases sur la carte mais
            des débouchés, hors grille : le niveau du bâtiment qui les arme
            décide de ce qu'un convoi porte. #}

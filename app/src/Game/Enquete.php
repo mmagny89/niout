@@ -27,6 +27,7 @@ enum Enquete: string
     case PassageCoupe = 'passage_coupe';
     case CarrieresAbandonnees = 'carrieres_abandonnees';
     case RumeurDeLaCaravane = 'rumeur_de_la_caravane';
+    case MalversationDuRival = 'malversation_du_rival';
 
     public function libelle(): string
     {
@@ -34,6 +35,7 @@ enum Enquete: string
             self::PassageCoupe => 'Le passage coupé',
             self::CarrieresAbandonnees => 'Les carrières abandonnées',
             self::RumeurDeLaCaravane => 'La rumeur de la caravane',
+            self::MalversationDuRival => 'La malversation du rival',
         };
     }
 
@@ -43,6 +45,7 @@ enum Enquete: string
             self::PassageCoupe => 'Une terre fertile, à deux pas de la ville, que personne ne cultive. Pourquoi la laisse-t-on ?',
             self::CarrieresAbandonnees => 'Des outils rouillés, des cabanes vides : on a extrait ici, puis on est parti. Qu\'a-t-on fui ?',
             self::RumeurDeLaCaravane => 'Deux caravaniers racontent la même route, et ne s\'accordent sur rien. Lequel ment ?',
+            self::MalversationDuRival => 'Un marchand s\'est installé sur votre route et vous prend une part de ce qui passe. Sur quoi tient-il ?',
         };
     }
 
@@ -56,6 +59,16 @@ enum Enquete: string
     }
 
     /**
+     * Une enquête qui n'a de sens qu'avec un rival en face : ses indices ne se
+     * ramassent pas tant que personne ne vous concurrence. Sans cette réserve,
+     * on démonterait un marchand avant qu'il n'arrive.
+     */
+    public function viseUnRival(): bool
+    {
+        return self::MalversationDuRival === $this;
+    }
+
+    /**
      * Combien d'indices concordants il faut avoir réunis pour pouvoir
      * conclure. Les fausses pistes n'y comptent pas — c'est précisément ce
      * qu'on doit démêler.
@@ -66,6 +79,7 @@ enum Enquete: string
             self::PassageCoupe => 3,
             self::CarrieresAbandonnees => 2,
             self::RumeurDeLaCaravane => 2,
+            self::MalversationDuRival => 2,
         };
     }
 
@@ -96,6 +110,12 @@ enum Enquete: string
                 'Tous deux disent vrai : la piste a changé entre leurs passages.',
                 'Tous deux mentent : aucune caravane n\'est passée depuis un an.',
             ],
+            self::MalversationDuRival => [
+                'Il fausse ses poids et sous-déclare au péage : la preuve est dans ses propres tablettes.',
+                'Il paie la garnison pour détourner les caravanes, et rien ne l\'écrit.',
+                'Il a de meilleurs prix parce qu\'il produit moins cher : rien à lui reprocher.',
+                'Il agit pour le compte d\'un nomarque, et l\'on ne touche pas à cela.',
+            ],
         };
     }
 
@@ -114,6 +134,7 @@ enum Enquete: string
             self::PassageCoupe => 'Un campement s\'était installé au coude de la route, et la digue rompue noyait les abords pour tenir les curieux à distance. La terre n\'avait rien perdu de sa qualité : il fallait rouvrir le passage, pas renoncer au champ.',
             self::CarrieresAbandonnees => 'Le front de taille butait sur du calcaire stérile. On abandonne un chantier épuisé comme on quitte une maison vide — sans emporter ce qui ne servira plus ailleurs.',
             self::RumeurDeLaCaravane => 'Le registre du péage ne portait aucun passage : le premier caravanier n\'avait pas pris la piste dont il vantait la sûreté. Le second, lui, avait vu le ouadi de ses yeux.',
+            self::MalversationDuRival => 'Ses deux jeux de poids ne s\'accordaient pas, et ses tablettes déclaraient au péage moins qu\'il ne chargeait. Porté au scribe du nome, cela suffit : le marchand a quitté la route sans demander son reste.',
         };
     }
 
@@ -124,7 +145,13 @@ enum Enquete: string
      */
     public function recompenseEnDeben(): int
     {
-        return $this->estPrincipale() ? 80 : 60;
+        return match (true) {
+            $this->estPrincipale() => 80,
+            // Démonter un rival est la plus longue des trois issues du
+            // doc 08 : c'est aussi la plus payante.
+            $this->viseUnRival() => 100,
+            default => 60,
+        };
     }
 
     /**

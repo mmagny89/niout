@@ -29,6 +29,7 @@ final readonly class PassageDeCycle
         private Negligence $negligence,
         private Providence $providence,
         private Epidemies $epidemies,
+        private Rivaux $rivaux,
         private DepartsNaturels $departs,
         private TirageDeLaCrue $crues,
         private EntityManagerInterface $entityManager,
@@ -94,6 +95,9 @@ final readonly class PassageDeCycle
             // Puis ce que les dieux font d'eux-mêmes, une fois leur palier à
             // jour : bénédiction d'un dévoué, revers d'un hostile.
             ...$this->providence->avancerDUnCycle($partie),
+            // Et ce que la renommée attire : un marchand qui vient disputer
+            // une route (doc 08).
+            ...$this->rivaux->avancerDUnCycle($partie),
         ];
 
         $partie->avancerDUnCycle();

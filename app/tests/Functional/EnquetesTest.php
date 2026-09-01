@@ -15,6 +15,7 @@ use App\Game\Enquetes;
 use App\Game\Indice;
 use App\Game\LanceurDePartie;
 use App\Game\NatureDIndice;
+use App\Game\Rivaux;
 use App\Game\SourceDIndice;
 use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -273,6 +274,7 @@ final class EnquetesTest extends WebTestCase
     {
         return new Enquetes(
             static::getContainer()->get(EntityManagerInterface::class),
+            static::getContainer()->get(Rivaux::class),
             new Randomizer(new Mt19937(20260831)),
         );
     }

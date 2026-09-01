@@ -294,7 +294,9 @@ final readonly class Commerce
     ): array {
         $ville = $partie->getVille();
         $niveau = $ville->batimentDeType($partenaire->route->batiment())?->getNiveau() ?? 0;
-        $volume = $partenaire->volumeParConvoi($niveau);
+        // Un rival installé sur cette route prend sa part de ce qui passe
+        // (doc 08). Il rogne le volume, il n'interdit rien.
+        $volume = $this->apresLeRival($partie, $route->getPartenaire(), $partenaire->volumeParConvoi($niveau));
         $avantage = $this->avantageDuNegociateur($ville, $partie->getCycle());
         $trajet = $this->trajetVers($partenaire, $ville, $partie->getCycle());
         $messages = [];
@@ -418,7 +420,7 @@ final readonly class Commerce
                 'partenaire' => $partenaire,
                 'route' => $ville->routeVers($partenaire->cle),
                 'cout' => $cout,
-                'volume' => $partenaire->volumeParConvoi($niveau),
+                'volume' => $this->apresLeRival($partie, $partenaire->cle, $partenaire->volumeParConvoi($niveau)),
                 'realisable' => null === $empechement,
                 'empechement' => $empechement,
             ];
@@ -446,6 +448,22 @@ final readonly class Commerce
      * distance doit continuer de décider de la fréquence des convois — c'est
      * elle qui fait qu'une cité lointaine commerce rarement.
      */
+    /**
+     * Ce qui reste du volume une fois le rival servi. **Jamais moins d'une
+     * unité tant que la route porte quelque chose** : un rival gêne, il ne
+     * ferme pas une route.
+     */
+    private function apresLeRival(GameSave $partie, string $partenaire, int $volume): int
+    {
+        $malus = Rivaux::malusSur($partie, $partenaire);
+
+        if (0 === $malus) {
+            return $volume;
+        }
+
+        return max(1, $volume - intdiv($volume * $malus, 100));
+    }
+
     public function trajetVers(PartenaireCommercial $partenaire, \App\Entity\City $ville, int $cycle): int
     {
         $distance = $partenaire->distanceEnQuinzaines;

@@ -36,6 +36,7 @@ final readonly class Enquetes
 
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private Rivaux $rivaux,
         private Randomizer $hasard = new Randomizer(),
     ) {
     }
@@ -161,6 +162,12 @@ final readonly class Enquetes
             $dossier->conclure(StatutDEnquete::Resolue);
             $partie->getVille()->crediterRessources([Ressource::Deben->value => $enquete->recompenseEnDeben()]);
             $partie->getFamille()->ajusterRenommee(1);
+
+            // La troisième issue du doc 08 : le rival est démonté, et il ne
+            // revient pas — contrairement à celui qu'on paie ou qu'on ignore.
+            if ($enquete->viseUnRival()) {
+                $this->rivaux->neutraliserParLEnquete($partie);
+            }
         } elseif ($enquete->estPrincipale()) {
             $dossier->retarderJusquAu($partie->getCycle() + self::retardDUneErreur($partie));
         } else {
@@ -216,6 +223,11 @@ final readonly class Enquetes
             }
 
             if ($ville->dossierDe($indice->enquete())?->contient($indice) ?? false) {
+                continue;
+            }
+
+            // On ne démonte pas un marchand avant qu'il n'arrive.
+            if ($indice->enquete()->viseUnRival() && null === $ville->getRival()) {
                 continue;
             }
 

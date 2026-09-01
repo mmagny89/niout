@@ -40,6 +40,11 @@ enum Indice: string
     case RecitDuSecond = 'recit_du_second';
     case RegistreDuPeage = 'registre_du_peage';
 
+    // La malversation du rival — ne se ramassent qu'avec un rival en face.
+    case DoubleJeuDePoids = 'double_jeu_de_poids';
+    case TablettesDuRival = 'tablettes_du_rival';
+    case PlainteDunPorteur = 'plainte_dun_porteur';
+
     public function enquete(): Enquete
     {
         return match ($this) {
@@ -48,6 +53,8 @@ enum Indice: string
             self::OutilsRouilles, self::FilonEpuise, self::MarqueDeCrue => Enquete::CarrieresAbandonnees,
             self::RecitDuPremierCaravanier, self::RecitDuSecond,
             self::RegistreDuPeage => Enquete::RumeurDeLaCaravane,
+            self::DoubleJeuDePoids, self::TablettesDuRival,
+            self::PlainteDunPorteur => Enquete::MalversationDuRival,
         };
     }
 
@@ -65,6 +72,9 @@ enum Indice: string
             self::RecitDuPremierCaravanier => 'Le premier jure que la piste est sûre, et qu\'il l\'a prise le mois dernier.',
             self::RecitDuSecond => 'Le second jure le contraire, et décrit un ouadi que le premier n\'a pas nommé.',
             self::RegistreDuPeage => 'Le registre du péage ne porte aucun passage depuis deux quinzaines.',
+            self::DoubleJeuDePoids => 'Deux jeux de poids dans le même coffre, et ils ne s\'accordent pas.',
+            self::TablettesDuRival => 'Ses tablettes déclarent au péage moins qu\'il ne charge : l\'écart revient à chaque ligne.',
+            self::PlainteDunPorteur => 'Un porteur se plaint d\'avoir été payé en grain gâté. Il en veut à tout le monde.',
         };
     }
 
@@ -73,9 +83,11 @@ enum Indice: string
         return match ($this) {
             self::BorneRenversee, self::TracesDeCampement, self::DigueRompue,
             self::OutilsRouilles, self::FilonEpuise,
-            self::RecitDuSecond, self::RegistreDuPeage => NatureDIndice::Concordant,
+            self::RecitDuSecond, self::RegistreDuPeage,
+            self::DoubleJeuDePoids, self::TablettesDuRival => NatureDIndice::Concordant,
             self::VieuxPuitsATarir, self::MarqueDeCrue => NatureDIndice::Optionnel,
-            self::OstraconDeGarnison, self::RecitDuPremierCaravanier => NatureDIndice::Trompeur,
+            self::OstraconDeGarnison, self::RecitDuPremierCaravanier,
+            self::PlainteDunPorteur => NatureDIndice::Trompeur,
         };
     }
 
@@ -86,7 +98,8 @@ enum Indice: string
     {
         return match ($this) {
             self::OstraconDeGarnison, self::RecitDuPremierCaravanier,
-            self::RecitDuSecond, self::RegistreDuPeage => SourceDIndice::Temoignage,
+            self::RecitDuSecond, self::RegistreDuPeage,
+            self::PlainteDunPorteur => SourceDIndice::Temoignage,
             default => SourceDIndice::Terrain,
         };
     }
