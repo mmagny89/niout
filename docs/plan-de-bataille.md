@@ -738,7 +738,7 @@ lègue quelque chose pour la suite, et Thoutmôsis Ier m'envoie à Saï. »*
 | 8.0 | Les objectifs d'une mission, visibles dès le premier jour | ✅ |
 | 8.1 | Mesurer l'avancement : ce que le jeu sait déjà compter, et ce qu'il ignore | ✅ |
 | 8.2 | Achever une mission : réussite totale, réussite partielle | ✅ |
-| 8.3 | Les quêtes de chantier du pharaon | |
+| 8.3 | Les quêtes de chantier du pharaon | ✅ |
 | 8.4 | Les dix fils rouges | |
 | 8.5 | Enchaîner : de la mission N à la mission N+1 | |
 | 8.6 | Le legs du pharaon | |
@@ -842,7 +842,7 @@ la volonté du roi est accomplie, et c'est ce qui compte.
 jamais : une ville qui s'enrichirait après coup ne doit pas voir sa réussite
 monter, ni une ville qui se viderait la voir se dégrader. La mission est finie.
 
-#### 8.3 — Les quêtes de chantier
+#### 8.3 — Les quêtes de chantier  ✅
 
 Le pharaon commanditaire réclame ponctuellement des ressources pour un chantier
 qu'il a **réellement fait bâtir** : la pyramide d'Ahmôsis à Abydos, les
@@ -855,7 +855,18 @@ d'autre** — le joueur reste libre de sa stratégie.
 
 Chaque quête porte **deux ou trois phrases pédagogiques** sur le monument
 réel : c'est la même exigence qu'aux lots 7.0 et 7.2, et le même garde-fou —
-ce qu'on apprend doit être vrai.
+ce qu'on apprend doit être vrai. Un test vérifie que **chaque pharaon de la
+campagne a bien bâti quelque chose**.
+
+**Il réclame ce que la région porte** : envoyer chercher au loin ce qu'on a
+sous les pieds n'aurait pas de sens, et rendrait la quête impossible dans la
+moitié des missions.
+
+**Laisser filer le délai revient à refuser** — sans cela, attendre serait
+toujours meilleur que décliner, et le délai ne voudrait rien dire.
+
+**Le chantier d'Akhenaton ne rapporte aucune faveur**, et c'est
+historiquement juste : il n'honorait qu'Aton, absent du panthéon du jeu.
 
 #### 8.4 — Les dix fils rouges
 

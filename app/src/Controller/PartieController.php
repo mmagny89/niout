@@ -52,6 +52,8 @@ use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\QueteImpossible;
+use App\Game\QuetesDeChantier;
 use App\Game\Recette;
 use App\Game\RecrutementImpossible;
 use App\Game\Recrutements;
@@ -215,6 +217,7 @@ final class PartieController extends AbstractController
             // transparence évite de découvrir tardivement des conditions
             // qu'on n'a pas pu anticiper.
             'mission' => $mission,
+            'quete' => $ville->getQueteDeChantier(),
             'objectifs' => array_map(
                 static fn (ObjectifDeMission $objectif): array => [
                     'objectif' => $objectif,
@@ -771,6 +774,31 @@ final class PartieController extends AbstractController
         try {
             $this->addFlash('succes', $rivaux->passerUnAccord($partie));
         } catch (CommerceImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_ville', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Répond à une requête du pharaon : livrer, ou décliner.
+     *
+     * **Jamais obligatoire** (doc 09) : refuser coûte deux points de renommée
+     * et rien d'autre.
+     */
+    #[Route('/{id}/ville/quete', name: 'app_partie_quete', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function repondreALaQuete(Request $request, GameSave $partie, QuetesDeChantier $quetes): Response
+    {
+        if (!$this->isCsrfTokenValid('quete', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        try {
+            $this->addFlash('succes', $request->request->has('refuser')
+                ? $quetes->refuser($partie)
+                : $quetes->livrer($partie));
+        } catch (QueteImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }
 

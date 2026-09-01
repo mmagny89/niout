@@ -175,6 +175,39 @@
                     {% endfor %}
                 </ul>
 
+                {# Les requêtes du pharaon ne comptent pas dans la réussite :
+                   elles font gagner du renom et de la faveur, et refuser ne
+                   coûte que deux points (doc 09). #}
+                {% if quete %}
+                    <h3 class="mt-8 text-lg text-encre-900">Une requête du pharaon</h3>
+                    <div class="mt-3 max-w-3xl rounded-sm border-l-4 border-or-300 bg-or-300/10 px-5 py-4">
+                        <p class="text-encre-900">
+                            {{ mission.pharaon }} réclame
+                            <span data-chiffres>{{ quete.quantite }}</span> {{ quete.ressource.libelle }}
+                            pour {{ quete.chantier.libelle }}.
+                        </p>
+                        <p class="mt-1 text-sm text-encre-500">
+                            Encore <span data-chiffres>{{ quete.quinzainesRestantes }}</span> quinzaine(s).
+                            Laisser filer le délai revient à décliner.
+                        </p>
+
+                        {% if partie.estEnCours %}
+                            <form method="post" action="{{ path('app_partie_quete', {id: partie.id}) }}"
+                                  class="mt-3 flex flex-wrap items-center gap-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token('quete') }}">
+                                <button type="submit"
+                                        class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                    Envoyer le chargement
+                                </button>
+                                <button type="submit" name="refuser" value="1"
+                                        class="text-sm text-encre-500 underline hover:text-terre-600">
+                                    Décliner
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
                 <p class="mt-4 max-w-3xl text-xs text-encre-500">
                     Le fil rouge résolu suffit à clore la mission : les objectifs
                     non atteints donnent une reconnaissance plus modeste, jamais un échec.

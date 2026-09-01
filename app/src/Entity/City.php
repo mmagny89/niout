@@ -980,6 +980,32 @@ class City
         return $this;
     }
 
+    /**
+     * Une seule requête royale à la fois : le pharaon attend une réponse avant
+     * d'en formuler une autre.
+     */
+    #[ORM\OneToOne(mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private ?QueteDeChantier $queteDeChantier = null;
+
+    public function getQueteDeChantier(): ?QueteDeChantier
+    {
+        return $this->queteDeChantier;
+    }
+
+    public function recevoirUneQuete(QueteDeChantier $quete): static
+    {
+        $this->queteDeChantier = $quete;
+
+        return $this;
+    }
+
+    public function retirerLaQueteDeChantier(): static
+    {
+        $this->queteDeChantier = null;
+
+        return $this;
+    }
+
     public function estEnModeDivin(): bool
     {
         return $this->modeDivin;
