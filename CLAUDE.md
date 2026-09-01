@@ -370,6 +370,25 @@ pendant le semis, la pousse ou le repos. Un champ du Nil suit la saison
 champ terrestre (Fertile, Oasis) suit son propre compteur, indépendant de la
 saison (`CycleAgricoleTerrestre`, `Zone::quinzainesDepuisSemis`).
 
+**Un filon épuisé se ferme de lui-même** (`Gisement::fermer()`, appelé par
+`Recoltes`). Tant qu'il restait « en activité » sur un vide, il **retenait son
+équipage** — qui manquait ailleurs — et le passage de cycle répétait « le
+gisement est épuisé » à chaque quinzaine, indéfiniment. Le message tombe
+désormais une fois, au moment de la fermeture. Le filon reste sur la carte : une
+prospection y **retrouve la veine à coup sûr** (`CHANCES_SUR_UNE_VEINE_TARIE`,
+seul cas à 100 % du jeu — l'épuisement doit coûter du temps et de l'argent,
+jamais fermer une région), mais il faut ensuite rouvrir l'exploitation : on ne
+rappelle pas des équipes qui sont parties.
+
+**Le joueur doit savoir s'il produit** (`exploitationsParGouvernant()`,
+`_exploitations.html.twig`) : une carrière ouverte, une carrière jamais ouverte
+et une carrière épuisée se ressemblaient sur la carte, case par case, et rien
+ne les réunissait. Le récapitulatif les range **sous le bâtiment qui les
+gouverne** — champs au Grenier, carrières à l'Entrepôt, pêcheries au Port —,
+avec pour chacune son état, ce qu'il reste au filon, son équipage et si elle
+rend quelque chose **cette quinzaine**. Une exploitation ouverte sans un seul
+bras ne produit pas, et le dit.
+
 **Le poisson est la seule ressource renouvelable** (`Ressource::estRenouvelable()`,
 décision de la joueuse) : `Gisement::extraire()` rend son plein sans décompter
 et `estEpuise()` reste faux à jamais. Un Port coûte 50 or, 40 roseaux et
@@ -809,7 +828,13 @@ son bas coupé, sans erreur ni avertissement.
 
 Les messages flash y flottent au-dessus du contenu : un bandeau qui pousse la
 mise en page ferait apparaître une barre de défilement au moment précis où le
-joueur vient d'agir.
+joueur vient d'agir. **Chacun se ferme** (`flash_controller.js`) : le
+journal d'une quinzaine est long, et la pile recouvrait le haut du panneau
+ouvert jusqu'à la navigation suivante — il fallait avancer d'une quinzaine pour
+retrouver son écran. Rien ne s'efface tout seul pour autant : un message qui
+s'évanouit est un message qu'on n'a pas fini de lire. Aucun test fonctionnel
+n'exécutant le JavaScript, la parade est une assertion de structure sur le
+contrôleur et l'action — comme pour le jeton CSRF sans état.
 
 **Tout ce qui ne défile pas est de la hauteur en moins.** Dans la coque du
 jeu, un bandeau fixe se paie sur le panneau ouvert — et s'il dépasse la

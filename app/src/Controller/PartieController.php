@@ -233,6 +233,10 @@ final class PartieController extends AbstractController
             'routes' => $commerce->offrePour($partie),
             'etals' => $this->etalsDesRoutesOuvertes($partie, $commerce),
             'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
+            // Le récapitulatif du territoire, rangé sous le bâtiment qui
+            // gouverne chaque exploitation : le joueur ne savait pas s'il
+            // produisait, et devait cliquer case par case pour le savoir.
+            'exploitations' => $this->exploitationsParGouvernant($partie),
             'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
             // Embaucher un chef ouvre des postes : sans ce bilan, le joueur
             // voyait son rendement baisser ailleurs sans comprendre que ses
@@ -1444,6 +1448,88 @@ final class PartieController extends AbstractController
             'id' => $partie->getId(),
             'onglet' => '' !== $onglet ? $onglet : null,
         ], static fn (mixed $valeur): bool => null !== $valeur));
+    }
+
+    /**
+     * Le récapitulatif des exploitations du territoire, **rangé par bâtiment
+     * gouvernant** : les champs au Grenier, les carrières à l'Entrepôt, les
+     * pêcheries au Port.
+     *
+     * Le joueur ne savait pas s'il produisait. Une carrière ouverte, une
+     * carrière jamais ouverte et une carrière épuisée se ressemblaient sur la
+     * carte, case par case, et rien ne les réunissait — il fallait cliquer
+     * chaque case pour faire le compte. Chaque ligne dit donc son état, ce
+     * qu'il reste dans le filon, et si elle produit **cette quinzaine**.
+     *
+     * Les filons dormants et taris y figurent au même titre que ceux en
+     * activité : c'est justement ce qu'on cherche à voir.
+     *
+     * @return array<string, list<array{zone: Zone, ressource: ?Ressource, etat: string, restant: ?int, affectes: int, requis: int, rendement: int, produit: bool}>>
+     */
+    private function exploitationsParGouvernant(GameSave $partie): array
+    {
+        $ville = $partie->getVille();
+        $equipages = Effectifs::repartirLeTerritoire($ville, $partie->getCycle());
+        $recap = [];
+
+        foreach ($ville->getZones() as $zone) {
+            if (!$zone->estDecouverte()) {
+                continue;
+            }
+
+            foreach ($this->exploitationsDe($zone) as $ligne) {
+                $ressource = $ligne['ressource'];
+                $cle = Effectifs::cleDe($zone, $ressource);
+                $equipage = $equipages[$cle] ?? null;
+
+                $recap[Effectifs::batimentGouvernant($ressource)->value][] = [
+                    'zone' => $zone,
+                    'ressource' => $ressource,
+                    'etat' => $ligne['etat'],
+                    'restant' => $ligne['restant'],
+                    'affectes' => $equipage['affectes'] ?? 0,
+                    'requis' => $equipage['requis'] ?? 0,
+                    'rendement' => $equipage['rendement'] ?? 0,
+                    // Ce qui compte pour le joueur : est-ce que ça rend quelque
+                    // chose cette quinzaine ? Une exploitation ouverte sans un
+                    // seul bras ne produit rien.
+                    'produit' => 'en_activite' === $ligne['etat'] && ($equipage['affectes'] ?? 0) > 0,
+                ];
+            }
+        }
+
+        return $recap;
+    }
+
+    /**
+     * Ce qu'une case porte d'exploitable — un champ, des filons, ou rien.
+     *
+     * @return list<array{ressource: ?Ressource, etat: string, restant: ?int}>
+     */
+    private function exploitationsDe(Zone $zone): array
+    {
+        $lignes = [];
+
+        if ($zone->porteUnChamp()) {
+            $lignes[] = ['ressource' => null, 'etat' => 'en_activite', 'restant' => null];
+        }
+
+        foreach ($zone->getGisements() as $gisement) {
+            $lignes[] = [
+                'ressource' => $gisement->getRessource(),
+                'etat' => match (true) {
+                    // L'épuisement passe avant tout : un filon tari est fermé
+                    // par `Recoltes`, mais il reste sur la carte et se rouvre
+                    // par une prospection.
+                    $gisement->estEpuise() => 'epuise',
+                    $gisement->estExploitee() => 'en_activite',
+                    default => 'dormant',
+                },
+                'restant' => $gisement->getRessource()->estRenouvelable() ? null : $gisement->getQuantiteRestante(),
+            ];
+        }
+
+        return $lignes;
     }
 
     /**

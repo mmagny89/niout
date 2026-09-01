@@ -20,18 +20,29 @@
 
 {# Les messages ne prennent aucune place dans la mise en page : ils flottent
    au-dessus. Un bandeau qui pousse le contenu ferait apparaître une barre de
-   défilement au moment précis où le joueur vient d'agir. #}
+   défilement au moment précis où le joueur vient d'agir.
+
+   **Chacun se ferme.** Le journal d'une quinzaine est long — fièvre, salaires,
+   récoltes, dieux —, et la pile recouvrait le haut du panneau ouvert jusqu'à
+   la navigation suivante : il fallait avancer d'une quinzaine pour retrouver
+   son écran. Rien ne s'efface tout seul pour autant ; un message qui
+   s'évanouit est un message qu'on n'a pas fini de lire. #}
 {% block flashes %}
     {% set typesDeFlash = { 'succes': 'good', 'erreur': 'bad' } %}
     <div class="pointer-events-none fixed inset-x-0 top-24 z-40 flex flex-col items-center gap-2 px-5">
         {% for type, style in typesDeFlash %}
             {% for message in app.flashes(type) %}
-                <div role="{{ style == 'bad' ? 'alert' : 'status' }}"
-                     class="pointer-events-auto w-full max-w-xl rounded-sm border-l-4 px-4 py-3 text-sm shadow-lg
+                <div role="{{ style == 'bad' ? 'alert' : 'status' }}" data-controller="flash"
+                     class="pointer-events-auto flex w-full max-w-xl items-start gap-3 rounded-sm border-l-4 px-4 py-3 text-sm shadow-lg
                             {{ style == 'bad'
                                 ? 'border-terre-500 bg-terre-50 text-terre-700'
                                 : 'border-lapis-500 bg-sable-50 text-lapis-600' }}">
-                    {{ message }}
+                    <span class="flex-1">{{ message }}</span>
+                    <button type="button" data-action="flash#fermer"
+                            class="shrink-0 rounded-sm px-2 text-lg leading-none text-encre-500 hover:text-terre-600"
+                            aria-label="Fermer ce message">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
             {% endfor %}
         {% endfor %}
