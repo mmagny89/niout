@@ -23,6 +23,7 @@ final readonly class PassageDeCycle
         private Demographie $demographie,
         private Subsistance $subsistance,
         private Salaires $salaires,
+        private GeographieDeLaPartie $geographies,
         private Fabrication $fabrication,
         private Commerce $commerce,
         private Mecontentement $mecontentement,
@@ -45,7 +46,12 @@ final readonly class PassageDeCycle
     {
         // La saison du cycle qu'on vient de vivre, pas celle du suivant : les
         // travaux, les trajets et les récoltes ont eu lieu pendant l'ancien.
-        $saison = $partie->dateDeJeu()->saison;
+        // **Sans Nil, il n'y a ni crue ni saison d'inondation** (doc 02) : la
+        // corvée d'Akhèt mobilisait les paysans que le fleuve désœuvrait, et
+        // rien ne les désœuvre au Sinaï. Les chantiers y avancent au rythme
+        // ordinaire, comme pendant les cinq jours hors saison.
+        $connaitLaCrue = $this->geographies->connaitLaCrue($partie);
+        $saison = $connaitLaCrue ? $partie->dateDeJeu()->saison : null;
 
         // La paie d'abord : une équipe qu'on n'a pas pu payer ne travaille pas
         // dans la quinzaine qu'elle ouvre. La calculer après la production
@@ -114,7 +120,7 @@ final readonly class PassageDeCycle
         // Tout ce qui se compte à l'année se résout ici, une fois la bascule
         // franchie — et pas au premier cycle d'une partie, où la ville vient
         // tout juste d'arriver.
-        if ($partie->dateDeJeu()->ouvreUneAnnee()) {
+        if ($connaitLaCrue && $partie->dateDeJeu()->ouvreUneAnnee()) {
             // La crue est annoncée avant qu'on ait à semer : c'est un aléa
             // qu'on subit, pas une surprise de moisson.
             // Hâpi n'ajoute pas un facteur à la récolte : il infléchit le
@@ -122,9 +128,12 @@ final readonly class PassageDeCycle
             $crue = EffetDeFaveur::crueInflechie($partie->getVille(), $this->crues->tirer());
             $partie->annoncerLaCrue($crue);
             $evenements[] = \sprintf('La crue de cette année est %s. %s', $crue->libelle(), $crue->presage());
+        }
 
-            // Puis le bilan des habitants : qui entre dans la vie active, qui
-            // s'en retire, qui s'éteint.
+        // Le bilan des habitants, lui, tombe partout : on naît et l'on meurt
+        // au Sinaï comme au Delta. Le sortir du bloc de la crue est ce qui
+        // évite qu'une région sans fleuve cesse de vieillir.
+        if ($partie->dateDeJeu()->ouvreUneAnnee()) {
             $evenements = [...$evenements, ...$this->demographie->bilanDeLAnnee($partie)];
         }
 

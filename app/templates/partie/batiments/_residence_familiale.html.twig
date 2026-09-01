@@ -399,8 +399,14 @@
 <h3 class="mt-8 text-xl text-encre-900">À bâtir</h3>
 <p class="mt-2 text-sm text-encre-500">
     Les ressources sont payées à l'engagement du chantier ; les travaux
-    n'avancent ensuite qu'aux quinzaines que vous déclenchez. Pendant la crue
-    d'Akhèt, la main-d'œuvre libérée les fait progresser de moitié plus vite.
+    n'avancent ensuite qu'aux quinzaines que vous déclenchez.
+    {% if connaitLaCrue %}
+        Pendant la crue d'Akhèt, la main-d'œuvre libérée les fait progresser de
+        moitié plus vite.
+    {% else %}
+        Aucun fleuve ne monte ici : rien ne libère de main-d'œuvre, et les
+        chantiers avancent au même rythme toute l'année.
+    {% endif %}
 </p>
 
 <ul class="mt-5 space-y-3 list-none p-0">

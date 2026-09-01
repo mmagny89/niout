@@ -52,6 +52,7 @@ final readonly class Offrandes
     public function __construct(
         private EntityManagerInterface $entityManager,
         private Epidemies $epidemies,
+        private GeographieDeLaPartie $geographies,
     ) {
     }
 
@@ -70,6 +71,17 @@ final readonly class Offrandes
 
         if ($quantite < 1) {
             throw new OffrandeImpossible('Il faut offrir au moins une unité.');
+        }
+
+        // **Un dieu qui n'aura jamais de prise ici refuse ce qu'on lui
+        // porte.** Ce n'est pas la règle d'`agitDeja()`, qui laisse offrir à
+        // un dieu dont le système viendra : Isis reste offrable, sa promesse
+        // est seulement datée. Hâpi dans un désert n'aura pas de crue à
+        // incliner un jour prochain — il n'en aura jamais, et encaisser
+        // l'offrande serait la prendre pour rien, comme celle qui ne vaut pas
+        // un point.
+        if ($divinite->estSansDomaineIci($this->geographies->pour($partie))) {
+            throw new OffrandeImpossible(\sprintf('%s n\'a pas de prise sur cette terre : aucun fleuve n\'y monte, il n\'y a pas de crue à incliner.', $divinite->libelle()));
         }
 
         $valeur = self::valeurDe($ressource, $quantite);

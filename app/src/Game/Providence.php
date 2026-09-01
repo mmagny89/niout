@@ -76,6 +76,7 @@ final readonly class Providence
     public const int PERTE_PAR_QUINZAINE_DE_FAMINE = 1;
 
     public function __construct(
+        private GeographieDeLaPartie $geographies,
         private Randomizer $hasard = new Randomizer(),
     ) {
     }
@@ -87,10 +88,20 @@ final readonly class Providence
     {
         $evenements = [...$this->eloignerLesDieuxDUneVilleAffamee($partie)];
 
+        $geographie = $this->geographies->pour($partie);
+
         foreach ($partie->getVille()->getFaveurs() as $faveur) {
             $palier = $faveur->getPalier();
 
             if (!$palier->estAuDessusDuNeutre() && !$palier->nuit()) {
+                continue;
+            }
+
+            // Un dieu sans prise sur cette région ne se manifeste pas : Hâpi
+            // n'a ni gerbe à faire lever ni crue à retenir là où aucun fleuve
+            // ne monte. Une bénédiction venue de lui au Sinaï serait la même
+            // incohérence que l'offrande qu'on lui refuse.
+            if ($faveur->getDivinite()->estSansDomaineIci($geographie)) {
                 continue;
             }
 

@@ -126,8 +126,18 @@
                     {{ partie.dateDeJeu.libelle }}
                     <span class="text-encre-500" data-chiffres>· cycle {{ partie.cycle }}</span>
                     {# La crue de l'année conditionne la moisson de Chémou : le
-                       joueur doit l'avoir sous les yeux quand il décide de semer. #}
-                    <span class="text-encre-500" title="{{ partie.crue.presage }}">· crue {{ partie.crue.libelle }}</span>
+                       joueur doit l'avoir sous les yeux quand il décide de
+                       semer. **Sans Nil, elle n'existe pas** — l'afficher au
+                       Sinaï annonçait une inondation dans un désert. #}
+                    {# `is not defined` et non `|default(true)` : **le filtre
+                       `default` de Twig se déclenche sur une valeur vide autant
+                       que sur une variable absente**, et `false` est vide — la
+                       crue restait donc affichée partout. Les écrans de partie
+                       qui n'ont pas à connaître la géographie — abandon,
+                       commande — gardent l'affichage d'avant. #}
+                    {% if connaitLaCrue is not defined or connaitLaCrue %}
+                        <span class="text-encre-500" title="{{ partie.crue.presage }}">· crue {{ partie.crue.libelle }}</span>
+                    {% endif %}
                     {# Une fête qu'on n'a pas vue passer est une fête qui n'existe
                        pas : elle ne dure que deux à quatre quinzaines par an. #}
                     {% if partie.feteEnCours %}
