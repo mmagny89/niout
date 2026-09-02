@@ -501,7 +501,7 @@ difficulté régionale, à poser avec les seuils du doc 11.
 | 10.0 | Les arbitrages, avant d'écrire | ✅ |
 | 10.1 | Le danger sur la carte : zones à bandits et défense de région | ✅ |
 | 10.2 | Les Medjaÿ : fantassin, archer, recrutement et entretien | ✅ |
-| 10.3 | L'équipement : les armes de la Forge cessent d'être une marchandise | |
+| 10.3 | L'équipement : les armes de la Forge cessent d'être une marchandise | ✅ |
 | 10.4 | La résolution automatique, et ce qu'elle coûte en hommes | |
 | 10.5 | L'escorte : expéditions lourdes et caravanes | |
 | 10.6 | Le Charrier : une réquisition, jamais un recrutement | |
@@ -615,7 +615,32 @@ salaire négocié, une spécialité et une maisonnée ; le Medjaÿ a une force, 
 spécialisation et une expérience. Les confondre ferait porter à `Employee` deux
 modèles qui n'ont en commun qu'un salaire — nouvelle entité.
 
-#### 10.3 — L'équipement
+#### 10.3 — L'équipement  *(livré)*
+
+`Equipement` porte le compte du doc 01 — « +5 % par niveau de Forge à partir du
+niveau 3 » —, `Medjay::$qualiteDeLequipement` la fige à la remise de l'arme.
+Les armes cessent d'être un produit « sans usage propre » : c'est le premier
+des six branchements dormants qui se réveille.
+
+**Les deux arbitrages du 10.0 tiennent.** L'arme est durable — ce qu'on dépense
+est la pièce, prise au stock, jamais une consommation par combat. Et un homme
+sans arme part quand même, à `QUALITE_SANS_ARME` : rien ne bloque une
+expédition, donc aucune chaîne de production ne décide du rythme militaire.
+
+**La qualité se fige à la remise**, ce que le document ne disait pas : monter la
+Forge n'améliore pas rétroactivement les armes déjà données, il faut réarmer ses
+vétérans. C'est ce qui fait du niveau de Forge une décision plutôt qu'un
+compteur.
+
+**L'Armurier n'entre pas dans la qualité.** Sa spécialité bonifie déjà la
+*production* d'armes, comme celles de l'Atelier bonifient leur recette : lui
+donner en plus un effet sur la qualité lui en ferait deux, contre la discipline
+du lot 6.3.
+
+Une borne trouvée en écrivant les tests : `niveauMaxRegion = 5 + difficulté`
+(doc 01) plafonne la Forge à 5 dans le Delta. **La meilleure arme du jeu ne se
+forge donc que dans les régions difficiles** — ce qui tombe juste, ce sont elles
+qui portent des bandits.
 
 `qualite_equipement` entre directement dans la formule d'attaque, et vient de la
 Forge (doc 01). C'est ce qui donne enfin aux **armes** une raison d'exister
@@ -787,6 +812,7 @@ le calibrage du lot 4.6.
 | Plafond de renommée des affaires | 8 points par mission | `Family::RENOMMEE_MAX_DES_AFFAIRES` |
 | Plafond de l'avantage de négoce | 40 points de pourcentage, toutes sources confondues | `AvantageDeNegoce::PLAFOND_TOTAL` |
 | Défense d'une bande de brigands | 20, avant le facteur de région | `Bandits::DEFENSE_DE_BASE` |
+| Qualité d'un homme sans arme | 70 centièmes | `Equipement::QUALITE_SANS_ARME` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,

@@ -309,6 +309,18 @@ Trois règles à ne pas défaire :
   — une troupe impayée mécontente la ville comme des chefs impayés. **Un blessé
   est payé aussi** : on ne renvoie pas un homme parce qu'il s'est fait blesser à
   son service, et il **garde son expérience**, ce qui le distingue d'un mort.
+- **L'arme est durable, et sa qualité se fige à la remise** (`Equipement`,
+  doc 03 et doc 01). Ce qu'on dépense en armant un homme est la pièce
+  elle-même, prise au stock — jamais une consommation par combat : la Forge est
+  un palier à franchir, pas un robinet à tenir ouvert. Monter la Forge ensuite
+  n'améliore pas ce qui est déjà donné, il faut réarmer. **Un homme sans arme
+  part quand même**, à `QUALITE_SANS_ARME` : aucune chaîne de production ne
+  décide du rythme militaire, et une carrière gardée ne reste jamais imprenable
+  faute de cuivre. La force d'un Medjaÿ croise trois facteurs — base,
+  expérience, arme — en **une seule division** : deux divisions enchaînées
+  perdraient de la force à chaque étape (discipline du lot 6.3). L'Armurier
+  n'entre pas dans la qualité : il bonifie déjà la production d'armes, et deux
+  effets pour une spécialité seraient un de trop.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais

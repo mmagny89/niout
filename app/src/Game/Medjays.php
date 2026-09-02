@@ -85,6 +85,41 @@ final readonly class Medjays
     }
 
     /**
+     * Arme un homme d'une arme du stock (doc 03, lot 10.3).
+     *
+     * **Une arme, un homme, une fois.** Elle ne se consomme pas au combat
+     * (arbitrage 10.0) : ce qu'on dépense ici, c'est la pièce elle-même, prise
+     * au stock comme n'importe quelle marchandise. Réarmer un vétéran après
+     * avoir monté la Forge en coûte une seconde — c'est ce qui fait du niveau
+     * de Forge une décision plutôt qu'un compteur.
+     *
+     * @throws MedjayImpossible
+     */
+    public function armer(GameSave $partie, Medjay $medjay): int
+    {
+        $ville = $partie->getVille();
+
+        if ($medjay->getVille() !== $ville) {
+            throw new MedjayImpossible('Cet homme n\'est pas des vôtres.');
+        }
+
+        $qualite = Equipement::qualiteForgeePar($ville);
+
+        if ($medjay->getQualiteDeLequipement() >= $qualite) {
+            throw new MedjayImpossible('Il porte déjà ce que votre Forge sait faire de mieux.');
+        }
+
+        if (!$ville->debiterRessources([Ressource::Armes->value => 1])) {
+            throw new MedjayImpossible('Vous n\'avez aucune arme en réserve. La Forge en fabrique à partir du cuivre.');
+        }
+
+        $medjay->recevoirUneArme($qualite);
+        $this->entityManager->flush();
+
+        return $qualite;
+    }
+
+    /**
      * Ce que la troupe coûte par quinzaine. Les blessés sont payés comme les
      * autres : on ne renvoie pas un homme parce qu'il s'est fait blesser à son
      * service.
