@@ -134,6 +134,12 @@
                         <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                         <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
                         <span class="text-sm text-encre-500" data-chiffres>{{ offre.cout }} deben</span>
+                        {# Le rabais du doc 12 : une route déjà armée dans une
+                           partie précédente s'ouvre moins cher. Dit ici, à
+                           l'engagement, plutôt que découvert au débit. #}
+                        {% if offre.heritee %}
+                            <span class="text-sm text-ocre-700">— vous connaissez déjà ce chemin</span>
+                        {% endif %}
                         <button type="submit"
                                 class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
                             Envoyer une première {{ offre.partenaire.route.convoi }}

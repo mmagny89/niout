@@ -264,6 +264,19 @@ Trois règles à ne pas défaire :
   les sources : sa valeur vient de `PRIX_MINIMUM_A_LACHAT`, qu'un avantage de
   cinquante ramènerait au cours local — importer ne coûterait alors plus rien de
   plus que produire sur place, et la distance cesserait de peser.
+- **Le carnet de contacts ne se persiste pas** (`CarnetDeContacts`, doc 13) : il
+  se déduit des missions accomplies, comme les partenaires se déduisent du
+  catalogue — seule la clé compte, le nom, la région et les ressources sont du
+  contenu. Un contact vaut +2 **sur ce que sa région porte en gisement**, et sur
+  rien d'autre : sans cette restriction ce serait une remise générale de plus.
+  Il entre dans `AvantageDeNegoce`, donc sous le plafond commun, ce qui oblige à
+  compter l'avantage **marchandise par marchandise**. La ville de la mission en
+  cours n'est jamais un contact.
+- **Une route déjà armée s'ouvre à −20 %** (`Commerce::RABAIS_DUNE_ROUTE_HERITEE`,
+  doc 12). À ne pas confondre avec le carnet : celui-ci porte sur les prix
+  courants, l'héritage sur le droit d'entrée. Il se déduit des autres parties du
+  joueur ; la partie en cours ne s'hérite pas elle-même, et une partie abandonnée
+  ne lègue rien — elle est supprimée, comme pour les deben et la renommée.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais

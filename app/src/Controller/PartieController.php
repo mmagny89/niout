@@ -16,6 +16,7 @@ use App\Game\AlphabetDesScribes;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
 use App\Game\AvantageDeNegoce;
+use App\Game\CarnetDeContacts;
 use App\Game\CartoucheRoyal;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
@@ -204,6 +205,7 @@ final class PartieController extends AbstractController
         Offrandes $offrandes,
         EtatDeLaVille $etat,
         GeographieDeLaPartie $geographies,
+        CarnetDeContacts $carnet,
     ): Response {
         $ville = $partie->getVille();
         $geographie = $geographies->pour($partie);
@@ -251,6 +253,9 @@ final class PartieController extends AbstractController
             // une jauge qui ne dit pas ce qu'elle change se subit.
             'avantageDeRenommee' => AvantageDeNegoce::deLaRenommee($partie->getFamille()->getRenommee()),
             'avantageDeNegoce' => $commerce->avantageDeNegoce($partie),
+            // Les villes où la famille a déjà servi (lot 9.4) : elles font un
+            // prix sur ce que leur région porte.
+            'carnet' => $carnet->lisible($partie),
             'coutDUnAppel' => $appels->cout($partie),
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
             'ateliers' => $this->ateliersDeLaVille($partie, $fabrication),

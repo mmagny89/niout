@@ -199,7 +199,7 @@ de cause plutôt que le découvrir au playtest.
 | 9.1 | La renommée devient une jauge de famille, qui traverse la campagne | ✅ |
 | 9.2 | Les deux sources manquantes : énigme résolue, enquête résolue | ✅ |
 | 9.3 | La renommée infléchit les prix, à l'achat comme à la vente | ✅ |
-| 9.4 | Le carnet de contacts : ce qu'une région visitée laisse | |
+| 9.4 | Le carnet de contacts : ce qu'une région visitée laisse | ✅ |
 | 9.5 | Le bonus de départ par missions accomplies | |
 | 9.6 | La succession : générations, héritiers et leur trait | ↦ Phase 11 |
 
@@ -315,7 +315,24 @@ symétrique à la vente. Deux pièges connus du projet s'y appliquent :
   l'empressement du partenaire. La renommée doit **entrer dans un facteur
   existant**, pas en ajouter un troisième — c'est la discipline du lot 6.3.
 
-#### 9.4 — Le carnet de contacts
+#### 9.4 — Le carnet de contacts  *(livré)*
+
+**Rien ne se persiste** : le carnet se déduit des missions accomplies
+(`CarnetDeContacts`), comme les partenaires se déduisent du catalogue. Une
+colonne de plus ne dirait rien que `MissionCatalogue` ne sache déjà.
+
+Le contact vaut +2 sur ce que **sa région porte en gisement**, et sur rien
+d'autre — c'est ce qui l'empêche d'être une remise générale de plus. Il entre
+dans le même facteur que la renommée, donc sous le même plafond : l'avantage se
+compte désormais **marchandise par marchandise**, ce que la signature
+`avantageDeNegoce($partie, ?$ressource)` porte. La ville de la mission en cours
+n'est jamais un contact — on ne se fait pas de prix à soi-même.
+
+**L'héritage du doc 12 est fait avec**, comme le cadrage le recommandait :
+`Commerce::RABAIS_DUNE_ROUTE_HERITEE`, −20 % sur une route déjà armée dans une
+autre partie. Il se déduit lui aussi, en interrogeant les parties du joueur.
+Une partie ne s'hérite pas elle-même, et une partie abandonnée ne lègue rien —
+cohérent avec le fait qu'elle ne lègue ni deben ni renommée.
 
 Chaque mission accomplie laisse un **contact** — la ville elle-même — qui
 donne +2 % sur les ressources caractéristiques de sa région, cumulables avec le
