@@ -177,7 +177,7 @@ enum SymboleHieroglyphique: string
             self::Roseau => 'Un roseau fleuri, celui des berges. Le même dessin note le son i dans l\'alphabet des scribes.',
             self::Canal => 'Un bassin d\'irrigation : la terre qu\'on arrose, le canal, le champ.',
             self::Route => 'Un chemin bordé d\'arbustes : la route, le passage, la voie.',
-            self::Bateau => 'Une barque de papyrus : le bateau, le voyage par l\'eau.',
+            self::Bateau => 'Un bateau sur l\'eau : la navigation, le voyage par le fleuve, ce qui s\'expédie.',
             self::Desert => 'Trois collines de sable : le désert, la terre rouge, l\'étranger.',
             self::Soleil => 'Le disque de Rê : le soleil, le jour, le temps qui passe.',
             self::Femme => 'Une femme assise : la femme, l\'épouse, la maisonnée.',

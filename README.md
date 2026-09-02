@@ -82,12 +82,26 @@ par sa maisonnée : la ville oublie ses dieux moins vite.
 
 **Écriture et énigmes** — la Maison des scribes porte une clé de lecture qui
 s'enrichit : vingt hiéroglyphes de la liste de Gardiner, avec leur vrai code et
-leur vrai sens. On remet les sens en face des signes gravés pour lire une
+leur vrai sens — vérifiés contre le nom que leur donne Unicode, un code et un
+dessin pouvant se contredire en silence. On remet les sens en face des signes gravés pour lire une
 inscription — les signes sont vrais, les combinaisons sont des rébus, jamais de
 l'égyptien. Ailleurs, des questions courtes : l'ibis de Thot, l'étoile qui
 annonce la crue, une devinette entendue à l'Auberge. On n'y répond qu'une fois,
 rien ne vous oblige à y répondre, et l'on apprend quelque chose même en se
 trompant.
+
+**Apprendre à écrire** — à côté de la clé de lecture, une seconde piste : les
+vingt-quatre signes unilitères, ceux qui notent un *son*. C'est par eux qu'on
+apprend réellement à lire les hiéroglyphes, aujourd'hui encore. La toute
+première leçon écrit le nom du jeu — *n · i · w · t*, « la ville » — et la
+Maison des scribes en ouvre trois de plus à chaque niveau. Votre nom de famille
+s'y écrit aussi, à la manière des cartouches de musée, l'écran disant clairement
+que c'est une convention et non une traduction : l'égyptien ne notait pas les
+voyelles. Trois dessins servent aux deux tables — le roseau, le pain, la bouche
+—, et ce n'est pas une redite : l'écriture égyptienne est mixte, un même signe y
+montrant tantôt une chose, tantôt un son. Chaque mission s'ouvre enfin sur le
+cartouche réel du pharaon qui la commandite, avec ce qu'il veut dire — et rien
+n'est affiché pour les deux dont la lecture n'est pas établie.
 
 **Enquêtes** — certaines cases cachent autre chose qu'un filon : on les fouille,
 elles livrent un indice. Un émissaire envoyé parler aux gens d'une case déjà

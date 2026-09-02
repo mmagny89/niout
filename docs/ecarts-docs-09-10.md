@@ -26,7 +26,7 @@ Les objectifs par mission suivent les pistes du document, à un détail près
 
 ---
 
-## Lot 1 — L'alphabet des scribes  *(nouveau, le plus lourd)*
+## Lot 1 — L'alphabet des scribes  ✅ *(livré)*
 
 **Doc 10, section « L'alphabet des scribes ».** Une piste pédagogique
 **entièrement neuve**, et explicitement **distincte** de la clé de lecture : les
@@ -51,8 +51,11 @@ Quatre usages sont demandés, d'ampleur très inégale :
 s'affichent, on reste sur du texte, et la police se charge avec la page plutôt
 que de dépendre de la machine. Pas de planche de sprites.
 
-**La conception de ce lot est écrite** :
-[`lot-1-alphabet-des-scribes.md`](lot-1-alphabet-des-scribes.md).
+**Livré**, sept cartouches sur neuf — les deux autres n'affichent rien plutôt
+qu'une approximation. Conception :
+[`lot-1-alphabet-des-scribes.md`](lot-1-alphabet-des-scribes.md) ; règles
+retenues : [`regles-du-jeu.md`](regles-du-jeu.md) ; récit :
+[`plan-de-bataille.md`](plan-de-bataille.md), Phase 8 ter.
 
 ---
 
@@ -150,18 +153,17 @@ juste, la forme est plus pauvre que ce qui est écrit.
 
 ---
 
-## Ordre proposé
+## Ce qui reste
 
-1. **Vérifier le rendu Unicode des hiéroglyphes** — dix minutes, et cela décide
-   de la forme du lot 1 tout entier.
-2. **Lot 3**, une fois que tu auras dit ce qu'il en est d'« Exploiter » : une
-   heure.
-3. **Lot 1, réduit à l'énigme fondatrice** : écrire « Niout ». Petit, autonome,
-   et c'est le geste que le document met en avant.
-4. **Lot 2 sur deux missions** — Thoutmôsis III et Akhenaton, les deux que le
-   document désigne.
-5. Le reste du lot 1 — les 24 signes, les cartouches, la transcription du nom —
-   qui est un vrai chantier et mérite son propre cadrage.
+Le lot 1 est livré. Restent, par ordre de coût croissant :
 
-Les lots 4 et 5 ne demandent pas de code mais une décision : garder l'écart et
-le consigner, ou aligner.
+1. **Lot 3** — dire ce qu'il en est d'« Exploiter » : une heure.
+2. **Lot 4 et 5** — deux décisions, pas de code : garder l'écart et le
+   consigner, ou aligner.
+3. **Lot 2** — les stèles, en commençant par Thoutmôsis III et Akhenaton, les
+   deux que le document désigne. Vérifier les cinq stèles « bien établies »
+   avant de les nommer à l'écran.
+
+Et, hors de ces lots : **les deux cartouches manquants**, Akhenaton et
+Ramsès IV, qui demandent une source égyptologique plus sûre que celles
+consultées.
