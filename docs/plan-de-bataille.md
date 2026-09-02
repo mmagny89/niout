@@ -498,7 +498,7 @@ difficulté régionale, à poser avec les seuils du doc 11.
 
 | Lot | Contenu | |
 |---|---|---|
-| 10.0 | Les arbitrages, avant d'écrire | |
+| 10.0 | Les arbitrages, avant d'écrire | ✅ |
 | 10.1 | Le danger sur la carte : zones à bandits et défense de région | |
 | 10.2 | Les Medjaÿ : fantassin, archer, recrutement et entretien | |
 | 10.3 | L'équipement : les armes de la Forge cessent d'être une marchandise | |
@@ -506,6 +506,41 @@ difficulté régionale, à poser avec les seuils du doc 11.
 | 10.5 | L'escorte : expéditions lourdes et caravanes | |
 | 10.6 | Le Charrier : une réquisition, jamais un recrutement | |
 | 10.7 | Les six branchements dormants | |
+
+#### 10.0 — Les arbitrages, tranchés
+
+Même méthode qu'au 9.0, pour la même raison : ces réponses décident de la forme
+des sept lots, et les découvrir en codant coûterait une reprise.
+
+| Question | Tranché | Ce que cela impose |
+|---|---|---|
+| Le danger est-il un contenu de case ou un attribut ? | **Un attribut superposé** | Une case garde son contenu **et** porte un danger : le filon gardé par des bandits devient possible, et c'est le cas qui donne envie de lever des Medjaÿ. Une colonne sur `Zone`, et un tirage indépendant de `ContenuDeZone` dans le générateur |
+| Une zone nettoyée le reste-t-elle ? | **Oui, définitivement** | Le combat est une conquête, pas un péage. On investit des hommes et de l'équipement une fois, on récolte ensuite. Rien d'autre dans le jeu ne se dégrade tout seul, et il n'y a pas de raison de commencer ici |
+| Les armes se consomment-elles ? | **Non, équipement durable** | La Forge est un palier à franchir, pas un robinet à tenir ouvert. Une unité sans arme part quand même, à qualité minimale : **rien ne bloque une expédition**, ce qui évite qu'une chaîne de production décide du rythme militaire |
+| La mort permanente ? | **Oui, aux taux du doc 03** | Ce sera le seul endroit du jeu où l'on perd sans recours. Ce n'est pas un « game over » au sens du doc 00 — la partie continue — et c'est ce qui donne son poids à l'expérience accumulée. Isis y trouve enfin son effet propre |
+
+**Deux écarts au document, actés d'avance.** Ils reprennent des décisions déjà
+prises deux fois sur d'autres documents, et n'ont pas à être rediscutés :
+
+- les **flottants du document se comptent en centièmes entiers** (`0,85` →
+  `85`, `1,15` → `115`). C'est la discipline du projet depuis les rendements,
+  et une probabilité en virgule flottante serait le premier endroit du jeu où
+  deux parties identiques divergeraient ;
+- les **« 100 or » du Charrier deviennent 100 deben.** L'Égypte pharaonique n'a
+  pas de monnaie d'or ; les docs 09 et 13 ont été relus ainsi avant celui-ci.
+
+**Deux questions tranchées sans arbitrage**, parce qu'elles ne changent la forme
+d'aucun lot :
+
+- **les Medjaÿ ne répondent pas aux rivaux commerciaux.** Ni le doc 03 ni le
+  doc 08 ne le prévoient : ce serait une addition, et l'enquête reste la
+  réponse au rival. À reprendre si le playtest montre que `Rivaux` manque d'une
+  seconde issue ;
+- **le combat existe en mode Aventure.** Le danger vient du générateur de carte
+  et de la géographie de la région, pas d'un scénario de mission : Memphis en
+  porte donc comme les autres. Rien à faire de particulier, à condition que le
+  compte de zones dangereuses se lise sur la **carte** et non sur un numéro de
+  mission.
 
 #### 10.1 — Le danger sur la carte
 
@@ -611,7 +646,9 @@ l'un ni l'autre — il le dit franchement dans le libellé du trait. Le malus es
 la moitié oubliée, et c'est elle qui rend le trait intéressant : un candidat
 qu'on ne veut pas au Grenier devient bon à la Caserne.
 
-#### À trancher avec la joueuse
+#### Les questions telles qu'elles se posaient
+
+Conservées pour l'enjeu qu'elles portent ; les réponses sont au 10.0.
 
 | Question | Enjeu |
 |---|---|
