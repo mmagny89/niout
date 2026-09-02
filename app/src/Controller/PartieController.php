@@ -53,6 +53,8 @@ use App\Game\LeconDeNiout;
 use App\Game\Legs;
 use App\Game\Marche;
 use App\Game\Mecontentement;
+use App\Game\MedjayImpossible;
+use App\Game\Medjays;
 use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\MissionFermee;
@@ -78,6 +80,7 @@ use App\Game\RoleDExploration;
 use App\Game\Salaires;
 use App\Game\SensDEchange;
 use App\Game\SigneAlphabetique;
+use App\Game\SpecialisationMedjay;
 use App\Game\SpecialiteDeChef;
 use App\Game\SteleHistorique;
 use App\Game\SymboleHieroglyphique;
@@ -207,6 +210,7 @@ final class PartieController extends AbstractController
         EtatDeLaVille $etat,
         GeographieDeLaPartie $geographies,
         CarnetDeContacts $carnet,
+        Medjays $medjaysService,
     ): Response {
         $ville = $partie->getVille();
         $geographie = $geographies->pour($partie);
@@ -258,6 +262,12 @@ final class PartieController extends AbstractController
             // prix sur ce que leur région porte.
             'carnet' => $carnet->lisible($partie),
             'coutDUnAppel' => $appels->cout($partie),
+            // La Caserne (lot 10.2) : la troupe, ce qu'elle coûte, et ce qui
+            // empêche d'en lever un de plus — dit avant la tentative.
+            'medjays' => $ville->getMedjays(),
+            'effectifMaximum' => $medjaysService->effectifMaximum($ville),
+            'entretienDesMedjays' => $medjaysService->entretienParQuinzaine($ville),
+            'offreDeLaCaserne' => $medjaysService->offreDeLaCaserne($partie),
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
             'ateliers' => $this->ateliersDeLaVille($partie, $fabrication),
             'routes' => $commerce->offrePour($partie),
@@ -454,6 +464,42 @@ final class PartieController extends AbstractController
         } catch (CommerceImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }
+
+        return $this->retourALaVille($request, $partie);
+    }
+
+    /**
+     * Lève un Medjaÿ à la Caserne (doc 03).
+     *
+     * Le contrôle vit dans `Medjays`, pas seulement dans le gabarit : un POST
+     * forgé ne doit pas lever un archer dans une Caserne de niveau 1.
+     */
+    #[Route('/{id}/ville/medjay', name: 'app_partie_lever_medjay', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function leverUnMedjay(Request $request, GameSave $partie, Medjays $medjays): Response
+    {
+        if (!$this->isCsrfTokenValid('lever-medjay', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $specialisation = SpecialisationMedjay::tryFrom((string) $request->request->get('specialisation'));
+
+        if (null === $specialisation) {
+            throw $this->createNotFoundException('Spécialisation inconnue.');
+        }
+
+        try {
+            $medjays->lever($partie, $specialisation);
+        } catch (MedjayImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+
+            return $this->retourALaVille($request, $partie);
+        }
+
+        $this->addFlash('succes', \sprintf(
+            'Un %s rejoint votre troupe.',
+            mb_strtolower($specialisation->libelle()),
+        ));
 
         return $this->retourALaVille($request, $partie);
     }

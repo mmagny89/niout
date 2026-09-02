@@ -1,13 +1,76 @@
-{# La Caserne attend ses Medjaÿ : le recrutement, l'escorte des caravanes et
-   les zones dangereuses relèvent d'une phase à venir. **Un bâtiment qui ne
-   fait rien encore le dit** — promettre un effet qui ne s'applique nulle part
-   tromperait le joueur au moment même où il choisit quoi bâtir. Son chef,
-   lui, est déjà en poste et se paie. #}
+{# La Caserne lève et tient la troupe (doc 03, doc 01, lot 10.2).
+
+   **Ce qui empêche de lever un homme se dit avant la tentative**, jamais par
+   un refus : le niveau requis, l'effectif plein, la bourse courte. C'est la
+   même discipline que le débouché du Marché ou le coût d'une route.
+
+   L'escorte des caravanes et le combat lui-même viennent aux lots suivants ;
+   ce panneau ne promet donc que ce qui existe. #}
 {{ include('partie/batiments/_entete.html.twig') }}
 {{ include('partie/batiments/_direction.html.twig') }}
 
-<p class="mt-8 max-w-3xl rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-5 py-4 text-sm text-encre-600">
-    Vos Medjaÿ ne sont pas encore levés. La Caserne tiendra la protection des
-    caravanes et l'accès aux zones tenues par des bandits ; en attendant, elle
-    ne rend rien de plus que ce que son chef coûte.
+<h3 class="mt-8 text-xl text-encre-900">Votre troupe</h3>
+
+<p class="mt-2 max-w-3xl text-sm text-encre-500" data-chiffres>
+    {{ medjays|length }} / {{ effectifMaximum }} hommes ·
+    {{ entretienDesMedjays }} deben par quinzaine.
 </p>
+
+{% if medjays is not empty %}
+    <ul class="mt-4 space-y-2 list-none p-0">
+        {% for medjay in medjays %}
+            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-3">
+                <span class="text-encre-900">{{ medjay.specialisation.libelle }}</span>
+                <span class="text-sm text-encre-500" data-chiffres>
+                    · force {{ medjay.force }}
+                    {%- if medjay.experience > 0 %} (dont {{ medjay.experience }} % d'expérience){% endif %}
+                </span>
+                {% if not medjay.estDisponible(partie.cycle) %}
+                    <span class="text-sm text-terre-600">
+                        — blessé, de retour à la quinzaine {{ medjay.retabliAuCycle }}
+                    </span>
+                {% endif %}
+                <p class="mt-1 text-sm text-encre-600">{{ medjay.specialisation.particularite }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="mt-4 max-w-3xl text-sm text-encre-600">
+        Aucun homme n'est encore levé. Une case tenue par des brigands restera
+        hors d'atteinte tant qu'il en sera ainsi.
+    </p>
+{% endif %}
+
+<h3 class="mt-8 text-xl text-encre-900">Lever un homme</h3>
+
+<ul class="mt-4 space-y-3 list-none p-0">
+    {% for ligne in offreDeLaCaserne %}
+        <li class="rounded-sm border p-5
+                   {{ ligne.ouverte ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
+            <div class="flex flex-wrap items-baseline justify-between gap-3">
+                <h4 class="font-display text-lg text-encre-900">{{ ligne.specialisation.libelle }}</h4>
+                <span class="text-sm text-encre-500" data-chiffres>
+                    {{ ligne.specialisation.coutDeRecrutement }} deben ·
+                    {{ ligne.specialisation.entretienParQuinzaine }} par quinzaine ·
+                    force {{ ligne.specialisation.force }}
+                </span>
+            </div>
+
+            <p class="mt-2 text-sm text-encre-600">{{ ligne.specialisation.particularite }}</p>
+
+            {% if ligne.ouverte and partie.estEnCours %}
+                <form method="post" action="{{ path('app_partie_lever_medjay', {id: partie.id}) }}" class="mt-3">
+                    <input type="hidden" name="_token" value="{{ csrf_token('lever-medjay') }}">
+                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                    <input type="hidden" name="specialisation" value="{{ ligne.specialisation.value }}">
+                    <button type="submit"
+                            class="rounded-sm border border-ocre-500/40 px-3 py-1 text-sm text-encre-700 hover:bg-ocre-500/10">
+                        Lever
+                    </button>
+                </form>
+            {% elseif ligne.empechement %}
+                <p class="mt-3 text-sm text-terre-600">{{ ligne.empechement }}</p>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>

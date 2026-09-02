@@ -124,6 +124,14 @@ class City
     private Collection $employes;
 
     /**
+     * La troupe levée à la Caserne (doc 03).
+     *
+     * @var Collection<int, Medjay>
+     */
+    #[ORM\OneToMany(targetEntity: Medjay::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $medjays;
+
+    /**
      * La population, en trois nombres et pas un de plus (décision de la
      * joueuse) : ceux qui travaillent, ceux qui grandissent, ceux qui ont
      * fini. Aucun individu n'est suivi — ce qui compte est de savoir combien
@@ -162,6 +170,7 @@ class City
         $this->chantiers = new ArrayCollection();
         $this->offres = new ArrayCollection();
         $this->employes = new ArrayCollection();
+        $this->medjays = new ArrayCollection();
         $this->ordresDeFabrication = new ArrayCollection();
         $this->routesCommerciales = new ArrayCollection();
         $this->faveurs = new ArrayCollection();
@@ -1405,6 +1414,23 @@ class City
         }
 
         return null;
+    }
+
+    /**
+     * @return Collection<int, Medjay>
+     */
+    public function getMedjays(): Collection
+    {
+        return $this->medjays;
+    }
+
+    public function leverUnMedjay(Medjay $medjay): static
+    {
+        if (!$this->medjays->contains($medjay)) {
+            $this->medjays->add($medjay);
+        }
+
+        return $this;
     }
 
     /**

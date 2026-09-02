@@ -132,6 +132,20 @@ final readonly class Salaires
             }
         }
 
+        // La troupe est payée comme le reste de la ville (doc 03) : c'est
+        // l'entretien, et non un plafond arbitraire, qui décide de la taille
+        // qu'une famille peut réellement tenir. Les blessés sont payés aussi —
+        // on ne renvoie pas un homme blessé à son service.
+        $troupe = 0;
+
+        foreach ($ville->getMedjays() as $medjay) {
+            $troupe += $medjay->getSpecialisation()->entretienParQuinzaine();
+        }
+
+        if ($troupe > 0) {
+            $du['medjays'] = $troupe;
+        }
+
         return $du;
     }
 
