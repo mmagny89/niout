@@ -198,7 +198,7 @@ de cause plutôt que le découvrir au playtest.
 | 9.0 | Les arbitrages tranchés, et la forme qu'ils donnent à la phase | ✅ |
 | 9.1 | La renommée devient une jauge de famille, qui traverse la campagne | ✅ |
 | 9.2 | Les deux sources manquantes : énigme résolue, enquête résolue | ✅ |
-| 9.3 | La renommée infléchit les prix, à l'achat comme à la vente | |
+| 9.3 | La renommée infléchit les prix, à l'achat comme à la vente | ✅ |
 | 9.4 | Le carnet de contacts : ce qu'une région visitée laisse | |
 | 9.5 | Le bonus de départ par missions accomplies | |
 | 9.6 | La succession : générations, héritiers et leur trait | ↦ Phase 11 |
@@ -285,7 +285,25 @@ plusieurs quinzaines de collecte, ce qui se défend ; mais la renommée se
 compte sur cent points, et une campagne porte une trentaine d'enquêtes.
 **À calibrer sur l'économie mesurée**, comme les seuils du doc 09 l'ont été.
 
-#### 9.3 — La renommée dans les prix
+#### 9.3 — La renommée dans les prix  *(livré)*
+
+**La pièce qui décidait du lot existait déjà** : `$avantage`, le facteur du
+Négociateur, élargit la fourchette d'un partenaire des deux côtés, en points de
+pourcentage entiers. La renommée y entre (`AvantageDeNegoce`), elle n'ajoute
+aucun troisième multiplicateur. Au Marché, elle s'**ajoute au coefficient** de
+qualité de direction, qui reste appliqué en une seule multiplication et une
+seule division.
+
+**Le plafond global du 9.0 vaut 40 points**, et la raison est arithmétique : le
+plancher d'un partenaire vaut 150 % du cours local moins l'avantage, donc à
+cinquante il rejoint le cours et importer ne coûterait plus rien de plus que
+produire sur place. Conséquence assumée : un Négociateur (25) chez une famille
+illustre (20) est rogné — le plafond porte sur la somme, c'est ce qui a été
+tranché.
+
+Une limite mesurée en écrivant les tests : sous une dizaine de deben, la
+division entière avale tout l'avantage. Cela ne dessert personne — le commerce
+lointain ne porte pas de l'argile.
 
 `reductionAchat = −0,2 % par point, plafonné à −20 %`, et la majoration
 symétrique à la vente. Deux pièges connus du projet s'y appliquent :
