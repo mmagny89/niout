@@ -8,6 +8,7 @@ use App\Entity\Convoi;
 use App\Entity\GameSave;
 use App\Entity\OrdreCommercial;
 use App\Entity\RouteCommerciale;
+use App\Repository\GameSaveRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
@@ -32,8 +33,21 @@ final readonly class Commerce
     public function __construct(
         private CataloguePartenaires $partenaires,
         private EntityManagerInterface $entityManager,
+        private CarnetDeContacts $carnet,
+        private GameSaveRepository $parties,
     ) {
     }
+
+    /**
+     * Ce qu'une route déjà exploitée dans une partie précédente fait
+     * économiser à son ouverture, en centièmes (doc 12).
+     *
+     * **Vingt pour cent, comme le document le chiffre.** Ce n'est pas la même
+     * chose que le carnet de contacts : le carnet porte sur les prix courants,
+     * l'héritage sur le droit d'entrée. Les deux se complètent — on connaît la
+     * route *et* on connaît les gens.
+     */
+    public const int RABAIS_DUNE_ROUTE_HERITEE = 20;
 
     /**
      * Engage l'ouverture d'une route : débite le coût, met la caravane en
@@ -60,7 +74,7 @@ final readonly class Commerce
             throw new CommerceImpossible(\sprintf('Il vous faut %s %s pour armer %s.', TypeDeBatiment::Forge === $batiment ? 'une' : 'un', $batiment->libelle(), 'caravane' === $partenaire->route->convoi() ? 'une caravane' : 'un navire'));
         }
 
-        $cout = $partenaire->route->coutDOuverture();
+        $cout = $this->coutDOuverture($partie, $cle);
 
         if (!$ville->debiterRessources([Ressource::Deben->value => $cout])) {
             throw new CommerceImpossible(\sprintf('Ouvrir cette route demande %d deben ; il vous en manque %d.', $cout, $cout - $ville->getDeben()));
@@ -73,6 +87,52 @@ final readonly class Commerce
         $this->entityManager->flush();
 
         return $route;
+    }
+
+    /**
+     * Ce que coûte l'ouverture d'une route, rabais d'héritage compris (doc 12).
+     *
+     * Exposé pour que l'écran annonce le prix réel **avant** l'engagement : une
+     * remise découverte au débit ne se joue pas.
+     */
+    public function coutDOuverture(GameSave $partie, string $cle): int
+    {
+        $partenaire = $this->partenaireDe($partie, $cle);
+
+        if (null === $partenaire) {
+            return 0;
+        }
+
+        $plein = $partenaire->route->coutDOuverture();
+
+        if (!$this->routeDejaExploitee($partie, $cle)) {
+            return $plein;
+        }
+
+        return max(1, $plein - intdiv($plein * self::RABAIS_DUNE_ROUTE_HERITEE, 100));
+    }
+
+    /**
+     * Cette famille a-t-elle déjà armé cette route dans une autre partie ?
+     *
+     * **Une autre partie, jamais celle-ci** : rouvrir une route qu'on vient de
+     * fermer dans la même ville ne relève pas de l'héritage. Et une partie
+     * abandonnée n'en laisse rien — elle est supprimée, ce qui est cohérent
+     * avec le fait qu'elle ne lègue ni deben ni renommée.
+     */
+    private function routeDejaExploitee(GameSave $partie, string $cle): bool
+    {
+        foreach ($this->parties->findPourJoueur($partie->getJoueur()) as $autre) {
+            if ($autre === $partie) {
+                continue;
+            }
+
+            if (null !== $autre->getVille()->routeVers($cle)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -152,13 +212,15 @@ final readonly class Commerce
             return [];
         }
 
-        $avantage = $this->avantageDeNegoce($partie);
         $etal = [];
 
         foreach ([SensDEchange::Vendre, SensDEchange::Acheter] as $sens) {
             $ressources = SensDEchange::Vendre === $sens ? $partenaire->achete : $partenaire->vend;
 
             foreach ($ressources as $ressource) {
+                // Le carnet fait un prix sur ce que ses régions portent :
+                // l'avantage se compte donc marchandise par marchandise.
+                $avantage = $this->avantageDeNegoce($partie, $ressource);
                 $cours = PrixDuMarche::pour($ressource) ?? 1;
                 $ordre = $route->ordrePour($ressource);
 
@@ -302,7 +364,6 @@ final readonly class Commerce
         // Un rival installé sur cette route prend sa part de ce qui passe
         // (doc 08). Il rogne le volume, il n'interdit rien.
         $volume = $this->apresLeRival($partie, $route->getPartenaire(), $partenaire->volumeParConvoi($niveau));
-        $avantage = $this->avantageDeNegoce($partie);
         $trajet = $this->trajetVers($partenaire, $ville, $partie->getCycle());
         $messages = [];
 
@@ -310,6 +371,9 @@ final readonly class Commerce
 
         foreach ($route->getOrdres() as $ordre) {
             $ressource = $ordre->getRessource();
+            // Marchandise par marchandise : le carnet ne fait un prix que sur
+            // ce que ses régions portent.
+            $avantage = $this->avantageDeNegoce($partie, $ressource);
             $enPlace = $route->convoiPour($ressource);
 
             // Un seul convoi en chemin par ressource : la caravane doit
@@ -403,7 +467,7 @@ final readonly class Commerce
      * Ce que la ville peut ouvrir, et ce qui l'en empêche — de quoi remplir
      * l'écran sans que le gabarit ait à recalculer.
      *
-     * @return list<array{partenaire: PartenaireCommercial, route: ?RouteCommerciale, cout: int, volume: int, realisable: bool, empechement: ?string}>
+     * @return list<array{partenaire: PartenaireCommercial, route: ?RouteCommerciale, cout: int, heritee: bool, volume: int, realisable: bool, empechement: ?string}>
      */
     public function offrePour(GameSave $partie): array
     {
@@ -413,7 +477,10 @@ final readonly class Commerce
         foreach ($this->partenairesDe($partie) as $partenaire) {
             $batiment = $partenaire->route->batiment();
             $niveau = $ville->batimentDeType($batiment)?->getNiveau() ?? 0;
-            $cout = $partenaire->route->coutDOuverture();
+            // Le prix réel, rabais d'héritage compris (doc 12) : une remise
+            // découverte au moment du débit ne se joue pas.
+            $cout = $this->coutDOuverture($partie, $partenaire->cle);
+            $heritee = $cout < $partenaire->route->coutDOuverture();
 
             $empechement = match (true) {
                 0 === $niveau => \sprintf('Il vous faut un %s.', $batiment->libelle()),
@@ -425,6 +492,7 @@ final readonly class Commerce
                 'partenaire' => $partenaire,
                 'route' => $ville->routeVers($partenaire->cle),
                 'cout' => $cout,
+                'heritee' => $heritee,
                 'volume' => $this->apresLeRival($partie, $partenaire->cle, $partenaire->volumeParConvoi($niveau)),
                 'realisable' => null === $empechement,
                 'empechement' => $empechement,
@@ -438,17 +506,25 @@ final readonly class Commerce
      * Tout ce qui élargit la fourchette d'un partenaire : le Négociateur et la
      * réputation de la famille, plafonnés ensemble (`AvantageDeNegoce`).
      *
-     * **C'est le seul point d'entrée du commerce.** La renommée ne pose pas son
-     * propre coefficient : elle s'ajoute ici, dans un facteur qui existait
-     * déjà, et le plafond porte sur la somme — trois plafonds séparés se
-     * cumulent et n'en plafonnent aucun (arbitrage 9.0).
+     * **C'est le seul point d'entrée du commerce.** Ni la renommée ni le carnet
+     * de contacts ne posent leur propre coefficient : ils s'ajoutent ici, dans
+     * un facteur qui existait déjà, et le plafond porte sur la somme — trois
+     * plafonds séparés se cumulent et n'en plafonnent aucun (arbitrage 9.0).
+     *
+     * `$ressource` n'est renseignée que là où l'on parle d'une marchandise
+     * précise : le carnet fait un prix sur ce que sa région porte, pas sur tout.
      */
-    public function avantageDeNegoce(GameSave $partie): int
+    public function avantageDeNegoce(GameSave $partie, ?Ressource $ressource = null): int
     {
-        return AvantageDeNegoce::total(
-            $partie->getFamille()->getRenommee(),
-            $this->avantageDuNegociateur($partie->getVille(), $partie->getCycle()),
-        );
+        $autres = $this->avantageDuNegociateur($partie->getVille(), $partie->getCycle());
+
+        // Le carnet ne joue que sur les ressources des régions servies : sans
+        // ressource nommée, on parle de l'avantage général et le carnet se tait.
+        if (null !== $ressource) {
+            $autres += $this->carnet->avantageSur($partie, $ressource);
+        }
+
+        return AvantageDeNegoce::total($partie->getFamille()->getRenommee(), $autres);
     }
 
     /**

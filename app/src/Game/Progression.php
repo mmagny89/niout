@@ -48,6 +48,34 @@ final readonly class Progression
     }
 
     /**
+     * Les missions qu'il a menées à leur terme, dans l'ordre. C'est ce que le
+     * carnet de contacts et le bonus de départ comptent — et non la plus haute
+     * atteinte : rejouer une mission déjà faite n'ajoute pas un contact, mais
+     * en sauter une n'en donne pas non plus.
+     *
+     * @return list<int>
+     */
+    public function missionsAccomplies(User $joueur): array
+    {
+        $accomplies = [];
+
+        foreach ($this->parties->findPourJoueur($joueur) as $partie) {
+            $numero = $partie->getMission();
+
+            if (!$partie->estAchevee() || !$partie->estCampagne() || null === $numero) {
+                continue;
+            }
+
+            $accomplies[$numero] = true;
+        }
+
+        $numeros = array_keys($accomplies);
+        sort($numeros);
+
+        return $numeros;
+    }
+
+    /**
      * La mission qu'on attend de lui. La première tant qu'il n'a rien achevé ;
      * la dernière une fois la campagne finie — on ne va pas au-delà de dix.
      */

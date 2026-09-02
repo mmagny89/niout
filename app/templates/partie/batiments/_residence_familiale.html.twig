@@ -183,6 +183,14 @@
                     {% endif %}
                 </td>
             </tr>
+            {% if carnet is not empty %}
+                <tr class="border-t border-ocre-500/20">
+                    <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Vos contacts</th>
+                    <td class="px-4 py-2 text-right text-encre-900">
+                        {{ carnet|length }} ville{{ carnet|length > 1 ? 's' : '' }} où l'on vous connaît
+                    </td>
+                </tr>
+            {% endif %}
             {% if avantageDeNegoce > avantageDeRenommee %}
                 <tr class="border-t border-ocre-500/20">
                     <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
