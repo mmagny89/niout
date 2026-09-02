@@ -275,6 +275,17 @@ enum Enquete: string
      * Ce que rapporte une enquête résolue. Le doc 10 veut une « récompense
      * notable » — plusieurs fois une énigme courte.
      */
+    /**
+     * Ce qu'une enquête résolue vaut en renommée (doc 13, lot 9.2).
+     *
+     * **Deux, entre le +3 du document et le +1 que le jeu donnait**
+     * (arbitrage 9.0) : +3 mettrait quatre-vingt-dix points sur cent à la
+     * portée d'un seul système, +1 ne paierait pas plusieurs quinzaines de
+     * collecte. **Valeur inventée**, à calibrer sur l'économie mesurée comme
+     * les seuils du doc 09 l'ont été.
+     */
+    public const int RENOMMEE_POUR_UNE_RESOLUE = 2;
+
     public function recompenseEnDeben(): int
     {
         return match (true) {

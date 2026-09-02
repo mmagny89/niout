@@ -72,7 +72,7 @@ final readonly class Enigmes
     }
 
     /**
-     * @return array{juste: bool, explication: string, recompense: int}
+     * @return array{juste: bool, explication: string, recompense: int, renommee: int}
      *
      * @throws EnigmeImpossible
      */
@@ -94,9 +94,14 @@ final readonly class Enigmes
 
         $juste = $reponse === $enigme->bonneReponse();
         $ville->tenterUneEnigme($enigme);
+        $renommee = 0;
 
         if ($juste) {
             $ville->crediterRessources([Ressource::Deben->value => Enigme::RECOMPENSE_EN_DEBEN]);
+
+            // Le doc 13 accorde un point par énigme résolue, que le jeu ne
+            // donnait pas : une règle écrite et jamais appliquée.
+            $renommee = $partie->getFamille()->crediterUneAffaireResolue(Enigme::RENOMMEE_POUR_UNE_RESOLUE);
         }
 
         $this->entityManager->flush();
@@ -105,6 +110,7 @@ final readonly class Enigmes
             'juste' => $juste,
             'explication' => $enigme->explication(),
             'recompense' => $juste ? Enigme::RECOMPENSE_EN_DEBEN : 0,
+            'renommee' => $renommee,
         ];
     }
 }

@@ -47,6 +47,10 @@ final class DeductionTest extends WebTestCase
     /**
      * Une enquête résolue rapporte, et fait parler de la famille : le doc 10
      * veut une « récompense notable ».
+     *
+     * Le compte exact de la renommée et son plafond de mission sont dans
+     * `RenommeeDesAffairesTest` (lot 9.2) ; ici on vérifie que la conclusion
+     * en verse bien et le rapporte à l'écran.
      */
     public function testUneEnqueteResolueRapporteEtFaitParlerDeVous(): void
     {
@@ -61,7 +65,8 @@ final class DeductionTest extends WebTestCase
 
         self::assertTrue($verdict['juste']);
         self::assertSame($deben + Enquete::PassageCoupe->recompenseEnDeben(), $ville->quantite(Ressource::Deben));
-        self::assertSame($renommee + 1, $partie->getFamille()->getRenommee());
+        self::assertSame($renommee + Enquete::RENOMMEE_POUR_UNE_RESOLUE, $partie->getFamille()->getRenommee());
+        self::assertSame(Enquete::RENOMMEE_POUR_UNE_RESOLUE, $verdict['renommee']);
         self::assertSame(StatutDEnquete::Resolue, $ville->dossierDe(Enquete::PassageCoupe)?->getStatut());
     }
 

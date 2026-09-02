@@ -128,7 +128,7 @@ final readonly class Enquetes
      * dénouement est dit : le vrai gain d'une enquête est de savoir ce qui
      * s'est passé.
      *
-     * @return array{juste: bool, denouement: string, recompense: int, definitif: bool}
+     * @return array{juste: bool, denouement: string, recompense: int, renommee: int, definitif: bool}
      *
      * @throws EnqueteImpossible
      */
@@ -157,11 +157,12 @@ final readonly class Enquetes
         }
 
         $juste = $conclusion === $enquete->bonneConclusion();
+        $renommee = 0;
 
         if ($juste) {
             $dossier->conclure(StatutDEnquete::Resolue);
             $partie->getVille()->crediterRessources([Ressource::Deben->value => $enquete->recompenseEnDeben()]);
-            $partie->getFamille()->ajusterRenommee(1);
+            $renommee = $partie->getFamille()->crediterUneAffaireResolue(Enquete::RENOMMEE_POUR_UNE_RESOLUE);
 
             // La troisième issue du doc 08 : le rival est démonté, et il ne
             // revient pas — contrairement à celui qu'on paie ou qu'on ignore.
@@ -180,6 +181,7 @@ final readonly class Enquetes
             'juste' => $juste,
             'denouement' => $enquete->denouement(),
             'recompense' => $juste ? $enquete->recompenseEnDeben() : 0,
+            'renommee' => $renommee,
             'definitif' => !$juste && !$enquete->estPrincipale(),
         ];
     }

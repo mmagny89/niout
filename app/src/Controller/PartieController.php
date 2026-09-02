@@ -758,7 +758,12 @@ final class PartieController extends AbstractController
         $this->addFlash(
             $verdict['juste'] ? 'succes' : 'erreur',
             $verdict['juste']
-                ? \sprintf('%s Vous recevez %d deben.', $verdict['explication'], $verdict['recompense'])
+                ? \sprintf(
+                    '%s Vous recevez %d deben%s.',
+                    $verdict['explication'],
+                    $verdict['recompense'],
+                    self::etLaRenommee($verdict['renommee']),
+                )
                 : \sprintf('Ce n\'était pas la réponse. %s', $verdict['explication']),
         );
 
@@ -839,6 +844,19 @@ final class PartieController extends AbstractController
     }
 
     /**
+     * Ce qu'on ajoute au verdict d'une énigme ou d'une enquête quand elle a
+     * rapporté de la renommée. **Muet quand elle n'a rien rapporté** : le
+     * plafond de la mission est atteint, et annoncer « et zéro de renommée »
+     * transformerait une réussite en reproche.
+     */
+    private static function etLaRenommee(int $renommee): string
+    {
+        return $renommee > 0
+            ? \sprintf(' et %d de renommée', $renommee)
+            : '';
+    }
+
+    /**
      * Conclut une enquête.
      *
      * **Se tromper ne se paie pas de la même façon selon l'enquête** : une
@@ -871,9 +889,10 @@ final class PartieController extends AbstractController
             $verdict['juste'] ? 'succes' : 'erreur',
             match (true) {
                 $verdict['juste'] => \sprintf(
-                    'Affaire close. %s Vous recevez %d deben, et l\'on parle de vous.',
+                    'Affaire close. %s Vous recevez %d deben%s.',
                     $verdict['denouement'],
                     $verdict['recompense'],
+                    self::etLaRenommee($verdict['renommee']),
                 ),
                 $verdict['definitif'] => \sprintf(
                     'Vous vous êtes trompé, et l\'affaire s\'enterre. %s',
