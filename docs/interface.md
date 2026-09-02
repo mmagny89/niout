@@ -157,6 +157,24 @@ peut pas prouver l'absence de défilement. La parade est une **assertion de
 structure** — coque, onglets appariés à leurs panneaux, familles présentes —
 comme pour le jeton CSRF sans état. Voir `ErgonomieTest`.
 
+## Les hiéroglyphes à l'écran
+
+**Tout glyphe affiché porte `font-hieroglyphes`** : aucun système
+d'exploitation courant ne couvre le bloc égyptien d'Unicode, et la police est
+embarquée — self-hébergée comme les deux autres familles, le jeu n'appelant
+aucun CDN. L'oublier ne casse rien de visible en développement, où un repli du
+navigateur sauve parfois la mise ; ailleurs, le joueur voit des carrés.
+
+La police est **sous-ensemblée** aux seuls signes déclarés par le code. Après
+tout ajout de signe, rejouer
+`.claude/scripts/sous-ensembler-hieroglyphes.sh` : un signe absent du
+sous-ensemble s'affiche en carré vide, **sans erreur ni avertissement**.
+
+Les signes se manipulent au **glisser-déposer** — même contrôleur pour le
+déchiffrage d'une inscription et pour la leçon qui écrit « Niout » —, et la
+règle ci-dessous vaut telle quelle : l'interaction se construit au clavier
+d'abord.
+
 ## Interactions
 
 **Une interaction se construit au clavier, puis se décore à la souris**
