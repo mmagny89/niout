@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Entity\User;
 use App\Repository\GameSaveRepository;
+use App\Repository\LigneeRepository;
 use App\Repository\ResetPasswordRequestRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,6 +29,7 @@ final class PurgeUnverifiedUsersCommand
         private readonly UserRepository $userRepository,
         private readonly ResetPasswordRequestRepository $resetPasswordRequestRepository,
         private readonly GameSaveRepository $gameSaveRepository,
+        private readonly LigneeRepository $lignees,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -72,6 +74,15 @@ final class PurgeUnverifiedUsersCommand
             // cascade déclarée sur GameSave.
             foreach ($this->gameSaveRepository->findPourJoueur($user) as $partie) {
                 $this->entityManager->remove($partie);
+            }
+
+            // La lignée n'appartient à aucune partie — elle leur survit, c'est
+            // sa raison d'être — donc aucune cascade ne l'emporte : elle se
+            // supprime ici, avant le compte qu'elle référence.
+            $lignee = $this->lignees->findPourJoueur($user);
+
+            if (null !== $lignee) {
+                $this->entityManager->remove($lignee);
             }
 
             $this->entityManager->remove($user);

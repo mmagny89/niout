@@ -196,7 +196,7 @@ de cause plutôt que le découvrir au playtest.
 | Lot | Contenu | |
 |---|---|---|
 | 9.0 | Les arbitrages tranchés, et la forme qu'ils donnent à la phase | ✅ |
-| 9.1 | La renommée devient une jauge de famille, qui traverse la campagne | |
+| 9.1 | La renommée devient une jauge de famille, qui traverse la campagne | ✅ |
 | 9.2 | Les deux sources manquantes : énigme résolue, enquête résolue | |
 | 9.3 | La renommée infléchit les prix, à l'achat comme à la vente | |
 | 9.4 | Le carnet de contacts : ce qu'une région visitée laisse | |
@@ -232,7 +232,17 @@ Une mission accomplie relève l'acquis ; elle ne l'abaisse jamais. C'est la mêm
 discipline que le plancher du neutre de la négligence divine, et c'est ce qui
 permet à deux parties de coexister sans se contaminer.
 
-#### 9.1 — Une jauge de famille, pas de partie
+#### 9.1 — Une jauge de famille, pas de partie  *(livré)*
+
+**Retenu : l'entité `Lignee`**, une par joueur, créée paresseusement au premier
+lancement qui en a besoin — elle accueillera le carnet de contacts du 9.4. Elle
+porte l'**acquis** ; `Family` garde la **jauge de la mission** (cf. 9.0).
+`Lignees` est le seul accès : lecture au lancement, relèvement à la clôture
+d'une mission de campagne par `AchevementDeMission`. La migration
+rétro-alimente les joueurs déjà avancés depuis leurs parties achevées.
+
+`Legs` perd son volet renommée : quatre points depuis zéro et l'acquis entier
+auraient compté deux fois la même réussite. Il reste le legs en deben.
 
 La renommée quitte `GameSave` pour suivre le **joueur**. Trois façons de le
 faire, à trancher :

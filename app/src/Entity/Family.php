@@ -37,14 +37,27 @@ class Family
 
     /**
      * Jauge 0-100 déterminant l'attractivité de la ville pour les travailleurs
-     * et les marchands (doc 13). Persistante d'une mission à l'autre.
+     * et les marchands (doc 13).
+     *
+     * **C'est la jauge de la mission, pas l'acquis de la campagne** : elle
+     * démarre à l'acquis de la `Lignee` et bouge librement ensuite, à la
+     * baisse comprise. Ce qu'elle vaut à la fin d'une mission accomplie relève
+     * l'acquis ; elle ne le rabaisse jamais.
      */
     #[ORM\Column]
     private int $renommee = self::RENOMMEE_MIN;
 
-    public function __construct(string $nom)
+    /**
+     * `$renommeeDeDepart` est l'acquis de la lignée (`Lignees::renommeeDeDepart()`).
+     * Nul par défaut : une première partie part de rien.
+     */
+    public function __construct(string $nom, int $renommeeDeDepart = self::RENOMMEE_MIN)
     {
         $this->nom = $nom;
+        $this->renommee = max(
+            self::RENOMMEE_MIN,
+            min(self::RENOMMEE_MAX, $renommeeDeDepart),
+        );
     }
 
     public function getId(): ?int

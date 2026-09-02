@@ -105,6 +105,9 @@ final class ProgressionTest extends WebTestCase
      * **Le legs suit le score, proportionnellement** : une mission accomplie à
      * moitié lègue la moitié. C'est ce qui donne un sens aux objectifs
      * chiffrés au-delà du chiffre lui-même.
+     *
+     * **Le legs ne porte plus de renommée** (lot 9.1) : celle-ci est un acquis
+     * de la lignée, transmis en entier — voir `RenommeeDeLigneeTest`.
      */
     public function testLeLegsSuitLeScore(): void
     {
@@ -119,7 +122,6 @@ final class ProgressionTest extends WebTestCase
 
         self::assertSame(Legs::DEBEN_POUR_UNE_REUSSITE_PLEINE, $legs->debenPour($pleine, 2));
         self::assertSame(intdiv(Legs::DEBEN_POUR_UNE_REUSSITE_PLEINE, 2), $legs->debenPour($partielle, 2));
-        self::assertGreaterThan($legs->renommeePour($partielle, 2), $legs->renommeePour($pleine, 2));
     }
 
     /**
@@ -141,7 +143,6 @@ final class ProgressionTest extends WebTestCase
 
         self::assertSame(Legs::DEBEN_POUR_UNE_REUSSITE_PLEINE, $seconde->getLegsEnDeben());
         self::assertGreaterThan($dotation, $seconde->getVille()->quantite(Ressource::Deben));
-        self::assertGreaterThan(0, $seconde->getFamille()->getRenommee(), 'Le pharaon parle de vous à son successeur.');
     }
 
     /**
