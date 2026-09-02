@@ -10,6 +10,7 @@ use App\Entity\OrdreCommercial;
 use App\Entity\RouteCommerciale;
 use App\Repository\GameSaveRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Random\Randomizer;
 
 /**
  * Ouvrir une route, et l'attendre (doc 12).
@@ -35,6 +36,8 @@ final readonly class Commerce
         private EntityManagerInterface $entityManager,
         private CarnetDeContacts $carnet,
         private GameSaveRepository $parties,
+        private Medjays $medjays,
+        private Randomizer $hasard = new Randomizer(),
     ) {
     }
 
@@ -59,6 +62,37 @@ final readonly class Commerce
      * qui passe, pas seulement sur ce qu'il en coûte d'ouvrir.
      */
     public const int VOLUME_DUNE_ROUTE_HERITEE = 10;
+
+    /**
+     * Ce qu'une bande encore installée dans la région ajoute au risque qu'un
+     * convoi soit pillé, en points de pourcentage (lot 10.5).
+     *
+     * **Système inventé, et il faut le dire** : aucun des seize documents ne
+     * décrit de perte de convoi. Le doc 12 pose « une caravane par cycle » sans
+     * aléa, et les routes vivent hors de la carte, donc aucune bande ne peut
+     * s'y trouver. Il a fallu l'inventer pour que la Caserne tienne sa promesse
+     * — « protection des caravanes » — et que l'escorte protège quelque chose.
+     *
+     * **Ancré sur ce qui existe plutôt que libre** : le risque suit le nombre
+     * de bandes *encore tenues* dans la région, le paramètre « Danger » du
+     * doc 02. Une région sans bandit — les deux premières missions — ne perd
+     * jamais un convoi, et nettoyer une case protège le commerce autant que
+     * l'exploitation. C'est la même règle qui sert deux systèmes plutôt qu'un
+     * hasard de plus.
+     */
+    public const int RISQUE_PAR_BANDE_DE_LA_REGION = 5;
+
+    /**
+     * Ce que chaque Medjaÿ en état de servir retire à ce risque, en centièmes
+     * du risque lui-même. **Valeur inventée.** Sept hommes valides suffisent à
+     * couvrir les routes entièrement.
+     *
+     * Ils n'ont rien à faire de particulier pour cela : une garnison protège
+     * les convois du seul fait d'exister, et c'est ce qui donne à la troupe un
+     * emploi entre deux sorties. Le prix se paie ailleurs — un homme blessé au
+     * combat ne couvre plus rien tant qu'il n'est pas remis.
+     */
+    public const int PROTECTION_PAR_MEDJAY = 15;
 
     /**
      * Engage l'ouverture d'une route : débite le coût, met la caravane en
@@ -121,6 +155,30 @@ final readonly class Commerce
         }
 
         return max(1, $plein - intdiv($plein * self::RABAIS_DUNE_ROUTE_HERITEE, 100));
+    }
+
+    /**
+     * Le risque qu'un convoi rentrant soit pillé, en points de pourcentage
+     * (lot 10.5).
+     *
+     * Nul dans une région sans bande, nul aussi dès que la garnison suffit.
+     * C'est ce qui fait des Medjaÿ autre chose qu'une dépense entre deux
+     * assauts, et ce qui rend une sortie coûteuse : des hommes blessés ne
+     * couvrent plus les routes.
+     */
+    public function risqueDePillage(GameSave $partie): int
+    {
+        $bandes = Bandits::compterLesZonesGardees($partie->getVille());
+
+        if (0 === $bandes) {
+            return 0;
+        }
+
+        $risque = self::RISQUE_PAR_BANDE_DE_LA_REGION * $bandes;
+        $garnison = \count($this->medjays->disponibles($partie));
+        $couverture = min(100, self::PROTECTION_PAR_MEDJAY * $garnison);
+
+        return $risque - intdiv($risque * $couverture, 100);
     }
 
     /**
@@ -327,6 +385,25 @@ final readonly class Commerce
 
         foreach ($route->getConvois()->toArray() as $convoi) {
             if (!$convoi->avancerDUnCycle()) {
+                continue;
+            }
+
+            // Les brigands de la région ne s'arrêtent pas à la carte : ils
+            // guettent aussi les pistes (lot 10.5). Le convoi est perdu tout
+            // entier — marchandise ou deben, selon le sens : on ne pille pas à
+            // moitié.
+            if ($this->hasard->getInt(1, 100) <= $this->risqueDePillage($partie)) {
+                $messages[] = \sprintf(
+                    'Votre %s de %s a été pillé en chemin : %d %s perdus. Des Medjaÿ sur les routes y auraient veillé.',
+                    $route->getRoute()->convoi(),
+                    $nom,
+                    $convoi->getQuantite(),
+                    $convoi->getRessource()->libelle(),
+                );
+
+                $route->retirerConvoi($convoi);
+                $this->entityManager->remove($convoi);
+
                 continue;
             }
 

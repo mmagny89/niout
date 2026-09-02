@@ -505,7 +505,7 @@ difficulté régionale, à poser avec les seuils du doc 11.
 | 10.2 | Les Medjaÿ : fantassin, archer, recrutement et entretien | ✅ |
 | 10.3 | L'équipement : les armes de la Forge cessent d'être une marchandise | ✅ |
 | 10.4 | La résolution automatique, et ce qu'elle coûte en hommes | ✅ |
-| 10.5 | L'escorte : expéditions lourdes et caravanes | |
+| 10.5 | L'escorte : expéditions lourdes et caravanes | ✅ |
 | 10.6 | Le Charrier : une réquisition, jamais un recrutement | |
 | 10.7 | Les six branchements dormants | |
 
@@ -700,7 +700,27 @@ seul effet de la phase qui touche un système déjà livré, et il est exactemen
 sa place : le doc 07 la distingue de Sekhmet parce qu'elle protège l'homme
 quand l'autre décide du sort de tous.
 
-#### 10.5 — L'escorte
+#### 10.5 — L'escorte  *(livré)*
+
+**Le vide documentaire, et ce qu'on en a fait.** Le doc 12 pose « une caravane
+par cycle » sans le moindre aléa, et les routes vivent hors de la carte : rien
+ne menaçait un convoi, donc l'escorte n'avait rien à protéger. Décision prise
+avec la joueuse : **inventer le risque**, mais l'ancrer sur ce qui existe — il
+suit le nombre de bandes *encore tenues* dans la région, le paramètre « Danger »
+du doc 02. Une région sans bandit ne perd jamais un convoi, et nettoyer une
+case protège le commerce autant que l'exploitation : une même règle sert deux
+systèmes au lieu d'ajouter un hasard de plus.
+
+**Le Chef d'expédition mène la troupe**, et c'est son emploi propre : seul rôle
+à partir en armes, seul à pouvoir viser une case tenue, et le combat se résout
+**à son arrivée**. Les autres rôles refusent une case gardée. Cela remplace le
+bouton d'attaque direct posé au 10.4 : un assaut se prépare, il ne se déclenche
+pas d'un clic sur la carte — et cela justifie enfin ses cinquante deben, là où
+il faisait le travail d'un éclaireur pour cinq fois le prix.
+
+**La tension du lot est là** : les hommes qui vont déloger une bande sont ceux
+qui couvrent les convois. Une sortie coûteuse en blessés découvre les routes, et
+la garnison retrouve un emploi entre deux assauts.
 
 Le document nomme trois emplois : les **expéditions lourdes** (le Chef
 d'expédition trouve enfin son rôle), la **protection des caravanes** — que le
@@ -837,6 +857,8 @@ le calibrage du lot 4.6.
 | Défense d'une bande de brigands | 20, avant le facteur de région | `Bandits::DEFENSE_DE_BASE` |
 | Qualité d'un homme sans arme | 70 centièmes | `Equipement::QUALITE_SANS_ARME` |
 | Butin d'une bande vaincue | 50 % de ce qu'elle opposait | `Combat::BUTIN_POUR_CENT_DE_LA_DEFENSE` |
+| Risque de pillage d'un convoi | 5 % par bande encore tenue | `Commerce::RISQUE_PAR_BANDE_DE_LA_REGION` |
+| Couverture d'un Medjaÿ sur les routes | 15 % du risque | `Commerce::PROTECTION_PAR_MEDJAY` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,

@@ -22,6 +22,8 @@ final readonly class Explorations
         private EntityManagerInterface $entityManager,
         private Enquetes $enquetes,
         private Prospection $prospection,
+        private Medjays $medjays,
+        private Combat $combat,
     ) {
     }
 
@@ -45,6 +47,22 @@ final readonly class Explorations
 
         if (!$role->viseUneCaseInconnue() && !$destination->estDecouverte()) {
             throw new ExplorationImpossible('Envoyez d\'abord un éclaireur : on ne parle pas à des gens qu\'on n\'a pas trouvés, et l\'on ne sonde pas une terre qu\'on n\'a pas vue.');
+        }
+
+        // **Le chef d'expédition ne part que déloger une bande**, et il est le
+        // seul à pouvoir le faire (lot 10.5). Les autres rôles n'ont rien à
+        // faire sur une case tenue : on n'envoie pas un scribe parlementer
+        // avec des brigands.
+        if ($role->meneLaTroupe()) {
+            if (!$destination->estGardee()) {
+                throw new ExplorationImpossible('Personne ne tient cette case : une expédition en armes n\'y a rien à faire.');
+            }
+
+            if ([] === $this->medjays->disponibles($partie)) {
+                throw new ExplorationImpossible('Vous n\'avez aucun Medjaÿ en état de partir. La Caserne en lève.');
+            }
+        } elseif ($destination->estGardee()) {
+            throw new ExplorationImpossible('Des brigands tiennent cette case. Il faut les déloger avant d\'y envoyer qui que ce soit d\'autre.');
         }
 
         if (RoleDExploration::Prospecteur === $role && [] === $this->prospection->filonsPossibles($partie, $destination)) {
@@ -106,6 +124,7 @@ final readonly class Explorations
             $evenements[] = match ($expedition->getRole()) {
                 RoleDExploration::Emissaire => $this->rapportDeLEmissaire($partie),
                 RoleDExploration::Prospecteur => $this->prospection->fouiller($partie, $zone),
+                RoleDExploration::ChefDExpedition => $this->rapportDeLAssaut($partie, $zone),
                 default => $this->rapportDeLaReconnaissance($zone),
             };
 
@@ -134,6 +153,46 @@ final readonly class Explorations
             $indice->texte(),
             $indice->enquete()->libelle(),
         );
+    }
+
+    /**
+     * Ce qu'une expédition en armes rapporte (doc 03, lot 10.5).
+     *
+     * **Le combat se résout à l'arrivée**, pas au départ : la troupe met le
+     * temps du trajet à parvenir sur place, et c'est ce qui distingue un assaut
+     * préparé d'un bouton sur la carte.
+     *
+     * La bande peut avoir été délogée entre-temps par une autre expédition ; on
+     * le dit plutôt que de lever une exception dans un passage de cycle, qui
+     * n'a personne à qui la présenter.
+     */
+    private function rapportDeLAssaut(GameSave $partie, Zone $zone): string
+    {
+        if (!$zone->estGardee()) {
+            return 'Votre expédition est arrivée sur une case déjà libérée : elle rentre sans avoir eu à combattre.';
+        }
+
+        $resultat = $this->combat->livrer($partie, $zone, $this->medjays->disponibles($partie));
+
+        $recit = $resultat->victoire
+            ? \sprintf(
+                'La case est prise : vos hommes en rapportent %d deben, et chacun y a appris quelque chose.',
+                $resultat->butin,
+            )
+            : 'Vos hommes ont dû se retirer. La bande tient toujours la case.';
+
+        if ([] !== $resultat->blesses) {
+            $recit .= \sprintf(' %d en reviennent blessés.', \count($resultat->blesses));
+        }
+
+        if ($resultat->aPerduDesHommes()) {
+            $recit .= \sprintf(
+                ' %s ne rentrent pas : il faudra en lever d\'autres, et tout leur réapprendre.',
+                implode(', ', $resultat->tombes),
+            );
+        }
+
+        return $recit;
     }
 
     /**

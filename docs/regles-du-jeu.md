@@ -338,6 +338,19 @@ Trois règles à ne pas défaire :
   vaut une fois pour la troupe, jamais une fois par homme : dix fantassins ne
   rendent pas une troupe invulnérable, et sans cette borne lever du fantassin
   en nombre annulait toute perte.
+- **On n'attaque pas d'un bouton : on y mène une expédition.** Le Chef
+  d'expédition est le seul rôle qui parte en armes, le seul à pouvoir viser une
+  case tenue — les autres la refusent —, et le combat se résout **à son
+  arrivée**. C'est ce qui lui donne son emploi propre : il faisait jusque-là le
+  travail d'un éclaireur pour cinq fois le prix.
+- **Le pillage des convois est un système inventé, ancré sur le danger de la
+  région** (`Commerce::risqueDePillage()`). Aucun des seize documents ne décrit
+  de perte de convoi ; il a fallu l'inventer pour que la Caserne tienne sa
+  promesse de « protection des caravanes ». Le risque suit les bandes **encore
+  tenues** — donc nul dans une région qui n'en porte pas, et décroissant à
+  mesure qu'on nettoie. La garnison le couvre du seul fait d'exister. **La
+  tension est voulue** : les hommes qui délogent une bande sont ceux qui
+  couvrent les routes, et une sortie coûteuse en blessés les découvre.
 - **Un mort emporte son expérience, un blessé garde la sienne** (doc 03). C'est
   le vrai enjeu de la perte définitive — pas le coût du recrutement, mais tout
   ce qu'il faut réapprendre.
