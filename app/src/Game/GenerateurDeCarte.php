@@ -45,6 +45,11 @@ final readonly class GenerateurDeCarte
 
         $this->remplirLeContenu($grille, $geographie, $ville->getDifficulte());
 
+        // Les bandes se posent **après** le contenu : le danger se superpose à
+        // ce qu'une case porte, il ne s'y substitue pas (arbitrage 10.0). Une
+        // case gardée peut donc être exactement celle qu'on convoitait.
+        $this->poserLesBandes($grille, $ville->getDifficulte());
+
         foreach ($grille as $zone) {
             $ville->ajouterZone($zone);
         }
@@ -442,6 +447,51 @@ final readonly class GenerateurDeCarte
             $grille,
             static fn (Zone $z): bool => !$z->porteLaVille() && $z->estAdjacenteA($ville),
         ));
+    }
+
+    /**
+     * Installe les bandes de brigands (doc 02, doc 03, lot 10.1).
+     *
+     * **L'anneau de la ville en est exclu, et c'est un invariant.** Le
+     * générateur y garantit un gisement de chaque matériau vital ; une bande
+     * posée dessus rendrait la première carrière imprenable sans Caserne, donc
+     * la partie injouable au premier cycle. Le danger commence au-delà du
+     * premier cercle, ce qui est aussi la lecture la plus juste : on ne campe
+     * pas des brigands sous les murs.
+     *
+     * La case de la ville en est exclue pour la même raison, en plus évidente.
+     *
+     * @param list<Zone> $grille
+     */
+    private function poserLesBandes(array $grille, int $difficulte): void
+    {
+        $combien = Bandits::nombrePour($difficulte);
+
+        if ($combien < 1) {
+            return;
+        }
+
+        $interdites = $this->anneauDeLaVille($grille);
+
+        $candidates = array_values(array_filter(
+            $grille,
+            static fn (Zone $zone): bool => !$zone->porteLaVille()
+                && !\in_array($zone, $interdites, true),
+        ));
+
+        if ([] === $candidates) {
+            return;
+        }
+
+        // Moins de cases libres que de bandes prévues : on en pose autant que
+        // la carte en accepte plutôt que d'échouer. Le cas ne se produit que
+        // sur les grilles les plus petites, où la difficulté est nulle et le
+        // nombre de bandes avec.
+        $combien = min($combien, \count($candidates));
+
+        foreach (\array_slice($this->hasard->shuffleArray($candidates), 0, $combien) as $zone) {
+            $zone->installerUneBande(Bandits::DEFENSE_DE_BASE);
+        }
     }
 
     /**

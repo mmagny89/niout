@@ -499,7 +499,7 @@ difficulté régionale, à poser avec les seuils du doc 11.
 | Lot | Contenu | |
 |---|---|---|
 | 10.0 | Les arbitrages, avant d'écrire | ✅ |
-| 10.1 | Le danger sur la carte : zones à bandits et défense de région | |
+| 10.1 | Le danger sur la carte : zones à bandits et défense de région | ✅ |
 | 10.2 | Les Medjaÿ : fantassin, archer, recrutement et entretien | |
 | 10.3 | L'équipement : les armes de la Forge cessent d'être une marchandise | |
 | 10.4 | La résolution automatique, et ce qu'elle coûte en hommes | |
@@ -542,7 +542,29 @@ d'aucun lot :
   compte de zones dangereuses se lise sur la **carte** et non sur un numéro de
   mission.
 
-#### 10.1 — Le danger sur la carte
+#### 10.1 — Le danger sur la carte  *(livré)*
+
+`Zone::$defenseDesBandits` — zéro valant « aucune bande » —, `Bandits` pour les
+règles, et une pose à la génération **après** le contenu, pour que le danger s'y
+superpose. Une case gardée ne s'exploite ni ne se sème : c'est ce qui donne au
+filon gardé sa raison d'être, et aux Medjaÿ la leur.
+
+**Une contradiction du doc 02, tranchée.** Le document donne deux comptes qui ne
+s'accordent pas : un tableau de poids de tirage (0 / 8 / 15 % par palier de
+difficulté) et une formule de paramètre
+`nbZonesBandits = partieEntiere(difficulté × 0,5)`. Sur la grille 12×12 de la
+dixième mission, le premier donnerait une vingtaine de zones là où le second en
+donne quatre. C'est **la formule qui l'emporte** : le tableau décrit un tirage
+de *contenu*, et le danger n'en est pas un depuis l'arbitrage 10.0.
+
+**L'anneau de la ville est exclu, et c'est un invariant testé** sur les dix
+régions. Le générateur y garantit un gisement de chaque matériau vital ; une
+bande posée dessus rendrait la première carrière imprenable sans Caserne, donc
+la partie injouable au premier cycle.
+
+`valeurBase_zone` est une **valeur inventée** — le doc 03 renvoie au doc 02, qui
+ne la chiffre nulle part. Vingt : deux fantassins valent vingt, donc une chance
+sur deux à mains nues.
 
 Une case dangereuse, un compte par région, et la défense qui en découle. Trois
 questions se posent, dont deux touchent au doc 02 plus qu'au doc 03 :
@@ -751,6 +773,7 @@ le calibrage du lot 4.6.
 | Renommée d'une enquête résolue | +2, entre le +3 du doc 13 et le +1 d'avant | `Enquete::RENOMMEE_POUR_UNE_RESOLUE` |
 | Plafond de renommée des affaires | 8 points par mission | `Family::RENOMMEE_MAX_DES_AFFAIRES` |
 | Plafond de l'avantage de négoce | 40 points de pourcentage, toutes sources confondues | `AvantageDeNegoce::PLAFOND_TOTAL` |
+| Défense d'une bande de brigands | 20, avant le facteur de région | `Bandits::DEFENSE_DE_BASE` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,
