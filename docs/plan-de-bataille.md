@@ -453,9 +453,10 @@ de ressource pure sur la même mission ne la rendent pas monotone.
 
 ### Les phases à cadrer
 
-La **Phase 9 est cadrée** et garde son format détaillé, lot par lot, jusqu'à sa
-livraison — comme les Phases 5 à 8 avant elle. Les trois suivantes traduisent
-chacune un document déjà spécifié ; leur cadrage se fera à leur tour.
+La **Phase 9 est livrée** ; son récit est au journal
+([`phases-livrees.md`](phases-livrees.md), § 5.12), et son cadrage détaillé
+reste ci-dessus le temps que la Phase 10 prenne sa place. Les trois suivantes
+traduisent chacune un document déjà spécifié ; leur cadrage se fera à leur tour.
 
 | Phase | Sujet | Ce qu'elle apporte |
 |---|---|---|
