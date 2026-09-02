@@ -128,7 +128,7 @@ vues, pas de la conception.
 | **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | ✅ |
 | **8 bis** | Finition : cohérence et lisibilité | — | ✅ |
 | **8 ter** | Écriture : l'alphabet des scribes et les stèles | `10`, `09` | ✅ |
-| **9** | Renommée, héritage et succession familiale | `13` | à cadrer |
+| **9** | Renommée, héritage et succession familiale | `13` | cadrée |
 | **10** | Medjaÿ et combat automatique | `03` | à cadrer |
 | **11** | Mode Aventure : Memphis et succession des règnes | `14` | à cadrer |
 | **12** | Découpage et intégration des sprites | `15` | à cadrer |
@@ -151,6 +151,169 @@ Le **détail des phases livrées** — intention, lots, règles qui en sortent,
 pièges payés, ce que chacune laisse ouvert — vit dans
 [`phases-livrees.md`](phases-livrees.md), pour que cette feuille de route reste
 lisible d'un coup d'œil.
+
+---
+
+## 4 ter. Phase 9 — Renommée, héritage et succession familiale  *(cadrée)*
+
+Le doc 13 est le seul document de conception dont le jeu applique **la moitié
+sans le savoir** : les cinq paliers de renommée existent, aux plages exactes du
+document, et six mécanismes la font bouger. Ce qui manque n'est pas la jauge,
+c'est **ce qu'elle traverse** — une mission, une génération, une campagne.
+
+### Ce qui existe déjà, et qu'il ne faut pas refaire
+
+| Le document demande | Le jeu fait |
+|---|---|
+| Cinq paliers, 0-19 / 20-39 / 40-59 / 60-79 / 80-100 | `PalierDeRenommee`, aux mêmes plages |
+| L'attractivité varie par palier | Le prix d'un appel d'habitants et la migration spontanée en dépendent |
+| Gros contrat commercial : +1 | `Marche::RECETTE_DUN_GROS_CONTRAT` |
+| Quête de chantier réussie : +5, refusée : −2 | `QuetesDeChantier` |
+| Bonus proportionnel au score de mission | `Legs::renommeePour()` |
+
+Deux sources que le jeu ajoute et que le document ne prévoit pas : la
+**providence** (±1 selon qu'un dieu bénit ou maudit) et le **mécontentement**
+(−1 par quinzaine de colère). Elles sont cohérentes avec le reste et se
+gardent ; le document se corrigera.
+
+### Le défaut de fond : la renommée ne traverse rien
+
+**`Family` naît avec chaque partie.** La renommée repart donc de zéro à chaque
+mission, augmentée du seul legs de la mission **immédiatement précédente**,
+plafonné à quatre points. Le document veut l'inverse, et le dit en toutes
+lettres : « une seule jauge de renommée par famille, **persistante d'une
+mission à l'autre** […] elle ne fait que croître au fil de la campagne ».
+
+C'est le cœur de la phase, et ce n'est pas qu'une colonne à déplacer : cela
+touche à un invariant déjà posé — **le legs s'ajoute à la dotation, il ne la
+remplace pas**, pour que chaque mission reste jouable seule. Une renommée
+cumulée qui infléchit les prix rend mécaniquement les dernières missions plus
+faciles. C'est **voulu** par le document ; il faut le décider en connaissance
+de cause plutôt que le découvrir au playtest.
+
+### Les lots
+
+| Lot | Contenu | |
+|---|---|---|
+| 9.1 | La renommée devient une jauge de famille, qui traverse la campagne | |
+| 9.2 | Les deux sources manquantes : énigme résolue, enquête résolue | |
+| 9.3 | La renommée infléchit les prix, à l'achat comme à la vente | |
+| 9.4 | Le carnet de contacts : ce qu'une région visitée laisse | |
+| 9.5 | Le bonus de départ par missions accomplies | |
+| 9.6 | La succession : générations, héritiers et leur trait | |
+
+#### 9.1 — Une jauge de famille, pas de partie
+
+La renommée quitte `GameSave` pour suivre le **joueur**. Trois façons de le
+faire, à trancher :
+
+- **une entité `Lignee` par joueur**, que chaque partie référence — le plus
+  propre, le plus coûteux en migration ;
+- **un calcul** à partir des parties achevées, comme `Legs` le fait déjà —
+  aucune colonne, mais la renommée gagnée *en cours de mission* ne survit pas ;
+- **la valeur recopiée au lancement** depuis la plus haute atteinte — simple,
+  mais deux parties menées de front divergent.
+
+La première est la seule qui tienne la phrase du document. Les deux autres
+sont des raccourcis qu'il faudra défaire.
+
+**Le plancher est la règle qui compte** : « la renommée ne redescend jamais en
+dessous de son niveau de fin de mission précédente ». Les pertes ponctuelles —
+refus d'une requête, mécontentement — jouent **dans** la mission, jamais en
+travers de la campagne. C'est la même discipline que le plancher du neutre de
+la négligence divine.
+
+#### 9.2 — Deux sources qui manquent
+
+Le document accorde **+1 par énigme secondaire résolue** et **+3 par enquête
+complète** ; le jeu ne donne rien pour la première et +1 pour la seconde.
+
+L'écart sur l'enquête est à trancher : +3 récompense un système qui demande
+plusieurs quinzaines de collecte, ce qui se défend ; mais la renommée se
+compte sur cent points, et une campagne porte une trentaine d'enquêtes.
+**À calibrer sur l'économie mesurée**, comme les seuils du doc 09 l'ont été.
+
+#### 9.3 — La renommée dans les prix
+
+`reductionAchat = −0,2 % par point, plafonné à −20 %`, et la majoration
+symétrique à la vente. Deux pièges connus du projet s'y appliquent :
+
+- **jamais en flottants** — cela se compte en centièmes, comme les rendements
+  et la qualité de direction ;
+- **un seul multiplicateur par chaîne** : la vente au Marché porte déjà la
+  qualité de direction du bâtiment, et l'ordre commercial porte déjà
+  l'empressement du partenaire. La renommée doit **entrer dans un facteur
+  existant**, pas en ajouter un troisième — c'est la discipline du lot 6.3.
+
+#### 9.4 — Le carnet de contacts
+
+Chaque mission accomplie laisse un **contact** — la ville elle-même — qui
+donne +2 % sur les ressources caractéristiques de sa région, cumulables avec le
+bonus de renommée. Comme les partenaires commerciaux, **seule la clé se
+persiste** ; le nom, la région et les ressources sont du contenu.
+
+Le document laisse ouvert un point qui change la nature du système : un contact
+donne-t-il seulement un rabais, ou **débloque-t-il une ressource** qu'on
+devrait autrement importer ? La seconde lecture en ferait un raccourci de
+progression, et non plus une remise.
+
+**Il croise l'héritage du doc 12**, qui n'est pas non plus implémenté : −20 %
+sur l'ouverture d'une route déjà exploitée dans une partie précédente. Les deux
+se complètent — l'un porte sur les routes, l'autre sur les prix courants — et
+gagnent à être faits ensemble.
+
+#### 9.5 — Le bonus de départ
+
+`20 deben` et `5 unités` par mission accomplie, **superposés à la dotation
+royale**, jamais à sa place. `Progression::plusHauteAchevee()` sait déjà
+compter ; `Legs`, lui, ne regarde que la mission précédente et devra compter
+toutes les accomplies.
+
+La dotation, elle, ne change pas : elle reste calculée sur les **coûts réels**
+des quatre bâtiments d'ouverture, et non sur le `50 + 10 × difficulté` du
+document, qui compte encore en or.
+
+#### 9.6 — La succession
+
+Une génération dure **60 cycles ± 20**. À son terme, le joueur choisit parmi
+deux ou trois héritiers, chacun tiré avec un ou deux des huit traits déjà
+définis — `TraitDeCandidat` existe, `GenerateurDeCandidat` aussi, et le
+mécanisme de l'offre d'emploi se transpose presque tel quel.
+
+**Ce qui persiste** : la renommée, les contacts, la faveur divine, la ville
+entière. **Ce qui se renouvelle** : le trait actif et le nom du chef de
+famille. Rien ne se perd — c'est la ville qui compte, pas la personne.
+
+Deux réserves :
+
+- le document dit lui-même que la succession est **surtout pertinente en mode
+  Aventure**, une mission de campagne dépassant rarement soixante cycles. Ce
+  lot pourrait donc attendre la Phase 11 — sauf à vouloir l'éprouver plus tôt ;
+- les **noms d'héritiers** demandent une liste de prénoms égyptiens attestés,
+  du même travail de sourcing que les cartouches. `Nakht` est déjà justifié
+  ainsi dans le doc 09.
+
+#### À trancher avec la joueuse
+
+| Question | Enjeu |
+|---|---|
+| La renommée cumulée rend-elle les dernières missions plus faciles, et l'assume-t-on ? | Le document le veut. Cela heurte l'invariant « chaque mission jouable seule », qui a justifié que le legs s'ajoute sans remplacer |
+| Faut-il un **plafond global** au cumul renommée + contacts + missions accomplies ? | Le document pose la question sans y répondre. Sans plafond, la mission 10 se joue avec −20 % à l'achat, +20 % à la vente, neuf contacts et 180 deben de bonus |
+| Un contact **débloque-t-il** une ressource, ou se contente-t-il d'une remise ? | La première lecture en fait un raccourci de progression, la seconde une commodité |
+| La succession maintenant, ou avec le mode Aventure (Phase 11) ? | Elle ne se déclenche presque jamais en campagne : soixante cycles dépassent la durée d'une mission |
+| L'enquête résolue vaut-elle +3 comme le document le dit, ou +1 comme aujourd'hui ? | Trente enquêtes à +3 font quatre-vingt-dix points sur une échelle de cent |
+
+#### Définition de « fini »
+
+Parcours de bout en bout : accomplir la mission 1 → voir la renommée gagnée
+**rester** au lancement de la mission 2 → constater un prix d'achat plus bas et
+un contact « Delta » au carnet → recevoir le bonus de départ par-dessus la
+dotation royale.
+
+Tests sur les invariants : la renommée ne redescend jamais sous son niveau de
+fin de mission, aucune chaîne de production ne gagne un multiplicateur de plus,
+le bonus de départ **s'ajoute** à la dotation sans la remplacer, et deux
+parties menées de front ne se volent pas leur renommée.
 
 ---
 
@@ -186,12 +349,12 @@ de ressource pure sur la même mission ne la rendent pas monotone.
 
 ### Les phases à cadrer
 
-Chacune traduit un document déjà spécifié ; le cadrage technique se fera à son
-tour, comme pour les précédentes.
+La **Phase 9 est cadrée** et garde son format détaillé, lot par lot, jusqu'à sa
+livraison — comme les Phases 5 à 8 avant elle. Les trois suivantes traduisent
+chacune un document déjà spécifié ; leur cadrage se fera à leur tour.
 
 | Phase | Sujet | Ce qu'elle apporte |
 |---|---|---|
-| **9** — Renommée et héritage (`13`) | Succession familiale, carnet de contacts | La renommée existe déjà et bouge ; c'est l'héritage entre parties qui manque |
 | **10** — Medjaÿ et combat (`03`) | Recrutement militaire, équipement, zones à bandits | Réveille le trait « Bagarreur », l'usage des armes de la Forge, et le Chef d'expédition, dernier rôle d'exploration sans emploi |
 | **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre |
 | **12** — Sprites (`15`) | Découpage et intégration des 18 planches | Hors planche « tuiles », déjà intégrée en Phase 3 |
