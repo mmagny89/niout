@@ -921,3 +921,125 @@ n'est murée, une route d'eau suppose de l'eau, et un dieu déclaré sans domain
 l'est pour une raison vérifiable.
 
 ---
+
+---
+
+### 5.11 Phase 8 ter — L'écriture : l'alphabet des scribes  ✅ en partie
+
+Née d'une **relecture des documents 09 et 10** après que la joueuse les eut
+repris sur le Drive. La confrontation au code a remonté deux ajouts de fond et
+trois écarts plus petits ; le premier ajout est livré.
+
+| Lot | Contenu | |
+|---|---|---|
+| A.1 | La police hiéroglyphique embarquée, sous-ensemblée | ✅ |
+| A.2 | Les vingt-quatre signes unilitères et leur déblocage | ✅ |
+| A.3 | La leçon fondatrice : écrire « Niout » | ✅ |
+| A.4 | La transcription du nom de famille | ✅ |
+| A.5 | Les cartouches royaux à l'introduction d'une mission | ✅ sept sur neuf |
+| B | Les stèles historiques par mission | à faire |
+| C | La mission 9 est-elle de type « Exploiter » ? | à trancher |
+| D | Les énigmes secondaires par mission | à trancher |
+
+Les trois derniers, et les deux cartouches manquants, sont décrits dans la
+feuille de route ([`plan-de-bataille.md`](plan-de-bataille.md), « Ce qui
+vient ») : ils attendent une décision plus qu'ils n'attendent du code.
+
+#### A — L'alphabet des scribes  ✅
+
+Le doc 10 a gagné une **piste pédagogique entièrement neuve**, explicitement
+distincte de la clé de lecture : les vingt-quatre signes unilitères, ceux qui
+notent un son. Le code écrivait l'inverse en toutes lettres — « on ne fait pas
+apprendre l'égyptien, on fait lire des rébus ».
+
+**La question du rendu, tranchée par la mesure.** Le document laissait ouvert
+le choix entre texte Unicode et planche de sprites. Vérification faite au
+navigateur sur les vingt-quatre : ils s'affichent, mais **aucune police
+hiéroglyphique n'est installée sur la machine de développement** — le rendu
+venait d'un repli qu'on ne contrôle pas, et six signes y prenaient une forme
+moins juste. Un joueur sous Windows ou Android n'aurait vu que des carrés.
+D'où : du texte, et **la police embarquée**, self-hébergée comme les deux
+autres familles. Sous-ensemblée aux seuls signes déclarés, elle pèse 12 Ko au
+lieu de 978.
+
+**Ce qui est livré** : les vingt-quatre signes avec leur code de Gardiner, leur
+translittération et leur son ; leur ouverture à trois par niveau de Maison des
+scribes, qui tombe juste sur vingt-quatre au niveau 8 ; la leçon fondatrice qui
+écrit *n · i · w · t* ; la transcription du nom de famille à la manière des
+cartouches de musée ; et sept cartouches royaux à l'introduction de leur
+mission.
+
+**Deux cartouches manquent, et n'affichent rien.** Les noms de trône composés
+d'Akhenaton et de Ramsès IV portent, dans la notation source, des opérateurs de
+disposition dont l'ordre de lecture ne s'établit pas sûrement. La règle du
+projet est nette — jamais un signe sans son code ni son sens attesté — et
+l'absence ne trompe personne quand une approximation tromperait.
+
+#### Un défaut payé, et sa parade
+
+La question de la joueuse — « `N35` a deux sens, est-ce véridique ? » — a
+révélé une erreur ancienne. **Non** : une seule ondulation est le phonogramme
+*n*, l'eau s'écrit avec trois, `N35A`. La clé portait le code de l'un tout en
+décrivant l'autre, et enseignait donc un signe faux dans un jeu dont c'est
+l'objet d'enseigner les vrais.
+
+La parade est mécanique et exacte : **Unicode nomme chaque caractère par son
+code de Gardiner**, et un test confronte les deux pour les soixante-dix signes
+déclarés (`CodesDeGardinerTest`). Aucune table recopiée, donc rien qui puisse
+diverger.
+
+Une fois l'eau corrigée, le recouvrement entre les deux tables tombe à **trois
+dessins** — le roseau, le pain, la bouche —, et ceux-là sont de vrais cas
+d'écriture mixte. Les deux tables se **relient** donc l'une à l'autre plutôt que
+de laisser croire à une redite.
+
+#### Ce que la conception a tranché, et pourquoi
+
+**Deux pistes qui ne se mélangent jamais.** La clé de lecture porte des
+logogrammes — un signe, une chose — et sert à lire les inscriptions du fil
+rouge ; l'alphabet porte des phonogrammes — un signe, un son — et sert à
+écrire. Trois dessins leur sont communs, et le premier réflexe eût été de les
+dédupliquer : c'eût été enseigner le contraire de ce que le document veut faire
+comprendre. Les deux tables se **relient** donc, et l'écran dit le double
+emploi.
+
+**L'alphabet ne se persiste pas.** La clé stocke ce qu'une énigme apprend ;
+l'alphabet ne s'ouvre que par le niveau du bâtiment, donc il se calcule. Une
+colonne n'aurait fait que dupliquer l'état de la Maison des scribes. Les quatre
+signes de Niout sont en revanche **connus d'emblée**, comme les quatre de la
+clé et pour la même raison : la leçon fondatrice devait être tentable dès la
+première quinzaine, comme le doc 10 le demande.
+
+**La leçon fondatrice se retente.** La règle « on ne répond qu'une fois » vaut
+contre quatre propositions qu'on épuiserait en essayant tout ; remettre quatre
+signes dans l'ordre a vingt-quatre arrangements, et c'est un exercice — on y
+apprend en recommençant. La récompense, elle, ne tombe qu'une fois, sans quoi
+l'exercice deviendrait une rente. Elle ne touche pas au fil rouge : les deux
+pistes restent séparées jusqu'au bout.
+
+**La transcription d'un nom est la convention des musées, pas de
+l'égyptologie**, et l'écran le dit. Les voyelles reçoivent les semi-voyelles —
+s'en tenir aux consonnes rendrait le résultat illisible — et le *l* emprunte le
+*r* que l'égyptien ne distinguait pas. Aucun signe n'est inventé pour boucher un
+trou. Elle paraît **entière** dès le bâtiment dressé, les signes non appris en
+creux : mesuré, il faut la Maison des scribes au niveau 6 ou 7 pour qu'un nom
+courant soit entièrement écrivable, et la cacher jusque-là l'aurait rendue
+invisible presque toute la partie.
+
+**Les cartouches sourcés, ou pas de cartouche.** Neuf pharaons commanditent les
+dix missions ; sept ont leur nom de trône établi. Les deux autres — Akhenaton
+et Ramsès IV — portent dans la notation source des opérateurs de disposition
+dont l'ordre de lecture ne s'établit pas sûrement, et n'affichent donc rien. La
+conversion des codes de Gardiner vers Unicode, elle, est exacte : elle passe par
+le nom que le caractère porte dans Unicode, jamais par une table recopiée.
+
+#### Ce qui a coûté
+
+- **La police est self-hébergée**, comme les deux autres familles du jeu : la
+  conception prévoyait un chargement depuis un CDN, ce que le projet interdit —
+  un appel runtime transmettrait l'IP du visiteur à un tiers. Elle est en outre
+  sous-ensemblée aux seuls signes déclarés : 12 Ko au lieu de 978.
+- **Le meilleur exemple de la conception était faux.** Elle donnait `N35` —
+  « l'eau » dans la clé, le son *n* dans l'alphabet — comme cas d'école de
+  l'écriture mixte. C'était l'erreur du code repris sans vérification. L'exemple
+  juste était la bouche depuis le début.
