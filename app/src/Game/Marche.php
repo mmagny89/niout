@@ -31,10 +31,14 @@ use Doctrine\ORM\EntityManagerInterface;
  * C'est aussi ce qui donne enfin un sens à l'exploitation d'un gisement au-delà
  * de la construction : un filon de calcaire devient un revenu.
  *
- * Le Marché est enfin la **seule source de renommée** aujourd'hui branchée :
- * le doc 13 accorde +1 pour un « gros contrat commercial conclu », et sans lui
- * la renommée resterait à zéro pour toujours — ce qui rendrait inertes le prix
- * d'un appel d'habitants et la migration spontanée, tous deux indexés dessus.
+ * Le Marché a longtemps été la **seule source de renommée branchée** : le
+ * doc 13 accorde +1 pour un « gros contrat commercial conclu », et sans lui la
+ * renommée serait restée à zéro pour toujours, rendant inertes le prix d'un
+ * appel d'habitants et la migration spontanée, tous deux indexés dessus.
+ *
+ * Il ne l'est plus seul depuis la Phase 9 — énigmes et enquêtes résolues en
+ * versent aussi (lot 9.2) —, mais il reste celui qui l'alimente le plus tôt :
+ * une ville sans Maison des scribes n'a que lui.
  */
 final readonly class Marche
 {
