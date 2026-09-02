@@ -664,6 +664,17 @@ s'écrit avec le *r*, l'égyptien du Nouvel Empire ne les distinguant pas.
 que ce n'est pas une traduction — un scribe du Nouvel Empire n'aurait pas écrit
 les voyelles du tout.
 
+**La stèle n'est pas l'inscription qu'on déchiffre** (`SteleHistorique`,
+doc 09). Chaque pharaon commanditaire a laissé une stèle réelle, nommée et
+située à l'écran ; les dalles du jeu restent des **rébus** — signes vrais,
+combinaisons inventées — et la stèle est ce à quoi elles font écho. Les
+confondre laisserait croire au joueur qu'il lit de l'égyptien. **Ce qu'on
+affiche est un résumé, jamais une citation** : la contrainte est de droits
+autant que d'honnêteté, et vaut aussi pour les traductions anciennes tombées
+dans le domaine public. Un test refuse tout texte entre guillemets. Enfin, **un
+papyrus n'est pas une stèle**, et l'écran ne le dit pas — le doc 09 le signale
+lui-même pour le grand papyrus Harris.
+
 **Un cartouche ne s'écrit pas avec le seul alphabet** (`CartoucheRoyal`), et
 c'est ce qu'il enseigne : il mêle unilitères, bilitères et logogrammes entiers,
 le disque solaire valant « Rê » à lui seul — écrit en tête par déférence, lu à

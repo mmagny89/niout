@@ -76,6 +76,7 @@ use App\Game\Salaires;
 use App\Game\SensDEchange;
 use App\Game\SigneAlphabetique;
 use App\Game\SpecialiteDeChef;
+use App\Game\SteleHistorique;
 use App\Game\SymboleHieroglyphique;
 use App\Game\Temple;
 use App\Game\TranscriptionDuNom;
@@ -295,6 +296,10 @@ final class PartieController extends AbstractController
             'prochainSigne' => CleDeLecture::prochainSigne($ville, $partie->getCycle()),
             'signesEnTout' => \count(SymboleHieroglyphique::cases()),
             'inscription' => $inscription,
+            // La stèle réelle du pharaon commanditaire (doc 09). Elle n'est
+            // **pas** l'inscription qu'on déchiffre : celle-ci reste un rébus,
+            // la stèle est ce à quoi elle fait écho.
+            'stele' => null !== $mission ? SteleHistorique::pourLePharaon($mission->pharaon) : null,
             'filRouge' => FilRouge::court($partie) ? FilRouge::acte($partie) : null,
             // Les objectifs sont affichés dès le premier jour (doc 09) : la
             // transparence évite de découvrir tardivement des conditions
