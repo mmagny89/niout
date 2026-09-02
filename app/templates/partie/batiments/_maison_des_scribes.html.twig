@@ -221,6 +221,34 @@
     {% endfor %}
 </ul>
 
+{# **La stèle du pharaon** (doc 09). Chaque commanditaire en a laissé une, et
+   le document veut que les déchiffrages y fassent écho plutôt que d'inventer
+   de toutes pièces.
+
+   Elle n'est **pas** l'inscription qu'on déchiffre : les dalles du jeu restent
+   des rébus — signes vrais, combinaisons inventées —, et la stèle est ce
+   qu'elles rappellent. Les confondre laisserait croire au joueur qu'il lit de
+   l'égyptien.
+
+   Ce qui s'affiche est un **résumé**, jamais une traduction : le doc 09 le
+   demande deux fois, et cela vaut aussi pour les traductions anciennes. #}
+{% if stele %}
+    <h3 class="mt-10 text-xl text-encre-900">{{ stele.nom }}</h3>
+    <p class="mt-2 max-w-3xl text-sm text-encre-500">
+        {{ stele.lieu }}.
+    </p>
+
+    <div class="mt-3 max-w-3xl rounded-sm border-l-4 border-or-300 bg-or-300/5 px-5 py-4">
+        <p class="text-sm text-encre-700">{{ stele.contenu }}</p>
+        <p class="mt-3 text-xs text-encre-500">
+            Résumé de ce que {{ stele.estUneStele ? 'la pierre' : 'le document' }} dit,
+            jamais une traduction. Les dalles que vos scribes déchiffrent ici en
+            reprennent l'esprit : leurs signes sont vrais, mais ce qu'ils forment
+            est un rébus, pas de l'égyptien.
+        </p>
+    </div>
+{% endif %}
+
 {# **L'alphabet des scribes** — la seconde piste du doc 10, celle des sons.
 
    Elle ne se mélange jamais à la clé de lecture, alors même que six dessins

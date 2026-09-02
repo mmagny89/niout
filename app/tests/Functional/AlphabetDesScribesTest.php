@@ -18,6 +18,7 @@ use App\Game\LeconDeNiout;
 use App\Game\MissionCatalogue;
 use App\Game\Ressource;
 use App\Game\SigneAlphabetique;
+use App\Game\SteleHistorique;
 use App\Game\SymboleHieroglyphique;
 use App\Game\TranscriptionDuNom;
 use App\Game\TypeDeBatiment;
@@ -417,6 +418,31 @@ final class AlphabetDesScribesTest extends WebTestCase
         self::assertSelectorTextContains('body', $cartouche->lecture());
         self::assertSelectorTextContains('body', $cartouche->sens());
         self::assertSelectorExists('.font-hieroglyphes');
+    }
+
+    /**
+     * La stèle du pharaon se lit à la Maison des scribes, à côté des dalles
+     * qu'on y déchiffre — et l'écran dit qu'elle n'est pas ces dalles.
+     */
+    public function testLaSteleDuPharaonSeLitAvecLesDechiffrages(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancerAvecScribes($client, 'stele-ecran@example.com');
+
+        $client->request('GET', \sprintf(
+            '/partie/%d/ville?onglet=%s',
+            $partie->getId(),
+            TypeDeBatiment::MaisonDesScribes->value,
+        ));
+
+        $stele = SteleHistorique::pourLePharaon('Ahmôsis Ier');
+        self::assertNotNull($stele);
+
+        $panneau = '#panneau-'.TypeDeBatiment::MaisonDesScribes->value;
+        self::assertSelectorTextContains($panneau, $stele->nom());
+        self::assertSelectorTextContains($panneau, 'Karnak');
+        // Et l'écran ne laisse pas croire qu'on lit la pierre elle-même.
+        self::assertSelectorTextContains($panneau, 'jamais une traduction');
     }
 
     /**
