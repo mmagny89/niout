@@ -23,6 +23,8 @@ use App\Game\SpecialisationMedjay;
 use App\Game\TypeDeBatiment;
 use App\Game\TypeDeTerrain;
 use Doctrine\ORM\EntityManagerInterface;
+use Random\Engine\Mt19937;
+use Random\Randomizer;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -74,9 +76,11 @@ final class CombatTest extends KernelTestCase
      * **Une victoire prend la case, et elle le reste** (arbitrage 10.0). Le
      * butin tombe, les survivants apprennent quelque chose.
      *
-     * La troupe est ici largement supérieure : à quinze hommes contre une
-     * bande, la victoire est quasi certaine, et c'est bien la conséquence
-     * d'une victoire qu'on veut vérifier, pas le dé.
+     * **Le tirage est graine fixe.** Une troupe « largement supérieure » reste
+     * soumise au dé — à quinze hommes non armés contre une bande, la victoire
+     * n'est qu'à quatre chances sur cinq, ce qui suffit à faire échouer la
+     * suite un jour sur cinq. Ce qu'on vérifie ici est la **conséquence** d'une
+     * victoire, pas la probabilité de l'obtenir.
      */
     public function testUneVictoirePrendLaCasePourDeBon(): void
     {
@@ -88,9 +92,9 @@ final class CombatTest extends KernelTestCase
         $troupe = $this->leverUneTroupe($partie, 15);
         $deben = $ville->getDeben();
 
-        $resultat = $this->combat()->livrer($partie, $zone, $troupe);
+        $resultat = $this->combatDeterministe()->livrer($partie, $zone, $troupe);
 
-        self::assertTrue($resultat->victoire, 'Quinze hommes contre une bande : la victoire est attendue.');
+        self::assertTrue($resultat->victoire, 'La graine fixe doit donner une victoire.');
         self::assertFalse($zone->estGardee(), 'Une case prise le reste.');
         // Le butin se compte sur ce que la bande opposait **réellement**,
         // renfort de région compris — pas sur sa défense nue.
@@ -256,6 +260,21 @@ final class CombatTest extends KernelTestCase
     private function combat(): Combat
     {
         return static::getContainer()->get(Combat::class);
+    }
+
+    /**
+     * Le même service, avec un hasard reproductible : c'est la seule façon de
+     * vérifier ce qu'une victoire laisse derrière elle sans dépendre du dé.
+     */
+    private function combatDeterministe(): Combat
+    {
+        return new Combat(
+            static::getContainer()->get(EntityManagerInterface::class),
+            // Graine choisie pour que le premier tirage — celui qui décide de
+            // l'issue — tombe bas : la victoire est alors certaine, quelle que
+            // soit la machine qui joue le test.
+            new Randomizer(new Mt19937(18)),
+        );
     }
 
     private function medjays(): Medjays

@@ -337,7 +337,9 @@ n'est jamais un contact — on ne se fait pas de prix à soi-même.
 
 **L'héritage du doc 12 est fait avec**, comme le cadrage le recommandait :
 `Commerce::RABAIS_DUNE_ROUTE_HERITEE`, −20 % sur une route déjà armée dans une
-autre partie. Il se déduit lui aussi, en interrogeant les parties du joueur.
+autre partie, **et `VOLUME_DUNE_ROUTE_HERITEE`, +10 % de volume** — le document
+donne deux effets, et le second a été oublié à la livraison du 9.4, puis
+rattrapé au 10.5. Il se déduit lui aussi, en interrogeant les parties du joueur.
 Une partie ne s'hérite pas elle-même, et une partie abandonnée ne lègue rien —
 cohérent avec le fait qu'elle ne lègue ni deben ni renommée.
 
