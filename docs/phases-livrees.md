@@ -924,7 +924,7 @@ l'est pour une raison vérifiable.
 
 ---
 
-### 5.11 Phase 8 ter — L'écriture : l'alphabet des scribes  ✅ en partie
+### 5.11 Phase 8 ter — L'écriture : l'alphabet des scribes et les stèles  ✅
 
 Née d'une **relecture des documents 09 et 10** après que la joueuse les eut
 repris sur le Drive. La confrontation au code a remonté deux ajouts de fond et
@@ -936,14 +936,10 @@ trois écarts plus petits ; le premier ajout est livré.
 | A.2 | Les vingt-quatre signes unilitères et leur déblocage | ✅ |
 | A.3 | La leçon fondatrice : écrire « Niout » | ✅ |
 | A.4 | La transcription du nom de famille | ✅ |
-| A.5 | Les cartouches royaux à l'introduction d'une mission | ✅ sept sur neuf |
-| B | Les stèles historiques par mission | à faire |
-| C | La mission 9 est-elle de type « Exploiter » ? | à trancher |
-| D | Les énigmes secondaires par mission | à trancher |
-
-Les trois derniers, et les deux cartouches manquants, sont décrits dans la
-feuille de route ([`plan-de-bataille.md`](plan-de-bataille.md), « Ce qui
-vient ») : ils attendent une décision plus qu'ils n'attendent du code.
+| A.5 | Les cartouches royaux à l'introduction d'une mission | ✅ |
+| B | Les stèles historiques par mission | ✅ |
+| C | La mission 9 est de type « Exploiter » | ✅ |
+| D | Un corpus commun d'énigmes, pas un corpus par mission | ✅ |
 
 #### A — L'alphabet des scribes  ✅
 
@@ -969,11 +965,14 @@ scribes, qui tombe juste sur vingt-quatre au niveau 8 ; la leçon fondatrice qui
 cartouches de musée ; et sept cartouches royaux à l'introduction de leur
 mission.
 
-**Deux cartouches manquent, et n'affichent rien.** Les noms de trône composés
-d'Akhenaton et de Ramsès IV portent, dans la notation source, des opérateurs de
-disposition dont l'ordre de lecture ne s'établit pas sûrement. La règle du
-projet est nette — jamais un signe sans son code ni son sens attesté — et
-l'absence ne trompe personne quand une approximation tromperait.
+**Deux cartouches ont demandé deux sources concordantes.** Les noms de trône
+composés d'Akhenaton et de Ramsès IV portent, dans la notation source, des
+opérateurs de disposition dont l'ordre de lecture n'est pas évident : ils
+n'affichaient rien tant qu'il restait un doute, la règle du projet étant nette
+— jamais un signe sans son code ni son sens attesté. Deux détails d'histoire en
+sont sortis : Ramsès IV a changé de nom de trône en cours de règne, et ses deux
+missions se jouant à l'an 3, c'est le second qui est montré ; Akhenaton porte
+deux fois le disque solaire, son nom disant Rê deux fois.
 
 #### Un défaut payé, et sa parade
 
@@ -1032,6 +1031,39 @@ et Ramsès IV — portent dans la notation source des opérateurs de disposition
 dont l'ordre de lecture ne s'établit pas sûrement, et n'affichent donc rien. La
 conversion des codes de Gardiner vers Unicode, elle, est exacte : elle passe par
 le nom que le caractère porte dans Unicode, jamais par une table recopiée.
+
+#### B — Les stèles historiques  ✅
+
+Le doc 09 a gagné une table des vraies stèles par commanditaire, que les
+déchiffrages devaient rappeler plutôt que d'inventer de toutes pièces. Les dix
+missions ont désormais la leur, nommée et située — Karnak, Tombos, Deir
+el-Bahari, les falaises d'Amarna, l'Ouadi Mia.
+
+Les cinq que le document ne donnait que pour « bien établies » ont été
+**vérifiées avant d'être nommées**, comme il le demandait lui-même.
+
+**La stèle n'est pas l'inscription qu'on déchiffre**, et l'écran le dit : les
+dalles du jeu restent des rébus — signes vrais, combinaisons inventées —, et la
+pierre est ce à quoi elles font écho. Ce qui s'affiche en est un **résumé**,
+jamais une citation : la contrainte est de droits autant que d'honnêteté, et un
+test refuse tout texte entre guillemets. Un **papyrus n'est pas une stèle**, et
+le grand papyrus Harris n'est pas appelé ainsi.
+
+#### C et D — deux contradictions du document, tranchées  ✅
+
+**La mission 9 est de type « Exploiter ».** Le doc 09 se contredit : sa section
+n'annonce que trois types, son tableau en donne un quatrième à l'Ouadi
+Hammamat. Le tableau, plus précis, l'emporte — un camp minier temporaire n'est
+ni une fondation ni un développement. Le type ne sert qu'à l'affichage : aucune
+règle ne change.
+
+**Le corpus d'énigmes reste commun.** Le doc 10 les chiffre à cinq ou huit par
+mission ; le jeu en porte onze, valables partout. C'est le **lieu** où on les
+entend qui les situe — l'oracle au Temple, les devinettes de voyageurs à
+l'Auberge —, pas la région. Conséquence assumée : une partie qui enchaîne les
+dix missions les épuise vers la deuxième. Écrire cinquante à quatre-vingts
+énigmes sourcées est un projet de contenu à part, que l'enum accueillera sans
+rien changer.
 
 #### Ce qui a coûté
 
