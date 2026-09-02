@@ -1075,3 +1075,145 @@ rien changer.
   « l'eau » dans la clé, le son *n* dans l'alphabet — comme cas d'école de
   l'écriture mixte. C'était l'erreur du code repris sans vérification. L'exemple
   juste était la bouche depuis le début.
+
+---
+
+### 5.12 Phase 9 — Renommée, héritage et succession familiale  ✅
+
+Le doc 13 était le seul document de conception dont le jeu appliquait **la
+moitié sans le savoir** : les cinq paliers de renommée existaient, aux plages
+exactes du document, et six mécanismes la faisaient bouger. Ce qui manquait
+n'était pas la jauge, c'était **ce qu'elle traverse** — une mission, une
+génération, une campagne.
+
+| Lot | Contenu | |
+|---|---|---|
+| 9.0 | Les arbitrages tranchés, et la forme qu'ils donnent à la phase | ✅ |
+| 9.1 | La renommée devient un acquis de lignée, qui traverse la campagne | ✅ |
+| 9.2 | Les deux sources manquantes : énigme résolue, enquête résolue | ✅ |
+| 9.3 | La renommée infléchit les prix, à l'achat comme à la vente | ✅ |
+| 9.4 | Le carnet de contacts, et l'héritage des routes du doc 12 | ✅ |
+| 9.5 | Le bonus de départ par missions accomplies | ✅ |
+| 9.6 | La succession : générations, héritiers et leur trait | ↦ Phase 11 |
+
+#### 9.0 — Trancher avant d'écrire
+
+Cinq questions gouvernaient la forme de tous les lots suivants, et les
+découvrir en codant aurait coûté une reprise. Elles ont donc été posées avant
+la première ligne. Ce qui en est sorti :
+
+- **la renommée cumulée facilite les dernières missions, et on l'assume.**
+  C'est ce que le document veut. L'invariant « chaque mission jouable seule »
+  se relit : aucune mission ne devient *injouable* sans héritage, mais la
+  dixième se joue avantagée — c'est la récompense de la campagne ;
+- **un plafond unique sur la remise totale**, jamais un par source : trois
+  plafonds séparés se cumulent et n'en plafonnent aucun ;
+- **un contact fait une remise, il ne débloque rien.** Un raccourci de
+  progression aurait obligé à recalibrer les missions tardives ;
+- **l'enquête résolue vaut +2**, entre le +3 du document et le +1 du code ;
+- **la succession part en Phase 11.** Une génération dure 60 cycles ± 20 et une
+  mission de campagne les dépasse rarement : le lot ne se déclencherait presque
+  jamais.
+
+#### La distinction qui a débloqué toute la phase
+
+Le cadrage portait deux exigences qui semblaient s'exclure : « une seule jauge
+de renommée par famille, persistante d'une mission à l'autre » et « deux
+parties menées de front ne se volent pas leur renommée ».
+
+Elles se concilient en séparant deux choses que le mot « renommée »
+confondait :
+
+- l'**acquis**, sur `Lignee` — un par joueur, qui ne descend jamais, et que
+  chaque nouvelle partie reçoit au lancement ;
+- la **jauge de la mission**, sur `Family` — qui bouge librement, à la baisse
+  comprise, et reste propre à sa partie.
+
+Un seul point du jeu écrit dans la lignée : `AchevementDeMission`, à la clôture
+d'une mission de campagne, et il ne fait que la relever. C'est la même
+discipline que le plancher du neutre de la négligence divine.
+
+**`Legs` a perdu son volet renommée.** Il en donnait quatre points au plus,
+depuis zéro, d'après la seule mission précédente. Avec l'acquis transmis en
+entier, les deux auraient compté deux fois la même réussite.
+
+#### Ce que le facteur existant a épargné
+
+Le lot 9.3 s'annonçait comme le plus délicat : la discipline du lot 6.3 veut
+qu'un nouveau modificateur **entre dans un facteur existant** plutôt que d'en
+ajouter un troisième. La pièce était déjà là — `$avantage`, ce que le
+Négociateur arrache aux partenaires, élargit la fourchette des deux côtés en
+points de pourcentage entiers. La renommée y entre, le carnet de contacts aussi.
+
+Au Marché, elle s'**ajoute au coefficient** de qualité de direction, qui reste
+appliqué en une multiplication et une division : deux divisions entières
+enchaînées perdraient des deben à chaque étape, d'une façon que personne ne
+saurait plus expliquer six mois après.
+
+**Le plafond vaut quarante, et sa valeur est arithmétique.** Le plancher d'un
+partenaire vaut 150 % du cours local moins l'avantage : à cinquante, il rejoint
+le cours, et importer ne coûterait plus rien de plus que produire sur place — la
+distance, les routes et les convois cesseraient de peser. Conséquence assumée :
+un Négociateur (25) chez une famille illustre (20) est rogné, le plafond portant
+sur la somme.
+
+#### Trois plafonds, trois raisons différentes
+
+La phase en a posé trois, et il vaut la peine de ne pas les confondre :
+
+| Plafond | Où | Pourquoi cette valeur |
+|---|---|---|
+| 8 points par mission | `Family::RENOMMEE_MAX_DES_AFFAIRES` | Dix missions résolues en entier dépasseraient les cent points de l'échelle : la jauge ne mesurerait plus une réputation mais l'assiduité à deux mini-jeux |
+| 40 points d'avantage | `AvantageDeNegoce::PLAFOND_TOTAL` | Au-delà, le plancher d'achat rejoint le cours local et la distance cesse de peser |
+| La dotation elle-même | `BonusDeDepart` | Neuf missions vaudraient 180 deben, plus que ce que le pharaon envoie : son don cesserait d'être le socle de la partie pour n'en être plus que l'appoint |
+
+Le troisième ne porte aucun chiffre : il se lit sur la dotation, ressource par
+ressource. Rien à calibrer, et il suit tout changement de coût des bâtiments
+d'ouverture.
+
+#### Ce qui ne se persiste pas, et pourquoi
+
+Ni le carnet de contacts ni l'héritage des routes n'ont ajouté de colonne. Le
+carnet se déduit des missions accomplies, l'héritage des parties du joueur —
+comme les partenaires commerciaux se déduisent du catalogue. Le nom, la région
+et les ressources sont du **contenu** : une colonne de plus ne dirait rien que
+`MissionCatalogue` ne sache déjà.
+
+Une seule table est née, `lignee`, et une seule colonne, `renommee_des_affaires`.
+
+**La migration de la lignée rétro-alimente.** Sans elle, un joueur ayant déjà
+bouclé des missions aurait vu son acquis repartir de zéro le jour où la table
+apparaît. Elle reprend la plus haute renommée de ses parties de campagne
+achevées — exactement ce que `Lignees::encaisser()` aurait versé.
+
+#### Ce qui a coûté
+
+- **Sous une dizaine de deben, la division entière avale tout l'avantage.**
+  Mesuré en écrivant les tests, pas anticipé : sur du calcaire à 3, −40 % ne
+  change rien. L'invariant a été écrit tel qu'il est vrai — « le plancher
+  d'achat ne descend jamais sous le cours local » — plutôt que tel qu'il avait
+  été supposé. Cela ne dessert personne : le commerce lointain ne porte pas de
+  l'argile.
+- **Une partie abandonnée ne lègue plus rien de neuf non plus.** Elle est
+  supprimée en cascade, donc ni contact ni route connue n'en survivent — cohérent
+  avec les deben et la renommée, mais à savoir avant d'abandonner.
+- **Le plafond de cinq parties par compte compte aussi les parties achevées**
+  (`GameSaveRepository::compterPourJoueur`). Un joueur qui accomplit cinq
+  missions ne peut plus en lancer une sixième : la campagne de dix missions est
+  infinissable sans supprimer des parties. Le docblock et le plan disent tous
+  deux « parties **en cours** simultanément » — c'est l'implémentation qui
+  diverge. Découvert en écrivant `BonusDeDepartTest`, qui a dû contourner le
+  lanceur ; **défaut ouvert, hors périmètre de la phase**.
+
+#### Ce que la phase laisse ouvert
+
+- Le **lot 9.6** — générations, héritiers et leur trait — attend la Phase 11.
+  `TraitDeCandidat` et `GenerateurDeCandidat` existent déjà, et le mécanisme de
+  l'offre d'emploi se transpose presque tel quel ; il manque une liste de
+  prénoms égyptiens attestés, du même travail de sourcing que les cartouches.
+- Le **+2 de l'enquête** et les **8 points d'affaires par mission** sont des
+  valeurs inventées, à calibrer sur l'économie mesurée comme les seuils du
+  doc 09 l'ont été.
+- Le **mode Aventure lit l'acquis mais ne l'alimente pas** : il ne s'achève pas,
+  ses règnes se succèdent dans la même partie. À revoir en Phase 11, où ce mode
+  reçoit son contenu.
