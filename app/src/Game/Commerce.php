@@ -50,6 +50,17 @@ final readonly class Commerce
     public const int RABAIS_DUNE_ROUTE_HERITEE = 20;
 
     /**
+     * Et ce qu'une route connue porte en plus, en centièmes (doc 12).
+     *
+     * Le document donne **deux** effets à l'héritage commercial, pas un :
+     * « −20 % sur le coût d'ouverture […] **et +10 % de volume initial dès
+     * l'ouverture** ». Le lot 9.4 n'avait implanté que le premier — un accès
+     * facilité, disait le document, et un accès facilité porte aussi sur ce
+     * qui passe, pas seulement sur ce qu'il en coûte d'ouvrir.
+     */
+    public const int VOLUME_DUNE_ROUTE_HERITEE = 10;
+
+    /**
      * Engage l'ouverture d'une route : débite le coût, met la caravane en
      * chemin.
      *
@@ -110,6 +121,24 @@ final readonly class Commerce
         }
 
         return max(1, $plein - intdiv($plein * self::RABAIS_DUNE_ROUTE_HERITEE, 100));
+    }
+
+    /**
+     * Ce qu'un convoi porte sur cette route, héritage compris (doc 12).
+     *
+     * Une route qu'on a déjà armée dans une partie précédente s'ouvre moins
+     * cher **et** porte davantage : c'est le même « accès facilité », pris des
+     * deux bouts.
+     */
+    public function volumeParConvoi(GameSave $partie, PartenaireCommercial $partenaire, int $niveau): int
+    {
+        $volume = $partenaire->volumeParConvoi($niveau);
+
+        if (!$this->routeDejaExploitee($partie, $partenaire->cle)) {
+            return $volume;
+        }
+
+        return $volume + intdiv($volume * self::VOLUME_DUNE_ROUTE_HERITEE, 100);
     }
 
     /**
@@ -363,7 +392,11 @@ final readonly class Commerce
         $niveau = $ville->batimentDeType($partenaire->route->batiment())?->getNiveau() ?? 0;
         // Un rival installé sur cette route prend sa part de ce qui passe
         // (doc 08). Il rogne le volume, il n'interdit rien.
-        $volume = $this->apresLeRival($partie, $route->getPartenaire(), $partenaire->volumeParConvoi($niveau));
+        $volume = $this->apresLeRival(
+            $partie,
+            $route->getPartenaire(),
+            $this->volumeParConvoi($partie, $partenaire, $niveau),
+        );
         $trajet = $this->trajetVers($partenaire, $ville, $partie->getCycle());
         $messages = [];
 
@@ -493,7 +526,11 @@ final readonly class Commerce
                 'route' => $ville->routeVers($partenaire->cle),
                 'cout' => $cout,
                 'heritee' => $heritee,
-                'volume' => $this->apresLeRival($partie, $partenaire->cle, $partenaire->volumeParConvoi($niveau)),
+                'volume' => $this->apresLeRival(
+                    $partie,
+                    $partenaire->cle,
+                    $this->volumeParConvoi($partie, $partenaire, $niveau),
+                ),
                 'realisable' => null === $empechement,
                 'empechement' => $empechement,
             ];

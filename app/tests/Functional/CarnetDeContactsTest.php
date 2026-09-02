@@ -150,6 +150,34 @@ final class CarnetDeContactsTest extends KernelTestCase
     }
 
     /**
+     * **L'héritage a deux effets, pas un** (doc 12) : « −20 % sur le coût
+     * d'ouverture […] **et +10 % de volume initial dès l'ouverture ». Le lot
+     * 9.4 n'avait implanté que le premier ; un accès facilité porte aussi sur
+     * ce qui passe, pas seulement sur ce qu'il en coûte d'ouvrir.
+     */
+    public function testUneRouteDejaArmeePorteDavantage(): void
+    {
+        self::bootKernel();
+        $joueur = $this->creerJoueur('routes-volume@example.com');
+
+        $premiere = $this->lancerA($joueur, 1);
+        $cle = $this->uneRouteOuvrable($premiere);
+        $partenaire = $this->commerce()->partenairesDe($premiere)[0];
+
+        $plein = $this->commerce()->volumeParConvoi($premiere, $partenaire, 1);
+        self::assertSame($partenaire->volumeParConvoi(1), $plein);
+
+        $this->armerLaRoute($premiere, $cle);
+
+        $seconde = $this->lancerA($joueur, 1);
+
+        self::assertSame(
+            $plein + intdiv($plein * Commerce::VOLUME_DUNE_ROUTE_HERITEE, 100),
+            $this->commerce()->volumeParConvoi($seconde, $partenaire, 1),
+        );
+    }
+
+    /**
      * **La partie en cours ne s'hérite pas elle-même** : rouvrir une route
      * qu'on vient de fermer dans la même ville ne relève pas de l'héritage.
      */

@@ -272,8 +272,10 @@ Trois règles à ne pas défaire :
   Il entre dans `AvantageDeNegoce`, donc sous le plafond commun, ce qui oblige à
   compter l'avantage **marchandise par marchandise**. La ville de la mission en
   cours n'est jamais un contact.
-- **Une route déjà armée s'ouvre à −20 %** (`Commerce::RABAIS_DUNE_ROUTE_HERITEE`,
-  doc 12). À ne pas confondre avec le carnet : celui-ci porte sur les prix
+- **Une route déjà armée s'ouvre à −20 % et porte +10 %**
+  (`Commerce::RABAIS_DUNE_ROUTE_HERITEE`, `VOLUME_DUNE_ROUTE_HERITEE`, doc 12).
+  Le document donne **deux** effets à l'héritage commercial, pas un : « un accès
+  facilité » porte sur ce qui passe autant que sur ce qu'il en coûte d'ouvrir. À ne pas confondre avec le carnet : celui-ci porte sur les prix
   courants, l'héritage sur le droit d'entrée. Il se déduit des autres parties du
   joueur ; la partie en cours ne s'hérite pas elle-même, et une partie abandonnée
   ne lègue rien — elle est supprimée, comme pour les deben et la renommée.
