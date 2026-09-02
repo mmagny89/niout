@@ -1217,3 +1217,143 @@ achevées — exactement ce que `Lignees::encaisser()` aurait versé.
 - Le **mode Aventure lit l'acquis mais ne l'alimente pas** : il ne s'achève pas,
   ses règnes se succèdent dans la même partie. À revoir en Phase 11, où ce mode
   reçoit son contenu.
+
+---
+
+### 5.13 Phase 10 — Medjaÿ et combat automatique  ✅
+
+Le doc 03 est le document le plus **entièrement chiffré** du projet : formule de
+résolution, forces d'unité, coûts, taux de blessure et de mort, protection
+d'Isis par palier. Il n'y avait presque rien à inventer — ce qui distinguait
+cette phase de la précédente, où le doc 13 nommait des faits sans les compter.
+
+Le jeu en appliquait déjà toute la **moitié civile** : offres d'emploi, stats
+chiffrées affichées en qualitatif, huit traits et leurs incompatibilités,
+spécialités par bâtiment, barème d'étoiles. C'est la moitié militaire qui
+manquait, entièrement.
+
+| Lot | Contenu | |
+|---|---|---|
+| 10.0 | Les arbitrages, avant d'écrire | ✅ |
+| 10.1 | Le danger sur la carte | ✅ |
+| 10.2 | Les Medjaÿ : fantassin, archer, recrutement, entretien | ✅ |
+| 10.3 | L'équipement, et les armes qui cessent d'être une marchandise | ✅ |
+| 10.4 | La résolution automatique, et ce qu'elle coûte en hommes | ✅ |
+| 10.5 | L'escorte : expéditions en armes et convois pillés | ✅ |
+| 10.6 | Le Charrier : une réquisition, jamais un recrutement | ✅ |
+| 10.7 | Les derniers branchements dormants | ✅ |
+
+#### Le défaut de fond n'était pas le combat, c'était la carte
+
+`scoreDefense` multiplie par le nombre de zones à bandits de la région. Or
+`ContenuDeZone` ne connaissait que `Rien`, `Ressource`, `ChampEligible` et
+`Evenement` : **la formule référençait un état que la carte n'avait pas**. La
+phase a donc commencé par une addition au générateur, pas par une bataille.
+
+**Une contradiction du doc 02, tranchée.** Il donne deux comptes qui ne
+s'accordent pas — un tableau de poids de tirage (0 / 8 / 15 % par palier) et une
+formule de paramètre, `partieEntiere(difficulté × 0,5)`. Sur la grille 12×12 de
+la dixième mission, le premier donnerait une vingtaine de zones là où le second
+en donne quatre. La formule l'emporte : le tableau décrit un tirage de
+*contenu*, et le danger n'en est pas un depuis l'arbitrage 10.0.
+
+**L'anneau de la ville est exclu, et l'invariant est testé sur les dix
+régions.** Le générateur y garantit un gisement de chaque matériau vital ; une
+bande dessus rendrait la première carrière imprenable sans Caserne, donc la
+partie injouable au premier cycle.
+
+#### Une phase qui réveille autant qu'elle construit
+
+Six choses avaient été posées sans emploi, et le disaient elles-mêmes. Toutes
+sont branchées, une par lot :
+
+| Ce qui dormait | Réveillé au lot |
+|---|---|
+| L'écran de Caserne, « vos Medjaÿ ne sont pas encore levés » | 10.2 |
+| `Ressource::Armes`, « sans usage propre » | 10.3 |
+| `Divinite::Isis`, seule divinité déclarée inactive | 10.4 |
+| `RoleDExploration::ChefDExpedition`, sans emploi | 10.5 |
+| Les deux `CaserneInstructeur*`, déclarés et lus nulle part | 10.7 |
+| `TraitDeCandidat::Bagarreur`, « sans effet » | 10.7 |
+
+**Après la Phase 10, plus aucun trait ni aucune divinité ne dort.** Restent deux
+spécialités : l'Acheteur du Marché — que le Marché, purement local,
+n'accueillera jamais — et le Commerçant naval.
+
+#### Le seul vide documentaire, et ce qu'on en a fait
+
+Le lot 10.5 a buté sur un manque réel : le doc 12 pose « une caravane par
+cycle » **sans le moindre aléa**, et les routes vivent hors de la carte. Rien ne
+menaçait un convoi, donc l'escorte n'avait rien à protéger — alors que la
+Caserne promet « la protection des caravanes » depuis la Phase 2.
+
+Décision prise avec la joueuse : **inventer le risque, mais l'ancrer**. Il suit
+le nombre de bandes *encore tenues* dans la région, le paramètre « Danger » du
+doc 02. Trois conséquences saines en découlent : une région sans bandit ne perd
+jamais un convoi — les deux premières missions gardent l'économie calibrée aux
+phases 5 et 9 —, nettoyer une case protège le commerce autant que
+l'exploitation, et une même règle sert deux systèmes au lieu d'ajouter un hasard
+indépendant.
+
+**La tension du lot tient en une phrase** : les hommes qui vont déloger une
+bande sont ceux qui couvrent les convois. Une sortie coûteuse en blessés
+découvre les routes, et la garnison cesse d'être une dépense entre deux assauts.
+
+#### Ce que la discipline du projet a imposé
+
+- **Tout en centièmes entiers.** Le document parle en `×0,85`, `×1,15`, `×1,1` ;
+  une probabilité en virgule flottante aurait été le premier endroit du jeu où
+  deux parties identiques divergent.
+- **Un seul facteur par chaîne, une seule division.** La force d'un Medjaÿ
+  croise base, expérience, arme, instructeur, poing leste et terrain — et se
+  calcule en une multiplication et une division. Six divisions enchaînées
+  auraient rogné la force à chaque étape.
+- **Les « 100 or » du Charrier sont des deben.** L'Égypte pharaonique n'a pas de
+  monnaie d'or ; les docs 09 et 13 avaient déjà été relus ainsi.
+
+#### Trois règles que le document ne donnait pas
+
+- **Les boucliers ne se cumulent pas.** Un mur de boucliers en vaut un, pas
+  dix — sans cette borne, lever du fantassin en nombre annulait toute perte, et
+  le système se désamorçait lui-même.
+- **La qualité d'une arme se fige à la remise.** Monter la Forge n'améliore pas
+  rétroactivement ce qui est déjà donné : il faut réarmer ses vétérans, ce qui
+  fait du niveau de Forge une décision plutôt qu'un compteur.
+- **Le butin se lit sur la défense réelle**, renfort de région compris. Comme
+  nettoyer une case affaiblit toutes les autres, **la première victoire d'une
+  campagne rapporte plus que la dernière** — courbe descendante là où on
+  l'attendrait montante, à surveiller au playtest.
+
+#### Ce qui a coûté
+
+- **Un défaut trouvé dans du travail déjà rendu.** Le doc 12 donne **deux**
+  effets à l'héritage commercial — « −20 % sur le coût d'ouverture *et* +10 % de
+  volume initial » — et le lot 9.4 n'avait implanté que le premier. Découvert en
+  relisant le document pour l'escorte, corrigé au 10.5.
+- **Un test qui aurait échoué un jour sur cinq.** Le lot 10.4 envoyait quinze
+  hommes non armés contre une bande en tenant la victoire pour acquise : elle
+  n'était qu'à 82 %. Ce qu'il vérifie est la conséquence d'une victoire, pas la
+  probabilité de l'obtenir — il la fixe donc par une graine.
+- **`Divinite::attente()` a failli disparaître.** PHPStan a signalé qu'elle ne
+  renvoyait plus jamais de chaîne, Isis étant la dernière inerte. La supprimer a
+  cassé douze tests ; elle a été rendue générique plutôt qu'effacée, pour que le
+  garde-fou reste entier pour le prochain dieu ajouté.
+- **La meilleure arme du jeu ne se forge que dans les régions difficiles.**
+  `niveauMaxRegion = 5 + difficulté` plafonne la Forge à 5 dans le Delta. Ce
+  sont elles qui portent des bandits, donc le calibrage tombe juste — mais c'est
+  un heureux hasard, pas un design.
+
+#### Ce que la phase laisse ouvert
+
+- **Les Medjaÿ ne sont pas « absents » pendant le trajet d'une expédition.** Le
+  jeu ne suit pas la position d'un homme, seulement sa disponibilité : pendant
+  qu'une expédition est en route, la garnison couvre toujours les convois. Une
+  colonne de plus le corrigerait, si le playtest montre que partir doit
+  découvrir les routes immédiatement.
+- **Le doublon d'effectif du doc 01** : il chiffre l'effectif à la Caserne
+  (`3 + 2 × niveau`) et promet aussi des « emplacements Medjaÿ » à la Résidence
+  familiale, non chiffrés. Le jeu suit la Caserne ; les effets de Résidence
+  rejoindront la Phase 11 avec les traits familiaux.
+- **Six valeurs inventées** — défense d'une bande, qualité sans arme, butin,
+  risque de pillage, couverture d'un Medjaÿ, les deux moitiés de Bagarreur —
+  toutes signalées dans le code et au tableau du plan.

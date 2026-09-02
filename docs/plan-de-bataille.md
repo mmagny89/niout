@@ -835,9 +835,8 @@ de ressource pure sur la même mission ne la rendent pas monotone.
 
 ### Les phases à cadrer
 
-La **Phase 9 est livrée** ; son récit est au journal
-([`phases-livrees.md`](phases-livrees.md), § 5.12). La **Phase 10 est cadrée**
-et garde son format détaillé, lot par lot, jusqu'à sa livraison. Les deux
+Les **Phases 9 et 10 sont livrées** ; leurs récits sont au journal
+([`phases-livrees.md`](phases-livrees.md), § 5.12 et § 5.13). Les deux
 suivantes traduisent chacune un document déjà spécifié ; leur cadrage se fera à
 leur tour.
 
