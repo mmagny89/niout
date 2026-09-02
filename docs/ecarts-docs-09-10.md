@@ -47,15 +47,12 @@ Quatre usages sont demandés, d'ampleur très inégale :
 | **Cartouches royaux** à l'introduction de chaque mission | Neuf cartouches réels à établir — travail de sourcing, pas de code |
 | **Déblocage progressif**, ~3 signes par niveau de Maison des scribes | Une seconde piste à côté de `CleDeLecture`, sur le même bâtiment |
 
-**Question ouverte du document** : les glyphes Unicode s'affichent-ils
-correctement ? À défaut, une planche de sprites dédiée. À vérifier **avant**
-d'écrire quoi que ce soit — c'est ce qui décide si les 24 signes sont du texte
-ou des images, et donc la forme de tout le lot.
+**Question du rendu Unicode : vérifiée et tranchée.** Les vingt-quatre signes
+s'affichent, on reste sur du texte, et la police se charge avec la page plutôt
+que de dépendre de la machine. Pas de planche de sprites.
 
-**Découpage proposé** : commencer par l'énigme fondatrice seule. Elle vaut à
-elle seule l'intention du document, elle tient en une énigme, et elle éprouve
-le rendu des glyphes sur un échantillon de quatre signes avant d'en engager
-vingt-quatre.
+**La conception de ce lot est écrite** :
+[`lot-1-alphabet-des-scribes.md`](lot-1-alphabet-des-scribes.md).
 
 ---
 
