@@ -3,8 +3,17 @@
 Conception du système demandé par le **doc 10, section « L'alphabet des
 scribes »** : les vingt-quatre signes unilitères, ceux qui notent un son.
 
-Ce document précède le code. Une fois le lot livré, ce qu'il fixe rejoint
-[`regles-du-jeu.md`](regles-du-jeu.md) et disparaît d'ici.
+**Le lot est livré**, et ce qu'il fixe est passé dans
+[`regles-du-jeu.md`](regles-du-jeu.md) — ce sont ces règles-là qui font foi
+pour écrire du code. Ce document reste comme trace de la conception : on
+l'ouvre pour comprendre **pourquoi** un choix a été fait, jamais pour vérifier
+l'état du jeu.
+
+Deux points ont bougé à l'exécution, et sont corrigés ici : la police est
+**self-hébergée** et non chargée d'un CDN — le projet n'en appelle aucun —, et
+les quatre signes de Niout sont **connus d'emblée**, faute de quoi la leçon
+fondatrice n'aurait pas été tentable à la première quinzaine comme le doc 10 le
+demande.
 
 ---
 
@@ -42,8 +51,9 @@ Trois raisons de préférer le texte :
 
 Et une raison d'embarquer la police plutôt que de s'en remettre au système :
 **un joueur sous Windows ou Android n'a rien qui couvre le bloc égyptien**, et
-verrait vingt-quatre carrés. La police pèse ~120 Ko, se charge une fois, et
-`font-display: swap` évite qu'elle bloque le rendu.
+verrait vingt-quatre carrés. Elle est **self-hébergée**, comme les deux autres
+familles du jeu — aucun CDN n'est appelé —, et **sous-ensemblée** aux seuls
+signes déclarés : 12 Ko au lieu de 978.
 
 > **À faire dans ce lot** : ajouter `--font-hieroglyphes` au `@theme` de
 > `app.css`, et l'appliquer partout où un glyphe s'affiche — y compris sur la
