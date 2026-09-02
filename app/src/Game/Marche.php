@@ -102,10 +102,15 @@ final readonly class Marche
         // dirigent (lot 4.8). Un Marché désert écoule à moitié prix — le
         // plancher de 50 % vaut ici comme partout ; un Marché tenu par un bon
         // Vendeur dépasse le plein tarif.
-        $recette = intdiv(
-            $prix * $quantite * EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Marche, $partie->getCycle()),
-            Effectifs::RENDEMENT_PLEIN,
-        );
+        //
+        // **La renommée s'ajoute à ce coefficient, elle n'en pose pas un
+        // second** (lot 9.3) : on achète moins cher et l'on vend plus cher à
+        // qui l'on connaît, mais deux divisions entières enchaînées perdraient
+        // des deben à chaque étape. Une multiplication, une division.
+        $coefficient = EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Marche, $partie->getCycle())
+            + AvantageDeNegoce::deLaRenommee($partie->getFamille()->getRenommee());
+
+        $recette = intdiv($prix * $quantite * $coefficient, Effectifs::RENDEMENT_PLEIN);
 
         // Le plafond se vérifie **avant** le débit, jamais après : un lot repris
         // au stock repasserait par le plafond de réserve, et un Entrepôt plein

@@ -15,6 +15,7 @@ use App\Form\NouvellePartieType;
 use App\Game\AlphabetDesScribes;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
+use App\Game\AvantageDeNegoce;
 use App\Game\CartoucheRoyal;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
@@ -246,6 +247,10 @@ final class PartieController extends AbstractController
             'palierSuivant' => $partie->getFamille()->palier()->suivant(),
             'seuilDuPalierSuivant' => $partie->getFamille()->palier()->suivant()?->seuilDEntree() ?? Family::RENOMMEE_MAX,
             'renommeeMax' => Family::RENOMMEE_MAX,
+            // Ce que la renommée vaut concrètement sur les prix (lot 9.3) :
+            // une jauge qui ne dit pas ce qu'elle change se subit.
+            'avantageDeRenommee' => AvantageDeNegoce::deLaRenommee($partie->getFamille()->getRenommee()),
+            'avantageDeNegoce' => $commerce->avantageDeNegoce($partie),
             'coutDUnAppel' => $appels->cout($partie),
             'directions' => $this->directionsDesBatiments($partie, $recrutements),
             'ateliers' => $this->ateliersDeLaVille($partie, $fabrication),

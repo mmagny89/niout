@@ -170,6 +170,27 @@
                 <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Votre famille est</th>
                 <td class="px-4 py-2 text-right text-encre-900">{{ palier.libelle }}</td>
             </tr>
+            {# Ce que la renommée vaut sur les prix (doc 13). L'avantage total
+               porte aussi le Négociateur, et il est plafonné : montrer les deux
+               chiffres évite de laisser croire qu'ils s'additionnent sans fin. #}
+            <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Sur les prix</th>
+                <td class="px-4 py-2 text-right text-encre-900">
+                    {% if avantageDeRenommee > 0 %}
+                        &minus;{{ avantageDeRenommee }}&nbsp;% à l'achat, +{{ avantageDeRenommee }}&nbsp;% à la vente
+                    {% else %}
+                        Rien encore : on ne vous fait pas de prix
+                    {% endif %}
+                </td>
+            </tr>
+            {% if avantageDeNegoce > avantageDeRenommee %}
+                <tr class="border-t border-ocre-500/20">
+                    <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                        Avec votre Négociateur
+                    </th>
+                    <td class="px-4 py-2 text-right text-encre-900">{{ avantageDeNegoce }}&nbsp;% en tout</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>

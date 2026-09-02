@@ -253,6 +253,17 @@ Trois règles à ne pas défaire :
   que ces deux sources — un plafond posé sur la jauge elle-même plafonnerait
   les quatre autres. `crediterUneAffaireResolue()` rend **ce qui a réellement
   été versé** : au plafond, l'écran doit se taire plutôt qu'annoncer zéro.
+- **La renommée infléchit les prix par un facteur qui existe déjà**
+  (`AvantageDeNegoce`, doc 13) : −0,2 % par point à l'achat, la majoration
+  symétrique à la vente, tout en points de pourcentage entiers. Elle **entre
+  dans** l'avantage du Négociateur côté commerce, et **s'ajoute au** coefficient
+  de qualité de direction côté Marché — jamais un troisième multiplicateur,
+  jamais deux divisions entières enchaînées, qui perdraient des deben à chaque
+  étape sans que personne sache l'expliquer ensuite (discipline du lot 6.3). Le
+  plafond de `AvantageDeNegoce::PLAFOND_TOTAL` porte sur la **somme** de toutes
+  les sources : sa valeur vient de `PRIX_MINIMUM_A_LACHAT`, qu'un avantage de
+  cinquante ramènerait au cours local — importer ne coûterait alors plus rien de
+  plus que produire sur place, et la distance cesserait de peser.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais

@@ -152,7 +152,7 @@ final readonly class Commerce
             return [];
         }
 
-        $avantage = $this->avantageDuNegociateur($partie->getVille(), $partie->getCycle());
+        $avantage = $this->avantageDeNegoce($partie);
         $etal = [];
 
         foreach ([SensDEchange::Vendre, SensDEchange::Acheter] as $sens) {
@@ -302,7 +302,7 @@ final readonly class Commerce
         // Un rival installé sur cette route prend sa part de ce qui passe
         // (doc 08). Il rogne le volume, il n'interdit rien.
         $volume = $this->apresLeRival($partie, $route->getPartenaire(), $partenaire->volumeParConvoi($niveau));
-        $avantage = $this->avantageDuNegociateur($ville, $partie->getCycle());
+        $avantage = $this->avantageDeNegoce($partie);
         $trajet = $this->trajetVers($partenaire, $ville, $partie->getCycle());
         $messages = [];
 
@@ -432,6 +432,23 @@ final readonly class Commerce
         }
 
         return $offre;
+    }
+
+    /**
+     * Tout ce qui élargit la fourchette d'un partenaire : le Négociateur et la
+     * réputation de la famille, plafonnés ensemble (`AvantageDeNegoce`).
+     *
+     * **C'est le seul point d'entrée du commerce.** La renommée ne pose pas son
+     * propre coefficient : elle s'ajoute ici, dans un facteur qui existait
+     * déjà, et le plafond porte sur la somme — trois plafonds séparés se
+     * cumulent et n'en plafonnent aucun (arbitrage 9.0).
+     */
+    public function avantageDeNegoce(GameSave $partie): int
+    {
+        return AvantageDeNegoce::total(
+            $partie->getFamille()->getRenommee(),
+            $this->avantageDuNegociateur($partie->getVille(), $partie->getCycle()),
+        );
     }
 
     /**
