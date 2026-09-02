@@ -20,6 +20,18 @@ use App\Entity\City;
  * de question, seulement un formulaire. C'est aussi ce que la joueuse a
  * tranché pour les enquêtes secondaires, qui peuvent échouer définitivement.
  *
+ * **Un corpus commun, pas un corpus par mission** (décision de la joueuse). Le
+ * doc 10 chiffre les énigmes secondaires à « 5 à 8 par mission » ; le jeu en
+ * porte onze, valables partout. Une devinette sur la brique crue vaut au Delta
+ * comme au Fayoum — c'est le **lieu où on l'entend** qui la situe, `lieu()`
+ * réservant l'oracle au Temple et les devinettes de voyageurs à l'Auberge, non
+ * la région où l'on se trouve.
+ *
+ * Conséquence assumée : une partie qui enchaîne les dix missions les épuise
+ * vers la deuxième. Écrire cinquante à quatre-vingts énigmes, chacune avec sa
+ * source attestée ou son esprit, est un projet de contenu à part entière —
+ * qu'on pourra ouvrir plus tard, l'enum s'y prêtant sans rien changer.
+ *
  * **Le contenu est vrai, et dit d'où il vient.** L'iconographie et
  * l'astronomie égyptiennes sont réelles ; les devinettes sont pour moitié
  * inspirées de traditions antiques attestées, pour moitié originales écrites
