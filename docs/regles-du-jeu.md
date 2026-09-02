@@ -562,10 +562,14 @@ Quatre points à ne pas défaire :
   Elle n'est jamais persistée — seule la mission l'est —, et chaque appelant qui
   refaisait le détour par le catalogue pour son compte finissait par l'oublier.
 - **Un dieu sans prise ici refuse l'offrande**, là où `agitDeja()` se contente
-  de prévenir : ce sont deux manques différents. Isis attend un système qui
-  viendra, sa promesse est datée ; Hâpi dans un désert n'aura jamais de crue à
-  incliner, et encaisser serait prendre pour rien. Il ne se manifeste pas non
-  plus par la Providence, et ne compte pas parmi les dieux acquis.
+  de prévenir : ce sont deux manques différents, et il ne faut pas les
+  confondre. `agitDeja()` parle d'un système que le jeu n'a pas encore —
+  **plus aucun dieu n'est dans ce cas depuis le lot 10.4**, mais le garde-fou
+  reste pour celui qu'on ajouterait ; `sansDomaineIci` parle d'un dieu dont le
+  domaine n'existe pas **dans cette région-là**, et celui-là refuse. Hâpi dans
+  un désert n'aura jamais de crue à incliner, et encaisser serait prendre pour
+  rien : il ne se manifeste pas non plus par la Providence, et ne compte pas
+  parmi les dieux acquis.
 - **Le bilan démographique tombe partout** : on naît et l'on meurt au Levant
   comme au Delta. Le sortir du bloc de la crue est ce qui évite qu'une région
   sans fleuve cesse de vieillir.
@@ -640,7 +644,10 @@ pour rien au moment où il annonce un moment favorable.
 **Une malédiction retarde et coûte, elle n'efface pas** (`Providence`,
 décision de la joueuse) : jamais de perte définitive, jamais de bâtiment
 détruit, **jamais d'échec de partie** — la famine reste la seule cause de
-défaite du jeu. Un événement divin peut affamer la ville ; c'est alors la
+défaite du jeu. La règle vaut pour les dieux, non pour les hommes : depuis le
+lot 10.4, **la mort d'un Medjaÿ au combat est la seule perte sans recours du
+jeu**, et elle vient d'un risque que le joueur a choisi de courir, jamais d'un
+événement qui lui tombe dessus. Un événement divin peut affamer la ville ; c'est alors la
 famine qui conclut, à ses douze quinzaines. Aucun n'installe non plus un effet
 permanent, qui se confondrait avec le palier lui-même.
 

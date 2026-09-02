@@ -85,7 +85,7 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `Building` | ✅ | Un bâtiment dressé : son type et son niveau | 01 |
 | `Chantier` | ✅ | Travaux en cours : niveau visé, durée, avancement | 01, 05 |
 | `Zone`, `Gisement` | ✅ | Une case de la carte d'exploration, ses filons | 02, 08 |
-| `Expedition` | ✅ | Un éclaireur ou un émissaire en route vers une case | 04, 10 |
+| `Expedition` | ✅ | Un éclaireur, un prospecteur ou une expédition en armes vers une case, chars compris | 04, 03 |
 | `StockDeRessource` | ✅ | Une ligne du stock de la ville (ressource → quantité), deben compris | 08 |
 | `Employee` | ✅ | Un chef en poste : compétence, salaire, spécialité, la maisonnée qu'il a amenée | 03, 05 |
 | `JobOffer` | ✅ | Une annonce affichée et son tirage de candidats, figé | 03 |
@@ -95,8 +95,11 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `Convoi` | ✅ | Une caravane ou un navire en chemin, avec sa copie de l'échange | 12 |
 | `FaveurDivine` | ✅ | Ce qu'un dieu pense de la ville, et depuis quand on l'a négligé | 07 |
 | `DossierDEnquete` | ✅ | Une enquête en cours, ses indices versés, sa conclusion | 10 |
+| `QueteDeChantier` | ✅ | Une requête du pharaon adressée à la ville, et ce qu'on en a fait | 09 |
+| `RivalCommercial` | ✅ | Un concurrent installé sur une route, et la part qu'il prend | 08 |
 | `Lignee` | ✅ | L'acquis d'un joueur, qui survit à ses parties : renommée persistante | 13 |
-| … (Phase 10+) | — | Medjaÿ, unités et zones à bandits | 03, 02 |
+| `Medjay` | ✅ | Un homme levé à la Caserne : spécialisation, arme, expérience, blessure | 03 |
+| … (Phase 11+) | — | Générations, héritiers, traits familiaux | 13, 14 |
 
 `Family`, `City` et tout ce qui s'y rattache (`Zone`, `Building`, `Chantier`,
 `Expedition`, `Employee`, `JobOffer`, `OrdreDeFabrication`, `RouteCommerciale`,
@@ -137,7 +140,7 @@ vues, pas de la conception.
 | **8 ter** | Écriture : l'alphabet des scribes et les stèles | `10`, `09` | ✅ |
 | **9** | Renommée, héritage et succession familiale | `13` | ✅ (9.6 → Phase 11) |
 | **10** | Medjaÿ et combat automatique | `03` | ✅ |
-| **11** | Mode Aventure : Memphis et succession des règnes | `14` | à cadrer |
+| **11** | Mode Aventure : Memphis, succession des règnes, héritage familial | `14`, `13`, `01` | à cadrer |
 | **12** | Découpage et intégration des sprites | `15` | à cadrer |
 
 Le document 15 (interface & direction artistique) est **transverse** : chaque
@@ -430,7 +433,7 @@ parties menées de front ne se volent pas leur renommée.
 
 ---
 
-## 4 quater. Phase 10 — Medjaÿ et combat automatique  *(cadrée)*
+## 4 quater. Phase 10 — Medjaÿ et combat automatique  *(livrée)*
 
 Le doc 03 est le document le plus **entièrement chiffré** du projet : il donne
 la formule de résolution, les forces d'unité, les coûts, les taux de blessure et
@@ -842,7 +845,7 @@ leur tour.
 
 | Phase | Sujet | Ce qu'elle apporte |
 |---|---|---|
-| **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre. **Reçoit le lot 9.6** (générations et héritiers), qui ne se déclenche presque jamais en campagne |
+| **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre. **Reçoit le lot 9.6** (générations et héritiers), qui ne se déclenche presque jamais en campagne, **les effets de Résidence familiale** du doc 01 — traits de lignée et emplacements Medjaÿ, tous deux non chiffrés — et la question laissée ouverte par la Phase 9 : le mode lit l'acquis de la lignée sans jamais l'alimenter |
 | **12** — Sprites (`15`) | Découpage et intégration des 18 planches | Hors planche « tuiles », déjà intégrée en Phase 3 |
 
 ---

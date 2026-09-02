@@ -136,6 +136,12 @@ L'écran nomme désormais les deux situations, **des bras oisifs** ou **des post
 vides**, qui ne peuvent pas coexister : la répartition sert jusqu'à épuisement,
 bâtiments d'abord, territoire ensuite.
 
+**La Caserne montre la troupe et ce qui empêche d'en lever un de plus** (lot
+10.2) : l'effectif sur son plafond, l'entretien par quinzaine, les armes en
+réserve, et pour chaque spécialisation le niveau requis, la caserne pleine ou la
+bourse courte — dit avant la tentative, jamais par un refus. Un homme sans arme
+le dit aussi : il part quand même, mais mal.
+
 **La renommée s'affiche** (`PalierDeRenommee::suivant()`, `seuilDEntree()`) :
 elle fixe le prix d'un appel d'habitants, fait venir des maisonnées seules à
 partir de « Respectée » et attire les rivaux, mais n'était nulle part à l'écran
@@ -202,6 +208,19 @@ l'image ; le prendre sur l'image écarterait les cases et ouvrirait des marches
 entre elles. La zone cliquable se découpe des deux mêmes nombres, pour qu'aucun
 des deux réglages ne dérive de l'autre. Après tout changement de planche,
 remesurer : c'est le canal alpha qui fait foi.
+
+**Une case tenue par des brigands se dit avant qu'on tente quoi que ce soit**
+(lot 10.1) : le panneau de détail annonce la bande et la résistance qu'elle
+oppose *réellement*, renfort de région compris, puis combien d'hommes on peut
+lui opposer. Découvrir le danger par un refus d'exploitation serait le subir au
+lieu de le jouer — même discipline que le débouché du Marché ou le coût d'une
+route.
+
+**On n'attaque pas d'un bouton.** Le formulaire de la case gardée envoie une
+*expédition* menée par le Chef d'expédition, avec sa durée et ses vivres ; le
+combat se résout à l'arrivée, sans écran de bataille (lots 10.4 et 10.5). La
+réquisition de chars s'y ajoute quand la ville y a droit, et ce qui l'en empêche
+s'affiche à côté plutôt que de laisser un champ inerte sans explication.
 
 La planche « tuiles » se redécoupe avec `.claude/scripts/decouper-tuiles.py`,
 jamais à la main : il détoure le damier — **peint dans les pixels du JPEG**, pas

@@ -152,10 +152,11 @@ fonctionnent sans JavaScript (par exemple `renvoyer-verification`).
   `DotationRoyale`, `LanceurDePartie`. Une valeur qui vient des documents de
   conception (coût, formule, seuil, texte de mission) va ici, pas en base.
 
-`Family` et `City` appartiennent à leur `GameSave` (cascade `remove`). Toute
-nouvelle entité rattachée à une partie doit suivre le même principe, **et** être
-prise en compte par `app:users:purge-unverified` si elle référence `User`
-directement.
+`Family` et `City` appartiennent à leur `GameSave` (cascade `remove`) ; toute
+entité rattachée à une partie suit ce principe. **`Lignee` est l'exception** :
+elle appartient au *joueur* et survit à ses parties, donc aucune cascade ne
+l'emporte — `app:users:purge-unverified` la supprime explicitement, comme devra
+le faire toute entité qui référence `User` directement.
 
 Les constructeurs nommés (`GameSave::pourCampagne()`) sont préférés à un
 constructeur public quand ils rendent un invariant impossible à violer.
