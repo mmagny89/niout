@@ -293,6 +293,68 @@
     {% endif %}
 </div>
 
+{# **Écrire le nom de la famille**, à la manière des cartouches de musée.
+
+   La transcription est **entière** dès que la Maison des scribes est dressée —
+   ce sont les scribes qui écrivent, pas le joueur —, et les signes que la ville
+   n'a pas encore appris s'y montrent en retrait. Les cacher la rendrait
+   invisible jusqu'au niveau 6 ou 7 : les lettres d'un nom sont dispersées dans
+   l'ordre des grammaires, et il faut presque tout l'alphabet pour en écrire un
+   entier. #}
+<div class="mt-4 max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+    <h4 class="font-display text-lg text-encre-900">Votre nom, écrit par vos scribes</h4>
+
+    {% if nomTranscrit.signes is empty %}
+        <p class="mt-2 text-sm text-encre-500">
+            Rien de ce nom ne s'écrit avec ces signes.
+        </p>
+    {% else %}
+        <ol class="mt-4 flex flex-wrap items-end justify-center gap-2 list-none p-0">
+            {% for signe in nomTranscrit.signes %}
+                {% set connu = signe in signesConnus %}
+                <li class="text-center" title="{{ signe.objet }} ({{ signe.codeDeGardiner }}), le son {{ signe.translitteration }}">
+                    <span class="block font-hieroglyphes text-4xl leading-none
+                                 {{ connu ? 'text-encre-900' : 'text-encre-500/40' }}">{{ signe.signe }}</span>
+                    <span class="mt-1 block text-xs {{ connu ? 'text-encre-500' : 'text-encre-500/50' }}">
+                        {{ signe.translitteration }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ol>
+
+        {% set inconnus = nomTranscrit.signes|filter(s => s not in signesConnus) %}
+        {% if inconnus|length > 0 %}
+            <p class="mt-3 text-sm text-encre-500" data-chiffres>
+                {% if inconnus|length == 1 %}
+                    <span class="text-encre-700">Un</span> de ces signes n'est pas
+                    encore appris de vos scribes — il paraît en creux.
+                {% else %}
+                    <span class="text-encre-700">{{ inconnus|length }}</span> de ces
+                    signes ne sont pas encore appris de vos scribes — ils
+                    paraissent en creux.
+                {% endif %}
+                Montez la Maison des scribes pour lire votre nom en entier.
+            </p>
+        {% endif %}
+
+        {% if nomTranscrit.ecartes is not empty %}
+            <p class="mt-2 text-sm text-terre-600">
+                Écarté, faute de signe correspondant :
+                {% for caractere in nomTranscrit.ecartes %}« {{ caractere }} »{{ not loop.last ? ', ' : '' }}{% endfor %}.
+                Aucun signe n'est inventé pour boucher un trou.
+            </p>
+        {% endif %}
+    {% endif %}
+
+    <p class="mt-3 text-sm text-encre-500">
+        C'est la convention des musées, pas de l'égyptologie : l'égyptien ne
+        notait <strong class="text-encre-700">pas les voyelles</strong>, et un
+        scribe du Nouvel Empire aurait cherché des signes valant deux ou trois
+        sons à la fois. Ce que vous lisez là sert à reconnaître les signes, jamais
+        à traduire un nom.
+    </p>
+</div>
+
 {% if prochainSigneDeLAlphabet %}
     <p class="mt-4 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
         Monter la Maison des scribes ouvrirait

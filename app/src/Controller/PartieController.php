@@ -15,6 +15,7 @@ use App\Form\NouvellePartieType;
 use App\Game\AlphabetDesScribes;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
+use App\Game\CartoucheRoyal;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
@@ -77,6 +78,7 @@ use App\Game\SigneAlphabetique;
 use App\Game\SpecialiteDeChef;
 use App\Game\SymboleHieroglyphique;
 use App\Game\Temple;
+use App\Game\TranscriptionDuNom;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
 use App\Repository\GameSaveRepository;
@@ -283,6 +285,13 @@ final class PartieController extends AbstractController
             // déchiffrage : dans l'ordre, elle se lirait dans la source.
             'leconDeNiout' => self::melangerLesSignesDeNiout(),
             'nioutDejaEcrite' => $ville->aEcritNiout(),
+            // Le nom de la famille écrit à la manière des musées. La
+            // transcription est **entière** dès la Maison des scribes dressée
+            // — ce sont les scribes qui écrivent —, et l'écran montre en
+            // retrait les signes que la ville n'a pas encore appris : les
+            // cacher la rendrait invisible jusqu'au niveau 6 ou 7.
+            'nomTranscrit' => TranscriptionDuNom::pour($partie->getFamille()->getNom()),
+            'signesConnus' => AlphabetDesScribes::pour($ville),
             'prochainSigne' => CleDeLecture::prochainSigne($ville, $partie->getCycle()),
             'signesEnTout' => \count(SymboleHieroglyphique::cases()),
             'inscription' => $inscription,
@@ -1333,9 +1342,15 @@ final class PartieController extends AbstractController
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
     public function commande(GameSave $partie, MissionCatalogue $missions): Response
     {
+        $mission = $this->missionDe($partie, $missions);
+
         return $this->render('partie/commande.html.twig', [
             'partie' => $partie,
-            'mission' => $this->missionDe($partie, $missions),
+            'mission' => $mission,
+            // Le cartouche du pharaon qui commandite — null quand il n'est pas
+            // établi, auquel cas l'écran n'en montre aucun plutôt qu'un
+            // approximatif donné pour réel.
+            'cartouche' => null !== $mission ? CartoucheRoyal::pourLePharaon($mission->pharaon) : null,
         ]);
     }
 

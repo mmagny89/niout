@@ -9,6 +9,7 @@ use App\Entity\City;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Game\AlphabetDesScribes;
+use App\Game\CartoucheRoyal;
 use App\Game\CleDeLecture;
 use App\Game\Enigme;
 use App\Game\FilRouge;
@@ -17,6 +18,7 @@ use App\Game\LeconDeNiout;
 use App\Game\Ressource;
 use App\Game\SigneAlphabetique;
 use App\Game\SymboleHieroglyphique;
+use App\Game\TranscriptionDuNom;
 use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -262,6 +264,111 @@ final class AlphabetDesScribesTest extends WebTestCase
         // Les glyphes portent la police embarquée : sans elle, ils tombent sur
         // un repli qu'on ne contrôle pas — ou sur un carré vide.
         self::assertSelectorExists($panneau.' .font-hieroglyphes');
+    }
+
+    /**
+     * **La transcription suit le son, pas la lettre**, et n'invente jamais un
+     * signe : ce que la table ne couvre pas est écarté et signalé.
+     */
+    public function testLaTranscriptionSuitLeSonEtNInventeRien(): void
+    {
+        // Les groupes valant un seul son passent avant les lettres seules.
+        self::assertSame('𓈖𓄿𓐍𓏏', TranscriptionDuNom::ecrire('Nakht'), 'kh vaut un signe, pas deux.');
+        self::assertSame('𓈙𓇋', TranscriptionDuNom::ecrire('Chi'), 'ch vaut le bassin d\'eau.');
+
+        // Le c dur et le c doux ne s'écrivent pas du même signe.
+        self::assertSame(
+            SigneAlphabetique::CorbeilleAAnse->signe(),
+            mb_substr(TranscriptionDuNom::ecrire('Ca'), 0, 1),
+        );
+        self::assertSame(
+            SigneAlphabetique::LingePlie->signe(),
+            mb_substr(TranscriptionDuNom::ecrire('Ci'), 0, 1),
+        );
+
+        // Les accents ne changent rien : l'égyptien ne notait pas les voyelles.
+        self::assertSame(TranscriptionDuNom::ecrire('Nefer'), TranscriptionDuNom::ecrire('Néfér'));
+
+        // Et ce qui n'a pas d'équivalent est écarté, jamais remplacé.
+        $trait = TranscriptionDuNom::pour('Jean-Luc');
+        self::assertSame(['-'], $trait['ecartes']);
+        self::assertNotContains(null, $trait['signes']);
+    }
+
+    /**
+     * Tout signe produit par la transcription appartient à l'alphabet : elle ne
+     * peut pas fabriquer un glyphe que la police embarquée ne dessine pas.
+     */
+    public function testLaTranscriptionNeSortJamaisDeLAlphabet(): void
+    {
+        foreach (['Nakht', 'Mylène', 'Sobekhotep', 'Xavier', 'Çà et là', 'Ptah-mose'] as $nom) {
+            foreach (TranscriptionDuNom::pour($nom)['signes'] as $signe) {
+                self::assertContains($signe, SigneAlphabetique::cases());
+            }
+        }
+    }
+
+    /**
+     * **Un cartouche ne s'écrit pas avec le seul alphabet** : il mêle des
+     * bilitères et des logogrammes. C'est le propos, et c'est ce qui exige que
+     * la police embarquée couvre aussi ces signes-là.
+     */
+    public function testUnCartoucheDepasseLAlphabet(): void
+    {
+        $lettres = array_map(static fn (SigneAlphabetique $s): string => $s->signe(), SigneAlphabetique::cases());
+        $horsAlphabet = 0;
+
+        foreach (CartoucheRoyal::cases() as $cartouche) {
+            $signes = preg_split('//u', $cartouche->signes(), -1, \PREG_SPLIT_NO_EMPTY) ?: [];
+
+            self::assertSame(
+                \count($signes),
+                \count($cartouche->codesDeGardiner()),
+                'Chaque signe d\'un cartouche porte son code de Gardiner.',
+            );
+            self::assertNotSame('', $cartouche->translitteration());
+            self::assertNotSame('', $cartouche->sens());
+
+            foreach ($signes as $signe) {
+                if (!\in_array($signe, $lettres, true)) {
+                    ++$horsAlphabet;
+                }
+            }
+        }
+
+        self::assertGreaterThan(0, $horsAlphabet);
+    }
+
+    /**
+     * **Rien n'est affiché pour un pharaon dont le cartouche n'est pas établi.**
+     * Un cartouche approximatif donné pour réel trahirait la règle qui veut que
+     * les hiéroglyphes du jeu soient vrais ; l'absence, elle, ne trompe
+     * personne.
+     */
+    public function testUnPharaonSansCartoucheEtabliNEnAffichePas(): void
+    {
+        self::assertNotNull(CartoucheRoyal::pourLePharaon('Ahmôsis Ier'));
+        self::assertNull(CartoucheRoyal::pourLePharaon('Akhenaton'));
+        self::assertNull(CartoucheRoyal::pourLePharaon('Un pharaon qui n\'existe pas'));
+    }
+
+    /**
+     * Le cartouche paraît à l'introduction de la mission — pour le pharaon qui
+     * la commandite, et nulle part ailleurs.
+     */
+    public function testLeCartoucheSeLitSurLaCommandeDuPharaon(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancerAvecScribes($client, 'cartouche@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/commande', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        $cartouche = CartoucheRoyal::pourLePharaon('Ahmôsis Ier');
+        self::assertNotNull($cartouche);
+        self::assertSelectorTextContains('body', $cartouche->lecture());
+        self::assertSelectorTextContains('body', $cartouche->sens());
+        self::assertSelectorExists('.font-hieroglyphes');
     }
 
     /**

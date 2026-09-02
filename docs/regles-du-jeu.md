@@ -638,14 +638,35 @@ propositions qu'on épuiserait, pas contre vingt-quatre arrangements. Elle **ne
 touche pas au fil rouge** : `FilRouge::acte()` se déduit des inscriptions lues,
 et y greffer l'alphabet mêlerait les deux pistes.
 
+**Écrire un nom est la convention des musées, pas de l'égyptologie**
+(`TranscriptionDuNom`, doc 10). Les voyelles reçoivent les semi-voyelles — le
+vautour pour *a*, le roseau pour *i* et *e*, le poussin pour *o* et *ou* —
+parce que s'en tenir aux consonnes rendrait le résultat illisible ; et le *l*
+s'écrit avec le *r*, l'égyptien du Nouvel Empire ne les distinguant pas.
+**Aucun signe n'est inventé pour boucher un trou** : un caractère sans
+équivalent est écarté, et l'écran dit lequel. Il dit aussi, en toutes lettres,
+que ce n'est pas une traduction — un scribe du Nouvel Empire n'aurait pas écrit
+les voyelles du tout.
+
+**Un cartouche ne s'écrit pas avec le seul alphabet** (`CartoucheRoyal`), et
+c'est ce qu'il enseigne : il mêle unilitères, bilitères et logogrammes entiers,
+le disque solaire valant « Rê » à lui seul — écrit en tête par déférence, lu à
+la fin. C'est le **nom de trône** qui est montré, pas le nom de naissance dont
+« Ramsès » et « Thoutmôsis » sont les formes grecques. **Deux pharaons n'ont
+pas leur cartouche et n'en affichent aucun** : la notation source d'Akhenaton et
+de Ramsès IV porte des opérateurs de disposition dont l'ordre de lecture ne
+s'établit pas sûrement. Un cartouche approximatif donné pour réel trahirait la
+règle des hiéroglyphes vrais ; l'absence, elle, ne trompe personne.
+
 **Tout glyphe affiché porte `font-hieroglyphes`.** Aucun système d'exploitation
 courant ne couvre le bloc égyptien d'Unicode : sans la police embarquée, un
 joueur sous Windows ou Android verrait des carrés, et même une machine qui en
 possède une donne à six signes une forme moins juste. La police est
-**sous-ensemblée** aux seuls signes déclarés par les deux enums — 8,6 Ko contre
-978 —, et se régénère avec `.claude/scripts/sous-ensembler-hieroglyphes.sh` :
-ajouter un signe sans rejouer le script le laisse en carré vide, sans erreur ni
-avertissement.
+**sous-ensemblée** aux seuls signes déclarés par les trois enums — clé de
+lecture, alphabet et cartouches, 12 Ko contre 978 —, et se régénère avec
+`.claude/scripts/sous-ensembler-hieroglyphes.sh`, qui lit les points de code
+**depuis le code** plutôt que d'une liste recopiée : ajouter un signe sans
+rejouer le script le laisse en carré vide, sans erreur ni avertissement.
 
 **La clé de lecture s'enrichit par deux voies, et une seule est persistée**
 (`CleDeLecture`) : ce que le **niveau** de la Maison des scribes ouvre se
