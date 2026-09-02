@@ -623,6 +623,22 @@ le son *t*. **Ne pas dédupliquer** : les confondre enseignerait le contraire de
 ce que le document veut faire comprendre, à savoir que l'écriture égyptienne est
 mixte.
 
+**Trois dessins servent aux deux tables, et c'est la leçon** — le roseau, le
+pain et la bouche (`SymboleHieroglyphique::sonDeLAlphabet()` et son pendant
+`SigneAlphabetique::dessinDeLaCle()`). L'écriture égyptienne est mixte : un même
+signe y sert tantôt à montrer une chose, tantôt à noter un son, et la bouche en
+est le cas le plus net — elle dit « bouche » et elle note le *r*. Les deux
+tables se **relient** donc à l'écran plutôt que de laisser croire à une redite,
+et **le lien se fait par le glyphe**, jamais par une table de correspondance
+qui finirait par diverger.
+
+**L'eau, c'est trois ondulations, pas une** (défaut réel, payé) : `N35` — une
+seule ondulation — est le phonogramme *n* et ne veut pas dire « eau » ; le mot
+s'écrit `N35A`. La clé portait le code de l'un tout en décrivant l'autre, et
+enseignait donc un signe faux dans un jeu dont c'est l'objet d'enseigner les
+vrais. Conséquence de méthode : **un code de Gardiner peut porter un suffixe de
+variante** (`N35A`, `C10A`), et toute vérification de format doit l'accepter.
+
 **L'alphabet ne se persiste pas** (`AlphabetDesScribes`) : il n'ouvre que par
 le niveau de la Maison des scribes, `3 × niveau`, ce qui tombe juste sur
 vingt-quatre au niveau 8. Une colonne dupliquerait l'état du bâtiment. Ni le

@@ -57,6 +57,23 @@ enum SigneAlphabetique: string
      * Le vrai code de la liste de Gardiner, affiché tel quel : le joueur doit
      * pouvoir vérifier le signe dans une vraie grammaire.
      */
+    /**
+     * Le symbole de la clé de lecture qui porte **le même dessin**, s'il
+     * existe. Le pendant de `SymboleHieroglyphique::sonDeLAlphabet()`, et pour
+     * la même raison : montrer que le dessin sert deux fois, au lieu de
+     * laisser croire à un doublon.
+     */
+    public function dessinDeLaCle(): ?SymboleHieroglyphique
+    {
+        foreach (SymboleHieroglyphique::cases() as $symbole) {
+            if ($symbole->signe() === $this->signe()) {
+                return $symbole;
+            }
+        }
+
+        return null;
+    }
+
     public function codeDeGardiner(): string
     {
         return match ($this) {

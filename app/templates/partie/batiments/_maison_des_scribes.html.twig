@@ -207,6 +207,15 @@
                 <span class="block text-encre-900">{{ symbole.libelle }}</span>
                 <span class="block text-xs text-encre-500" data-chiffres>{{ symbole.codeDeGardiner }}</span>
                 <span class="mt-1 block text-sm text-encre-600">{{ symbole.sens }}</span>
+
+                {# **Ce n'est pas un doublon, c'est la leçon** : un même dessin
+                   sert tantôt à montrer une chose, tantôt à noter un son. #}
+                {% if symbole.sonDeLAlphabet %}
+                    <span class="mt-2 block text-xs text-lapis-500">
+                        Note aussi le son <strong>{{ symbole.sonDeLAlphabet.translitteration }}</strong>
+                        dans l'alphabet des scribes.
+                    </span>
+                {% endif %}
             </span>
         </li>
     {% endfor %}
@@ -226,6 +235,13 @@
     passe encore aujourd'hui. Vos scribes en savent
     <span data-chiffres>{{ alphabet|length }}</span> sur
     <span data-chiffres>{{ signesDeLAlphabetEnTout }}</span>.
+</p>
+<p class="mt-2 max-w-2xl text-sm text-encre-500">
+    <strong class="text-encre-700">Trois dessins se retrouvent dans les deux
+    tables</strong>, et ce n'est pas une redite : l'écriture égyptienne est
+    mixte, un même signe y servant tantôt à montrer une chose, tantôt à noter un
+    son. La bouche en est le cas le plus net — elle dit « bouche », et elle note
+    le <em>r</em>.
 </p>
 
 {# La leçon fondatrice : écrire le nom du jeu. Elle se retente — remettre
@@ -380,6 +396,13 @@
                 <span class="mt-1 block text-sm text-encre-600">
                     {{ signe.objet }}{% if signe.objetIncertain %} <span class="text-encre-500">(débattu)</span>{% endif %}
                 </span>
+
+                {% if signe.dessinDeLaCle %}
+                    <span class="mt-2 block text-xs text-lapis-500">
+                        Le même dessin sert de « {{ signe.dessinDeLaCle.libelle|lower }} »
+                        dans la clé de lecture.
+                    </span>
+                {% endif %}
             </span>
         </li>
     {% endfor %}
