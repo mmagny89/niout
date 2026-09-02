@@ -351,6 +351,20 @@ Trois règles à ne pas défaire :
   mesure qu'on nettoie. La garnison le couvre du seul fait d'exister. **La
   tension est voulue** : les hommes qui délogent une bande sont ceux qui
   couvrent les routes, et une sortie coûteuse en blessés les découvre.
+- **Le Charrier se loue, il ne se recrute pas** (`Charrier`, doc 03, doc 01).
+  Les Medjaÿ formaient un corps de sécurité intérieure — arc et bouclier
+  attestés ; le char appartenait à la *mesha*, l'armée d'État. Le jeu porte
+  cette distinction jusque dans son schéma : les chars vivent sur l'expédition,
+  n'ont pas d'entité, ne rejoignent jamais l'effectif, ne coûtent aucun
+  entretien et disparaissent avec la sortie. Ils pèsent au combat et n'en
+  ressortent jamais blessés — ce sont les hommes du pharaon, pas les nôtres.
+- **Un Instructeur n'aiguise que sa spécialisation** (doc 03) : celui du
+  bouclier ne fait pas mieux tirer les archers. C'est ce qui donne un sens au
+  choix entre les deux à l'embauche.
+- **Bagarreur a deux moitiés** (doc 03) : bonus de combat en poste à la Caserne,
+  malus de compétence partout — les Medjaÿ n'étant pas des employés, « affecté
+  aux Medjaÿ » se lit « en poste à la Caserne ». Un chef qui se bat bien dirige
+  mal ailleurs, et c'est ce qui rend le trait intéressant.
 - **Un mort emporte son expérience, un blessé garde la sienne** (doc 03). C'est
   le vrai enjeu de la perte définitive — pas le coût du recrutement, mais tout
   ce qu'il faut réapprendre.

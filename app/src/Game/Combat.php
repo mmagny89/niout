@@ -94,7 +94,7 @@ final readonly class Combat
      *
      * @throws CombatImpossible
      */
-    public function livrer(GameSave $partie, Zone $zone, array $troupe): ResultatDeCombat
+    public function livrer(GameSave $partie, Zone $zone, array $troupe, int $charriers = 0): ResultatDeCombat
     {
         $ville = $partie->getVille();
 
@@ -120,7 +120,7 @@ final readonly class Combat
             throw new CombatImpossible('Vous n\'avez aucun homme en état de partir.');
         }
 
-        $attaque = $this->scoreDattaque($partie, $zone, $troupe);
+        $attaque = $this->scoreDattaque($partie, $zone, $troupe, $charriers);
         $defense = Bandits::defenseDe($ville, $zone);
 
         // La formule du doc 03, en centièmes : on tire sur cent, pas sur une
@@ -166,22 +166,39 @@ final readonly class Combat
      * entières de suite rogneraient la force à chaque étape, d'une façon que
      * personne ne saurait plus expliquer six mois après (discipline du lot 6.3).
      *
+     * **Les chars réquisitionnés y entrent, et n'en sortent jamais blessés** :
+     * ce sont les hommes du pharaon, pas les nôtres. On les loue, on les rend
+     * — leurs pertes sont son affaire, et le document ne nous en compte
+     * aucune.
+     *
      * @param list<Medjay> $troupe
      */
-    public function scoreDattaque(GameSave $partie, Zone $zone, array $troupe): int
+    public function scoreDattaque(GameSave $partie, Zone $zone, array $troupe, int $charriers = 0): int
     {
-        $brut = 0;
+        $ville = $partie->getVille();
+        $cycle = $partie->getCycle();
+        $brut = Charrier::FORCE * max(0, $charriers);
+
+        // Ce que la Caserne apprend à ses hommes (lot 10.7) : l'Instructeur
+        // n'aiguise que la spécialisation qu'il enseigne, le Bagarreur profite
+        // à tous. Ils ne touchent pas les chars du pharaon, qui ne sont pas
+        // formés ici.
+        $poingLeste = EffetDeChef::bonusDuBagarreur($ville, $cycle);
 
         foreach ($troupe as $medjay) {
             $force = $medjay->force();
+            $bonus = $poingLeste
+                + EffetDeChef::bonusDInstructeur($ville, $medjay->getSpecialisation(), $cycle);
 
             // L'archer tire à découvert : le désert le sert, là même où il
             // dessert la troupe dans son ensemble.
             if (TypeDeTerrain::Desert === $zone->getTerrain()) {
-                $force += intdiv($force * $medjay->getSpecialisation()->bonusEnDesert(), 100);
+                $bonus += $medjay->getSpecialisation()->bonusEnDesert();
             }
 
-            $brut += $force;
+            // Un seul facteur par homme, appliqué une fois : trois divisions
+            // enchaînées rogneraient la force à chaque étape.
+            $brut += $force + intdiv($force * $bonus, 100);
         }
 
         return intdiv(

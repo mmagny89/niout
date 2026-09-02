@@ -46,6 +46,30 @@ class Expedition
     #[ORM\Column]
     private int $avancementEnDixiemes = 0;
 
+    /**
+     * Les chars loués à l'armée du pharaon pour **cette sortie-là** (doc 03).
+     *
+     * Ils vivent ici et nulle part ailleurs : ils n'ont pas d'entité, ne
+     * rejoignent jamais l'effectif de la ville et disparaissent avec
+     * l'expédition. C'est la traduction en code de la distinction historique
+     * entre les Medjaÿ, corps de sécurité intérieure, et la *mesha*, l'armée
+     * d'État.
+     */
+    #[ORM\Column]
+    private int $charriers = 0;
+
+    public function getCharriers(): int
+    {
+        return $this->charriers;
+    }
+
+    public function requisitionner(int $charriers): static
+    {
+        $this->charriers = max(0, $charriers);
+
+        return $this;
+    }
+
     public function __construct(City $ville, Zone $destination, RoleDExploration $role, int $dureeEnCycles)
     {
         $this->ville = $ville;

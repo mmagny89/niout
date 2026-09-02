@@ -106,16 +106,17 @@ final class CandidatTest extends TestCase
      * dire : promettre un bonus qui ne s'applique nulle part tromperait le
      * joueur au moment même où il compare des candidats.
      */
-    public function testSeulBagarreurDortEncore(): void
+    public function testPlusAucunTraitNeDort(): void
     {
         $dormants = array_values(array_filter(
             TraitDeCandidat::cases(),
             static fn (TraitDeCandidat $trait): bool => $trait->dortEnAttendantSaPhase(),
         ));
 
-        // « Pieux » s'est réveillé au lot 6.7 : sa maisonnée entretient les
-        // rites, et les dieux de la ville se détournent moins vite.
-        self::assertSame([TraitDeCandidat::Bagarreur], $dormants);
+        // « Pieux » s'est réveillé au lot 6.7, « Bagarreur » au 10.7 : la
+        // Caserne lui a donné son emploi, et le poste civil son malus. Le
+        // garde-fou reste pour le trait qu'on ajouterait demain.
+        self::assertSame([], $dormants);
     }
 
     public function testChaqueTraitPorteUnLibelleEtUneDescription(): void
@@ -179,10 +180,12 @@ final class CandidatTest extends TestCase
             static fn (SpecialiteDeChef $specialite): bool => !$specialite->agitDeja(),
         ));
 
+        // Les deux Instructeurs agissent depuis le lot 10.7 : ils aiguisent la
+        // spécialisation qu'ils enseignent. Restent l'Acheteur du Marché — que
+        // le Marché, purement local, n'accueillera jamais — et le Commerçant
+        // naval, qui attend un commerce naval avancé.
         self::assertSame([
             SpecialiteDeChef::MarcheAcheteur,
-            SpecialiteDeChef::CaserneInstructeurArcher,
-            SpecialiteDeChef::CaserneInstructeurBouclier,
             SpecialiteDeChef::PortCommercantNaval,
         ], $dormantes);
     }

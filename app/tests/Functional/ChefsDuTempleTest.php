@@ -111,11 +111,10 @@ final class ChefsDuTempleTest extends KernelTestCase
      * inexistant tromperait le joueur au moment précis où il compare des
      * candidats.
      */
-    public function testSeulBagarreurDortEncore(): void
+    public function testPlusAucunTraitNeDort(): void
     {
         foreach (TraitDeCandidat::cases() as $trait) {
-            self::assertSame(
-                TraitDeCandidat::Bagarreur === $trait,
+            self::assertFalse(
                 $trait->dortEnAttendantSaPhase(),
                 \sprintf('%s : l\'affichage doit dire la vérité sur ce qu\'il fait.', $trait->libelle()),
             );

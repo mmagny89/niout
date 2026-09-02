@@ -54,11 +54,32 @@ enum TraitDeCandidat: string
             self::Fidele => 'Restera longtemps en poste.',
             self::Ambitieux => 'Doué, mais regarde déjà ailleurs.',
             self::Croyant => 'Sa maisonnée entretient les rites : les dieux de la ville se détournent moins vite.',
-            self::Bagarreur => 'A le poing leste — sans effet tant qu\'aucun Medjaÿ n\'est recruté.',
+            self::Bagarreur => 'A le poing leste : précieux à la Caserne, encombrant partout ailleurs.',
             self::Experimente => 'Sait déjà tout faire, se vend cher et ne restera pas.',
             self::Novice => 'Malhabile et bon marché, mais il s\'accrochera.',
         };
     }
+
+    /**
+     * Ce que le poing leste vaut à la Caserne, en points de pourcentage sur la
+     * force de la troupe (doc 03 : « bonus combat si affecté aux Medjaÿ »).
+     *
+     * **Valeur inventée** : le document nomme le bonus sans le chiffrer. Dix,
+     * soit les deux tiers d'un Instructeur — un chef qui se bat bien vaut moins
+     * qu'un chef qui apprend aux autres à se battre.
+     */
+    public const int BONUS_DE_COMBAT_DU_BAGARREUR = 10;
+
+    /**
+     * Et ce qu'il coûte ailleurs, en points de pourcentage de compétence
+     * (doc 03 : « malus si poste civil »). **C'est la moitié que le jeu
+     * n'appliquait pas**, et c'est elle qui rend le trait intéressant : un
+     * candidat dont on ne veut pas au Grenier devient bon à la Caserne.
+     *
+     * **Valeur inventée**, calée sur les autres traits : dix points, comme
+     * l'Économe en rend sur la compétence.
+     */
+    public const int MALUS_CIVIL_DU_BAGARREUR = -10;
 
     /**
      * Modificateurs en pourcentage (doc 03). Tous entiers : aucune valeur de
@@ -72,7 +93,11 @@ enum TraitDeCandidat: string
             self::Ambitieux => 10,
             self::Experimente => 25,
             self::Novice => -20,
-            self::Fidele, self::Croyant, self::Bagarreur => 0,
+            self::Fidele, self::Croyant => 0,
+            // **Le poing leste dessert un poste civil** (doc 03), et c'est la
+            // moitié de ce trait que le jeu n'appliquait pas. À la Caserne, il
+            // se paie en retour — voir BONUS_DE_COMBAT_DU_BAGARREUR.
+            self::Bagarreur => self::MALUS_CIVIL_DU_BAGARREUR,
         };
     }
 
@@ -118,9 +143,13 @@ enum TraitDeCandidat: string
      * Traits dont le système d'accueil n'existe pas encore. L'affichage doit le
      * signaler : promettre un bonus qui ne s'applique nulle part serait mentir
      * au joueur au moment précis où il compare des candidats.
+     *
+     * **Les huit agissent depuis le lot 10.7** — Bagarreur était le dernier, et
+     * la Caserne lui a donné son emploi. Le garde-fou reste pour le trait qu'on
+     * ajouterait demain, comme celui de `Divinite::agitDeja()`.
      */
     public function dortEnAttendantSaPhase(): bool
     {
-        return \in_array($this, [self::Bagarreur], true);
+        return false;
     }
 }

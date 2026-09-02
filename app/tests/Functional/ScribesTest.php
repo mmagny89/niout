@@ -142,8 +142,6 @@ final class ScribesTest extends WebTestCase
         );
         self::assertSame([
             SpecialiteDeChef::MarcheAcheteur,
-            SpecialiteDeChef::CaserneInstructeurArcher,
-            SpecialiteDeChef::CaserneInstructeurBouclier,
             SpecialiteDeChef::PortCommercantNaval,
         ], array_values($specialitesInertes));
     }

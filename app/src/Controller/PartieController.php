@@ -22,6 +22,7 @@ use App\Game\CartoucheRoyal;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
+use App\Game\Charrier;
 use App\Game\CleDeLecture;
 use App\Game\Commerce;
 use App\Game\CommerceImpossible;
@@ -1095,6 +1096,11 @@ final class PartieController extends AbstractController
             // (lot 10.1) : c'est ce chiffre-là qui décide d'y aller ou non.
             'defenseDeLaZone' => null === $detaillee ? 0 : Bandits::defenseDe($partie->getVille(), $detaillee),
             'medjaysDisponibles' => \count($medjaysService->disponibles($partie)),
+            // La réquisition de chars (lot 10.6) : ce qui l'empêche se dit
+            // avant la demande, jamais par un refus.
+            'charriersOuverts' => Charrier::disponiblePour($ville),
+            'empechementDesCharriers' => Charrier::empechement($ville),
+            'coutDunCharrier' => Charrier::COUT_PAR_EXPEDITION,
             'signaux' => $etat->signaux($partie),
             'connaitLaCrue' => $geographies->connaitLaCrue($partie),
             'expeditionEnCours' => null !== $detaillee ? $ville->aUneExpeditionVers($detaillee) : false,
@@ -1267,14 +1273,23 @@ final class PartieController extends AbstractController
 
         $role = RoleDExploration::tryFrom((string) $request->request->get('role')) ?? RoleDExploration::Eclaireur;
 
+        // Les chars du pharaon ne se louent que pour une sortie en armes, et
+        // le domaine les remet à zéro pour tout autre rôle.
+        $charriers = max(0, (int) $request->request->get('charriers', 0));
+
         try {
-            $expedition = $explorations->envoyer($partie, $destination, $role);
+            $expedition = $explorations->envoyer($partie, $destination, $role, $charriers);
             $this->addFlash('succes', \sprintf(
                 '%s part%s. Il sera sur place dans %d cycle%s.',
                 $role->libelle(),
-                match ($role) {
-                    RoleDExploration::Emissaire => '',
-                    RoleDExploration::Prospecteur => ' sonder la case',
+                match (true) {
+                    RoleDExploration::Emissaire === $role => '',
+                    RoleDExploration::Prospecteur === $role => ' sonder la case',
+                    $expedition->getCharriers() > 0 => \sprintf(
+                        ' en armes, avec %d char(s) du pharaon',
+                        $expedition->getCharriers(),
+                    ),
+                    RoleDExploration::ChefDExpedition === $role => ' en armes',
                     default => ' en reconnaissance',
                 },
                 $expedition->getDureeEnCycles(),
