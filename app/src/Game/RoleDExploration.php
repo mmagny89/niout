@@ -11,10 +11,10 @@ namespace App\Game;
  * inconnue, puis une action complémentaire s'impose — ou non — selon ce qu'il a
  * trouvé. Le joueur ne décide jamais à l'avance d'envoyer une grosse équipe.
  *
- * Deux rôles sont jouables : l'éclaireur, qui lève le brouillard, et le
- * prospecteur, qui sonde une case déjà reconnue à la recherche d'un filon.
- * L'émissaire suppose des PNJ, le chef d'expédition des zones lourdes, et
- * l'escorte des Medjaÿ.
+ * Trois rôles sont jouables : l'éclaireur, qui lève le brouillard ; le
+ * prospecteur, qui sonde une case reconnue à la recherche d'un filon ; et le
+ * chef d'expédition, qui mène les Medjaÿ déloger une bande (lot 10.5).
+ * L'émissaire, lui, se déclenche depuis les enquêtes.
  */
 enum RoleDExploration: string
 {
@@ -38,7 +38,7 @@ enum RoleDExploration: string
         return match ($this) {
             self::Eclaireur => 'Reconnaît la case et en révèle le contenu. Rapide, peu coûteux, sans combat.',
             self::Emissaire => 'Va parler aux gens d\'une case déjà reconnue, et rapporte ce qui s\'y dit. Les témoignages nourrissent les enquêtes.',
-            self::ChefDExpedition => 'Encadre une expédition lourde vers une mine ou une carrière éloignée.',
+            self::ChefDExpedition => 'Mène la troupe déloger une bande installée sur une case reconnue. Le combat se résout à l\'arrivée ; la case prise le reste.',
             self::Prospecteur => 'Sonde une case déjà reconnue : il rouvre un filon épuisé ou en met un nouveau au jour. Il peut rentrer bredouille.',
         };
     }
@@ -55,10 +55,13 @@ enum RoleDExploration: string
     public function viseUneCaseInconnue(): bool
     {
         return match ($this) {
-            self::Eclaireur, self::ChefDExpedition => true,
+            self::Eclaireur => true,
             // Le prospecteur sonde un sol qu'on connaît déjà : on ne cherche
-            // pas un filon là où l'on ignore encore ce qu'il y a.
-            self::Emissaire, self::Prospecteur => false,
+            // pas un filon là où l'on ignore encore ce qu'il y a. Le chef
+            // d'expédition, lui, mène une troupe sur une bande **repérée** : on
+            // ne part pas en armes vers une case dont on ignore ce qu'elle
+            // porte.
+            self::Emissaire, self::Prospecteur, self::ChefDExpedition => false,
         };
     }
 
@@ -144,12 +147,27 @@ enum RoleDExploration: string
     }
 
     /**
+     * **Le seul rôle qui parte en armes** (doc 03, doc 04, lot 10.5). Il
+     * emmène les Medjaÿ disponibles, et c'est à son arrivée que le combat se
+     * résout — un assaut se prépare, il ne se déclenche pas d'un bouton sur la
+     * carte.
+     *
+     * C'est aussi la réponse à ce qu'il coûtait sans rien faire de plus qu'un
+     * éclaireur : cinquante deben et vingt vivres achètent une troupe en
+     * route, pas une reconnaissance de luxe.
+     */
+    public function meneLaTroupe(): bool
+    {
+        return self::ChefDExpedition === $this;
+    }
+
+    /**
      * Rôles réellement jouables à ce stade du développement.
      *
      * @return list<self>
      */
     public static function disponibles(): array
     {
-        return [self::Eclaireur, self::Prospecteur];
+        return [self::Eclaireur, self::Prospecteur, self::ChefDExpedition];
     }
 }

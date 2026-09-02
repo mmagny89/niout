@@ -23,8 +23,6 @@ use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
 use App\Game\CleDeLecture;
-use App\Game\Combat;
-use App\Game\CombatImpossible;
 use App\Game\Commerce;
 use App\Game\CommerceImpossible;
 use App\Game\Culture;
@@ -77,7 +75,6 @@ use App\Game\Recette;
 use App\Game\RecrutementImpossible;
 use App\Game\Recrutements;
 use App\Game\Ressource;
-use App\Game\ResultatDeCombat;
 use App\Game\Rivaux;
 use App\Game\RoleDExploration;
 use App\Game\Salaires;
@@ -505,75 +502,6 @@ final class PartieController extends AbstractController
         ));
 
         return $this->retourALaVille($request, $partie);
-    }
-
-    /**
-     * Envoie la troupe prendre une case gardée (doc 03).
-     *
-     * **Aucun écran de bataille** : le joueur a décidé en amont — qui lever,
-     * comment les armer, sous quel dieu — et la sortie se résout d'un bloc. Ce
-     * qu'on lui rend, c'est le récit de ce qui s'est passé, et les chiffres qui
-     * l'expliquent : une défaite qu'on ne comprend pas se subit.
-     */
-    #[Route('/{id}/carte/attaquer', name: 'app_partie_attaquer', requirements: ['id' => '\\d+'], methods: ['POST'])]
-    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
-    public function attaquer(Request $request, GameSave $partie, Combat $combat, Medjays $medjays): Response
-    {
-        $zone = $this->zonePostee($request, $partie, 'attaquer');
-
-        try {
-            $resultat = $combat->livrer($partie, $zone, $medjays->disponibles($partie));
-        } catch (CombatImpossible $impossible) {
-            $this->addFlash('erreur', $impossible->getMessage());
-
-            return $this->retourALaCarte($partie, $zone);
-        }
-
-        $this->addFlash(
-            $resultat->victoire ? 'succes' : 'erreur',
-            $this->raconterLeCombat($resultat),
-        );
-
-        return $this->retourALaCarte($partie, $zone);
-    }
-
-    /**
-     * Le récit d'une sortie. Les chances y figurent : c'est ce qui distingue
-     * une défaite qu'on comprend d'une défaite qu'on subit.
-     */
-    private function raconterLeCombat(ResultatDeCombat $resultat): string
-    {
-        $recit = $resultat->victoire
-            ? \sprintf(
-                'La case est prise. Vos hommes rentrent avec %d deben, et chacun a appris quelque chose. (%d contre %d, %d chances sur cent.)',
-                $resultat->butin,
-                $resultat->scoreAttaque,
-                $resultat->scoreDefense,
-                $resultat->chancesSurCent,
-            )
-            : \sprintf(
-                'Vos hommes ont dû se retirer. La bande tient toujours la case. (%d contre %d, %d chances sur cent.)',
-                $resultat->scoreAttaque,
-                $resultat->scoreDefense,
-                $resultat->chancesSurCent,
-            );
-
-        if ([] !== $resultat->blesses) {
-            $recit .= \sprintf(
-                ' %d homme(s) reviennent blessés : ils reprendront du service dans %d quinzaines.',
-                \count($resultat->blesses),
-                Combat::QUINZAINES_DE_CONVALESCENCE,
-            );
-        }
-
-        if ($resultat->aPerduDesHommes()) {
-            $recit .= \sprintf(
-                ' %s ne rentrent pas. Il faudra en lever d\'autres, et tout leur réapprendre.',
-                implode(', ', $resultat->tombes),
-            );
-        }
-
-        return $recit;
     }
 
     /**
