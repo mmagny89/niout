@@ -197,7 +197,7 @@ de cause plutôt que le découvrir au playtest.
 |---|---|---|
 | 9.0 | Les arbitrages tranchés, et la forme qu'ils donnent à la phase | ✅ |
 | 9.1 | La renommée devient une jauge de famille, qui traverse la campagne | ✅ |
-| 9.2 | Les deux sources manquantes : énigme résolue, enquête résolue | |
+| 9.2 | Les deux sources manquantes : énigme résolue, enquête résolue | ✅ |
 | 9.3 | La renommée infléchit les prix, à l'achat comme à la vente | |
 | 9.4 | Le carnet de contacts : ce qu'une région visitée laisse | |
 | 9.5 | Le bonus de départ par missions accomplies | |
@@ -263,7 +263,19 @@ refus d'une requête, mécontentement — jouent **dans** la mission, jamais en
 travers de la campagne. C'est la même discipline que le plancher du neutre de
 la négligence divine.
 
-#### 9.2 — Deux sources qui manquent
+#### 9.2 — Deux sources qui manquent  *(livré)*
+
+**Retenu : +1 par énigme, +2 par enquête, sous un plafond de huit points par
+mission** (`Family::RENOMMEE_MAX_DES_AFFAIRES`). Le plafond est la moitié du
+lot : la renommée traversant désormais la campagne, dix missions où l'on résout
+tout verseraient bien au-delà des cent points de l'échelle, et la jauge
+cesserait de mesurer une réputation pour ne compter que l'assiduité à deux
+mini-jeux. Il se compte **par mission**, pas par campagne — sinon deux systèmes
+qui la traversent de bout en bout n'y vaudraient que huit points en tout.
+
+Il ne borne que les affaires, jamais la jauge : elle bouge pour six raisons, et
+un plafond qui la lirait plafonnerait les cinq autres. Le gain réellement versé
+est rendu à l'appelant, pour que l'écran se taise au lieu d'annoncer un gain nul.
 
 Le document accorde **+1 par énigme secondaire résolue** et **+3 par enquête
 complète** ; le jeu ne donne rien pour la première et +1 pour la seconde.

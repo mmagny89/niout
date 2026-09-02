@@ -243,6 +243,16 @@ Trois règles à ne pas défaire :
   volent pas leur renommée » : elles lisent le même acquis, chacune a sa jauge.
   Le **legs ne porte donc plus de renommée** : il en donnait quatre points au
   plus, depuis zéro, et aurait compté deux fois la même réussite.
+- **Les affaires de l'esprit rapportent, sous plafond** (doc 13) : +1 par énigme
+  résolue (`Enigme::RENOMMEE_POUR_UNE_RESOLUE`), +2 par enquête
+  (`Enquete::RENOMMEE_POUR_UNE_RESOLUE`), dans la limite de
+  `Family::RENOMMEE_MAX_DES_AFFAIRES` **par mission**. Le plafond n'est pas un
+  détail d'équilibrage : la renommée traversant la campagne, dix missions où
+  l'on résout tout dépasseraient les cent points de l'échelle, et la jauge ne
+  mesurerait plus une réputation mais l'assiduité à deux mini-jeux. Il ne borne
+  que ces deux sources — un plafond posé sur la jauge elle-même plafonnerait
+  les quatre autres. `crediterUneAffaireResolue()` rend **ce qui a réellement
+  été versé** : au plafond, l'écran doit se taire plutôt qu'annoncer zéro.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais

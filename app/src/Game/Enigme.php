@@ -60,6 +60,14 @@ enum Enigme: string
     public const int RECOMPENSE_EN_DEBEN = 15;
 
     /**
+     * Ce qu'une énigme résolue vaut en renommée (doc 13, qui l'accorde en
+     * toutes lettres et que le jeu ne donnait pas). Un point : la ville parle
+     * de vous une soirée, elle ne change pas d'avis sur vous. Le plafond de la
+     * mission est sur `Family::RENOMMEE_MAX_DES_AFFAIRES`.
+     */
+    public const int RENOMMEE_POUR_UNE_RESOLUE = 1;
+
+    /**
      * Où l'on rencontre l'énigme — et donc quel bâtiment il faut avoir dressé.
      * C'est ce qui donne à l'Auberge sa première raison d'exister.
      */

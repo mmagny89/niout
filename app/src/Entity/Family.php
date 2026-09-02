@@ -27,6 +27,19 @@ class Family
     public const int RENOMMEE_MIN = 0;
     public const int RENOMMEE_MAX = 100;
 
+    /**
+     * Ce que les **affaires de l'esprit** — énigmes et enquêtes résolues —
+     * peuvent rapporter au plus sur une mission (doc 13, lot 9.2).
+     *
+     * **Valeur inventée**, et le plafond est la moitié du sujet. Sans lui, une
+     * campagne de dix missions où l'on résout tout verserait bien au-delà des
+     * cent points de l'échelle : la renommée cesserait de mesurer une
+     * réputation pour ne plus compter que l'assiduité à un mini-jeu. Huit
+     * points laissent une mission bien menée s'approcher d'un demi-palier sans
+     * jamais le franchir sur ce seul mérite.
+     */
+    public const int RENOMMEE_MAX_DES_AFFAIRES = 8;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -77,9 +90,45 @@ class Family
         return $this;
     }
 
+    /**
+     * Ce que les énigmes et les enquêtes ont déjà rapporté sur cette mission,
+     * pour ne pas dépasser self::RENOMMEE_MAX_DES_AFFAIRES. Compté à part de
+     * la jauge : elle bouge pour six raisons, et un plafond qui la lirait
+     * plafonnerait les cinq autres.
+     */
+    #[ORM\Column]
+    private int $renommeeDesAffaires = 0;
+
     public function getRenommee(): int
     {
         return $this->renommee;
+    }
+
+    public function getRenommeeDesAffaires(): int
+    {
+        return $this->renommeeDesAffaires;
+    }
+
+    /**
+     * Verse ce qu'une énigme ou une enquête résolue rapporte, dans la limite du
+     * plafond de la mission.
+     *
+     * @return int ce qui a réellement été accordé — nul une fois le plafond
+     *             atteint, et l'écran doit alors se taire plutôt qu'annoncer
+     *             un gain de zéro
+     */
+    public function crediterUneAffaireResolue(int $points): int
+    {
+        $accorde = max(0, min($points, self::RENOMMEE_MAX_DES_AFFAIRES - $this->renommeeDesAffaires));
+
+        if (0 === $accorde) {
+            return 0;
+        }
+
+        $this->renommeeDesAffaires += $accorde;
+        $this->ajusterRenommee($accorde);
+
+        return $accorde;
     }
 
     /**
