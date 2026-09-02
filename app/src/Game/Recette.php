@@ -80,8 +80,11 @@ enum Recette: string
 
     /**
      * Vrai quand l'objet produit n'a **pas encore d'usage propre** : il se
-     * vend, et c'est tout. Les armes attendent les Medjaÿ (Phase 10), les
-     * outils qu'un système les consomme.
+     * vend, et c'est tout.
+     *
+     * **Les armes n'en sont plus** (lot 10.3) : elles équipent les Medjaÿ, et
+     * la qualité de la Forge décide de ce qu'elles valent au combat. Restent
+     * les outils, en attente d'un système qui les consomme.
      *
      * L'interface doit le dire, comme elle le fait déjà des traits et des
      * spécialités endormis : promettre un usage qui n'existe nulle part
@@ -89,7 +92,7 @@ enum Recette: string
      */
     public function produitDortEnAttendantSonUsage(): bool
     {
-        return \in_array($this, [self::Outils, self::Armes], true);
+        return self::Outils === $this;
     }
 
     /**

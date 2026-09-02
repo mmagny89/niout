@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Game\Equipement;
 use App\Game\SpecialisationMedjay;
 use App\Repository\MedjayRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -59,6 +60,34 @@ class Medjay
     #[ORM\Column(nullable: true)]
     private ?int $retabliAuCycle = null;
 
+    /**
+     * Ce que vaut son arme, en centièmes (doc 03, lot 10.3). Un homme jamais
+     * armé garde `Equipement::QUALITE_SANS_ARME` : il part quand même, moins
+     * bien — rien ne bloque une expédition.
+     *
+     * **La qualité se fige à la remise de l'arme** : monter la Forge ensuite
+     * n'améliore pas rétroactivement ce qu'on a déjà donné, il faut réarmer.
+     */
+    #[ORM\Column]
+    private int $qualiteDeLequipement = Equipement::QUALITE_SANS_ARME;
+
+    public function getQualiteDeLequipement(): int
+    {
+        return $this->qualiteDeLequipement;
+    }
+
+    public function estArme(): bool
+    {
+        return $this->qualiteDeLequipement > Equipement::QUALITE_SANS_ARME;
+    }
+
+    public function recevoirUneArme(int $qualite): static
+    {
+        $this->qualiteDeLequipement = max(Equipement::QUALITE_SANS_ARME, $qualite);
+
+        return $this;
+    }
+
     public function __construct(City $ville, SpecialisationMedjay $specialisation)
     {
         $this->ville = $ville;
@@ -86,15 +115,21 @@ class Medjay
     }
 
     /**
-     * Sa force réelle : celle de sa spécialisation, augmentée de ce qu'il a
-     * appris. **En centièmes entiers**, comme tous les facteurs du jeu.
+     * Sa force réelle : celle de sa spécialisation, ce qu'il a appris, et ce
+     * que vaut son arme. **En centièmes entiers**, comme tous les facteurs du
+     * jeu.
      *
-     * L'équipement de la Forge s'y ajoutera au lot 10.3 — il entrera dans ce
-     * calcul, il n'en posera pas un second à côté.
+     * **Une seule division**, bien que trois facteurs s'y croisent : deux
+     * divisions entières enchaînées perdraient de la force à chaque étape,
+     * d'une façon que personne ne saurait plus expliquer ensuite. C'est la
+     * discipline du lot 6.3, et elle vaut ici comme sur les prix.
      */
     public function force(): int
     {
-        return intdiv($this->specialisation->force() * (100 + $this->experience), 100);
+        return intdiv(
+            $this->specialisation->force() * (100 + $this->experience) * $this->qualiteDeLequipement,
+            100 * 100,
+        );
     }
 
     public function gagnerDeLexperience(): static

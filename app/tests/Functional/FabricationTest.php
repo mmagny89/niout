@@ -228,18 +228,22 @@ final class FabricationTest extends KernelTestCase
     }
 
     /**
-     * Les armes et les outils n'ont **pas encore d'usage propre** : ils se
-     * vendent, et l'interface doit le dire — promettre un usage qui n'existe
-     * nulle part tromperait le joueur au moment où il engage ses matières.
+     * Les outils n'ont **pas encore d'usage propre** : ils se vendent, et
+     * l'interface doit le dire — promettre un usage qui n'existe nulle part
+     * tromperait le joueur au moment où il engage ses matières.
+     *
+     * **Les armes n'en sont plus** depuis le lot 10.3 : elles équipent les
+     * Medjaÿ, et la qualité de la Forge décide de ce qu'elles valent au combat.
      */
-    public function testLesProduitsDeLaForgeSeDisentSansUsagePropre(): void
+    public function testSeulsLesOutilsSeDisentSansUsagePropre(): void
     {
         $dormants = array_values(array_filter(
             Recette::cases(),
             static fn (Recette $r): bool => $r->produitDortEnAttendantSonUsage(),
         ));
 
-        self::assertSame([Recette::Outils, Recette::Armes], $dormants);
+        self::assertSame([Recette::Outils], $dormants);
+        self::assertFalse(Recette::Armes->produitDortEnAttendantSonUsage());
 
         foreach (Recette::pour(TypeDeBatiment::Atelier, 10) as $recette) {
             self::assertFalse(

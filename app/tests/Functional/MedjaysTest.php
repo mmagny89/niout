@@ -9,6 +9,7 @@ use App\Entity\City;
 use App\Entity\GameSave;
 use App\Entity\Medjay;
 use App\Entity\User;
+use App\Game\Equipement;
 use App\Game\LanceurDePartie;
 use App\Game\MedjayImpossible;
 use App\Game\Medjays;
@@ -157,8 +158,17 @@ final class MedjaysTest extends KernelTestCase
         }
 
         self::assertSame(Medjay::EXPERIENCE_MAX, $medjay->getExperience());
+
+        // Trois facteurs — force de base, expérience, qualité de l'arme — et
+        // **une seule division** : deux divisions entières enchaînées
+        // perdraient de la force à chaque étape (discipline du lot 6.3).
         self::assertSame(
-            intdiv(SpecialisationMedjay::Fantassin->force() * (100 + Medjay::EXPERIENCE_MAX), 100),
+            intdiv(
+                SpecialisationMedjay::Fantassin->force()
+                    * (100 + Medjay::EXPERIENCE_MAX)
+                    * Equipement::QUALITE_SANS_ARME,
+                100 * 100,
+            ),
             $medjay->force(),
         );
     }
