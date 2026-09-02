@@ -668,11 +668,17 @@ les voyelles du tout.
 c'est ce qu'il enseigne : il mêle unilitères, bilitères et logogrammes entiers,
 le disque solaire valant « Rê » à lui seul — écrit en tête par déférence, lu à
 la fin. C'est le **nom de trône** qui est montré, pas le nom de naissance dont
-« Ramsès » et « Thoutmôsis » sont les formes grecques. **Deux pharaons n'ont
-pas leur cartouche et n'en affichent aucun** : la notation source d'Akhenaton et
-de Ramsès IV porte des opérateurs de disposition dont l'ordre de lecture ne
-s'établit pas sûrement. Un cartouche approximatif donné pour réel trahirait la
-règle des hiéroglyphes vrais ; l'absence, elle, ne trompe personne.
+« Ramsès » et « Thoutmôsis » sont les formes grecques. **Les dix missions ont
+le leur**, mais deux ont demandé deux sources concordantes avant d'être
+retenus — un nom de trône composé se note avec des opérateurs de disposition
+dont l'ordre de lecture n'est pas évident. Tant qu'un cartouche n'est pas
+établi, **on n'affiche rien** : une approximation donnée pour réelle trahirait
+la règle des hiéroglyphes vrais, l'absence ne trompe personne.
+
+Deux cas portent leur histoire : **Ramsès IV a changé de nom de trône en cours
+de règne**, et ses deux missions se jouant à l'an 3, c'est le second qui est
+montré ; **Akhenaton porte deux fois le disque solaire**, son nom disant Rê
+deux fois.
 
 **Tout glyphe affiché porte `font-hieroglyphes`.** Aucun système d'exploitation
 courant ne couvre le bloc égyptien d'Unicode : sans la police embarquée, un
