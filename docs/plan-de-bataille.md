@@ -127,7 +127,7 @@ vues, pas de la conception.
 | **7** | Énigmes, enquêtes et fil rouge | `10` | ✅ |
 | **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | ✅ |
 | **8 bis** | Finition : cohérence et lisibilité | — | ✅ |
-| **8 ter** | Écriture : l'alphabet des scribes | `10`, `09` | ✅ en partie |
+| **8 ter** | Écriture : l'alphabet des scribes et les stèles | `10`, `09` | ✅ |
 | **9** | Renommée, héritage et succession familiale | `13` | à cadrer |
 | **10** | Medjaÿ et combat automatique | `03` | à cadrer |
 | **11** | Mode Aventure : Memphis et succession des règnes | `14` | à cadrer |
@@ -156,24 +156,16 @@ lisible d'un coup d'œil.
 
 ## 5. Ce qui vient
 
-### Phase 8 ter — ce qui reste de l'écriture
+### Deux formats plus pauvres que ce que le doc 10 annonce
 
-La sous-phase née de la relecture des documents 09 et 10 est **livrée pour sa
-part la plus lourde** — l'alphabet des scribes ; son récit est au journal
-([`phases-livrees.md`](phases-livrees.md), § 5.11). Restent quatre points, dont
-trois n'attendent qu'une décision :
+La sous-phase née de la relecture des documents 09 et 10 est **close** ; son
+récit est au journal ([`phases-livrees.md`](phases-livrees.md), § 5.11).
 
-| | Sujet | Ce qu'il faut trancher |
-|---|---|---|
-| **B** | Les stèles historiques par mission | Le doc 09 a gagné une table des vraies stèles par pharaon, avec un niveau de confiance par ligne : les inscriptions du fil rouge, aujourd'hui des rébus inventés, devraient en paraphraser le contenu. Commencer par Thoutmôsis III et Akhenaton, les deux que le document désigne — leur stèle parle justement du sujet de leur mission. **Cinq stèles restent à vérifier** avant d'être nommées à l'écran, et le document le demande lui-même |
-| **C** | La mission 9 est-elle de type « Exploiter » ? | Le tableau du doc 09 lui donne ce type, que sa propre section des types ne connaît pas. Coquille, ou quatrième type assumé — un camp minier temporaire n'est ni une fondation ni un développement. Le coût est le même dans les deux sens : un cas d'enum |
-| **D** | Les énigmes secondaires par mission | Le doc les chiffre à cinq ou huit **par mission** ; le code en porte onze valables partout, filtrées par le bâtiment où on les entend. Une partie qui enchaîne les dix missions les épuise donc à la deuxième. Écrire un corpus par région — c'est beaucoup de contenu —, ou assumer le corpus commun et le consigner dans le document |
-| **E** | Les deux cartouches manquants | Akhenaton et Ramsès IV n'en affichent aucun : leur nom de trône composé demande une source égyptologique plus sûre que celles consultées. Rien ne presse — l'absence ne trompe personne |
-
-Deux formats du doc 10 restent par ailleurs à l'état de questionnaire là où il
-annonce un mini-jeu : la **reconnaissance astronomique** (associer un décan à un
-mois) et l'**association symbolique** (relier un animal à son dieu). Le fond est
-juste, la forme est plus pauvre que ce qui est écrit.
+Il en reste deux points de forme, sans urgence : la **reconnaissance
+astronomique** (associer un décan à un mois) et l'**association symbolique**
+(relier un animal à son dieu) sont des questionnaires à choix multiple là où le
+document annonce un mini-jeu d'association. Le fond est juste — l'astronomie et
+l'iconographie sont réelles —, la forme est plus pauvre que ce qui est écrit.
 
 ### Deux calibrages qui divergent, et qu'on garde
 
