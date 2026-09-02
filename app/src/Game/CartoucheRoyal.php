@@ -22,13 +22,22 @@ namespace App\Game;
  * valant à lui seul « Rê ». L'alphabet des scribes est une porte d'entrée, pas
  * la langue.
  *
- * **Deux pharaons n'ont pas leur cartouche**, et n'en affichent donc aucun :
- * les noms de trône composés d'Akhenaton et de Ramsès IV mêlent des signes dont
- * la lecture linéaire ne s'établit pas sûrement d'une source secondaire — leur
- * notation porte des opérateurs de disposition dont l'ordre de lecture est
- * ambigu. La règle du projet est nette : **jamais un signe sans son code ni son
- * sens attesté**. Un cartouche approximatif affiché comme réel serait
- * exactement ce qu'elle interdit ; l'absence, elle, ne trompe personne.
+ * **Ramsès IV changea de nom de trône en cours de règne** : *Ousermaâtré*
+ * d'abord, *Héqamaâtré* ensuite. C'est le second qui est montré, parce que ses
+ * deux missions se jouent à l'an 3 — celle de la grande expédition de l'Ouadi
+ * Hammamat, que le doc 09 date ainsi.
+ *
+ * **Akhenaton porte deux fois le disque solaire**, et c'est voulu : son nom dit
+ * Rê deux fois — « belles sont les manifestations de Rê, l'unique de Rê ».
+ * L'ordre de ses signes a demandé **deux sources concordantes** avant d'être
+ * retenu ; jusque-là il n'affichait rien, la règle du projet étant nette :
+ * jamais un signe sans son code ni son sens attesté. Un cartouche approximatif
+ * donné pour réel serait exactement ce qu'elle interdit, et l'absence ne trompe
+ * personne.
+ *
+ * Sa graphie **antérieure au changement de nom** employait le faucon plutôt que
+ * le disque — les deux se lisent Rê. C'est la seconde qui est montrée, celle de
+ * la fondation d'Akhetaton, sujet même de sa mission.
  */
 enum CartoucheRoyal: string
 {
@@ -39,6 +48,8 @@ enum CartoucheRoyal: string
     case Nebmaatre = 'nebmaatre';
     case Menmaatre = 'menmaatre';
     case OusermaatreMeryamon = 'ousermaatre_meryamon';
+    case HeqamaatreSetepenamon = 'heqamaatre_setepenamon';
+    case NeferkheperoureOuaenre = 'neferkheperoure_ouaenre';
 
     /**
      * Le cartouche du pharaon qui commandite cette mission, s'il est établi.
@@ -51,8 +62,10 @@ enum CartoucheRoyal: string
             'Hatchepsout' => self::Maatkare,
             'Thoutmôsis III' => self::Menkheperre,
             'Amenhotep III' => self::Nebmaatre,
+            'Akhenaton' => self::NeferkheperoureOuaenre,
             'Séthi Ier' => self::Menmaatre,
             'Ramsès III' => self::OusermaatreMeryamon,
+            'Ramsès IV' => self::HeqamaatreSetepenamon,
             default => null,
         };
     }
@@ -75,6 +88,8 @@ enum CartoucheRoyal: string
             self::Nebmaatre => '𓇳𓎟𓁦',
             self::Menmaatre => '𓇳𓁧𓏠',
             self::OusermaatreMeryamon => '𓇳𓄊𓁦𓈘𓇋𓏠𓈖',
+            self::HeqamaatreSetepenamon => '𓇳𓋾𓁧𓏠𓈖𓍉𓈖',
+            self::NeferkheperoureOuaenre => '𓇳𓄤𓆣𓇳𓏦𓌡𓈖',
         };
     }
 
@@ -94,6 +109,8 @@ enum CartoucheRoyal: string
             self::Nebmaatre => ['N5', 'V30', 'C10'],
             self::Menmaatre => ['N5', 'C10A', 'Y5'],
             self::OusermaatreMeryamon => ['N5', 'F12', 'C10', 'N36', 'M17', 'Y5', 'N35'],
+            self::HeqamaatreSetepenamon => ['N5', 'S38', 'C10A', 'Y5', 'N35', 'U21', 'N35'],
+            self::NeferkheperoureOuaenre => ['N5', 'F35', 'L1', 'N5', 'Z2A', 'T21', 'N35'],
         };
     }
 
@@ -110,6 +127,8 @@ enum CartoucheRoyal: string
             self::Nebmaatre => 'nb-mꜣꜥt-rꜥ',
             self::Menmaatre => 'mn-mꜣꜥt-rꜥ',
             self::OusermaatreMeryamon => 'wsr-mꜣꜥt-rꜥ mrj-jmn',
+            self::HeqamaatreSetepenamon => 'ḥqꜣ-mꜣꜥt-rꜥ stp.n-jmn',
+            self::NeferkheperoureOuaenre => 'nfr-ḫprw-rꜥ wꜥ-n-rꜥ',
         };
     }
 
@@ -126,6 +145,8 @@ enum CartoucheRoyal: string
             self::Nebmaatre => 'Nebmaâtré',
             self::Menmaatre => 'Menmaâtré',
             self::OusermaatreMeryamon => 'Ousermaâtré-Méryamon',
+            self::HeqamaatreSetepenamon => 'Héqamaâtré-Sétepenamon',
+            self::NeferkheperoureOuaenre => 'Néferkhéperourê-Ouâenrê',
         };
     }
 
@@ -143,6 +164,8 @@ enum CartoucheRoyal: string
             self::Nebmaatre => 'Le maître de la Maât de Rê',
             self::Menmaatre => 'Stable est la Maât de Rê',
             self::OusermaatreMeryamon => 'Puissante est la Maât de Rê, aimé d\'Amon',
+            self::HeqamaatreSetepenamon => 'Rê est celui qui gouverne par la Maât, élu d\'Amon',
+            self::NeferkheperoureOuaenre => 'Belles sont les manifestations de Rê, l\'unique de Rê',
         };
     }
 }
