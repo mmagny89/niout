@@ -277,6 +277,15 @@ Trois règles à ne pas défaire :
   courants, l'héritage sur le droit d'entrée. Il se déduit des autres parties du
   joueur ; la partie en cours ne s'hérite pas elle-même, et une partie abandonnée
   ne lègue rien — elle est supprimée, comme pour les deben et la renommée.
+- **Le bonus de départ s'ajoute à la dotation sans la remplacer ni la dépasser**
+  (`BonusDeDepart`, doc 13) : 20 deben et 5 unités par mission accomplie, hors
+  celle qu'on lance. Le premier membre de la règle garde chaque mission jouable
+  seule ; le second garde au don du roi son rôle de socle — neuf missions
+  vaudraient sinon plus que la dotation entière. Le plafond se lit **sur la
+  dotation elle-même**, ressource par ressource : il n'y a rien à calibrer, et
+  il suit tout changement de coût des bâtiments d'ouverture. Les **vivres en
+  sont exclus** — la dotation les taille sur la consommation réelle de la
+  maisonnée envoyée, et un forfait par-dessus casserait ce calcul.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais
