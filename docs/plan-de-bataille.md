@@ -128,7 +128,7 @@ vues, pas de la conception.
 | **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | ✅ |
 | **8 bis** | Finition : cohérence et lisibilité | — | ✅ |
 | **8 ter** | Écriture : l'alphabet des scribes et les stèles | `10`, `09` | ✅ |
-| **9** | Renommée, héritage et succession familiale | `13` | cadrée |
+| **9** | Renommée, héritage et succession familiale | `13` | ✅ (9.6 → Phase 11) |
 | **10** | Medjaÿ et combat automatique | `03` | à cadrer |
 | **11** | Mode Aventure : Memphis et succession des règnes | `14` | à cadrer |
 | **12** | Découpage et intégration des sprites | `15` | à cadrer |
@@ -200,7 +200,7 @@ de cause plutôt que le découvrir au playtest.
 | 9.2 | Les deux sources manquantes : énigme résolue, enquête résolue | ✅ |
 | 9.3 | La renommée infléchit les prix, à l'achat comme à la vente | ✅ |
 | 9.4 | Le carnet de contacts : ce qu'une région visitée laisse | ✅ |
-| 9.5 | Le bonus de départ par missions accomplies | |
+| 9.5 | Le bonus de départ par missions accomplies | ✅ |
 | 9.6 | La succession : générations, héritiers et leur trait | ↦ Phase 11 |
 
 #### 9.0 — Les arbitrages, tranchés
@@ -349,7 +349,22 @@ sur l'ouverture d'une route déjà exploitée dans une partie précédente. Les 
 se complètent — l'un porte sur les routes, l'autre sur les prix courants — et
 gagnent à être faits ensemble.
 
-#### 9.5 — Le bonus de départ
+#### 9.5 — Le bonus de départ  *(livré)*
+
+`BonusDeDepart` compte **toutes** les missions accomplies, hors celle qu'on
+lance — rejouer une mission ne la compte pas deux fois, même règle que le
+carnet. Il s'ajoute au legs, qui reste distinct : l'un vient du roi et suit le
+score de la seule mission d'avant, l'autre vient de la maisonnée et suit la
+campagne entière.
+
+**Le plafond du 9.0 se lit sur la dotation elle-même**, ressource par
+ressource : neuf missions vaudraient cent quatre-vingts deben, davantage que ce
+que le pharaon envoie, et le don du roi cesserait d'être le socle de la partie
+pour n'en être plus que l'appoint. Rien à calibrer — le plafond suit tout
+changement de coût des bâtiments d'ouverture.
+
+Les **vivres en sont exclus** : la dotation les taille sur la consommation
+réelle de la maisonnée expédiée, et un forfait par-dessus casserait ce calcul.
 
 `20 deben` et `5 unités` par mission accomplie, **superposés à la dotation
 royale**, jamais à sa place. `Progression::plusHauteAchevee()` sait déjà

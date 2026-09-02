@@ -37,6 +37,7 @@ final readonly class LanceurDePartie
         private Progression $progression,
         private Legs $legs,
         private Lignees $lignees,
+        private BonusDeDepart $bonus,
     ) {
     }
 
@@ -130,6 +131,12 @@ final readonly class LanceurDePartie
 
         $dotation = DotationRoyale::pour($ville->getDifficulte(), $ville->consommationDeNourriture());
         $ville->crediterRessources($dotation->enRessources());
+
+        // Ce que la maisonnée apporte d'elle-même, par mission déjà servie
+        // (doc 13, lot 9.5). **Par-dessus la dotation, jamais à sa place** —
+        // et jamais au-delà d'elle : le don du roi doit rester le socle de la
+        // partie, pas son appoint.
+        $ville->crediterRessources($this->bonus->pour($partie, $dotation->enRessources()));
 
         // Le legs du pharaon précédent s'ajoute à la dotation, il ne la
         // remplace pas : une première mission et une cinquième démarrent sur
