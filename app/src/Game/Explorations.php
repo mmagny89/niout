@@ -30,7 +30,7 @@ final readonly class Explorations
     /**
      * @throws ExplorationImpossible
      */
-    public function envoyer(GameSave $partie, Zone $destination, RoleDExploration $role): Expedition
+    public function envoyer(GameSave $partie, Zone $destination, RoleDExploration $role, int $charriers = 0): Expedition
     {
         $ville = $partie->getVille();
 
@@ -61,8 +61,22 @@ final readonly class Explorations
             if ([] === $this->medjays->disponibles($partie)) {
                 throw new ExplorationImpossible('Vous n\'avez aucun Medjaÿ en état de partir. La Caserne en lève.');
             }
-        } elseif ($destination->estGardee()) {
-            throw new ExplorationImpossible('Des brigands tiennent cette case. Il faut les déloger avant d\'y envoyer qui que ce soit d\'autre.');
+        } else {
+            // On ne loue pas les chars du pharaon pour aller reconnaître une
+            // berge : la réquisition ne vaut que pour une sortie en armes.
+            $charriers = 0;
+
+            if ($destination->estGardee()) {
+                throw new ExplorationImpossible('Des brigands tiennent cette case. Il faut les déloger avant d\'y envoyer qui que ce soit d\'autre.');
+            }
+        }
+
+        if ($charriers > 0) {
+            $empechement = Charrier::empechement($ville);
+
+            if (null !== $empechement) {
+                throw new ExplorationImpossible($empechement);
+            }
         }
 
         if (RoleDExploration::Prospecteur === $role && [] === $this->prospection->filonsPossibles($partie, $destination)) {
@@ -93,7 +107,14 @@ final readonly class Explorations
         // ci-dessus, donc ce débit ne peut plus échouer.
         $ville->debiterNourriture($provisions);
 
+        // Les chars se paient à la réquisition, et par sortie : il n'y a aucun
+        // entretien puisqu'il n'y a rien à entretenir (doc 03).
+        if ($charriers > 0 && !$ville->debiterRessources([Ressource::Deben->value => $charriers * Charrier::COUT_PAR_EXPEDITION])) {
+            throw new ExplorationImpossible(\sprintf('Réquisitionner %d char(s) demande %d deben de plus.', $charriers, $charriers * Charrier::COUT_PAR_EXPEDITION));
+        }
+
         $expedition = new Expedition($ville, $destination, $role, $this->dureeVers($partie, $destination));
+        $expedition->requisitionner($charriers);
         $ville->ajouterExpedition($expedition);
 
         $this->entityManager->flush();
@@ -124,7 +145,7 @@ final readonly class Explorations
             $evenements[] = match ($expedition->getRole()) {
                 RoleDExploration::Emissaire => $this->rapportDeLEmissaire($partie),
                 RoleDExploration::Prospecteur => $this->prospection->fouiller($partie, $zone),
-                RoleDExploration::ChefDExpedition => $this->rapportDeLAssaut($partie, $zone),
+                RoleDExploration::ChefDExpedition => $this->rapportDeLAssaut($partie, $zone, $expedition->getCharriers()),
                 default => $this->rapportDeLaReconnaissance($zone),
             };
 
@@ -166,13 +187,13 @@ final readonly class Explorations
      * le dit plutôt que de lever une exception dans un passage de cycle, qui
      * n'a personne à qui la présenter.
      */
-    private function rapportDeLAssaut(GameSave $partie, Zone $zone): string
+    private function rapportDeLAssaut(GameSave $partie, Zone $zone, int $charriers): string
     {
         if (!$zone->estGardee()) {
             return 'Votre expédition est arrivée sur une case déjà libérée : elle rentre sans avoir eu à combattre.';
         }
 
-        $resultat = $this->combat->livrer($partie, $zone, $this->medjays->disponibles($partie));
+        $resultat = $this->combat->livrer($partie, $zone, $this->medjays->disponibles($partie), $charriers);
 
         $recit = $resultat->victoire
             ? \sprintf(

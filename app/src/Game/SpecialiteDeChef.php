@@ -158,13 +158,27 @@ enum SpecialiteDeChef: string
      * bâtiments qui produisent déjà quelque chose (lot 4.8). Les autres sont
      * tirées et affichées, mais dorment jusqu'à leur phase.
      */
+    /**
+     * La spécialisation de Medjaÿ qu'un Instructeur aiguise (doc 03 : « +15 %
+     * d'efficacité de cette spécialisation »). Nulle pour toutes les autres
+     * spécialités, qui n'enseignent rien à personne.
+     */
+    public function specialisationEnseignee(): ?SpecialisationMedjay
+    {
+        return match ($this) {
+            self::CaserneInstructeurArcher => SpecialisationMedjay::Archer,
+            self::CaserneInstructeurBouclier => SpecialisationMedjay::Fantassin,
+            default => null,
+        };
+    }
+
     public function agitDeja(): bool
     {
         // L'Acheteur du Marché en est toujours écarté : le Marché reste une
         // vente locale, l'achat passant par les caravanes et non par lui.
-        // Restent inertes, faute de système : les deux Instructeurs et le
-        // Commerçant naval (Phase 10 pour les uns, commerce naval avancé pour
-        // l'autre).
+        // **Les deux Instructeurs agissent depuis le lot 10.7** : ils
+        // aiguisent la spécialisation qu'ils enseignent. Reste inerte le seul
+        // Commerçant naval, qui attend un commerce naval avancé.
         return [] !== $this->recettesFavorisees()
             || \in_array($this, [
                 self::GrenierGestionnaire,
@@ -175,6 +189,8 @@ enum SpecialiteDeChef: string
                 self::TempleDevot,
                 self::ScribesDechiffreur,
                 self::ScribesOraculaire,
+                self::CaserneInstructeurArcher,
+                self::CaserneInstructeurBouclier,
             ], true);
     }
 }

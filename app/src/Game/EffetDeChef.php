@@ -68,6 +68,35 @@ final readonly class EffetDeChef
     public const int BONUS_NEGOCIATEUR = 25;
 
     /**
+     * Ce qu'un **Instructeur** de la Caserne ajoute à la force des Medjaÿ de la
+     * spécialisation qu'il enseigne (doc 03 : « +15 % d'efficacité de cette
+     * spécialisation »).
+     *
+     * Il n'aiguise **que la sienne** : un instructeur au bouclier ne fait pas
+     * mieux tirer les archers, et c'est ce qui donne un sens au choix entre les
+     * deux à l'embauche.
+     */
+    public const int BONUS_INSTRUCTEUR = 15;
+
+    /**
+     * Ce que la Caserne ajoute à un homme de cette spécialisation, en points de
+     * pourcentage. Zéro sans instructeur en poste, ou quand celui qui s'y
+     * trouve enseigne l'autre spécialisation.
+     */
+    public static function bonusDInstructeur(City $ville, SpecialisationMedjay $specialisation, int $cycle): int
+    {
+        foreach ($ville->chefsDe(TypeDeBatiment::Caserne) as $chef) {
+            $enseignee = $chef->getSpecialite()?->specialisationEnseignee();
+
+            if ($chef->estEnPoste($cycle) && $enseignee === $specialisation) {
+                return self::BONUS_INSTRUCTEUR;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
      * Ce que le Logisticien retire au trajet, en centièmes (doc 03 :
      * « raccourcit les trajets de caravane »). **Valeur inventée**, bornée à
      * un quart : une route reste une route, et la distance doit continuer de
@@ -187,6 +216,27 @@ final readonly class EffetDeChef
      * Négociateur et le Logisticien de l'Entrepôt, qui agissent sur le
      * commerce et non sur ce que le bâtiment fabrique.
      */
+    /**
+     * Ce qu'un chef **Bagarreur** en poste à la Caserne ajoute à toute la
+     * troupe, en points de pourcentage (doc 03 : « bonus combat si affecté aux
+     * Medjaÿ »).
+     *
+     * Les Medjaÿ ne sont pas des employés : « affecté aux Medjaÿ » se lit donc
+     * comme « en poste à la Caserne », le seul bâtiment militaire du jeu. Il
+     * paie ailleurs ce qu'il gagne ici — sa compétence porte le malus civil du
+     * document, quel que soit son poste.
+     */
+    public static function bonusDuBagarreur(City $ville, int $cycle): int
+    {
+        foreach ($ville->chefsDe(TypeDeBatiment::Caserne) as $chef) {
+            if ($chef->estEnPoste($cycle) && \in_array(TraitDeCandidat::Bagarreur, $chef->traits(), true)) {
+                return TraitDeCandidat::BONUS_DE_COMBAT_DU_BAGARREUR;
+            }
+        }
+
+        return 0;
+    }
+
     public static function chefSpecialise(City $ville, TypeDeBatiment $type, SpecialiteDeChef $specialite, int $cycle): bool
     {
         foreach ($ville->chefsDe($type) as $chef) {

@@ -136,7 +136,7 @@ vues, pas de la conception.
 | **8 bis** | Finition : cohérence et lisibilité | — | ✅ |
 | **8 ter** | Écriture : l'alphabet des scribes et les stèles | `10`, `09` | ✅ |
 | **9** | Renommée, héritage et succession familiale | `13` | ✅ (9.6 → Phase 11) |
-| **10** | Medjaÿ et combat automatique | `03` | cadrée |
+| **10** | Medjaÿ et combat automatique | `03` | ✅ |
 | **11** | Mode Aventure : Memphis et succession des règnes | `14` | à cadrer |
 | **12** | Découpage et intégration des sprites | `15` | à cadrer |
 
@@ -506,8 +506,8 @@ difficulté régionale, à poser avec les seuils du doc 11.
 | 10.3 | L'équipement : les armes de la Forge cessent d'être une marchandise | ✅ |
 | 10.4 | La résolution automatique, et ce qu'elle coûte en hommes | ✅ |
 | 10.5 | L'escorte : expéditions lourdes et caravanes | ✅ |
-| 10.6 | Le Charrier : une réquisition, jamais un recrutement | |
-| 10.7 | Les six branchements dormants | |
+| 10.6 | Le Charrier : une réquisition, jamais un recrutement | ✅ |
+| 10.7 | Les six branchements dormants | ✅ |
 
 #### 10.0 — Les arbitrages, tranchés
 
@@ -731,7 +731,16 @@ qu'on puisse rien y faire hors de l'enquête. Les Medjaÿ ouvriraient une second
 réponse — mais c'est une addition au doc 08, pas une lecture du doc 03 : à
 trancher plutôt qu'à supposer.
 
-#### 10.6 — Le Charrier
+#### 10.6 — Le Charrier  *(livré)*
+
+**Il n'a pas d'entité, et c'est le propos.** Les chars vivent sur
+`Expedition::$charriers` et nulle part ailleurs : ils ne rejoignent jamais
+l'effectif, ne progressent pas, ne coûtent aucun entretien et disparaissent avec
+la sortie. C'est la distinction historique — Medjaÿ contre *mesha* — portée
+jusque dans le schéma de base.
+
+Ils entrent dans le score d'attaque et **n'en sortent jamais blessés** : ce sont
+les hommes du pharaon, pas les nôtres.
 
 Caserne 7, Forge 4, force 25, **100 deben par expédition**, aucun entretien, il
 disparaît à la fin et ne progresse jamais. Le document le veut ainsi : une
@@ -741,7 +750,23 @@ Le document écrit « 100 or ». Le projet a déjà tranché ce point deux fois
 (doc 09, doc 13) : **l'Égypte pharaonique n'a pas de monnaie d'or**, le jeu
 compte en deben, et la valeur se relit en conséquence.
 
-#### 10.7 — Les branchements dormants
+#### 10.7 — Les branchements dormants  *(livré)*
+
+Les six sont réveillés, un par lot : les armes au 10.3, Isis au 10.4, le Chef
+d'expédition au 10.5, l'écran de Caserne au 10.2, et ici les **deux
+Instructeurs** — chacun n'aiguisant que la spécialisation qu'il enseigne, ce qui
+donne un sens au choix entre eux à l'embauche.
+
+**Bagarreur a retrouvé ses deux moitiés.** Le jeu n'appliquait ni le bonus de
+combat ni le malus civil — il le disait franchement dans le libellé du trait.
+Les Medjaÿ n'étant pas des employés, « affecté aux Medjaÿ » se lit « en poste à
+la Caserne », seul bâtiment militaire du jeu ; le malus, lui, pèse sur la
+compétence quel que soit le poste, si bien qu'un chef qui se bat bien dirige mal
+partout ailleurs.
+
+**Ce qui dort encore, après la Phase 10** : l'Acheteur du Marché — que le
+Marché, purement local, n'accueillera jamais — et le Commerçant naval, qui
+attend un commerce naval avancé. **Aucun trait, aucune divinité.**
 
 Les six ci-dessus, plus un écart réel : le document donne à **Bagarreur** un
 « bonus combat si affecté aux Medjaÿ, **malus si poste civil** ». Le jeu n'a ni
@@ -858,6 +883,8 @@ le calibrage du lot 4.6.
 | Qualité d'un homme sans arme | 70 centièmes | `Equipement::QUALITE_SANS_ARME` |
 | Butin d'une bande vaincue | 50 % de ce qu'elle opposait | `Combat::BUTIN_POUR_CENT_DE_LA_DEFENSE` |
 | Risque de pillage d'un convoi | 5 % par bande encore tenue | `Commerce::RISQUE_PAR_BANDE_DE_LA_REGION` |
+| Bonus de combat du Bagarreur | +10 % à la Caserne | `TraitDeCandidat::BONUS_DE_COMBAT_DU_BAGARREUR` |
+| Malus civil du Bagarreur | −10 % de compétence | `TraitDeCandidat::MALUS_CIVIL_DU_BAGARREUR` |
 | Couverture d'un Medjaÿ sur les routes | 15 % du risque | `Commerce::PROTECTION_PAR_MEDJAY` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
