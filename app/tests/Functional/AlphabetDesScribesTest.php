@@ -15,6 +15,7 @@ use App\Game\Enigme;
 use App\Game\FilRouge;
 use App\Game\LanceurDePartie;
 use App\Game\LeconDeNiout;
+use App\Game\MissionCatalogue;
 use App\Game\Ressource;
 use App\Game\SigneAlphabetique;
 use App\Game\SymboleHieroglyphique;
@@ -365,16 +366,38 @@ final class AlphabetDesScribesTest extends WebTestCase
     }
 
     /**
-     * **Rien n'est affiché pour un pharaon dont le cartouche n'est pas établi.**
-     * Un cartouche approximatif donné pour réel trahirait la règle qui veut que
-     * les hiéroglyphes du jeu soient vrais ; l'absence, elle, ne trompe
-     * personne.
+     * **Les dix missions ont leur cartouche.** Chacun a demandé une source, et
+     * deux d'entre eux deux sources concordantes : un cartouche approximatif
+     * donné pour réel trahirait la règle qui veut que les hiéroglyphes du jeu
+     * soient vrais.
      */
-    public function testUnPharaonSansCartoucheEtabliNEnAffichePas(): void
+    public function testChaquePharaonCommanditaireAUnCartouche(): void
     {
-        self::assertNotNull(CartoucheRoyal::pourLePharaon('Ahmôsis Ier'));
-        self::assertNull(CartoucheRoyal::pourLePharaon('Akhenaton'));
+        foreach ((new MissionCatalogue())->toutes() as $mission) {
+            self::assertNotNull(
+                CartoucheRoyal::pourLePharaon($mission->pharaon),
+                \sprintf('La mission %d n\'a pas de cartouche à montrer.', $mission->numero),
+            );
+        }
+
+        // Et rien n'est inventé pour un nom qu'on ne connaît pas.
         self::assertNull(CartoucheRoyal::pourLePharaon('Un pharaon qui n\'existe pas'));
+    }
+
+    /**
+     * **Ramsès IV a changé de nom de trône en cours de règne**, et ses deux
+     * missions se jouent à l'an 3 : c'est le second qui est montré. Akhenaton
+     * porte deux fois le disque solaire — son nom dit Rê deux fois.
+     */
+    public function testLesCartouchesComposesDisentCeQuIlsDoivent(): void
+    {
+        $ramses = CartoucheRoyal::pourLePharaon('Ramsès IV');
+        self::assertNotNull($ramses);
+        self::assertStringStartsWith('ḥqꜣ', $ramses->translitteration());
+
+        $akhenaton = CartoucheRoyal::pourLePharaon('Akhenaton');
+        self::assertNotNull($akhenaton);
+        self::assertSame(2, mb_substr_count($akhenaton->signes(), '𓇳'), 'Rê y paraît deux fois.');
     }
 
     /**
