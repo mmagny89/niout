@@ -127,6 +127,7 @@ vues, pas de la conception.
 | **7** | Énigmes, enquêtes et fil rouge | `10` | ✅ |
 | **8** | Campagne : les 10 missions et leurs objectifs | `09`, `11` | ✅ |
 | **8 bis** | Finition : cohérence et lisibilité | — | ✅ |
+| **8 ter** | Écriture : l'alphabet des scribes | `10`, `09` | ✅ en partie |
 | **9** | Renommée, héritage et succession familiale | `13` | à cadrer |
 | **10** | Medjaÿ et combat automatique | `03` | à cadrer |
 | **11** | Mode Aventure : Memphis et succession des règnes | `14` | à cadrer |
@@ -150,6 +151,91 @@ Le **détail des phases livrées** — intention, lots, règles qui en sortent,
 pièges payés, ce que chacune laisse ouvert — vit dans
 [`phases-livrees.md`](phases-livrees.md), pour que cette feuille de route reste
 lisible d'un coup d'œil.
+
+---
+
+## 4 bis. Phase 8 ter — L'écriture : l'alphabet des scribes  ✅ en partie
+
+Née d'une **relecture des documents 09 et 10** après que la joueuse les eut
+repris sur le Drive. La confrontation au code a remonté deux ajouts de fond et
+trois écarts plus petits ; le premier ajout est livré.
+
+### Les lots
+
+| Lot | Contenu | |
+|---|---|---|
+| A.1 | La police hiéroglyphique embarquée, sous-ensemblée | ✅ |
+| A.2 | Les vingt-quatre signes unilitères et leur déblocage | ✅ |
+| A.3 | La leçon fondatrice : écrire « Niout » | ✅ |
+| A.4 | La transcription du nom de famille | ✅ |
+| A.5 | Les cartouches royaux à l'introduction d'une mission | ✅ sept sur neuf |
+| B | Les stèles historiques par mission | à faire |
+| C | La mission 9 est-elle de type « Exploiter » ? | à trancher |
+| D | Les énigmes secondaires par mission | à trancher |
+
+### A — L'alphabet des scribes  ✅
+
+Le doc 10 a gagné une **piste pédagogique entièrement neuve**, explicitement
+distincte de la clé de lecture : les vingt-quatre signes unilitères, ceux qui
+notent un son. Le code écrivait l'inverse en toutes lettres — « on ne fait pas
+apprendre l'égyptien, on fait lire des rébus ».
+
+**La question du rendu, tranchée par la mesure.** Le document laissait ouvert
+le choix entre texte Unicode et planche de sprites. Vérification faite au
+navigateur sur les vingt-quatre : ils s'affichent, mais **aucune police
+hiéroglyphique n'est installée sur la machine de développement** — le rendu
+venait d'un repli qu'on ne contrôle pas, et six signes y prenaient une forme
+moins juste. Un joueur sous Windows ou Android n'aurait vu que des carrés.
+D'où : du texte, et **la police embarquée**, self-hébergée comme les deux
+autres familles. Sous-ensemblée aux seuls signes déclarés, elle pèse 12 Ko au
+lieu de 978.
+
+**Ce qui est livré** : les vingt-quatre signes avec leur code de Gardiner, leur
+translittération et leur son ; leur ouverture à trois par niveau de Maison des
+scribes, qui tombe juste sur vingt-quatre au niveau 8 ; la leçon fondatrice qui
+écrit *n · i · w · t* ; la transcription du nom de famille à la manière des
+cartouches de musée ; et sept cartouches royaux à l'introduction de leur
+mission.
+
+**Deux cartouches manquent, et n'affichent rien.** Les noms de trône composés
+d'Akhenaton et de Ramsès IV portent, dans la notation source, des opérateurs de
+disposition dont l'ordre de lecture ne s'établit pas sûrement. La règle du
+projet est nette — jamais un signe sans son code ni son sens attesté — et
+l'absence ne trompe personne quand une approximation tromperait.
+
+### Un défaut payé, et sa parade
+
+La question de la joueuse — « `N35` a deux sens, est-ce véridique ? » — a
+révélé une erreur ancienne. **Non** : une seule ondulation est le phonogramme
+*n*, l'eau s'écrit avec trois, `N35A`. La clé portait le code de l'un tout en
+décrivant l'autre, et enseignait donc un signe faux dans un jeu dont c'est
+l'objet d'enseigner les vrais.
+
+La parade est mécanique et exacte : **Unicode nomme chaque caractère par son
+code de Gardiner**, et un test confronte les deux pour les soixante-dix signes
+déclarés (`CodesDeGardinerTest`). Aucune table recopiée, donc rien qui puisse
+diverger.
+
+Une fois l'eau corrigée, le recouvrement entre les deux tables tombe à **trois
+dessins** — le roseau, le pain, la bouche —, et ceux-là sont de vrais cas
+d'écriture mixte. Les deux tables se **relient** donc l'une à l'autre plutôt que
+de laisser croire à une redite.
+
+### B, C, D — ce qui reste
+
+Le détail vit dans [`ecarts-docs-09-10.md`](ecarts-docs-09-10.md), qui disparaîtra
+une fois ces trois points faits ou classés.
+
+- **B — les stèles historiques.** Le doc 09 a gagné une table des vraies stèles
+  par pharaon, avec un niveau de confiance par ligne : les inscriptions du fil
+  rouge, aujourd'hui des rébus inventés, devraient en paraphraser le contenu.
+  Cinq stèles restent à vérifier avant d'être nommées à l'écran.
+- **C — la mission 9.** Le tableau du doc 09 lui donne le type « Exploiter »,
+  que sa propre section des types ne connaît pas. Coquille ou quatrième type :
+  à la joueuse de dire.
+- **D — les énigmes secondaires.** Le doc les chiffre à cinq ou huit **par
+  mission** ; le code en porte onze valables partout. Écrire un corpus par
+  région, ou assumer le corpus commun et le consigner.
 
 ---
 
@@ -304,6 +390,10 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Spécialités sans système d'accueil | **Tirées et affichées, mais inertes**, et l'interface le dit — promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment du choix |
 | Affichage des PNJ | **Chiffré en interne, qualitatif à l'écran** (doc 03) : étoiles et libellés, jamais de compétence brute. Le salaire fait exception, déjà qualitatif par nature |
 | Noms des PNJ | **Aucun pour l'instant** : un employé se désigne par son poste, comme dans les documents |
+| Deux pistes d'écriture | **La clé de lecture** (logogrammes, lire les inscriptions) et **l'alphabet des scribes** (unilitères, écrire) ne se mélangent jamais. Trois dessins leur sont communs, et l'écran les **relie** — c'est la leçon, pas une redite |
+| Rendu des hiéroglyphes | **Texte Unicode et police embarquée**, jamais de planche de sprites : le signe reste sélectionnable et lisible par un lecteur d'écran, et le rendu cesse de dépendre de la machine du joueur |
+| Cartouches royaux | **Seulement à l'introduction d'une mission**, pour le pharaon qui la commandite. Aucun n'est affiché quand sa lecture n'est pas établie — l'absence ne trompe personne, une approximation si |
+| Transcription d'un nom | **La convention des musées**, dite comme telle : voyelles rendues par les semi-voyelles, aucun signe inventé pour boucher un trou |
 | Filon épuisé | La carrière **se ferme d'elle-même** et rend ses bras. Un **Prospecteur** retrouve une veine tarie à coup sûr ; chercher du neuf reste un pari. L'épuisement coûte du temps et de l'argent, il ne ferme jamais une région |
 | Marché contre Entrepôt | Le Marché vend **aux gens de la ville et aux passants** : cours de base, immédiat, mais plafonné par quinzaine. Les routes gardent les volumes et les prix, contre le délai d'un convoi |
 | Écran de ville | **Un onglet par bâtiment dressé**, chacun avec ce qui relève de sa fonction. La **Résidence familiale** recueille tout ce qui n'appartient à aucun bâtiment — c'est le point de chute par défaut de toute fonctionnalité qu'on ne sait pas rattacher |

@@ -164,6 +164,29 @@ Ce que ce code doit respecter — quelles ressources existent, ce qu'une case
 peut porter, comment se compte la population, ce qu'un dieu change — est dans
 [`docs/regles-du-jeu.md`](docs/regles-du-jeu.md).
 
+## Les hiéroglyphes
+
+Le jeu en affiche à trois endroits — la clé de lecture, l'alphabet des scribes,
+les cartouches royaux — et deux règles priment sur tout le reste :
+
+- **Ils sont vrais.** Vrai code de Gardiner, vrai glyphe Unicode, sens attesté.
+  Un signe inventé trahirait l'objectif pédagogique du doc 10. Quand une
+  lecture ne s'établit pas, on **n'affiche rien** plutôt qu'une approximation.
+- **Un code et un dessin peuvent se contredire en silence** (défaut réel,
+  payé : `N35`, une ondulation, affiché pour l'eau, qui en demande trois).
+  Unicode nommant chaque caractère par son code de Gardiner,
+  `CodesDeGardinerTest` confronte les deux pour tous les signes déclarés — la
+  vérification est exacte et ne repose sur aucune table recopiée.
+
+Tout glyphe affiché porte la classe `font-hieroglyphes` : aucun système
+d'exploitation courant ne couvre le bloc égyptien, et la police est embarquée,
+sous-ensemblée aux signes déclarés. **Après tout ajout de signe**, rejouer
+`.claude/scripts/sous-ensembler-hieroglyphes.sh` — sans quoi il s'affiche en
+carré vide, sans erreur ni avertissement.
+
+Le détail des règles est dans
+[`docs/regles-du-jeu.md`](docs/regles-du-jeu.md).
+
 ## Conception du jeu
 
 Les 16 documents de game design (systèmes, économie, lore, direction artistique) vivent
