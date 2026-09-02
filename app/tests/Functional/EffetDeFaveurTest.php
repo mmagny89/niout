@@ -206,16 +206,9 @@ final class EffetDeFaveurTest extends KernelTestCase
      * encore son inertie — elle attend le combat —, et **elle seule**, sans
      * quoi le panthéon promettrait à faux.
      */
-    public function testSeuleIsisAnnonceEncoreSonInertie(): void
+    public function testLesHuitDieuxAgissentDesormais(): void
     {
         foreach (Divinite::pantheon() as $divinite) {
-            if (Divinite::Isis === $divinite) {
-                self::assertFalse($divinite->agitDeja());
-                self::assertNotNull($divinite->attente());
-
-                continue;
-            }
-
             self::assertTrue($divinite->agitDeja(), \sprintf('%s agit.', $divinite->libelle()));
             self::assertNull($divinite->attente(), \sprintf('%s n\'a plus rien à faire attendre.', $divinite->libelle()));
         }

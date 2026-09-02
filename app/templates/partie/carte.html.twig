@@ -215,9 +215,28 @@
                             <strong>Des brigands tiennent cette case.</strong>
                             Rien ne s'y exploitera tant qu'ils y sont.
                             <span class="text-encre-600" data-chiffres>
-                                Ils opposent {{ defenseDeLaZone }} de résistance.
+                                Ils opposent {{ defenseDeLaZone }} de résistance ;
+                                {% if medjaysDisponibles > 0 %}
+                                    vous pouvez leur opposer {{ medjaysDisponibles }} homme{{ medjaysDisponibles > 1 ? 's' : '' }}.
+                                {% else %}
+                                    vous n'avez aucun homme en état de partir.
+                                {% endif %}
                             </span>
                         </p>
+
+                        {# Le combat se résout d'un bloc : aucun écran de
+                           bataille, l'engagement du joueur était en amont —
+                           qui lever, comment les armer, sous quel dieu. #}
+                        {% if medjaysDisponibles > 0 and partie.estEnCours %}
+                            <form method="post" action="{{ path('app_partie_attaquer', {id: partie.id}) }}" class="mt-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token('attaquer') }}">
+                                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                                <button type="submit"
+                                        class="rounded-sm border border-terre-500/50 px-3 py-1 text-sm text-encre-900 hover:bg-terre-500/10">
+                                    Y envoyer vos Medjaÿ
+                                </button>
+                            </form>
+                        {% endif %}
                     {% endif %}
 
                     {# L'émissaire va parler aux gens d'une case reconnue : c'est

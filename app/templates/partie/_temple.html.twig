@@ -71,8 +71,10 @@
                 </p>
             {% endif %}
 
-            {# Promettre un effet qui ne s'applique nulle part tromperait
-               le joueur au moment même où il choisit à qui donner. #}
+            {# Promettre un effet qui ne s'applique nulle part tromperait le
+               joueur au moment même où il choisit à qui donner. Les huit dieux
+               agissent depuis le lot 10.4 — Isis était la dernière —, mais le
+               garde-fou reste pour celui qu'on ajouterait demain. #}
             {% if not dieu.divinite.agitDeja %}
                 <p class="mt-2 rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-4 py-2 text-sm text-encre-600">
                     {{ dieu.divinite.attente }}
