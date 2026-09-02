@@ -26,7 +26,7 @@
         <input type="hidden" name="inscription" value="{{ inscription.value }}">
         <input type="hidden" name="ordre" value="" data-dechiffrage-target="reponse">
 
-        <p class="text-center font-display text-5xl leading-tight text-encre-900" aria-hidden="true">
+        <p class="text-center font-hieroglyphes text-5xl leading-tight text-encre-900" aria-hidden="true">
             {%- for signe in inscription.signes %}{{ signe.signe }}{% endfor -%}
         </p>
         <p class="mt-1 text-center text-xs text-encre-500">
@@ -45,7 +45,7 @@
                             data-action="click->dechiffrage#retirer dragover->dechiffrage#survoler drop->dechiffrage#deposer"
                             aria-label="Case {{ rang }}, vide"
                             class="flex h-16 w-16 items-center justify-center rounded-sm border-2 border-dashed
-                                   border-ocre-500/50 bg-sable-100 font-display text-3xl text-encre-900"></button>
+                                   border-ocre-500/50 bg-sable-100 font-hieroglyphes text-3xl text-encre-900"></button>
                 </li>
             {% endfor %}
         </ol>
@@ -88,7 +88,7 @@
     <ul class="mt-3 space-y-2 list-none p-0">
         {% for lue in ville.inscriptionsDechiffrees %}
             <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3 text-sm">
-                <span class="font-display text-2xl align-middle" aria-hidden="true">
+                <span class="font-hieroglyphes text-2xl align-middle" aria-hidden="true">
                     {%- for signe in lue.signes %}{{ signe.signe }}{% endfor -%}
                 </span>
                 <span class="ml-3 text-encre-700">{{ lue.lecture }}</span>
@@ -189,7 +189,7 @@
 {% if prochainSigne %}
     <p class="mt-3 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
         Monter la Maison des scribes ouvrirait le signe suivant :
-        <span class="font-display text-2xl align-middle">{{ prochainSigne.signe }}</span>
+        <span class="font-hieroglyphes text-2xl align-middle">{{ prochainSigne.signe }}</span>
         {{ prochainSigne.libelle|lower }} ({{ prochainSigne.codeDeGardiner }}).
     </p>
 {% else %}
@@ -201,12 +201,123 @@
 <ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
     {% for symbole in cleDeLecture %}
         <li class="flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
-            <span class="font-display text-4xl leading-none text-encre-900"
+            <span class="font-hieroglyphes text-4xl leading-none text-encre-900"
                   aria-hidden="true">{{ symbole.signe }}</span>
             <span>
                 <span class="block text-encre-900">{{ symbole.libelle }}</span>
                 <span class="block text-xs text-encre-500" data-chiffres>{{ symbole.codeDeGardiner }}</span>
                 <span class="mt-1 block text-sm text-encre-600">{{ symbole.sens }}</span>
+            </span>
+        </li>
+    {% endfor %}
+</ul>
+
+{# **L'alphabet des scribes** — la seconde piste du doc 10, celle des sons.
+
+   Elle ne se mélange jamais à la clé de lecture, alors même que six dessins
+   leur sont communs : un même signe n'y veut pas dire la même chose. `N35` est
+   « l'eau » dans la clé, et le son *n* ici. Le même glyphe paraît donc dans les
+   deux tables, avec deux lectures — **ne pas dédupliquer**, c'est justement ce
+   qui montre que l'écriture égyptienne est mixte. #}
+<h3 class="mt-10 text-xl text-encre-900">L'alphabet des scribes</h3>
+<p class="mt-2 max-w-2xl text-sm text-encre-500">
+    Les vingt-quatre signes qui notent un <em>son</em>, et non une chose : la
+    vraie porte d'entrée de la lecture hiéroglyphique, celle par laquelle on
+    passe encore aujourd'hui. Vos scribes en savent
+    <span data-chiffres>{{ alphabet|length }}</span> sur
+    <span data-chiffres>{{ signesDeLAlphabetEnTout }}</span>.
+</p>
+
+{# La leçon fondatrice : écrire le nom du jeu. Elle se retente — remettre
+   quatre signes dans l'ordre est un exercice, pas une devinette. #}
+<div class="mt-4 max-w-3xl rounded-sm border border-lapis-500/40 bg-lapis-500/5 p-5">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+        <h4 class="font-display text-lg text-encre-900">Écrire « Niout »</h4>
+        {% if nioutDejaEcrite %}
+            <span class="text-sm text-lapis-500">Leçon sue</span>
+        {% endif %}
+    </div>
+
+    <p class="mt-2 text-sm text-encre-600">
+        Le nom de cette ville, et celui de ce jeu. Il s'écrit avec quatre signes,
+        dans l'ordre <strong class="text-encre-900">n · i · w · t</strong> —
+        l'égyptien ne notait pas les voyelles. Placez-les.
+    </p>
+
+    {% if partie.estEnCours %}
+        <form method="post" action="{{ path('app_partie_niout', {id: partie.id}) }}"
+              class="mt-4" data-controller="dechiffrage">
+            <input type="hidden" name="_token" value="{{ csrf_token('niout') }}">
+            <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+            <input type="hidden" name="ordre" value="" data-dechiffrage-target="reponse">
+
+            <ol class="flex flex-wrap justify-center gap-3 list-none p-0">
+                {% for son in ['n', 'i', 'w', 't'] %}
+                    <li class="text-center">
+                        <button type="button" data-dechiffrage-target="case"
+                                data-action="click->dechiffrage#retirer dragover->dechiffrage#survoler drop->dechiffrage#deposer"
+                                aria-label="Case {{ loop.index }}, le son {{ son }}, vide"
+                                class="flex h-16 w-16 items-center justify-center rounded-sm border-2 border-dashed
+                                       border-lapis-500/50 bg-sable-50 font-hieroglyphes text-3xl text-encre-900"></button>
+                        <span class="mt-1 block text-sm text-encre-500">{{ son }}</span>
+                    </li>
+                {% endfor %}
+            </ol>
+
+            <ul class="mt-5 flex flex-wrap justify-center gap-2 list-none p-0"
+                data-dechiffrage-target="reserve">
+                {% for signe in leconDeNiout %}
+                    <li>
+                        <button type="button" draggable="true"
+                                data-signe="{{ signe.value }}"
+                                data-glyphe="{{ signe.signe }}"
+                                data-libelle="{{ signe.objet }}, le son {{ signe.translitteration }}"
+                                data-action="click->dechiffrage#placer dragstart->dechiffrage#prendre"
+                                aria-label="{{ signe.objet }}, le son {{ signe.translitteration }}"
+                                class="rounded-sm border border-ocre-500/40 bg-sable-100 px-4 py-2
+                                       font-hieroglyphes text-3xl text-encre-900 hover:bg-ocre-300/20">
+                            {{ signe.signe }}
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div class="mt-5 text-center">
+                <button type="submit" data-dechiffrage-target="valider" disabled
+                        class="rounded-sm bg-lapis-500 px-5 py-2 text-sm font-medium text-sable-50
+                               hover:bg-lapis-600 disabled:cursor-not-allowed disabled:opacity-40">
+                    Écrire le nom
+                </button>
+            </div>
+        </form>
+    {% endif %}
+</div>
+
+{% if prochainSigneDeLAlphabet %}
+    <p class="mt-4 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
+        Monter la Maison des scribes ouvrirait
+        <span data-chiffres>{{ signesParNiveauDAlphabet }}</span> signes de plus,
+        à commencer par
+        <span class="font-hieroglyphes text-2xl align-middle">{{ prochainSigneDeLAlphabet.signe }}</span>
+        {{ prochainSigneDeLAlphabet.objet|lower }} ({{ prochainSigneDeLAlphabet.codeDeGardiner }}),
+        le son {{ prochainSigneDeLAlphabet.translitteration }}.
+    </p>
+{% endif %}
+
+<ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
+    {% for signe in alphabet %}
+        <li class="flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+            <span class="font-hieroglyphes text-4xl leading-none text-encre-900"
+                  aria-hidden="true">{{ signe.signe }}</span>
+            <span>
+                <span class="block text-encre-900">
+                    {{ signe.translitteration }}
+                    <span class="text-sm text-encre-500">— {{ signe.son }}</span>
+                </span>
+                <span class="block text-xs text-encre-500" data-chiffres>{{ signe.codeDeGardiner }}</span>
+                <span class="mt-1 block text-sm text-encre-600">
+                    {{ signe.objet }}{% if signe.objetIncertain %} <span class="text-encre-500">(débattu)</span>{% endif %}
+                </span>
             </span>
         </li>
     {% endfor %}

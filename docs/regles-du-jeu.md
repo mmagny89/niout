@@ -613,6 +613,40 @@ code de Gardiner, vrai glyphe Unicode, glose fidèle. L'objectif pédagogique du
 doc 10 en dépend — un signe inventé pour les besoins d'une énigme trahirait le
 propos du projet. Ne jamais ajouter un signe sans son code ni son sens attesté.
 
+**Deux pistes d'écriture, qui ne se mélangent jamais** (`SymboleHieroglyphique`
+et `SigneAlphabetique`, doc 10). La **clé de lecture** porte des logogrammes —
+un signe, une chose — et sert à lire les inscriptions du fil rouge.
+L'**alphabet des scribes** porte les vingt-quatre unilitères — un signe, un son
+— et sert à écrire. Six dessins leur sont communs, et c'est le propos : `N35`
+est « l'eau » dans la clé et le son *n* dans l'alphabet, `X1` est « le pain » et
+le son *t*. **Ne pas dédupliquer** : les confondre enseignerait le contraire de
+ce que le document veut faire comprendre, à savoir que l'écriture égyptienne est
+mixte.
+
+**L'alphabet ne se persiste pas** (`AlphabetDesScribes`) : il n'ouvre que par
+le niveau de la Maison des scribes, `3 × niveau`, ce qui tombe juste sur
+vingt-quatre au niveau 8. Une colonne dupliquerait l'état du bâtiment. Ni le
+Déchiffreur ni Thot n'y touchent — leur effet est écrit pour la clé, et
+l'étendre doublerait un bonus que rien ne demande. Les **quatre signes de
+Niout** sont connus d'emblée, comme les quatre de la clé et pour la même
+raison : la leçon fondatrice doit être tentable tout de suite.
+
+**La leçon fondatrice se retente, et ne se monnaie qu'une fois**
+(`LeconDeNiout`) : remettre quatre signes dans l'ordre est un **exercice**, pas
+une devinette — la règle « on ne répond qu'une fois » vaut contre quatre
+propositions qu'on épuiserait, pas contre vingt-quatre arrangements. Elle **ne
+touche pas au fil rouge** : `FilRouge::acte()` se déduit des inscriptions lues,
+et y greffer l'alphabet mêlerait les deux pistes.
+
+**Tout glyphe affiché porte `font-hieroglyphes`.** Aucun système d'exploitation
+courant ne couvre le bloc égyptien d'Unicode : sans la police embarquée, un
+joueur sous Windows ou Android verrait des carrés, et même une machine qui en
+possède une donne à six signes une forme moins juste. La police est
+**sous-ensemblée** aux seuls signes déclarés par les deux enums — 8,6 Ko contre
+978 —, et se régénère avec `.claude/scripts/sous-ensembler-hieroglyphes.sh` :
+ajouter un signe sans rejouer le script le laisse en carré vide, sans erreur ni
+avertissement.
+
 **La clé de lecture s'enrichit par deux voies, et une seule est persistée**
 (`CleDeLecture`) : ce que le **niveau** de la Maison des scribes ouvre se
 calcule (`4 + 2 × niveau`), ce qu'une **énigme** apprend se stocke. Quatre

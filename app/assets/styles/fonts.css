@@ -1,3 +1,18 @@
+/*
+ * Polices self-hébergées. Aucune n'est chargée depuis un CDN : un appel runtime
+ * vers Google Fonts transmettrait l'IP du visiteur à un tiers.
+ *
+ * Les trois familles sont sous licence SIL Open Font License 1.1.
+ *
+ * **Noto Sans Egyptian Hieroglyphs est sous-ensemblée** aux seuls signes que le
+ * jeu affiche — les vingt de la clé de lecture et les vingt-quatre de
+ * l'alphabet des scribes, quarante glyphes distincts. La police entière pèse
+ * 978 Ko, ce sous-ensemble 8,6 Ko. Elle se régénère avec
+ * `.claude/scripts/sous-ensembler-hieroglyphes.sh` — **jamais à la main** :
+ * ajouter un signe à l'un des deux enums sans rejouer le script le laisserait
+ * en carré vide, sans erreur ni avertissement.
+ */
+
 @font-face {
   font-family: 'Marcellus';
   font-style: normal;
@@ -50,4 +65,19 @@
   font-display: swap;
   src: url('../fonts/alegreya-sans-700-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/*
+ * Les hiéroglyphes. Aucun système d'exploitation courant ne couvre le bloc
+ * égyptien : sans cette police, un joueur sous Windows ou Android verrait
+ * quarante carrés. Même sur une machine qui en possède une, le repli donne à
+ * six signes une forme moins juste que le dessin canonique.
+ */
+@font-face {
+  font-family: 'Noto Sans Egyptian Hieroglyphs';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/noto-sans-egyptian-hieroglyphs-400.woff2') format('woff2');
+  unicode-range: U+13000-1342F;
 }

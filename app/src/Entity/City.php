@@ -877,6 +877,29 @@ class City
     }
 
     /**
+     * La leçon fondatrice du doc 10 — écrire **Niout** — a-t-elle été réussie ?
+     *
+     * Persistée pour une seule raison : la récompense ne tombe qu'une fois.
+     * L'exercice, lui, se refait autant qu'on veut — remettre quatre signes
+     * dans l'ordre s'apprend en recommençant, contrairement à une énigme à
+     * quatre propositions où l'on essaierait tout.
+     */
+    #[ORM\Column]
+    private bool $nioutEcrite = false;
+
+    public function aEcritNiout(): bool
+    {
+        return $this->nioutEcrite;
+    }
+
+    public function marquerNioutEcrite(): static
+    {
+        $this->nioutEcrite = true;
+
+        return $this;
+    }
+
+    /**
      * Les inscriptions déjà lues. Persistées : rien d'autre ne les
      * retrouverait, et une inscription relue à l'infini rendrait sa récompense
      * infinie avec elle.
