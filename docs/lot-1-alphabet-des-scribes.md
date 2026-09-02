@@ -192,21 +192,43 @@ avec une colonne de plus.
 Et la même phrase qui manque à la clé aujourd'hui : **ce qui reste à ouvrir**,
 « monter la Maison des scribes ouvrirait trois signes de plus ».
 
-### 4.3 Transcrire le nom de famille
+### 4.3 Transcrire le nom de famille, à la Maison des scribes
 
 > « Le jeu propose une transcription phonétique approximative en hiéroglyphes
 > réels […] exactement la démarche employée aujourd'hui dans les musées. »
 
-**Où l'afficher** : le document dit « au moment où le joueur choisit le nom ».
-Le formulaire de lancement est rendu côté serveur, sans JavaScript applicatif —
-une transcription **en direct** pendant la frappe demanderait un contrôleur
-Stimulus et la table des 24 signes en JSON. Ce n'est pas exclu, mais ça déborde
-du lot.
+**Tranché (décision de la joueuse) : à la Maison des scribes, une fois
+débloqué.** Pas dans le formulaire de lancement, pas à la Résidence.
 
-**Retenu** : la transcription s'affiche **une fois la partie lancée**, dans le
-panneau de la Résidence familiale, à côté de la renommée — c'est là que vit
-déjà tout ce qui touche à la lignée. Le nom est alors fixé, la transcription
-est stable, et elle se calcule à l'affichage.
+C'est le bon endroit pour une raison de fond : la transcription **est** un
+exercice d'alphabet, et elle vit là où l'alphabet s'apprend. Le formulaire de
+lancement aurait demandé un contrôleur Stimulus et la table des 24 signes en
+JSON pour une transcription pendant la frappe ; ici le nom est déjà fixé, et
+tout se calcule au rendu.
+
+**Une conséquence mesurée, à connaître.** Les signes s'ouvrent dans l'ordre
+conventionnel des grammaires, trois par niveau. Or les lettres d'un nom sont
+dispersées dans cet ordre : mesuré sur des noms égyptiens attestés, il faut la
+**Maison des scribes au niveau 6 ou 7** pour que tous les signes d'un nom
+courant soient ouverts.
+
+| Nom | Niveau où tous ses signes sont ouverts |
+|---|---|
+| Ipy | 3 |
+| Hori | 4 |
+| Ramose | 6 |
+| Nakht *(le nom par défaut)*, Sethi, Neferet, Ka | 7 |
+
+Cacher la transcription jusque-là la rendrait invisible presque toute la
+partie. **Retenu** : la transcription s'affiche **entière dès que la Maison des
+scribes est dressée** — ce sont vos scribes qui l'écrivent, pas vous —, et les
+signes que la ville **n'a pas encore appris** s'y montrent en retrait, avec ce
+qu'il faut pour les ouvrir.
+
+Le joueur a donc sa récompense tout de suite, voit ce qui lui reste à
+apprendre, et rien ne lui est caché ni présenté comme acquis à tort. C'est
+aussi ce qui donne enfin une raison de monter la Maison des scribes au-delà du
+niveau 4 : lire son propre nom en entier.
 
 **La règle de transcription, et ses limites**, à écrire honnêtement :
 consonnes seules, voyelles ignorées, et une correspondance approchée des
@@ -223,10 +245,15 @@ touristiques, plutôt que de forcer un signe faux.
 > « Chaque pharaon commanditaire est présenté avec son cartouche réel en
 > hiéroglyphes lors de l'introduction de sa mission. »
 
-**C'est du sourcing, pas du code.** Neuf cartouches réels à établir — Ahmôsis
-Ier, Thoutmôsis Ier, Hatchepsout, Thoutmôsis III, Amenhotep III, Akhenaton,
-Séthi Ier, Ramsès III, Ramsès IV — chacun avec sa graphie attestée, et
-l'avertissement qui va avec : **un cartouche royal ne s'écrit pas avec le seul
+**Tranché (décision de la joueuse) : seulement ceux des missions.** Le
+cartouche n'est pas une fonctionnalité à part — il paraît à l'introduction de
+la mission, pour le pharaon qui la commandite, et nulle part ailleurs. Aucun
+écran d'encyclopédie, aucune galerie.
+
+Cela fait **neuf cartouches** — Ahmôsis Ier, Thoutmôsis Ier, Hatchepsout,
+Thoutmôsis III, Amenhotep III, Akhenaton, Séthi Ier, Ramsès III, Ramsès IV,
+ce dernier en commanditant deux. C'est du sourcing, pas du code, et
+l'avertissement va avec : **un cartouche royal ne s'écrit pas avec le seul
 alphabet**. Il mêle unilitères, bilitères et logogrammes, et le nom de trône
 diffère du nom de naissance.
 
@@ -249,7 +276,7 @@ la règle « les hiéroglyphes du jeu sont vrais » interdit.
 | **1.a** | La police embarquée, appliquée aussi à la clé existante | Corrige un aléa déjà présent, et conditionne tout le reste |
 | **1.b** | `SigneAlphabetique` + `AlphabetDesScribes` + la table à l'écran | Le socle ; visible immédiatement |
 | **1.c** | L'énigme fondatrice « Niout » | Le geste que le document met en avant |
-| **1.d** | La transcription du nom de famille | Autonome, se greffe sur la Résidence |
+| **1.d** | La transcription du nom de famille | Autonome, se greffe sur la table de l'alphabet |
 | **1.e** | Les neuf cartouches royaux | Sourcing lourd, à ne pas bâcler |
 
 `1.a` à `1.c` forment un tout défendable et livrable d'un coup : la police, la
@@ -267,14 +294,19 @@ table, et l'énigme qui écrit le nom du jeu.
   pas avancer `FilRouge::acte()`.
 - **La transcription n'invente jamais un signe** pour une lettre sans
   équivalent.
+- **La transcription paraît dès la Maison des scribes dressée**, entière, et
+  distingue les signes appris de ceux qui restent à ouvrir.
 
-## 7. Ce qui reste à trancher avec la joueuse
+## 7. Tranché avec la joueuse
 
-1. **La transcription en direct** dans le formulaire de lancement, ou à la
-   Résidence une fois la partie lancée ? Le document dit « au moment du choix » ;
-   ce lot propose la seconde, plus simple et sans JavaScript applicatif.
-2. **`3 signes par niveau`** convient-il ? La formule tombe juste sur 24 au
-   niveau 8, mais le niveau 8 de la Maison des scribes est tardif : l'alphabet
-   complet n'arrive alors qu'en fin de mission.
-3. **Les cartouches** : les neuf d'un coup, ou seulement ceux des missions
-   jouées le plus souvent ? Chacun demande une vérification sérieuse.
+| Question | Décision |
+|---|---|
+| Où transcrire le nom de famille ? | **À la Maison des scribes**, une fois débloqué — l'alphabet s'apprend là, et la transcription en est l'exercice |
+| Trois signes par niveau ? | **Oui**, la formule tombe juste sur 24 au niveau 8 |
+| Quels cartouches ? | **Seulement ceux des missions** : à l'introduction, pour le pharaon commanditaire, et nulle part ailleurs |
+
+Reste un seul point ouvert, et il ne bloque rien : la transcription montre les
+signes **pas encore appris** en retrait plutôt que de les cacher — c'est la
+lecture retenue de « une fois débloqué », parce que la cacher entièrement la
+rendrait invisible jusqu'au niveau 6 ou 7. À revoir si le rendu déçoit à
+l'écran.
