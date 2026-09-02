@@ -195,12 +195,42 @@ de cause plutôt que le découvrir au playtest.
 
 | Lot | Contenu | |
 |---|---|---|
+| 9.0 | Les arbitrages tranchés, et la forme qu'ils donnent à la phase | ✅ |
 | 9.1 | La renommée devient une jauge de famille, qui traverse la campagne | |
 | 9.2 | Les deux sources manquantes : énigme résolue, enquête résolue | |
 | 9.3 | La renommée infléchit les prix, à l'achat comme à la vente | |
 | 9.4 | Le carnet de contacts : ce qu'une région visitée laisse | |
 | 9.5 | Le bonus de départ par missions accomplies | |
-| 9.6 | La succession : générations, héritiers et leur trait | |
+| 9.6 | La succession : générations, héritiers et leur trait | ↦ Phase 11 |
+
+#### 9.0 — Les arbitrages, tranchés
+
+Le bloc « À trancher avec la joueuse » ci-dessous a été posé avant d'écrire une
+ligne de code : chacune de ces questions change la forme des lots suivants, et
+les découvrir en cours de route aurait coûté une reprise. Les réponses sont
+donc actées ici, avec leur raison.
+
+| Question | Tranché | Ce que cela impose |
+|---|---|---|
+| La renommée cumulée facilite les dernières missions — on assume ? | **Oui**, comme le doc 13 le demande | La renommée traverse la campagne sans réserve. L'invariant « chaque mission jouable seule » se relit : aucune mission ne devient *injouable* sans héritage, mais la dixième se joue avantagée — c'est la récompense de la campagne, pas un défaut d'équilibrage |
+| Un plafond global au cumul renommée + contacts + missions accomplies ? | **Oui**, un plafond unique sur la remise totale | Les trois sources ne s'additionnent pas sans limite. Le plafond porte sur le **résultat**, pas sur chaque source — sans quoi trois plafonds séparés se cumulent et n'en plafonnent aucun |
+| Un contact débloque-t-il une ressource ? | **Non**, remise seule | Le carnet reste une commodité économique. Il ne touche ni aux objectifs de mission ni à ce qui est atteignable : un raccourci de progression aurait demandé de recalibrer les missions tardives |
+| L'enquête résolue vaut +3 ou +1 ? | **+2**, avec plafond de contribution | +3 mettrait quatre-vingt-dix points sur cent à la portée d'un seul système ; +1 ne paie pas un système qui demande plusieurs quinzaines de collecte. **Valeur inventée**, à calibrer comme les seuils du doc 09 |
+| La succession maintenant, ou en Phase 11 ? | **Phase 11** | Une génération dure 60 cycles ± 20, une mission de campagne les dépasse rarement : le lot ne se déclencherait presque jamais. Il rejoint le mode Aventure, où il a un sens. **La Phase 9 se livre donc en 9.1 à 9.5**, et le lot 9.6 est reporté |
+
+**Une conséquence de forme, qui décide du 9.1.** Deux exigences du cadrage
+paraissent s'opposer : « une seule jauge par famille, persistante d'une mission
+à l'autre », et « deux parties menées de front ne se volent pas leur renommée ».
+Elles se concilient en séparant deux choses que le mot « renommée » confond :
+
+- **l'acquis**, porté par la lignée — le plancher, qui ne descend jamais et que
+  chaque nouvelle partie reçoit au lancement ;
+- **la jauge de la mission**, portée par `Family` — celle qui bouge, que le
+  mécontentement fait baisser, et qui reste propre à sa partie.
+
+Une mission accomplie relève l'acquis ; elle ne l'abaisse jamais. C'est la même
+discipline que le plancher du neutre de la négligence divine, et c'est ce qui
+permet à deux parties de coexister sans se contaminer.
 
 #### 9.1 — Une jauge de famille, pas de partie
 
@@ -273,7 +303,7 @@ La dotation, elle, ne change pas : elle reste calculée sur les **coûts réels*
 des quatre bâtiments d'ouverture, et non sur le `50 + 10 × difficulté` du
 document, qui compte encore en or.
 
-#### 9.6 — La succession
+#### 9.6 — La succession  *(reporté en Phase 11, cf. 9.0)*
 
 Une génération dure **60 cycles ± 20**. À son terme, le joueur choisit parmi
 deux ou trois héritiers, chacun tiré avec un ou deux des huit traits déjà
@@ -293,7 +323,9 @@ Deux réserves :
   du même travail de sourcing que les cartouches. `Nakht` est déjà justifié
   ainsi dans le doc 09.
 
-#### À trancher avec la joueuse
+#### Les questions telles qu'elles se posaient
+
+Conservées pour l'enjeu qu'elles portent ; les réponses sont au 9.0.
 
 | Question | Enjeu |
 |---|---|
@@ -356,7 +388,7 @@ chacune un document déjà spécifié ; leur cadrage se fera à leur tour.
 | Phase | Sujet | Ce qu'elle apporte |
 |---|---|---|
 | **10** — Medjaÿ et combat (`03`) | Recrutement militaire, équipement, zones à bandits | Réveille le trait « Bagarreur », l'usage des armes de la Forge, et le Chef d'expédition, dernier rôle d'exploration sans emploi |
-| **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre |
+| **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre. **Reçoit le lot 9.6** (générations et héritiers), qui ne se déclenche presque jamais en campagne |
 | **12** — Sprites (`15`) | Découpage et intégration des 18 planches | Hors planche « tuiles », déjà intégrée en Phase 3 |
 
 ---
