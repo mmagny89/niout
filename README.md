@@ -82,8 +82,8 @@ par sa maisonnée : la ville oublie ses dieux moins vite.
 
 **Écriture et énigmes** — la Maison des scribes porte une clé de lecture qui
 s'enrichit : vingt hiéroglyphes de la liste de Gardiner, avec leur vrai code et
-leur vrai sens — vérifiés contre le nom que leur donne Unicode, un code et un
-dessin pouvant se contredire en silence. On remet les sens en face des signes gravés pour lire une
+leur vrai sens — vérifiés un par un contre le nom que leur donne Unicode, un
+code et un dessin pouvant se contredire en silence. On remet les sens en face des signes gravés pour lire une
 inscription — les signes sont vrais, les combinaisons sont des rébus, jamais de
 l'égyptien. Ailleurs, des questions courtes : l'ibis de Thot, l'étoile qui
 annonce la crue, une devinette entendue à l'Auberge. On n'y répond qu'une fois,
