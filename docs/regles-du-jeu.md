@@ -720,6 +720,15 @@ ne pas défaire : on ne propose que ce que la ville sait entièrement lire, les
 jetons sont **mélangés au rendu** (sinon la réponse se lit dans la source), et
 une inscription ne se relit pas.
 
+**Un corpus commun d'énigmes, pas un corpus par mission** (décision de la
+joueuse). Le doc 10 les chiffre à cinq ou huit **par mission** ; le jeu en porte
+onze, valables partout. C'est le **lieu** où on les entend qui les situe —
+`Enigme::lieu()` réserve l'oracle au Temple et les devinettes de voyageurs à
+l'Auberge —, jamais la région : une devinette sur la brique crue vaut au Delta
+comme au Fayoum. Conséquence assumée : une partie qui enchaîne les dix missions
+les épuise vers la deuxième. Écrire cinquante à quatre-vingts énigmes sourcées
+est un projet de contenu à part, que l'enum accueillera sans rien changer.
+
 **Une énigme à choix multiple ne se retente pas** (`Enigme`, `Enigmes`) : avec
 quatre propositions et un droit de reprise, on essaie tout et il ne reste
 qu'un formulaire. C'est la contrepartie de leur caractère facultatif — elles ne
@@ -751,6 +760,15 @@ s'applique. C'est le défaut sûr : un appel qui l'oublie sous-estime la clé, i
 ne l'invente pas.
 
 ## Missions, fil rouge et rivaux
+
+**Quatre natures de mission, et le type ne change aucune règle**
+(`TypeDeMission`) : fonder, restaurer et développer, sécuriser, **exploiter**.
+Il nomme ce qu'on vient faire, rien de plus — la mission 9 se joue comme les
+autres, c'est sa géographie qui la distingue. Le doc 09 se contredit sur ce
+point, sa section n'annonçant que trois types quand son tableau en donne un
+quatrième à l'Ouadi Hammamat : **le tableau l'emporte**, un camp minier
+temporaire n'étant ni une fondation ni un développement. Un test garde que les
+quatre servent.
 
 **L'ordre des missions se vérifie dans le lanceur, pas dans le formulaire**
 (`Progression`, `LanceurDePartie`) : un POST forgé n'ouvre pas le Sinaï à qui

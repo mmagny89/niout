@@ -962,7 +962,7 @@ lieu de 978.
 translittération et leur son ; leur ouverture à trois par niveau de Maison des
 scribes, qui tombe juste sur vingt-quatre au niveau 8 ; la leçon fondatrice qui
 écrit *n · i · w · t* ; la transcription du nom de famille à la manière des
-cartouches de musée ; et sept cartouches royaux à l'introduction de leur
+cartouches de musée ; et les neuf cartouches royaux à l'introduction de leur
 mission.
 
 **Deux cartouches ont demandé deux sources concordantes.** Les noms de trône
