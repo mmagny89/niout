@@ -102,7 +102,7 @@ final class MissionCatalogue
                 new GeographieDeRegion(nil: true, desert: true, oasis: true, ressourcesDeZone: [Ressource::Argile, Ressource::BoisLocal, Ressource::Calcaire, Ressource::Natron]),
             ),
             new Mission(
-                9, 'Désert oriental', 'Ouadi Hammamat', 'Ramsès IV', TypeDeMission::Developper, 8,
+                9, 'Désert oriental', 'Ouadi Hammamat', 'Ramsès IV', TypeDeMission::Exploiter, 8,
                 'Un camp minier dressé en plein désert, sans agriculture ni fleuve. Ramsès IV y engage la plus vaste expédition de pierre du Nouvel Empire.',
                 new GeographieDeRegion(desert: true, desertDominant: true, oasis: true, ressourcesDeZone: [Ressource::Grauwacke, Ressource::Or, Ressource::Cuivre]),
             ),
