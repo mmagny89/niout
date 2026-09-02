@@ -12,6 +12,7 @@ use App\Entity\User;
 use App\Entity\Zone;
 use App\Enum\GameMode;
 use App\Form\NouvellePartieType;
+use App\Game\AlphabetDesScribes;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
 use App\Game\CatalogueDeLaVille;
@@ -44,6 +45,7 @@ use App\Game\GeographieDeLaPartie;
 use App\Game\GeographieDeRegion;
 use App\Game\Inscription;
 use App\Game\LanceurDePartie;
+use App\Game\LeconDeNiout;
 use App\Game\Legs;
 use App\Game\Marche;
 use App\Game\Mecontentement;
@@ -71,6 +73,7 @@ use App\Game\Rivaux;
 use App\Game\RoleDExploration;
 use App\Game\Salaires;
 use App\Game\SensDEchange;
+use App\Game\SigneAlphabetique;
 use App\Game\SpecialiteDeChef;
 use App\Game\SymboleHieroglyphique;
 use App\Game\Temple;
@@ -269,6 +272,17 @@ final class PartieController extends AbstractController
             // ferait une porte sur du vide.
             'aUneMaisonDesScribes' => $ville->possede(TypeDeBatiment::MaisonDesScribes),
             'cleDeLecture' => CleDeLecture::pour($ville, $partie->getCycle()),
+            // L'alphabet des scribes : la seconde piste du doc 10, celle des
+            // sons. Elle ne se mélange jamais à la clé de lecture, alors même
+            // que six dessins leur sont communs.
+            'alphabet' => AlphabetDesScribes::pour($ville),
+            'prochainSigneDeLAlphabet' => AlphabetDesScribes::prochainSigne($ville),
+            'signesDeLAlphabetEnTout' => \count(SigneAlphabetique::cases()),
+            'signesParNiveauDAlphabet' => AlphabetDesScribes::SIGNES_PAR_NIVEAU,
+            // La leçon fondatrice, mêlée au rendu comme les jetons du
+            // déchiffrage : dans l'ordre, elle se lirait dans la source.
+            'leconDeNiout' => self::melangerLesSignesDeNiout(),
+            'nioutDejaEcrite' => $ville->aEcritNiout(),
             'prochainSigne' => CleDeLecture::prochainSigne($ville, $partie->getCycle()),
             'signesEnTout' => \count(SymboleHieroglyphique::cases()),
             'inscription' => $inscription,
@@ -741,6 +755,43 @@ final class PartieController extends AbstractController
      * Fouille une case où quelque chose se trame, et verse au dossier
      * l'indice qu'on y trouve.
      */
+    /**
+     * Répond à la leçon fondatrice : écrire « Niout ».
+     *
+     * **Elle se retente**, contrairement aux énigmes à choix multiple : remettre
+     * quatre signes dans l'ordre est un exercice, pas une devinette. La
+     * récompense, elle, ne tombe qu'une fois.
+     */
+    #[Route('/{id}/scribes/niout', name: 'app_partie_niout', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function ecrireNiout(Request $request, GameSave $partie, LeconDeNiout $lecon): Response
+    {
+        if (!$this->isCsrfTokenValid('niout', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $ordre = array_values(array_filter(explode(',', (string) $request->request->get('ordre'))));
+        $reponse = $lecon->repondre($partie, $ordre);
+
+        if ($reponse['juste']) {
+            $this->addFlash('succes', \sprintf(
+                'C\'est bien ainsi qu\'on écrit %s. %s%s',
+                LeconDeNiout::MOT,
+                $reponse['explication'],
+                $reponse['recompense'] > 0
+                    ? \sprintf(' Vos scribes reçoivent %d deben pour la leçon.', $reponse['recompense'])
+                    : '',
+            ));
+        } else {
+            $this->addFlash('erreur', \sprintf(
+                'Ce n\'est pas l\'ordre juste. %s Reprenez : rien ne vous en empêche.',
+                $reponse['explication'],
+            ));
+        }
+
+        return $this->retourALaVille($request, $partie);
+    }
+
     #[Route('/{id}/carte/fouiller', name: 'app_partie_fouiller', requirements: ['id' => '\\d+'], methods: ['POST'])]
     #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
     public function fouiller(Request $request, GameSave $partie, Enquetes $enquetes): Response
@@ -1358,6 +1409,27 @@ final class PartieController extends AbstractController
      * Les signes d'une inscription, mélangés pour le rendu. Le tirage n'a
      * aucune conséquence de jeu : il empêche seulement de lire la réponse dans
      * l'ordre du HTML.
+     *
+     * @return list<SymboleHieroglyphique>
+     */
+    /**
+     * Les quatre signes de la leçon fondatrice, mêlés **au rendu** — dans
+     * l'ordre, la réponse se lirait dans la source de la page. Même parade que
+     * pour les jetons du déchiffrage et les propositions d'une énigme.
+     *
+     * @return list<SigneAlphabetique>
+     */
+    private static function melangerLesSignesDeNiout(): array
+    {
+        $signes = LeconDeNiout::SIGNES;
+        shuffle($signes);
+
+        return $signes;
+    }
+
+    /**
+     * Les jetons d'une inscription, mêlés **au rendu** : dans l'ordre gravé,
+     * la réponse se lirait dans la source de la page.
      *
      * @return list<SymboleHieroglyphique>
      */
