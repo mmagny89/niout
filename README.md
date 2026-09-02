@@ -103,6 +103,13 @@ montrant tantôt une chose, tantôt un son. Chaque mission s'ouvre enfin sur le
 cartouche réel du pharaon qui la commandite, avec ce qu'il veut dire — et rien
 n'est affiché pour les deux dont la lecture n'est pas établie.
 
+Chaque mission s'ancre enfin dans une **pierre réelle** : la grande stèle
+d'Ahmôsis à Karnak, celle de Tombos au-delà de la troisième cataracte, les
+reliefs de l'expédition vers Pount à Deir el-Bahari, les stèles-frontières
+d'Akhetaton. Le jeu en donne le nom, le lieu et un résumé de ce qu'elle dit —
+un résumé, jamais une traduction, et les dalles qu'on déchiffre en reprennent
+l'esprit sans prétendre être ce texte.
+
 **Enquêtes** — certaines cases cachent autre chose qu'un filon : on les fouille,
 elles livrent un indice. Un émissaire envoyé parler aux gens d'une case déjà
 reconnue en rapporte d'autres, parfois contradictoires. Le dossier se remplit,
