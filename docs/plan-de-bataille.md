@@ -80,7 +80,7 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 |---|---|---|---|
 | `User` | ✅ | Compte joueur — email, mot de passe, statut de vérification, rôles | — |
 | `GameSave` | ✅ | Une run : mode, mission en cours, cycle, statut (en cours/échouée) | 00, 14 |
-| `Family` | ✅ | Nom choisi au lancement (1 par `GameSave`) et renommée. Héritage et contacts commerciaux en Phase 9 | 13 |
+| `Family` | ✅ | Nom choisi au lancement (1 par `GameSave`) et jauge de renommée **de la mission** — l'acquis vit sur `Lignee` | 13 |
 | `City` | ✅ | Nom, difficulté régionale, taille de grille, stock, carte, chantiers, population | 01, 02, 11 |
 | `Building` | ✅ | Un bâtiment dressé : son type et son niveau | 01 |
 | `Chantier` | ✅ | Travaux en cours : niveau visé, durée, avancement | 01, 05 |
@@ -95,12 +95,19 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `Convoi` | ✅ | Une caravane ou un navire en chemin, avec sa copie de l'échange | 12 |
 | `FaveurDivine` | ✅ | Ce qu'un dieu pense de la ville, et depuis quand on l'a négligé | 07 |
 | `DossierDEnquete` | ✅ | Une enquête en cours, ses indices versés, sa conclusion | 10 |
-| … (Phase 8+) | — | Medjaÿ, campagne, héritage | 03, 09, 13 |
+| `Lignee` | ✅ | L'acquis d'un joueur, qui survit à ses parties : renommée persistante | 13 |
+| … (Phase 10+) | — | Medjaÿ, unités et zones à bandits | 03, 02 |
 
 `Family`, `City` et tout ce qui s'y rattache (`Zone`, `Building`, `Chantier`,
 `Expedition`, `Employee`, `JobOffer`, `OrdreDeFabrication`, `RouteCommerciale`,
 `FaveurDivine`, `DossierDEnquete`) sont détenus par leur `GameSave` : l'abandon d'une partie, comme
 la purge d'un compte, les emporte en cascade.
+
+**`Lignee` est la seule exception, et c'est sa raison d'être** : elle appartient
+au **joueur**, pas à une partie, puisqu'elle porte ce qui doit survivre à
+celle-ci. Aucune cascade ne l'emporte donc — `app:users:purge-unverified` la
+supprime explicitement, avant le compte qu'elle référence. Toute future entité
+qui suivrait le joueur plutôt que la partie devra faire de même.
 
 **Couche de domaine.** Ce qui relève des règles du jeu plutôt que de la
 persistance vit dans `src/Game/` : catalogue des missions, dotation royale,
@@ -129,7 +136,7 @@ vues, pas de la conception.
 | **8 bis** | Finition : cohérence et lisibilité | — | ✅ |
 | **8 ter** | Écriture : l'alphabet des scribes et les stèles | `10`, `09` | ✅ |
 | **9** | Renommée, héritage et succession familiale | `13` | ✅ (9.6 → Phase 11) |
-| **10** | Medjaÿ et combat automatique | `03` | à cadrer |
+| **10** | Medjaÿ et combat automatique | `03` | cadrée |
 | **11** | Mode Aventure : Memphis et succession des règnes | `14` | à cadrer |
 | **12** | Découpage et intégration des sprites | `15` | à cadrer |
 
@@ -421,6 +428,216 @@ parties menées de front ne se volent pas leur renommée.
 
 ---
 
+## 4 quater. Phase 10 — Medjaÿ et combat automatique  *(cadrée)*
+
+Le doc 03 est le document le plus **entièrement chiffré** du projet : il donne
+la formule de résolution, les forces d'unité, les coûts, les taux de blessure et
+de mort, les paliers de faveur qui les infléchissent. Il n'y a presque rien à
+inventer — et c'est ce qui distingue cette phase de la précédente, où le
+document nommait des faits sans les compter.
+
+Le jeu, lui, en applique déjà **la moitié civile** : le recrutement par offres
+d'emploi, les stats chiffrées affichées en qualitatif, les huit traits, les
+spécialités par bâtiment, le barème d'étoiles. C'est la moitié militaire qui
+manque, et elle manque entièrement.
+
+### Ce qui existe déjà, et qu'il ne faut pas refaire
+
+| Le document demande | Le jeu fait |
+|---|---|
+| Recrutement par offre, 2-3 candidats, renvoi possible | `JobOffer`, `GenerateurDeCandidat`, `Recrutements` |
+| Huit traits, 45/40/15 % et incompatibilités | `TraitDeCandidat`, `PoidsDeTirage` |
+| Spécialité tirée, propre au type de bâtiment | `SpecialiteDeChef`, y compris `CaserneInstructeurArcher` et `CaserneInstructeurBouclier` |
+| Chiffré en interne, qualitatif à l'écran | Le barème d'étoiles et les libellés d'ancienneté |
+| Caserne, ses coûts et ses neuf niveaux | `TypeDeBatiment::Caserne` |
+| Armes de cuivre à la Forge | `Recette::Armes`, `Ressource::Armes` |
+| Isis protège au combat, Sekhmet décide du sort | `Divinite`, qui les distingue déjà en toutes lettres |
+
+### Six choses inertes, qui n'attendent que cette phase
+
+C'est la particularité de la Phase 10 : elle ne construit pas seulement du
+neuf, elle **réveille** ce qui a été posé sans emploi et qui le dit lui-même.
+
+- `TraitDeCandidat::Bagarreur` — « sans effet tant qu'aucun Medjaÿ n'est
+  recruté », écrit dans le code ;
+- `SpecialiteDeChef::CaserneInstructeurArcher` et `CaserneInstructeurBouclier` —
+  déclarées, **lues nulle part** ;
+- `Divinite::Isis` — seule divinité déclarée inactive, avec le message « aucune
+  bataille ne se livre encore » ;
+- `RoleDExploration::ChefDExpedition` — dernier rôle d'exploration sans emploi ;
+- `Ressource::Armes` — fabriquée, et bonne à vendre seulement ;
+- le gabarit `_caserne.html.twig` — un écran qui dit « vos Medjaÿ ne sont pas
+  encore levés ».
+
+Aucun de ces six n'est un chantier : ce sont des branchements. Le vrai travail
+est ailleurs.
+
+### Le défaut de fond : la carte ne connaît pas le danger
+
+Le document calcule la défense d'une zone ainsi :
+
+```
+scoreDefense = valeurBase_zone × (1 + 0,15 × nbZonesBandits_region)
+```
+
+Or `ContenuDeZone` ne porte que `Rien`, `Ressource`, `ChampEligible` et
+`Evenement`. **Aucune case n'est dangereuse, et aucune région ne compte ses
+zones à bandits.** La formule référence un état que la carte n'a pas.
+
+C'est le cœur de la phase, et ce n'est pas un système de combat : c'est une
+addition à la **génération de carte** (doc 02), qui touche `GenerateurDeCarte`,
+`ContenuDeZone` et la géographie des dix régions. Le combat vient après, et il
+sera plus simple.
+
+Conséquence à ne pas manquer : le facteur `0,15 × nbZonesBandits_region` fait
+qu'**une région dangereuse est plus dure partout**, pas seulement sur ses cases
+à bandits. Le nombre de zones dangereuses par région devient donc un curseur de
+difficulté régionale, à poser avec les seuils du doc 11.
+
+### Les lots
+
+| Lot | Contenu | |
+|---|---|---|
+| 10.0 | Les arbitrages, avant d'écrire | |
+| 10.1 | Le danger sur la carte : zones à bandits et défense de région | |
+| 10.2 | Les Medjaÿ : fantassin, archer, recrutement et entretien | |
+| 10.3 | L'équipement : les armes de la Forge cessent d'être une marchandise | |
+| 10.4 | La résolution automatique, et ce qu'elle coûte en hommes | |
+| 10.5 | L'escorte : expéditions lourdes et caravanes | |
+| 10.6 | Le Charrier : une réquisition, jamais un recrutement | |
+| 10.7 | Les six branchements dormants | |
+
+#### 10.1 — Le danger sur la carte
+
+Une case dangereuse, un compte par région, et la défense qui en découle. Trois
+questions se posent, dont deux touchent au doc 02 plus qu'au doc 03 :
+
+- une zone à bandits est-elle un **contenu** de case (comme `Ressource`) ou un
+  **attribut** qui s'y superpose ? La seconde lecture permet un gisement gardé
+  par des bandits — ce qui est exactement le cas intéressant ;
+- le danger **bloque-t-il** l'exploitation, ou la rend-il seulement risquée ?
+- une zone nettoyée le reste-t-elle ? Sans quoi le combat n'est qu'un péage
+  répété, et non une conquête.
+
+`GenerateurDeCarte` garantit déjà les matériaux vitaux dans l'anneau des huit
+cases autour de la ville. **Le danger doit respecter cette garantie** : une
+partie qui ne pourrait pas ouvrir sa première carrière sans Caserne serait
+injouable au premier cycle.
+
+#### 10.2 — Les Medjaÿ
+
+Deux unités seulement, et le document explique pourquoi : les Medjaÿ étaient un
+corps de sécurité intérieure, armé d'arc et de bouclier, **jamais de chars** —
+ceux-là appartenaient à la *mesha*, l'armée d'État. La distinction est
+historique et le jeu la tient.
+
+| Unité | Caserne | Force | Particularité | Recrutement | Entretien |
+|---|---|---|---|---|---|
+| Fantassin (bouclier) | 1-3 | 10 | Réduit les pertes de 30 % | 15 deben | 1 deben/cycle |
+| Archer | 4-6 | 15 | +10 % en terrain désertique | 25 deben | 2 deben/cycle |
+
+Une unité gagne **+5 % par combat gagné, plafonné à +50 %**. C'est ce qui donne
+son poids à la mort permanente : ce n'est pas le coût de recrutement qui fait
+mal, c'est l'expérience perdue.
+
+**Un Medjaÿ n'est pas un `Employee`.** Le chef de bâtiment a une compétence, un
+salaire négocié, une spécialité et une maisonnée ; le Medjaÿ a une force, une
+spécialisation et une expérience. Les confondre ferait porter à `Employee` deux
+modèles qui n'ont en commun qu'un salaire — nouvelle entité.
+
+#### 10.3 — L'équipement
+
+`qualite_equipement` entre directement dans la formule d'attaque, et vient de la
+Forge (doc 01). C'est ce qui donne enfin aux **armes** une raison d'exister
+autre que la vente, et à la spécialité `ForgeArmurier` son effet.
+
+Deux points à trancher : les armes se **consomment**-elles, ou équipent-elles
+durablement ? Et une unité sans arme se bat-elle quand même, à qualité minimale,
+ou refuse-t-elle de partir ? La première lecture fait des armes un flux, la
+seconde un stock — cela change toute la charge sur la Forge.
+
+#### 10.4 — La résolution
+
+```
+scoreAttaque      = Σ(force × qualité d'équipement) × terrain × faveur
+probabilitéVictoire = scoreAttaque / (scoreAttaque + scoreDéfense)
+```
+
+Terrain : neutre 1,00 · désert 0,85 (le défenseur est avantagé) · fluvial en
+Akhèt 1,15. Faveur : 1,1 à Favorable ou mieux avec une divinité de combat, 0,9 à
+Hostile.
+
+**Tout cela se compte en centièmes entiers**, jamais en flottants — c'est la
+discipline du projet depuis les rendements, et une probabilité en virgule
+flottante serait le premier endroit du jeu où deux parties identiques
+divergeraient.
+
+| | Butin | Blessés (indispo. 2 cycles) | Mort permanente |
+|---|---|---|---|
+| Victoire | proportionnel au score | 0-10 % | 2-5 % par unité |
+| Défaite | aucun, retrait | 20-30 % | 10-15 % par unité |
+
+**Isis réduit la mort permanente** de 25 % à Favorable, 50 % à Dévoué. C'est le
+seul effet de la phase qui touche un système déjà livré, et il est exactement à
+sa place : le doc 07 la distingue de Sekhmet parce qu'elle protège l'homme
+quand l'autre décide du sort de tous.
+
+#### 10.5 — L'escorte
+
+Le document nomme trois emplois : les **expéditions lourdes** (le Chef
+d'expédition trouve enfin son rôle), la **protection des caravanes** — que le
+docblock de la Caserne promet déjà — et la **garde de la ville**.
+
+Le troisième croise `Rivaux`, qui rogne aujourd'hui le volume d'une route sans
+qu'on puisse rien y faire hors de l'enquête. Les Medjaÿ ouvriraient une seconde
+réponse — mais c'est une addition au doc 08, pas une lecture du doc 03 : à
+trancher plutôt qu'à supposer.
+
+#### 10.6 — Le Charrier
+
+Caserne 7, Forge 4, force 25, **100 deben par expédition**, aucun entretien, il
+disparaît à la fin et ne progresse jamais. Le document le veut ainsi : une
+famille de marchands, même prospère, n'entretient pas de force de chars.
+
+Le document écrit « 100 or ». Le projet a déjà tranché ce point deux fois
+(doc 09, doc 13) : **l'Égypte pharaonique n'a pas de monnaie d'or**, le jeu
+compte en deben, et la valeur se relit en conséquence.
+
+#### 10.7 — Les branchements dormants
+
+Les six ci-dessus, plus un écart réel : le document donne à **Bagarreur** un
+« bonus combat si affecté aux Medjaÿ, **malus si poste civil** ». Le jeu n'a ni
+l'un ni l'autre — il le dit franchement dans le libellé du trait. Le malus est
+la moitié oubliée, et c'est elle qui rend le trait intéressant : un candidat
+qu'on ne veut pas au Grenier devient bon à la Caserne.
+
+#### À trancher avec la joueuse
+
+| Question | Enjeu |
+|---|---|
+| Le danger est-il un contenu de case ou un attribut qui s'y superpose ? | La seconde lecture permet un gisement gardé — le cas intéressant. La première est plus simple et suit `ContenuDeZone` tel qu'il est |
+| Une zone nettoyée le reste-t-elle ? | Sinon le combat est un péage répété, pas une conquête |
+| Les armes se consomment-elles à chaque combat, ou équipent-elles durablement ? | Un flux met la Forge sous tension permanente ; un stock en fait un palier à franchir une fois |
+| La mort permanente reste-t-elle à 2-15 %, dans un jeu qui n'a **aucun échec définitif** ailleurs ? | C'est le seul endroit du jeu où le joueur perd quelque chose sans recours. Le doc 00 tient à l'absence de « game over » ; une unité perdue n'en est pas un, mais c'est un changement de ton |
+| Les Medjaÿ répondent-ils aux rivaux commerciaux ? | Le doc 03 ne le dit pas, le doc 08 non plus. Ce serait une addition, pas une lecture |
+| Le combat existe-t-il en mode Aventure ? | Memphis n'a pas de mission, donc pas de zones à bandits placées par un scénario |
+
+#### Définition de « fini »
+
+Parcours de bout en bout : bâtir une Caserne → lever deux fantassins → les
+équiper à la Forge → envoyer une expédition sur une case gardée → voir le
+combat se résoudre sans écran de bataille → constater le butin, un blessé
+indisponible deux cycles, et l'expérience gagnée par les survivants → revenir
+sur la même case et la trouver libre.
+
+Tests sur les invariants : aucune probabilité en flottant, une unité morte
+repart à zéro d'expérience quand une unité blessée garde la sienne, le Charrier
+ne rejoint jamais l'effectif permanent, l'anneau des huit cases autour de la
+ville reste exploitable sans Caserne, et Isis réduit bien la mort permanente
+sans toucher à l'issue du combat.
+
+---
+
 ## 5. Ce qui vient
 
 ### Deux formats plus pauvres que ce que le doc 10 annonce
@@ -454,13 +671,13 @@ de ressource pure sur la même mission ne la rendent pas monotone.
 ### Les phases à cadrer
 
 La **Phase 9 est livrée** ; son récit est au journal
-([`phases-livrees.md`](phases-livrees.md), § 5.12), et son cadrage détaillé
-reste ci-dessus le temps que la Phase 10 prenne sa place. Les trois suivantes
-traduisent chacune un document déjà spécifié ; leur cadrage se fera à leur tour.
+([`phases-livrees.md`](phases-livrees.md), § 5.12). La **Phase 10 est cadrée**
+et garde son format détaillé, lot par lot, jusqu'à sa livraison. Les deux
+suivantes traduisent chacune un document déjà spécifié ; leur cadrage se fera à
+leur tour.
 
 | Phase | Sujet | Ce qu'elle apporte |
 |---|---|---|
-| **10** — Medjaÿ et combat (`03`) | Recrutement militaire, équipement, zones à bandits | Réveille le trait « Bagarreur », l'usage des armes de la Forge, et le Chef d'expédition, dernier rôle d'exploration sans emploi |
 | **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre. **Reçoit le lot 9.6** (générations et héritiers), qui ne se déclenche presque jamais en campagne |
 | **12** — Sprites (`15`) | Découpage et intégration des 18 planches | Hors planche « tuiles », déjà intégrée en Phase 3 |
 
@@ -494,6 +711,9 @@ le calibrage du lot 4.6.
 | Départ d'un chef | `100 / ancienneté` % par quinzaine, doublé si mécontentement | `DepartsNaturels` |
 | Facteur de compétence d'un chef | `90 + compétence × 0,4` (98 % à 130 %) | `EffetDeChef` |
 | Bonus du Gestionnaire du Grenier | +15 % | `EffetDeChef::BONUS_GESTIONNAIRE` |
+| Renommée d'une enquête résolue | +2, entre le +3 du doc 13 et le +1 d'avant | `Enquete::RENOMMEE_POUR_UNE_RESOLUE` |
+| Plafond de renommée des affaires | 8 points par mission | `Family::RENOMMEE_MAX_DES_AFFAIRES` |
+| Plafond de l'avantage de négoce | 40 points de pourcentage, toutes sources confondues | `AvantageDeNegoce::PLAFOND_TOTAL` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,

@@ -142,6 +142,14 @@ partir de « Respectée » et attire les rivaux, mais n'était nulle part à l'�
 — ce qu'elle change se subissait sans se comprendre. Elle dit aussi ce qui reste
 à faire pour le palier suivant : un compteur nu se subit, un objectif se joue.
 
+**Et ce qu'elle vaut sur les prix** (lot 9.3) : la Résidence familiale annonce
+la remise à l'achat et la majoration à la vente, puis l'avantage **total** dès
+qu'un Négociateur s'y ajoute. Les deux chiffres sont montrés séparément à
+dessein — l'avantage étant plafonné, ne montrer que la somme laisserait croire
+que les sources s'additionnent sans fin. Le carnet de contacts s'y lit au même
+endroit, et le rabais d'une route déjà connue s'annonce à l'ouverture, jamais
+au moment du débit : une remise découverte au débit ne se joue pas.
+
 **Onglets et panneaux s'apparient par rang**, pas par identifiant
 (`onglets_controller.js`) : un panneau ajouté ailleurs que dans l'ordre de son
 onglet décale tout ce qui suit, et l'on ouvre le voisin. `ErgonomieTest`
