@@ -297,6 +297,18 @@ Trois règles à ne pas défaire :
   décrit un tirage de contenu, que le danger n'est pas. Chaque bande renforce
   toutes les autres de 15 % (doc 03), **en centièmes entiers** — donc nettoyer
   une case affaiblit toute la région.
+- **Un Medjaÿ n'est pas un `Employee`** (`Medjay`, doc 03). Le chef a une
+  compétence, un salaire négocié, une spécialité tirée et une maisonnée ; le
+  Medjaÿ a une force, une spécialisation et une expérience gagnée au combat. Les
+  deux n'ont en commun qu'un salaire, ce qui ne suffisait pas à en faire une
+  seule table. Deux spécialisations, jamais trois : l'arc et le bouclier sont
+  leur armement attesté, le char appartenait à la *mesha*, l'armée d'État.
+- **Le frein à la troupe est double** : l'effectif tenu par la Caserne
+  (`3 + 2 × niveau`, doc 01) et l'entretien, qui rejoint la masse salariale
+  comme n'importe quel autre homme payé. Le second compte autant que le premier
+  — une troupe impayée mécontente la ville comme des chefs impayés. **Un blessé
+  est payé aussi** : on ne renvoie pas un homme parce qu'il s'est fait blesser à
+  son service, et il **garde son expérience**, ce qui le distingue d'un mort.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais

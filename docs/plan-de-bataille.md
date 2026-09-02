@@ -500,7 +500,7 @@ difficulté régionale, à poser avec les seuils du doc 11.
 |---|---|---|
 | 10.0 | Les arbitrages, avant d'écrire | ✅ |
 | 10.1 | Le danger sur la carte : zones à bandits et défense de région | ✅ |
-| 10.2 | Les Medjaÿ : fantassin, archer, recrutement et entretien | |
+| 10.2 | Les Medjaÿ : fantassin, archer, recrutement et entretien | ✅ |
 | 10.3 | L'équipement : les armes de la Forge cessent d'être une marchandise | |
 | 10.4 | La résolution automatique, et ce qu'elle coûte en hommes | |
 | 10.5 | L'escorte : expéditions lourdes et caravanes | |
@@ -581,7 +581,20 @@ cases autour de la ville. **Le danger doit respecter cette garantie** : une
 partie qui ne pourrait pas ouvrir sa première carrière sans Caserne serait
 injouable au premier cycle.
 
-#### 10.2 — Les Medjaÿ
+#### 10.2 — Les Medjaÿ  *(livré)*
+
+Entité `Medjay`, enum `SpecialisationMedjay`, service `Medjays`. **Le frein est
+double** : l'effectif est borné par la Caserne — `3 + 2 × niveau`, chiffré par
+le doc 01 — et l'entretien rejoint la masse salariale, si bien qu'une troupe
+qu'on ne peut plus payer mécontente la ville comme des chefs impayés. C'est ce
+qui empêche de lever dix archers au quatrième niveau et de ne plus y penser.
+
+**Un doublon du doc 01, signalé et non tranché.** Le document donne l'effectif à
+la Caserne (`3 + 2 × niveau`, chiffré) *et* promet des « emplacements Medjaÿ »
+à la Résidence familiale aux niveaux 1, 3 et 5 (non chiffrés). Le jeu suit la
+Caserne, seule des deux à porter un nombre. Les effets de Résidence relèvent des
+traits familiaux, eux aussi non implémentés, et rejoindront la Phase 11 avec la
+succession.
 
 Deux unités seulement, et le document explique pourquoi : les Medjaÿ étaient un
 corps de sécurité intérieure, armé d'arc et de bouclier, **jamais de chars** —
