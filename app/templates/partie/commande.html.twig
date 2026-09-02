@@ -15,6 +15,42 @@
                 {{ mission.pharaon }} vous confie cette tâche, {{ partie.famille.nom }}.
             </p>
             <p class="mt-4 text-encre-600">{{ mission.contexte }}</p>
+
+            {# **Le cartouche du pharaon**, en contexte plutôt qu'en exercice
+               isolé (doc 10). C'est son nom de trône — celui qu'on proclamait au
+               couronnement et qu'on écrivait toujours dans un cartouche —, pas
+               son nom de naissance dont « Thoutmôsis » ou « Ramsès » sont les
+               formes grecques.
+
+               Rien ne s'affiche pour un pharaon dont le cartouche n'est pas
+               établi : un cartouche approximatif donné pour réel trahirait la
+               règle qui veut que les hiéroglyphes du jeu soient vrais. #}
+            {% if cartouche %}
+                <figure class="mt-8 rounded-sm border border-or-300/60 bg-or-300/5 px-6 py-5 text-center">
+                    <div class="flex items-center justify-center gap-3">
+                        <span aria-hidden="true" class="text-3xl text-or-300">❨</span>
+                        <span class="font-hieroglyphes text-4xl leading-none text-encre-900"
+                              aria-label="Cartouche de {{ cartouche.lecture }}">{{ cartouche.signes }}</span>
+                        <span aria-hidden="true" class="text-3xl text-or-300">❩</span>
+                    </div>
+
+                    <figcaption class="mt-3 text-sm text-encre-600">
+                        <strong class="text-encre-900">{{ cartouche.lecture }}</strong>
+                        <span class="text-encre-500">— {{ cartouche.translitteration }}</span>
+                        <span class="mt-1 block">« {{ cartouche.sens }} »</span>
+                        <span class="mt-2 block text-xs text-encre-500" data-chiffres>
+                            {{ cartouche.codesDeGardiner|join(' · ') }}
+                        </span>
+                    </figcaption>
+                </figure>
+
+                <p class="mt-3 text-sm text-encre-500">
+                    Un cartouche ne s'écrit pas avec le seul alphabet des scribes :
+                    il y mêle des signes valant deux sons, et des mots entiers — le
+                    disque solaire vaut « Rê » à lui seul, et s'écrit en tête du nom
+                    par déférence, alors qu'il se prononce à la fin.
+                </p>
+            {% endif %}
         {% else %}
             <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
                 Mode Aventure
