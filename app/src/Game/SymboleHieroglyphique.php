@@ -54,10 +54,34 @@ enum SymboleHieroglyphique: string
      * Le code de la liste de Gardiner. Affiché : un joueur curieux doit
      * pouvoir vérifier le signe dans une vraie grammaire.
      */
+    /**
+     * Le signe de l'alphabet des scribes qui porte **le même dessin**, s'il
+     * existe — trois cas sur vingt : le roseau, le pain et la bouche.
+     *
+     * **Ce n'est pas un doublon, c'est la leçon.** L'écriture égyptienne est
+     * mixte : un même dessin y sert tantôt à montrer une chose, tantôt à noter
+     * un son. La bouche en est le cas le plus net — elle dit « bouche » et
+     * elle note le *r*.
+     *
+     * Le lien se fait **par le glyphe**, jamais par une table de
+     * correspondance : deux listes finiraient par diverger, et c'est le dessin
+     * qui fait foi.
+     */
+    public function sonDeLAlphabet(): ?SigneAlphabetique
+    {
+        foreach (SigneAlphabetique::cases() as $signe) {
+            if ($signe->signe() === $this->signe()) {
+                return $signe;
+            }
+        }
+
+        return null;
+    }
+
     public function codeDeGardiner(): string
     {
         return match ($this) {
-            self::Eau => 'N35',
+            self::Eau => 'N35A',
             self::Homme => 'A1',
             self::Maison => 'O1',
             self::Marcher => 'D54',
@@ -88,7 +112,7 @@ enum SymboleHieroglyphique: string
     public function signe(): string
     {
         return match ($this) {
-            self::Eau => '𓈖',
+            self::Eau => '𓈗',
             self::Homme => '𓀀',
             self::Maison => '𓉐',
             self::Marcher => '𓂻',
@@ -145,19 +169,19 @@ enum SymboleHieroglyphique: string
     public function sens(): string
     {
         return match ($this) {
-            self::Eau => 'L\'eau, le fleuve, ce qui coule. Trois ondulations, le signe le plus courant de l\'écriture.',
+            self::Eau => 'Trois ondulations : l\'eau, le fleuve, ce qui coule. Une seule ondulation ne dirait pas l\'eau — elle noterait le son n.',
             self::Homme => 'Un homme assis : l\'homme, celui qui parle, le scribe lui-même.',
             self::Maison => 'Le plan d\'une maison vue d\'en haut : la demeure, le bâtiment.',
             self::Marcher => 'Deux jambes en marche : aller, venir, se rendre quelque part.',
-            self::Pain => 'Un pain rond : le pain, la nourriture, ce qu\'on offre.',
-            self::Roseau => 'Un roseau fleuri : le roseau des berges, et le premier signe de l\'alphabet des scribes.',
+            self::Pain => 'Un pain plat : la nourriture, ce qu\'on offre. Le même dessin note le son t dans l\'alphabet des scribes.',
+            self::Roseau => 'Un roseau fleuri, celui des berges. Le même dessin note le son i dans l\'alphabet des scribes.',
             self::Canal => 'Un bassin d\'irrigation : la terre qu\'on arrose, le canal, le champ.',
             self::Route => 'Un chemin bordé d\'arbustes : la route, le passage, la voie.',
             self::Bateau => 'Une barque de papyrus : le bateau, le voyage par l\'eau.',
             self::Desert => 'Trois collines de sable : le désert, la terre rouge, l\'étranger.',
             self::Soleil => 'Le disque de Rê : le soleil, le jour, le temps qui passe.',
             self::Femme => 'Une femme assise : la femme, l\'épouse, la maisonnée.',
-            self::Bouche => 'Une bouche : parler, dire, la parole donnée.',
+            self::Bouche => 'Une bouche : parler, dire, la parole donnée. Elle note aussi le son r — c\'est un des rares signes qui vaut à la fois la chose et le son.',
             self::Visage => 'Un visage de face : ce qui est devant, ce qu\'on affronte.',
             self::Pays => 'Une bande de terre : le pays, la contrée, l\'Égypte elle-même.',
             self::Or => 'Un collier d\'or : l\'or, ce qui brille, ce qui vaut.',

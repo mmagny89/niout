@@ -148,8 +148,11 @@ final class CleDeLectureTest extends WebTestCase
         $glyphes = [];
 
         foreach (SymboleHieroglyphique::cases() as $symbole) {
+            // Le suffixe est celui des variantes de la liste : `N35A`, les
+            // trois ondulations de l'eau, se distingue ainsi de `N35`, l'unique
+            // ondulation qui note le son n.
             self::assertMatchesRegularExpression(
-                '/^(Aa|[A-Z])\d+$/',
+                '/^(Aa|[A-Z])\d+[A-Z]?$/',
                 $symbole->codeDeGardiner(),
                 \sprintf('%s doit porter un code de la liste de Gardiner.', $symbole->libelle()),
             );

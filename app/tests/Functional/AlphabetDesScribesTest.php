@@ -71,30 +71,55 @@ final class AlphabetDesScribesTest extends WebTestCase
     }
 
     /**
-     * **Les deux pistes ne se confondent pas.** Six dessins leur sont communs,
-     * et c'est voulu : un même signe n'y veut pas dire la même chose — `N35`
-     * est « l'eau » dans la clé de lecture, et le son *n* dans l'alphabet. Les
-     * dédupliquer enseignerait le contraire de ce que le doc 10 veut faire
-     * comprendre.
+     * **Trois dessins se retrouvent dans les deux tables, et ce n'est pas une
+     * redite.** L'écriture égyptienne est mixte : un même signe y sert tantôt à
+     * montrer une chose, tantôt à noter un son. La bouche en est le cas le plus
+     * net — elle dit « bouche » et elle note le *r*.
+     *
+     * Les deux tables se **relient** donc l'une à l'autre, plutôt que de
+     * laisser croire à un doublon — et le lien se fait par le glyphe, jamais
+     * par une table de correspondance qui finirait par diverger.
      */
-    public function testUnMemeDessinPorteDeuxLecturesSansSeConfondre(): void
+    public function testLesDessinsCommunsSeRelientDansLesDeuxSens(): void
     {
-        $glyphesDeLaCle = array_map(
-            static fn (SymboleHieroglyphique $s): string => $s->signe(),
-            SymboleHieroglyphique::cases(),
-        );
-
-        $communs = array_filter(
+        $communs = array_values(array_filter(
             SigneAlphabetique::cases(),
-            static fn (SigneAlphabetique $s): bool => \in_array($s->signe(), $glyphesDeLaCle, true),
-        );
+            static fn (SigneAlphabetique $s): bool => null !== $s->dessinDeLaCle(),
+        ));
 
-        self::assertNotEmpty($communs, 'Des signes sont communs aux deux pistes — c\'est le propos.');
+        self::assertCount(3, $communs, 'Trois dessins servent aux deux tables.');
 
-        // Et ils gardent chacun leur sens : l'eau d'un côté, le son n de l'autre.
-        self::assertSame('𓈖', SymboleHieroglyphique::Eau->signe());
+        foreach ($communs as $signe) {
+            $symbole = $signe->dessinDeLaCle();
+            self::assertNotNull($symbole);
+            // Le lien est réciproque : on revient au même signe.
+            self::assertSame($signe, $symbole->sonDeLAlphabet());
+            self::assertSame($signe->signe(), $symbole->signe());
+        }
+
+        // La bouche : la chose et le son, dans le même dessin.
+        self::assertSame(SymboleHieroglyphique::Bouche, SigneAlphabetique::Bouche->dessinDeLaCle());
+        self::assertSame('r', SigneAlphabetique::Bouche->translitteration());
+    }
+
+    /**
+     * **L'eau, c'est trois ondulations, pas une.** `N35` — une seule ondulation
+     * — est le phonogramme *n* et ne veut pas dire « eau » ; le mot s'écrit
+     * `N35A`. La clé portait le code de l'un en décrivant l'autre : elle
+     * enseignait un signe faux, dans un jeu dont c'est justement l'objet
+     * d'enseigner les vrais.
+     */
+    public function testLEauEstLesTroisOndulationsEtNonLePhonogramme(): void
+    {
+        self::assertSame('N35A', SymboleHieroglyphique::Eau->codeDeGardiner());
+        self::assertSame('𓈗', SymboleHieroglyphique::Eau->signe());
+
+        self::assertSame('N35', SigneAlphabetique::FiletDEau->codeDeGardiner());
         self::assertSame('𓈖', SigneAlphabetique::FiletDEau->signe());
-        self::assertSame('n', SigneAlphabetique::FiletDEau->translitteration());
+
+        // Et les deux ne se confondent donc plus : ce sont deux signes.
+        self::assertNotSame(SymboleHieroglyphique::Eau->signe(), SigneAlphabetique::FiletDEau->signe());
+        self::assertNull(SigneAlphabetique::FiletDEau->dessinDeLaCle());
     }
 
     /**
