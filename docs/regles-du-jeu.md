@@ -232,6 +232,17 @@ Trois règles à ne pas défaire :
   et toute règle indexée dessus était **inerte**. C'est le Marché qui l'alimente
   désormais (`Marche::RECETTE_DUN_GROS_CONTRAT`) — avant d'indexer une règle
   sur une valeur, vérifier qu'une source la fait bouger.
+- **La renommée acquise appartient à la lignée, pas à la partie** (`Lignee`,
+  `Lignees`, doc 13). Deux choses que le mot confondait : l'**acquis**, sur
+  `Lignee`, un par joueur, qui ne descend jamais et que chaque nouvelle partie
+  reçoit au lancement ; et la **jauge de la mission**, sur `Family`, qui bouge
+  librement, à la baisse comprise, et reste propre à sa partie. Un seul point du
+  jeu écrit dans la lignée — `AchevementDeMission`, à la clôture d'une mission
+  de campagne — et il ne fait que la relever. C'est ce qui concilie « une jauge
+  persistante d'une mission à l'autre » et « deux parties menées de front ne se
+  volent pas leur renommée » : elles lisent le même acquis, chacune a sa jauge.
+  Le **legs ne porte donc plus de renommée** : il en donnait quatre points au
+  plus, depuis zéro, et aurait compté deux fois la même réussite.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais

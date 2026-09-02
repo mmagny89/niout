@@ -24,8 +24,13 @@ use App\Repository\GameSaveRepository;
  * lègue la moitié : c'est ce qui donne un sens aux objectifs chiffrés au-delà
  * du chiffre lui-même.
  *
- * C'est le premier fil entre deux parties, et la porte d'entrée de la Phase 9,
- * où la famille transmettra bien davantage.
+ * **Il ne porte plus de renommée** (lot 9.1). Il en donnait quatre points au
+ * plus, depuis zéro, et seulement d'après la mission immédiatement précédente ;
+ * la renommée est désormais un acquis de `Lignee`, transmis en entier. Les deux
+ * ensemble auraient compté deux fois la même réussite.
+ *
+ * Le legs reste donc ce qu'il a toujours été pour les deben : un vrai
+ * avantage, modeste, proportionnel au score.
  */
 final readonly class Legs
 {
@@ -35,12 +40,6 @@ final readonly class Legs
      * deben) : de quoi bâtir un peu plus tôt, jamais de quoi sauter une étape.
      */
     public const int DEBEN_POUR_UNE_REUSSITE_PLEINE = 120;
-
-    /**
-     * Et le renom qui vient avec : le pharaon parle de vous à son successeur.
-     * Quatre points au plus — le palier suivant en demande vingt.
-     */
-    public const int RENOMMEE_POUR_UNE_REUSSITE_PLEINE = 4;
 
     public function __construct(
         private GameSaveRepository $parties,
@@ -74,14 +73,6 @@ final readonly class Legs
     {
         return intdiv(
             $this->scoreDeLaMissionPrecedente($joueur, $mission) * self::DEBEN_POUR_UNE_REUSSITE_PLEINE,
-            100,
-        );
-    }
-
-    public function renommeePour(User $joueur, int $mission): int
-    {
-        return intdiv(
-            $this->scoreDeLaMissionPrecedente($joueur, $mission) * self::RENOMMEE_POUR_UNE_REUSSITE_PLEINE,
             100,
         );
     }

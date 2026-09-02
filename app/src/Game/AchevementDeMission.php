@@ -18,11 +18,16 @@ use App\Entity\GameSave;
  * recalcule pas ensuite : une ville qui perdrait ses habitants après coup ne
  * doit pas voir sa réussite se dégrader, et une ville qui continuerait à
  * enrichir ne doit pas la voir monter — la mission est finie.
+ *
+ * **C'est aussi ici que la renommée passe la mission** (lot 9.1) : l'acquis de
+ * la lignée se relève sur la jauge de la famille au moment de la clôture. Ce
+ * point-là est le seul de tout le jeu qui écrit dans la lignée.
  */
 final readonly class AchevementDeMission
 {
     public function __construct(
         private MissionCatalogue $missions,
+        private Lignees $lignees,
     ) {
     }
 
@@ -44,7 +49,24 @@ final readonly class AchevementDeMission
         $score = $this->score($partie);
         $partie->achever($score);
 
-        return [$this->reconnaissance($partie, $score)];
+        // Ce que la famille a de renommée au moment où la mission se clôt
+        // rejoint l'acquis de la lignée, et le suivra dans les missions
+        // suivantes (doc 13). L'acquis ne peut que monter.
+        $acquisAvant = $this->lignees->pour($partie->getJoueur())->getRenommeeAcquise();
+        $this->lignees->encaisser($partie);
+        $acquisApres = $this->lignees->pour($partie->getJoueur())->getRenommeeAcquise();
+
+        $rapport = [$this->reconnaissance($partie, $score)];
+
+        if ($acquisApres > $acquisAvant) {
+            $rapport[] = \sprintf(
+                'Le nom des %s vaut désormais %d de renommée : vos prochaines missions commenceront avec.',
+                $partie->getFamille()->getNom(),
+                $acquisApres,
+            );
+        }
+
+        return $rapport;
     }
 
     /**

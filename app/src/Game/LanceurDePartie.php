@@ -36,6 +36,7 @@ final readonly class LanceurDePartie
         private EntityManagerInterface $entityManager,
         private Progression $progression,
         private Legs $legs,
+        private Lignees $lignees,
     ) {
     }
 
@@ -63,13 +64,18 @@ final readonly class LanceurDePartie
         $mission = $this->missions->get($numero);
         $ville = new City($mission->ville, $mission->difficulte, $mission->tailleDeGrille());
 
-        $partie = GameSave::pourCampagne($joueur, new Family($nomDeFamille), $ville);
+        // La renommée ne repart pas de zéro : la famille arrive avec tout
+        // l'acquis de la lignée (doc 13, lot 9.1).
+        $partie = GameSave::pourCampagne(
+            $joueur,
+            new Family($nomDeFamille, $this->lignees->renommeeDeDepart($joueur)),
+            $ville,
+        );
         $partie->commencerALaMission($mission->numero);
 
         // Ce que le pharaon précédent lègue : un vrai avantage, proportionnel
         // à ce qu'on a accompli pour lui.
         $partie->recevoirEnLegs($this->legs->debenPour($joueur, $numero));
-        $partie->getFamille()->ajusterRenommee($this->legs->renommeePour($joueur, $numero));
 
         return $this->doterEtEnregistrer($partie, $mission->geographie);
     }
@@ -82,7 +88,11 @@ final readonly class LanceurDePartie
         $this->refuserSiPlafondAtteint($joueur);
 
         $ville = new City(self::VILLE_DU_MODE_AVENTURE, $difficulte, $tailleGrille);
-        $partie = GameSave::pourAventure($joueur, new Family($nomDeFamille), $ville);
+        $partie = GameSave::pourAventure(
+            $joueur,
+            new Family($nomDeFamille, $this->lignees->renommeeDeDepart($joueur)),
+            $ville,
+        );
 
         return $this->doterEtEnregistrer($partie, self::geographieDuModeAventure());
     }
