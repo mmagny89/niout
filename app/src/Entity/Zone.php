@@ -324,6 +324,46 @@ class Zone
     #[ORM\Column]
     private bool $indiceRecueilli = false;
 
+    /**
+     * Ce qu'une bande de brigands oppose sur cette case, avant le facteur de
+     * région (doc 02, doc 03). **Zéro veut dire aucune bande** : le danger est
+     * un attribut qui se superpose au contenu, pas un contenu de plus
+     * (arbitrage 10.0) — une case peut donc porter un gisement *et* des
+     * bandits, et c'est le cas qui donne envie de lever des Medjaÿ.
+     *
+     * Une case pacifiée retombe à zéro et **y reste** : le combat est une
+     * conquête, pas un péage qu'on repaie.
+     */
+    #[ORM\Column]
+    private int $defenseDesBandits = 0;
+
+    public function getDefenseDesBandits(): int
+    {
+        return $this->defenseDesBandits;
+    }
+
+    public function estGardee(): bool
+    {
+        return $this->defenseDesBandits > 0;
+    }
+
+    public function installerUneBande(int $defense): static
+    {
+        $this->defenseDesBandits = max(0, $defense);
+
+        return $this;
+    }
+
+    /**
+     * La case est prise. Rien ne la rendra dangereuse à nouveau.
+     */
+    public function pacifier(): static
+    {
+        $this->defenseDesBandits = 0;
+
+        return $this;
+    }
+
     public function indiceRecueilli(): bool
     {
         return $this->indiceRecueilli;

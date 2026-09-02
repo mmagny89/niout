@@ -16,6 +16,7 @@ use App\Game\AlphabetDesScribes;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
 use App\Game\AvantageDeNegoce;
+use App\Game\Bandits;
 use App\Game\CarnetDeContacts;
 use App\Game\CartoucheRoyal;
 use App\Game\CatalogueDeLaVille;
@@ -1043,6 +1044,9 @@ final class PartieController extends AbstractController
             'ville' => $ville,
             'zones' => $zones,
             'zoneDetaillee' => $detaillee,
+            // Ce que la case oppose réellement, renforts de la région compris
+            // (lot 10.1) : c'est ce chiffre-là qui décide d'y aller ou non.
+            'defenseDeLaZone' => null === $detaillee ? 0 : Bandits::defenseDe($partie->getVille(), $detaillee),
             'signaux' => $etat->signaux($partie),
             'connaitLaCrue' => $geographies->connaitLaCrue($partie),
             'expeditionEnCours' => null !== $detaillee ? $ville->aUneExpeditionVers($detaillee) : false,

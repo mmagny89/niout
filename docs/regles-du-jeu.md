@@ -286,6 +286,17 @@ Trois règles à ne pas défaire :
   il suit tout changement de coût des bâtiments d'ouverture. Les **vivres en
   sont exclus** — la dotation les taille sur la consommation réelle de la
   maisonnée envoyée, et un forfait par-dessus casserait ce calcul.
+- **Le danger est un attribut de case, pas un contenu** (`Zone::estGardee()`,
+  `Bandits`, doc 02 et doc 03). Une case garde son gisement **et** porte des
+  bandits : c'est le filon gardé, et c'est lui qui donne une raison de lever des
+  Medjaÿ. Une case gardée ne s'exploite ni ne se sème tant qu'elle l'est ; une
+  case pacifiée le reste. **L'anneau des huit cases autour de la ville en est
+  exclu** — le générateur y garantit un gisement de chaque matériau vital, et
+  une bande dessus rendrait la partie injouable au premier cycle. Le nombre de
+  bandes suit `partieEntiere(difficulté ÷ 2)` : le tableau de poids du doc 02
+  décrit un tirage de contenu, que le danger n'est pas. Chaque bande renforce
+  toutes les autres de 15 % (doc 03), **en centièmes entiers** — donc nettoyer
+  une case affaiblit toute la région.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais
