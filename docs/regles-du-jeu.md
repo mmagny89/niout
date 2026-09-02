@@ -321,6 +321,24 @@ Trois règles à ne pas défaire :
   perdraient de la force à chaque étape (discipline du lot 6.3). L'Armurier
   n'entre pas dans la qualité : il bonifie déjà la production d'armes, et deux
   effets pour une spécialité seraient un de trop.
+- **Le combat se résout d'un bloc, sans écran de bataille** (`Combat`, doc 03).
+  Le joueur agit **en amont** — qui lever, comment les armer, sous quel dieu —
+  et la sortie se joue en une fois : c'est ce qui la rend compatible avec le
+  principe fondateur du jeu, où rien ne se joue en temps réel. Le récit rendu
+  porte les **scores et les chances** : une défaite qu'on ne comprend pas se
+  subit, une défaite dont on voit qu'on partait à trois contre vingt s'apprend.
+- **Sekhmet décide de l'issue, Isis des pertes** (doc 03, doc 07). Sekhmet
+  infléchit le score (±10 %) ; Isis réduit la **mort permanente** de 25 % à
+  Favorable, 50 % à Dévoué, et ne touche ni les blessures ni l'issue. Les
+  confondre effacerait la distinction que le doc 07 pose en toutes lettres.
+  **Depuis ce lot, aucun dieu du panthéon n'est sans emploi.**
+- **Les boucliers ne se cumulent pas.** La réduction de pertes du fantassin
+  vaut une fois pour la troupe, jamais une fois par homme : dix fantassins ne
+  rendent pas une troupe invulnérable, et sans cette borne lever du fantassin
+  en nombre annulait toute perte.
+- **Un mort emporte son expérience, un blessé garde la sienne** (doc 03). C'est
+  le vrai enjeu de la perte définitive — pas le coût du recrutement, mais tout
+  ce qu'il faut réapprendre.
 **La consommation se compte en demi-rations** — deux par actif, une par
 inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais

@@ -134,7 +134,7 @@ final class ScribesTest extends WebTestCase
     public function testCeQuiDortEncoreEtRienDautre(): void
     {
         $dieuxInertes = array_filter(Divinite::pantheon(), static fn (Divinite $d): bool => !$d->agitDeja());
-        self::assertSame([Divinite::Isis], array_values($dieuxInertes));
+        self::assertSame([], array_values($dieuxInertes), 'Isis agit depuis le lot 10.4 : plus aucun dieu ne dort.');
 
         $specialitesInertes = array_filter(
             SpecialiteDeChef::cases(),

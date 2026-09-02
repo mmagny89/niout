@@ -50,19 +50,23 @@ final class EcranDuTempleTest extends WebTestCase
      * **Un dieu sans emploi le dit à l'écran**, et pas seulement dans le code :
      * c'est au moment de choisir à qui donner que l'information compte.
      */
-    public function testLesDieuxSansSystemeDaccueilPrevienentLeJoueur(): void
+    public function testPlusAucunDieuNannonceDattente(): void
     {
         $client = static::createClient();
         $partie = $this->partieAvecTemple($client, 'dieux-inertes@example.com');
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertResponseIsSuccessful();
 
-        $attenteDIsis = Divinite::Isis->attente();
-        self::assertNotNull($attenteDIsis);
-        self::assertSelectorTextContains('body', $attenteDIsis);
-
-        // Thot a cessé d'attendre au lot 7.7 : il éclaire les écrits.
-        self::assertNull(Divinite::Thot->attente());
+        // **Plus aucun dieu n'attend** : Thot a cessé au lot 7.7, Isis au
+        // 10.4. Le mécanisme reste — l'écran doit annoncer l'inertie de celui
+        // qu'on ajouterait demain — mais il n'a plus rien à dire aujourd'hui.
+        foreach (Divinite::pantheon() as $divinite) {
+            self::assertNull(
+                $divinite->attente(),
+                \sprintf('%s n\'a plus rien à faire attendre.', $divinite->libelle()),
+            );
+        }
     }
 
     /**

@@ -141,10 +141,12 @@ final class FaveurDivineTest extends KernelTestCase
             );
         }
 
-        self::assertFalse(Divinite::Isis->agitDeja(), 'Isis attend le combat.');
-        // Thot a cessé d'attendre au lot 7.7 : il éclaire les écrits, et
-        // abrège la reprise d'un dossier mal conclu.
+        // Thot a cessé d'attendre au lot 7.7 — il éclaire les écrits —, Isis
+        // au lot 10.4 : elle réduit la mort permanente au combat. **Le
+        // panthéon n'a plus aucun dieu sans emploi**, et la règle reste pour
+        // celui qu'on ajouterait demain.
         self::assertTrue(Divinite::Thot->agitDeja());
+        self::assertTrue(Divinite::Isis->agitDeja());
     }
 
     /**

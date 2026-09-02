@@ -120,28 +120,39 @@ enum Divinite: string
     /**
      * Un dieu dont le domaine n'existe pas encore dans le jeu **le dit**.
      *
-     * Isis attend le combat (Phase 10). Elle est
-     * offrable — le panthéon serait faux sans elle —, mais promettre un effet
-     * qui ne s'applique nulle part tromperait le joueur au moment même où il
-     * choisit à qui donner. Même règle que `SpecialiteDeChef::agitDeja()`.
+     * **Les huit agissent désormais.** Isis était la dernière à attendre, et le
+     * lot 10.4 lui a donné son domaine : elle réduit la mort permanente au
+     * combat, jamais son issue — le doc 07 la distingue de Sekhmet parce
+     * qu'elle protège l'homme quand l'autre décide du sort de tous.
+     *
+     * **Le garde-fou reste** : promettre un effet qui ne s'applique nulle part
+     * tromperait le joueur au moment même où il choisit à qui donner. Un dieu
+     * ajouté demain sans système d'accueil doit renvoyer `false` ici, et
+     * `attente()` le dira à l'écran. Même règle que
+     * `SpecialiteDeChef::agitDeja()`.
      */
     public function agitDeja(): bool
     {
         return match ($this) {
-            self::Isis => false,
             default => true,
         };
     }
 
     /**
      * Ce qu'on répond au joueur qui veut honorer un dieu encore sans emploi.
+     * Nul pour les huit du panthéon, qui agissent tous depuis le lot 10.4 —
+     * la phrase attend le prochain dieu, pas l'inverse.
      */
     public function attente(): ?string
     {
-        return match ($this) {
-            self::Isis => 'Aucune bataille ne se livre encore : sa protection attend les Medjaÿ.',
-            default => null,
-        };
+        if ($this->agitDeja()) {
+            return null;
+        }
+
+        return \sprintf(
+            'Le domaine de %s n\'existe pas encore dans le jeu : lui donner ne changerait rien pour l\'instant.',
+            $this->libelle(),
+        );
     }
 
     /**

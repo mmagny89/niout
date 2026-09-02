@@ -51,6 +51,14 @@ final readonly class EffetDeFaveur
      * qu'il ajoute à la chance qu'une maisonnée vienne d'elle-même.
      */
     public const int APPEL_MOINS_CHER_FAVORABLE = 20;
+
+    /**
+     * Ce qu'Isis retire au risque de mort permanente au combat (doc 03), en
+     * centièmes. Les seules valeurs de cette classe qui viennent d'un document
+     * plutôt que d'un calibrage : le doc 03 les chiffre nommément.
+     */
+    public const int MORT_MOINS_PROBABLE_FAVORABLE = 25;
+    public const int MORT_MOINS_PROBABLE_DEVOUE = 50;
     public const int APPEL_MOINS_CHER_DEVOUE = 35;
     public const int MIGRATION_FAVORABLE = 10;
     public const int MIGRATION_DEVOUE = 20;
@@ -147,6 +155,24 @@ final readonly class EffetDeFaveur
             $ville->palierDe(Divinite::Sobek),
             self::TRAJET_FAVORABLE,
             self::TRAJET_DEVOUE,
+        );
+    }
+
+    /**
+     * Ce qu'Isis retire au risque de mort permanente d'un Medjaÿ, en centièmes
+     * (doc 03 : −25 % à Favorable, −50 % à Dévoué).
+     *
+     * **Elle ne touche ni l'issue du combat ni les blessures.** Le doc 07 la
+     * distingue de Sekhmet en toutes lettres : Isis protège l'homme, Sekhmet
+     * décide du sort de tous. C'est ici, et nulle part ailleurs, qu'elle cesse
+     * d'être la seule divinité du jeu sans effet.
+     */
+    public static function protectionDIsis(City $ville): int
+    {
+        return self::selonLePalier(
+            $ville->palierDe(Divinite::Isis),
+            self::MORT_MOINS_PROBABLE_FAVORABLE,
+            self::MORT_MOINS_PROBABLE_DEVOUE,
         );
     }
 

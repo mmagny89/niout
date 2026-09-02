@@ -502,7 +502,7 @@ difficulté régionale, à poser avec les seuils du doc 11.
 | 10.1 | Le danger sur la carte : zones à bandits et défense de région | ✅ |
 | 10.2 | Les Medjaÿ : fantassin, archer, recrutement et entretien | ✅ |
 | 10.3 | L'équipement : les armes de la Forge cessent d'être une marchandise | ✅ |
-| 10.4 | La résolution automatique, et ce qu'elle coûte en hommes | |
+| 10.4 | La résolution automatique, et ce qu'elle coûte en hommes | ✅ |
 | 10.5 | L'escorte : expéditions lourdes et caravanes | |
 | 10.6 | Le Charrier : une réquisition, jamais un recrutement | |
 | 10.7 | Les six branchements dormants | |
@@ -651,7 +651,28 @@ durablement ? Et une unité sans arme se bat-elle quand même, à qualité minim
 ou refuse-t-elle de partir ? La première lecture fait des armes un flux, la
 seconde un stock — cela change toute la charge sur la Forge.
 
-#### 10.4 — La résolution
+#### 10.4 — La résolution  *(livré)*
+
+`Combat` porte la formule du document à la lettre, **en centièmes entiers** :
+une probabilité en virgule flottante serait le premier endroit du jeu où deux
+parties identiques divergeraient. La qualité d'équipement est déjà dans
+`Medjay::force()` (lot 10.3) et n'y entre donc pas deux fois.
+
+**Isis cesse d'être la divinité sans emploi**, et c'est le second des six
+branchements dormants qui se réveille. Elle réduit la mort permanente de 25 %
+à Favorable, 50 % à Dévoué — jamais les blessures, jamais l'issue du combat.
+C'est très exactement ce que le doc 07 en dit : elle protège l'homme quand
+Sekhmet décide du sort de tous. **Plus aucun dieu du panthéon n'annonce son
+inertie** ; le garde-fou reste pour celui qu'on ajouterait demain.
+
+Deux règles que le document ne donnait pas, et qui se sont imposées :
+
+- **les boucliers ne se cumulent pas.** Dix fantassins ne rendent pas une
+  troupe invulnérable — un mur de boucliers en vaut un, pas dix. Sans cette
+  borne, lever du fantassin en nombre annulait toute perte ;
+- **nettoyer une case affaiblit la région entière**, donc le butin d'une
+  première victoire est plus gros que celui de la dernière : `Bandits::defenseDe()`
+  compte les bandes encore tenues, et le butin se lit sur la défense réelle.
 
 ```
 scoreAttaque      = Σ(force × qualité d'équipement) × terrain × faveur
@@ -813,6 +834,7 @@ le calibrage du lot 4.6.
 | Plafond de l'avantage de négoce | 40 points de pourcentage, toutes sources confondues | `AvantageDeNegoce::PLAFOND_TOTAL` |
 | Défense d'une bande de brigands | 20, avant le facteur de région | `Bandits::DEFENSE_DE_BASE` |
 | Qualité d'un homme sans arme | 70 centièmes | `Equipement::QUALITE_SANS_ARME` |
+| Butin d'une bande vaincue | 50 % de ce qu'elle opposait | `Combat::BUTIN_POUR_CENT_DE_LA_DEFENSE` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,
