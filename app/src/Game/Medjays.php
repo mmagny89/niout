@@ -27,6 +27,20 @@ final readonly class Medjays
     public const int EFFECTIF_DE_BASE = 3;
     public const int EFFECTIF_PAR_NIVEAU = 2;
 
+    /**
+     * Les niveaux de **Résidence familiale** qui ouvrent chacun un emplacement
+     * de plus (doc 01, lot 11.6).
+     *
+     * Le doc 01 promettait ces emplacements sans les chiffrer, alors qu'il
+     * chiffrait l'effectif de la Caserne : le doublon a été tranché au 11.0, et
+     * **les deux s'ajoutent**. La Caserne décide de l'essentiel — trois hommes
+     * au plus viennent de la Résidence, ce qui ne dérègle aucun calibrage — et
+     * la Résidence cesse d'être un bâtiment qui ne fait rien.
+     *
+     * @var list<int>
+     */
+    public const array PALIERS_DE_RESIDENCE = [1, 3, 5];
+
     public function __construct(
         private EntityManagerInterface $entityManager,
     ) {
@@ -40,11 +54,30 @@ final readonly class Medjays
     {
         $niveau = $ville->batimentDeType(TypeDeBatiment::Caserne)?->getNiveau() ?? 0;
 
+        // **Sans Caserne, aucun homme** — quelle que soit la Résidence : on ne
+        // loge pas une troupe dans une ville qui n'a pas de quoi la caserner,
+        // et la Résidence ajoute des places, elle n'en crée pas de nulle part.
         if ($niveau < 1) {
             return 0;
         }
 
-        return self::EFFECTIF_DE_BASE + self::EFFECTIF_PAR_NIVEAU * $niveau;
+        return self::EFFECTIF_DE_BASE
+            + self::EFFECTIF_PAR_NIVEAU * $niveau
+            + self::emplacementsDeLaResidence($ville);
+    }
+
+    /**
+     * Ce que la Résidence familiale ajoute à l'effectif (doc 01, lot 11.6) :
+     * un homme par palier atteint.
+     */
+    public static function emplacementsDeLaResidence(City $ville): int
+    {
+        $niveau = $ville->batimentDeType(TypeDeBatiment::ResidenceFamiliale)?->getNiveau() ?? 0;
+
+        return \count(array_filter(
+            self::PALIERS_DE_RESIDENCE,
+            static fn (int $palier): bool => $niveau >= $palier,
+        ));
     }
 
     /**

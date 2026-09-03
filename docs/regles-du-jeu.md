@@ -383,6 +383,21 @@ Trois règles à ne pas défaire :
   famille, pas au mode — l'asymétrie d'avant venait d'un manque de jalon, non
   d'une règle. `Lignees::encaisser()` ne sait pas ce qui s'achève, seulement
   qu'il faut relever l'acquis : **c'est l'appelant qui décide du jalon**.
+- **Une succession familiale change le chef, jamais la maison**
+  (`SuccessionFamiliale`, doc 13). Une génération dure soixante cycles ± vingt,
+  ce qui la rend propre au mode Aventure — une mission de campagne les dépasse
+  rarement. **Ce qui persiste** : la renommée, les contacts, la faveur divine,
+  la ville entière et le nom de famille. **Ce qui se renouvelle** : le chef et
+  son trait. Les héritiers proposés **ne se persistent pas** — seule la graine
+  qui les décide se garde, si bien que deux visites du même écran en montrent
+  les mêmes.
+- **Les prénoms de chefs de famille sont attestés et ne sont jamais royaux**
+  (`PrenomEgyptien`) : registres de Deir el-Médineh et tombes de particuliers,
+  hommes et femmes ensemble. Même exigence que pour les cartouches.
+- **L'effectif de Medjaÿ croise deux bâtiments** : `3 + 2 × niveau de Caserne`,
+  plus un homme par palier de Résidence familiale (1, 3, 5). **Sans Caserne,
+  aucun homme** quelle que soit la Résidence : elle ajoute des places, elle n'en
+  crée pas de nulle part.
 - **Un mort emporte son expérience, un blessé garde la sienne** (doc 03). C'est
   le vrai enjeu de la perte définitive — pas le coût du recrutement, mais tout
   ce qu'il faut réapprendre.

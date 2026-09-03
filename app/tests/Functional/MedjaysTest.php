@@ -31,21 +31,30 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 final class MedjaysTest extends KernelTestCase
 {
     /**
-     * L'effectif du doc 01, à la lettre : `3 + 2 × niveau`. Zéro sans Caserne —
-     * on ne loge pas une troupe dans une ville qui n'a pas de quoi la caserner.
+     * L'effectif du doc 01, à la lettre : `3 + 2 × niveau de Caserne`, **plus
+     * un homme par palier de Résidence familiale** (lot 11.6). Zéro sans
+     * Caserne — on ne loge pas une troupe dans une ville qui n'a pas de quoi
+     * la caserner, et la Résidence ajoute des places, elle n'en crée pas de
+     * nulle part.
+     *
+     * La Résidence est là dès l'arrivée, au niveau 1 : elle ouvre donc
+     * toujours son premier emplacement.
      */
-    public function testLeffectifSuitLeNiveauDeCaserne(): void
+    public function testLeffectifSuitLaCaserneEtLaResidence(): void
     {
         self::bootKernel();
         $partie = $this->lancerUnePartie('effectif@example.com');
         $ville = $partie->getVille();
 
-        self::assertSame(0, $this->medjays()->effectifMaximum($ville));
+        self::assertSame(0, $this->medjays()->effectifMaximum($ville), 'Sans Caserne, aucun homme.');
+        self::assertSame(1, Medjays::emplacementsDeLaResidence($ville), 'La Résidence de niveau 1 ouvre un emplacement.');
 
-        $caserne = new Building($ville, TypeDeBatiment::Caserne);
-        $ville->ajouterBatiment($caserne);
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Caserne));
 
-        self::assertSame(5, $this->medjays()->effectifMaximum($ville));
+        self::assertSame(
+            Medjays::EFFECTIF_DE_BASE + Medjays::EFFECTIF_PAR_NIVEAU + 1,
+            $this->medjays()->effectifMaximum($ville),
+        );
     }
 
     /**

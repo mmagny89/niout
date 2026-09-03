@@ -85,6 +85,8 @@ use App\Game\SigneAlphabetique;
 use App\Game\SpecialisationMedjay;
 use App\Game\SpecialiteDeChef;
 use App\Game\SteleHistorique;
+use App\Game\SuccessionFamiliale;
+use App\Game\SuccessionImpossible;
 use App\Game\Successions;
 use App\Game\SymboleHieroglyphique;
 use App\Game\Temple;
@@ -216,6 +218,7 @@ final class PartieController extends AbstractController
         Medjays $medjaysService,
         Successions $successions,
         ScoreDAventure $score,
+        SuccessionFamiliale $successionFamiliale,
     ): Response {
         $ville = $partie->getVille();
         $geographie = $geographies->pour($partie);
@@ -276,6 +279,12 @@ final class PartieController extends AbstractController
             // car un total nu ne dit pas quoi faire pour le faire monter.
             'scoreDAventure' => $partie->estCampagne() ? null : $score->total($partie),
             'detailDuScore' => $partie->estCampagne() ? [] : $score->detail($partie),
+            // La succession familiale (lot 11.5) : elle ne s'ouvre qu'une fois
+            // la génération faite, et le jeu attend alors un choix.
+            'heritiers' => $successionFamiliale->heritiers($partie),
+            'chefDeFamille' => $partie->getFamille()->getChefDeFamille(),
+            'generation' => $partie->getFamille()->getGeneration(),
+            'traitDeLignee' => $partie->getFamille()->getTraitDeLignee(),
             'coutDUnAppel' => $appels->cout($partie),
             // La Caserne (lot 10.2) : la troupe, ce qu'elle coûte, et ce qui
             // empêche d'en lever un de plus — dit avant la tentative.
@@ -514,6 +523,37 @@ final class PartieController extends AbstractController
         $this->addFlash('succes', \sprintf(
             'Un %s rejoint votre troupe.',
             mb_strtolower($specialisation->libelle()),
+        ));
+
+        return $this->retourALaVille($request, $partie);
+    }
+
+    /**
+     * Choisit l'héritier qui prend la suite (doc 13).
+     *
+     * **Le contrôle vit dans le domaine** : la succession doit être ouverte, et
+     * l'héritier se présenter — un POST forgé ne change pas de chef de famille
+     * au milieu d'une génération.
+     */
+    #[Route('/{id}/ville/heritier', name: 'app_partie_heritier', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function choisirUnHeritier(Request $request, GameSave $partie, SuccessionFamiliale $successions): Response
+    {
+        if (!$this->isCsrfTokenValid('heritier', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        try {
+            $heritier = $successions->choisir($partie, (int) $request->request->get('heritier'));
+        } catch (SuccessionImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+
+            return $this->retourALaVille($request, $partie);
+        }
+
+        $this->addFlash('succes', \sprintf(
+            '%s prend la tête de la maison. La ville, elle, ne change pas de mains.',
+            $heritier->prenom,
         ));
 
         return $this->retourALaVille($request, $partie);
