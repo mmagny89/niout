@@ -99,7 +99,7 @@ l'inscription. Un compte peut mener **jusqu'à 5 parties en cours simultanément
 | `RivalCommercial` | ✅ | Un concurrent installé sur une route, et la part qu'il prend | 08 |
 | `Lignee` | ✅ | L'acquis d'un joueur, qui survit à ses parties : renommée persistante | 13 |
 | `Medjay` | ✅ | Un homme levé à la Caserne : spécialisation, arme, expérience, blessure | 03 |
-| … (Phase 11+) | — | Générations, héritiers, traits familiaux | 13, 14 |
+| … | ✅ | Générations, héritiers et traits familiaux vivent sur `Family` — aucune entité neuve | 13, 14 |
 
 `Family`, `City` et tout ce qui s'y rattache (`Zone`, `Building`, `Chantier`,
 `Expedition`, `Employee`, `JobOffer`, `OrdreDeFabrication`, `RouteCommerciale`,
@@ -165,7 +165,7 @@ lisible d'un coup d'œil.
 
 ---
 
-## 4 ter. Phase 9 — Renommée, héritage et succession familiale  *(cadrée)*
+## 4 ter. Phase 9 — Renommée, héritage et succession familiale  *(livrée)*
 
 Le doc 13 est le seul document de conception dont le jeu applique **la moitié
 sans le savoir** : les cinq paliers de renommée existent, aux plages exactes du
@@ -599,8 +599,8 @@ qui empêche de lever dix archers au quatrième niveau et de ne plus y penser.
 la Caserne (`3 + 2 × niveau`, chiffré) *et* promet des « emplacements Medjaÿ »
 à la Résidence familiale aux niveaux 1, 3 et 5 (non chiffrés). Le jeu suit la
 Caserne, seule des deux à porter un nombre. Les effets de Résidence relèvent des
-traits familiaux, eux aussi non implémentés, et rejoindront la Phase 11 avec la
-succession.
+traits familiaux, alors non implémentés. **Les deux ont été livrés au lot
+11.6** : la Caserne et la Résidence s'ajoutent, un homme par palier.
 
 Deux unités seulement, et le document explique pourquoi : les Medjaÿ étaient un
 corps de sécurité intérieure, armé d'arc et de bouclier, **jamais de chars** —
@@ -1152,16 +1152,24 @@ Un seul vrai écart de contenu : le document veut pour la mission 9 « grauwacke
 portant bien de l'or, l'aligner est trivial — reste à savoir si deux objectifs
 de ressource pure sur la même mission ne la rendent pas monotone.
 
-### Ce qu'il reste de feuille de route
+### La feuille de route est finie
 
-Les **Phases 9 et 10 sont livrées** ; leurs récits sont au journal
-([`phases-livrees.md`](phases-livrees.md), § 5.12 et § 5.13).
+**Les onze phases sont livrées** ; leurs récits sont au journal
+([`phases-livrees.md`](phases-livrees.md)). Il n'en reste aucune à cadrer :
+l'intégration des sprites, un temps prévue en Phase 12, se mène hors phase
+(§ 7).
 
-La **Phase 11 est cadrée** et garde son format détaillé, lot par lot, jusqu'à sa
-livraison (§ 4 quinquies). **C'est la dernière** : l'intégration des sprites,
-un temps prévue en Phase 12, se mène désormais hors phase (§ 7), et le jeu entre
-ensuite dans le temps du playtest — c'est lui qui décidera des calibrages
-signalés au § 6, non un cadrage de plus.
+**Ce qui vient n'est plus du cadrage mais du jeu.** Trois chantiers restent
+ouverts, aucun ne demandant une phase :
+
+| Chantier | Ce qu'il demande |
+|---|---|
+| Les **XIXᵉ et XXᵉ dynasties**, jusqu'à Ramsès XI | Du **sourcing seul** — un cartouche et un chantier par pharaon. La succession étant une donnée, les ajouter ne touche aucun code |
+| Le **découpage des dix-huit planches** | Un travail d'images, décrit au § 7 |
+| Le **calibrage** des valeurs inventées | Le playtest, et lui seul : le § 6 les liste toutes |
+
+Deux points de forme du doc 10 restent aussi ouverts (voir plus haut), et les
+défauts connus hors périmètre sont consignés au journal, phase par phase.
 
 ---
 
@@ -1202,6 +1210,8 @@ le calibrage du lot 4.6.
 | Risque de pillage d'un convoi | 5 % par bande encore tenue | `Commerce::RISQUE_PAR_BANDE_DE_LA_REGION` |
 | Bonus de combat du Bagarreur | +10 % à la Caserne | `TraitDeCandidat::BONUS_DE_COMBAT_DU_BAGARREUR` |
 | Malus civil du Bagarreur | −10 % de compétence | `TraitDeCandidat::MALUS_CIVIL_DU_BAGARREUR` |
+| Poids du score d'Aventure | 10 par habitant, 1 par deben, 10 par point de renommée, 1 pour 10 deben échangés | `ScoreDAventure` |
+| Score converti en centièmes de réussite | 100 points pour un centième | `Successions::POINTS_PAR_CENTIEME` |
 | Couverture d'un Medjaÿ sur les routes | 15 % du risque | `Commerce::PROTECTION_PAR_MEDJAY` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population

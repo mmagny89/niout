@@ -73,7 +73,8 @@ vide.
 
 **La Résidence familiale recueille tout ce qui n'appartient à aucun bâtiment** :
 mission, objectifs, renommée, main-d'œuvre, chantiers, liste de ce qui reste à
-bâtir. Elle est le foyer de la lignée, présente dès le premier jour et jamais
+bâtir — et, en mode Aventure, le règne en cours, le score cumulatif et la
+succession familiale. Elle est le foyer de la lignée, présente dès le premier jour et jamais
 construite — l'y mettre est la seule façon de garder ces écrans atteignables
 pour une ville qui n'a encore rien dressé. C'est aussi le point de chute par
 défaut de toute fonctionnalité qu'on ne sait pas rattacher à un bâtiment.
@@ -147,6 +148,22 @@ elle fixe le prix d'un appel d'habitants, fait venir des maisonnées seules à
 partir de « Respectée » et attire les rivaux, mais n'était nulle part à l'écran
 — ce qu'elle change se subissait sans se comprendre. Elle dit aussi ce qui reste
 à faire pour le palier suivant : un compteur nu se subit, un objectif se joue.
+
+**En Aventure, la mission cède la place au règne** (lot 11.1) : la Résidence
+nomme le pharaon régnant, son cartouche quand il est établi, le rang du règne
+dans la succession et le fait de son avènement. Un cartouche dont la lecture ne
+s'établit pas **ne s'affiche pas** — c'est la règle des hiéroglyphes, et elle
+prime sur l'envie de remplir la ligne.
+
+**Le score cumulatif se montre en détail, pas seulement en total** (lot 11.4) :
+un total nu ne se joue pas, on ne sait pas quoi faire pour le faire monter.
+L'écran dit donc ce que chaque grandeur pèse — habitants, deben, renommée,
+marchandises échangées — et rappelle qu'il n'y a rien à atteindre.
+
+**La succession familiale ne s'affiche que lorsqu'elle s'ouvre** (lot 11.5), et
+elle dit d'abord ce qui **ne** change **pas** : la ville, la renommée et les
+contacts restent. Sans cela, le joueur croirait risquer sa partie au moment où
+on lui demande de choisir un héritier.
 
 **Et ce qu'elle vaut sur les prix** (lot 9.3) : la Résidence familiale annonce
 la remise à l'achat et la majoration à la vente, puis l'avantage **total** dès
