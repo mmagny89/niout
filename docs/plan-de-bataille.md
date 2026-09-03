@@ -849,32 +849,48 @@ mode structurellement injouable sur la durée, ce qui est précisément son prop
 
 | Lot | Contenu | |
 |---|---|---|
-| 11.0 | Les arbitrages, avant d'écrire | |
-| 11.1 | Memphis commerce : des partenaires sans numéro de mission | |
-| 11.2 | La succession des règnes : durées, transitions, pharaons | |
+| 11.0 | Les arbitrages, avant d'écrire | ✅ |
+| 11.1 | La succession des règnes : durées, transitions, pharaons | |
+| 11.2 | Memphis commerce : des partenaires qui suivent le règne | |
 | 11.3 | Le contenu royal qui se renouvelle : chantiers, cartouches, stèles | |
 | 11.4 | Le score cumulatif, et une fin qu'on choisit | |
 | 11.5 | La succession familiale : générations et héritiers *(ex-lot 9.6)* | |
 | 11.6 | Les effets de Résidence familiale du doc 01 | |
 
-#### 11.1 — Memphis commerce
+#### 11.0 — Les arbitrages, tranchés
 
-Le catalogue des partenaires est indexé par mission ; il faut lui donner une
-entrée pour un mode qui n'en a pas. Le doc 14 dit quoi y mettre : Memphis est un
-**carrefour**, pas un site d'extraction, et son profil doit donc être plus large
-que celui d'aucune mission — le Nil vers le nord et le sud, les pistes vers
-l'est et l'ouest.
+Même méthode qu'aux 9.0 et 10.0 : ces réponses décident de la forme des lots, et
+les découvrir en codant coûterait une reprise.
 
-C'est aussi ce qui rend le lot 11.2 jouable : un règne qui change sans que le
-commerce suive ne changerait rien à la partie.
+| Question | Tranché | Ce que cela impose |
+|---|---|---|
+| Les partenaires de Memphis suivent-ils le règne ? | **Oui** | La succession cesse d'être un habillage : un pharaon tourné vers la Nubie n'ouvre pas les mêmes routes qu'un pharaon tourné vers le Levant, et le commerce change avec le règne. **Cela réordonne les lots** — voir ci-dessous |
+| La partie Aventure a-t-elle une fin ? | **Oui, la fin du Nouvel Empire** | La succession n'est pas une boucle infinie : elle a un dernier règne, et la partie s'y achève. Le mode reste un bac à sable *long*, il n'est pas *sans fin* |
+| Combien de règnes sourcer avant de livrer ? | **La XVIIIᵉ dynastie d'abord** | Les treize règnes de l'exemple du doc 14, d'Ahmôsis Iᵉʳ à Horemheb — dont huit déjà documentés par la campagne. La boucle est complète et éprouvable ; les XIXᵉ et XXᵉ s'ajoutent ensuite **sans toucher au code**, la liste étant une donnée |
+| Le mode Aventure alimente-t-il la lignée ? | **Oui, à chaque fin de règne** | La renommée appartient à la famille, pas au mode : l'asymétrie actuelle ne se justifiait par aucun document. Un règne achevé relève l'acquis comme une mission accomplie |
+| La Résidence familiale pèse-t-elle sur l'effectif Medjaÿ ? | **Oui, elle s'ajoute** | `3 + 2 × niveau de Caserne`, **plus un homme par palier de Résidence atteint** (niveaux 1, 3, 5). La Caserne décide de l'essentiel, la Résidence retrouve un effet concret, et trois hommes au plus ne dérèglent rien |
 
-**À trancher** : les partenaires de Memphis sont-ils **fixes**, ou **suivent-ils
-le règne** — un pharaon tourné vers la Nubie ouvrant d'autres routes qu'un
-pharaon tourné vers le Levant ? La seconde lecture donne au 11.2 sa conséquence
-économique, et c'est elle qui ferait de la succession autre chose qu'un
-habillage.
+**Une tension à assumer, entre les deux premières réponses.** La fin est celle
+du Nouvel Empire, mais la première livraison ne portera que la XVIIIᵉ dynastie :
+**la partie s'achèvera donc à Horemheb**, et non à Ramsès XI. C'est cohérent —
+la fin est la fin de la liste, et la liste s'allonge — mais il faut que le code
+en tire la conséquence : la **succession est une donnée, jamais une constante**,
+et rien ne doit supposer qu'elle s'arrête à un pharaon nommé.
 
-#### 11.2 — La succession des règnes
+**Une conséquence de forme qui réordonne les lots.** Si les partenaires suivent
+le règne, le commerce ne peut pas être réparé avant que le règne existe : le lot
+qui posait Memphis comme carrefour dépend désormais de celui qui pose la
+succession. **Les lots 11.1 et 11.2 échangent donc leur place** — la succession
+d'abord, le commerce ensuite.
+
+**Une conséquence de fond à connaître, sur le lot 11.4.** L'Aventure nourrissant
+la lignée, une longue partie à Memphis peut faire monter la renommée dont
+profiteront ensuite les missions de campagne. C'est **assumé** : la renommée est
+un acquis de famille, et le doc 13 ne l'a jamais restreinte à la campagne. Si le
+playtest montre qu'un bac à sable devient le chemin court vers une campagne
+facile, le remède sera un plafond, pas un cloisonnement.
+
+#### 11.1 — La succession des règnes
 
 Le document est chiffré, et se garde d'une fausse précision : un règne ne se
 convertit **pas** année pour année, mais par **catégorie de longueur** —
@@ -888,10 +904,35 @@ elle appartient à la famille, pas au règne.
 
 **Le sourcing est le vrai travail**, comme pour les cartouches et les stèles :
 huit pharaons de la campagne sont déjà documentés, les autres — Amenhotep Iᵉʳ,
-Thoutmôsis II, Amenhotep II, Thoutmôsis IV, Toutânkhamon, Horemheb, Ramsès II —
-demandent le même soin. **La règle du projet vaut ici comme pour les
-hiéroglyphes** : rien d'inventé, et l'on n'affiche rien plutôt qu'une
-approximation.
+Thoutmôsis II, Amenhotep II, Thoutmôsis IV, Toutânkhamon, Horemheb — demandent
+le même soin. **La règle du projet vaut ici comme pour les hiéroglyphes** : rien
+d'inventé, et l'on n'affiche rien plutôt qu'une approximation.
+
+**La liste est une donnée, jamais une constante** (arbitrage 11.0). La première
+livraison porte la XVIIIᵉ dynastie, donc la partie s'achève à Horemheb ; les
+XIXᵉ et XXᵉ s'ajouteront sans toucher au code, jusqu'à Ramsès XI. Rien ne doit
+supposer qu'elle s'arrête à un pharaon nommé.
+
+#### 11.2 — Memphis commerce
+
+Le catalogue des partenaires est indexé par mission ; il faut lui donner une
+entrée pour un mode qui n'en a pas. Le doc 14 dit quoi y mettre : Memphis est un
+**carrefour**, pas un site d'extraction, et son profil doit donc être plus large
+que celui d'aucune mission — le Nil vers le nord et le sud, les pistes vers
+l'est et l'ouest.
+
+C'est aussi ce qui rend le lot 11.2 jouable : un règne qui change sans que le
+commerce suive ne changerait rien à la partie.
+
+**Tranché : ils suivent le règne** (arbitrage 11.0). Un pharaon tourné vers la
+Nubie n'ouvre pas les mêmes routes qu'un pharaon tourné vers le Levant, et c'est
+ce qui fait de la succession autre chose qu'un habillage narratif. C'est aussi
+pourquoi ce lot vient **après** le 11.1 : on ne fait pas suivre un règne qui
+n'existe pas encore.
+
+Un socle demeure quoi qu'il arrive — le Nil vers le nord et le sud —, sans quoi
+un règne mal tourné laisserait Memphis sans commerce du tout, ce qui reproduirait
+le défaut qu'on vient corriger.
 
 #### 11.3 — Le contenu royal qui se renouvelle
 
@@ -911,9 +952,17 @@ que le joueur suit à tout moment, et qu'il arrête quand il veut. Le jeu sait
 déjà tout compter : `ObjectifsDeMission` mesure exactement ces grandeurs pour
 la campagne, et le score n'en est qu'une lecture continue.
 
-**À trancher** : la partie s'arrête-t-elle à la fin du Nouvel Empire, ou
-tourne-t-elle indéfiniment une fois la succession épuisée ? Le document pose la
-question sans y répondre.
+**Tranché : elle s'arrête à la fin de la succession** (arbitrage 11.0). Le mode
+est un bac à sable *long*, il n'est pas *sans fin* : le dernier règne clôt la
+partie, qui reste consultable avec son meilleur score — comme une partie de
+campagne achevée. La borne visée est la fin du Nouvel Empire ; d'ici que la liste
+y parvienne, c'est le dernier règne connu qui fait fin.
+
+**C'est aussi le jalon qui nourrit la lignée** : chaque règne achevé relève
+l'acquis de renommée, ce que le mode ne faisait pas faute de mission à
+terminer (arbitrage 11.0). Une longue partie à Memphis peut donc profiter aux
+missions de campagne suivantes — assumé : la renommée est un acquis de famille,
+et le doc 13 ne l'a jamais restreinte à la campagne.
 
 #### 11.5 — La succession familiale *(ex-lot 9.6)*
 
@@ -934,16 +983,19 @@ Le doc 01 leur donne cinq niveaux, dont le jeu n'applique aucun : emplacement
 Medjaÿ aux niveaux 1, 3 et 5, **trait familial** aux niveaux 2 et 5, bonus de
 renommée passif au niveau 4.
 
-**Un doublon à trancher, signalé au lot 10.2** : le document chiffre l'effectif
-Medjaÿ à la Caserne (`3 + 2 × niveau`) **et** promet des emplacements à la
-Résidence, sans les chiffrer. Le jeu suit la Caserne ; si la Résidence doit
-peser aussi, il faut décider comment les deux se composent.
+**Le doublon signalé au lot 10.2 est tranché : les deux s'ajoutent**
+(arbitrage 11.0). L'effectif vaut `3 + 2 × niveau de Caserne`, **plus un homme
+par palier de Résidence atteint** — niveaux 1, 3 et 5. La Caserne décide de
+l'essentiel, la Résidence retrouve un effet concret, et trois hommes au plus ne
+dérèglent aucun calibrage.
 
 Le **trait familial** est le vrai contenu neuf : un trait qui appartient à la
 lignée et non à un employé, choisi par le joueur — le premier effet du jeu qui
 se choisisse plutôt qu'il ne se tire.
 
-#### À trancher avec la joueuse
+#### Les questions telles qu'elles se posaient
+
+Conservées pour l'enjeu qu'elles portent ; les réponses sont au 11.0.
 
 | Question | Enjeu |
 |---|---|
@@ -957,14 +1009,18 @@ se choisisse plutôt qu'il ne se tire.
 
 Parcours de bout en bout : lancer une partie Aventure à Memphis → ouvrir une
 route commerciale et faire rentrer un convoi → jouer assez de cycles pour voir
-un règne s'achever → lire le texte de transition, voir le cartouche changer et
-de nouvelles quêtes de chantier apparaître → consulter son score cumulatif →
-mener une génération à son terme et choisir un héritier.
+un règne s'achever → lire le texte de transition, voir le cartouche changer, les
+routes ouvertes changer avec lui et de nouvelles quêtes de chantier apparaître →
+constater que l'acquis de la lignée a monté → consulter son score cumulatif →
+mener une génération à son terme et choisir un héritier → atteindre le dernier
+règne de la liste et voir la partie s'achever.
 
 Tests sur les invariants : la faveur divine **ne se réinitialise pas** à un
-changement de règne, aucun système de campagne ne se réveille en Aventure — ni
-fil rouge, ni achèvement de mission, ni legs —, et une partie Aventure ne
-consomme ni n'ouvre de mission de campagne.
+changement de règne ; aucun système de campagne ne se réveille en Aventure — ni
+fil rouge, ni achèvement de mission, ni legs ; une partie Aventure ne consomme ni
+n'ouvre de mission de campagne ; **Memphis n'est jamais sans partenaire**, quel
+que soit le règne ; et rien ne suppose que la succession s'arrête à un pharaon
+nommé — allonger la liste ne doit toucher aucun code.
 
 ---
 
