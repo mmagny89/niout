@@ -44,7 +44,6 @@ final readonly class SuccessionDesRegnes
         return [
             new Regne(
                 pharaon: 'Ahmôsis Ier',
-                nomDeTrone: 'Nebpehtyrê',
                 dynastie: 18,
                 anneesReelles: 25,
                 dureeEnCycles: 20,
@@ -52,7 +51,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Amenhotep Ier',
-                nomDeTrone: 'Djeserkarê',
                 dynastie: 18,
                 anneesReelles: 21,
                 dureeEnCycles: 18,
@@ -60,7 +58,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Thoutmôsis Ier',
-                nomDeTrone: 'Aakheperkarê',
                 dynastie: 18,
                 anneesReelles: 13,
                 dureeEnCycles: 12,
@@ -68,7 +65,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Thoutmôsis II',
-                nomDeTrone: 'Aakheperenrê',
                 dynastie: 18,
                 anneesReelles: 13,
                 dureeEnCycles: 12,
@@ -76,7 +72,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Hatchepsout',
-                nomDeTrone: 'Maâtkarê',
                 dynastie: 18,
                 anneesReelles: 22,
                 dureeEnCycles: 20,
@@ -84,7 +79,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Thoutmôsis III',
-                nomDeTrone: 'Menkheperrê',
                 dynastie: 18,
                 anneesReelles: 54,
                 dureeEnCycles: 30,
@@ -92,7 +86,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Amenhotep II',
-                nomDeTrone: 'Aakheperourê',
                 dynastie: 18,
                 anneesReelles: 26,
                 dureeEnCycles: 21,
@@ -100,7 +93,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Thoutmôsis IV',
-                nomDeTrone: 'Menkheperourê',
                 dynastie: 18,
                 anneesReelles: 10,
                 dureeEnCycles: 11,
@@ -108,7 +100,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Amenhotep III',
-                nomDeTrone: 'Nebmaâtrê',
                 dynastie: 18,
                 anneesReelles: 38,
                 dureeEnCycles: 32,
@@ -116,7 +107,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Akhenaton',
-                nomDeTrone: 'Neferkheperourê-Ouaenrê',
                 dynastie: 18,
                 anneesReelles: 17,
                 dureeEnCycles: 17,
@@ -124,7 +114,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Toutânkhamon',
-                nomDeTrone: 'Nebkheperourê',
                 dynastie: 18,
                 anneesReelles: 10,
                 dureeEnCycles: 11,
@@ -132,7 +121,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Aÿ',
-                nomDeTrone: 'Kheperkheperourê',
                 dynastie: 18,
                 anneesReelles: 4,
                 dureeEnCycles: 10,
@@ -140,7 +128,6 @@ final readonly class SuccessionDesRegnes
             ),
             new Regne(
                 pharaon: 'Horemheb',
-                nomDeTrone: 'Djeserkheperourê-Setepenrê',
                 dynastie: 18,
                 anneesReelles: 14,
                 dureeEnCycles: 13,

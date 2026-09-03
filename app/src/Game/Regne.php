@@ -16,8 +16,6 @@ final readonly class Regne
     public function __construct(
         /** Le nom sous lequel le pharaon est connu — la clé de `CartoucheRoyal::pourLePharaon()`. */
         public string $pharaon,
-        /** Son nom de trône, tel qu'il figure dans le cartouche. */
-        public string $nomDeTrone,
         /** La dynastie, en chiffres : 18, 19, 20. */
         public int $dynastie,
         /** Les années de règne réelles, arrondies — elles décident de la catégorie, jamais de la durée en jeu. */
@@ -39,6 +37,17 @@ final readonly class Regne
      * des hiéroglyphes vaut ici comme partout — un cartouche dont la lecture ne
      * s'établit pas ne s'affiche pas.
      */
+    /**
+     * Son nom de trône — **lu sur le cartouche, jamais recopié à côté**.
+     *
+     * Les deux ont divergé le jour où on les a écrits deux fois : `Nebpehtyré`
+     * ici, `Nebpehtyrê` là. Une seule source, et la question ne se pose plus.
+     */
+    public function nomDeTrone(): ?string
+    {
+        return $this->cartouche()?->lecture();
+    }
+
     public function cartouche(): ?CartoucheRoyal
     {
         return CartoucheRoyal::pourLePharaon($this->pharaon);

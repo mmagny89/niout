@@ -852,7 +852,7 @@ mode structurellement injouable sur la durée, ce qui est précisément son prop
 | 11.0 | Les arbitrages, avant d'écrire | ✅ |
 | 11.1 | La succession des règnes : durées, transitions, pharaons | ✅ |
 | 11.2 | Memphis commerce : des partenaires qui suivent le règne | ✅ |
-| 11.3 | Le contenu royal qui se renouvelle : chantiers, cartouches, stèles | |
+| 11.3 | Le contenu royal qui se renouvelle : chantiers, cartouches, stèles | ✅ |
 | 11.4 | Le score cumulatif, et une fin qu'on choisit | |
 | 11.5 | La succession familiale : générations et héritiers *(ex-lot 9.6)* | |
 | 11.6 | Les effets de Résidence familiale du doc 01 | |
@@ -970,7 +970,27 @@ Un socle demeure quoi qu'il arrive — le Nil vers le nord et le sud —, sans q
 un règne mal tourné laisserait Memphis sans commerce du tout, ce qui reproduirait
 le défaut qu'on vient corriger.
 
-#### 11.3 — Le contenu royal qui se renouvelle
+#### 11.3 — Le contenu royal qui se renouvelle  *(livré)*
+
+**Sept cartouches et sept chantiers sourcés**, un par pharaon que la campagne ne
+commandite pas. Les treize règnes ont désormais leur cartouche réel et leur
+monument attesté ; deux règnes ne réclament jamais le même, et c'est testé.
+
+**Les glyphes ont été générés depuis leurs codes de Gardiner**, jamais saisis à
+la main : Unicode nomme chaque caractère par son code, ce qui rend la
+correspondance exacte et supprime la seule table qui pouvait diverger.
+`CodesDeGardinerTest` en confronte désormais 114. La police sous-ensemblée a été
+régénérée — 55 signes, 16 Ko — sans quoi les nouveaux se seraient affichés en
+carré vide, sans erreur ni avertissement.
+
+**Une duplication supprimée en chemin** : le nom de trône était écrit deux fois,
+sur `Regne` et sur `CartoucheRoyal`, et les deux avaient déjà divergé —
+`Nebpehtyré` d'un côté, `Nebpehtyrê` de l'autre. Il se lit maintenant sur le
+cartouche seul.
+
+**Les stèles restent hors du mode.** Elles closent l'acte III d'un fil rouge, et
+l'Aventure n'en a pas : les y forcer aurait demandé d'inventer une intrigue par
+règne, ce que le document ne demande nulle part.
 
 `QuetesDeChantier` refuse aujourd'hui de rien réclamer hors campagne, et le
 `CartoucheRoyal` comme la `SteleHistorique` sont attachés à un numéro de
