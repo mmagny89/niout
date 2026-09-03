@@ -140,13 +140,14 @@ vues, pas de la conception.
 | **8 ter** | Écriture : l'alphabet des scribes et les stèles | `10`, `09` | ✅ |
 | **9** | Renommée, héritage et succession familiale | `13` | ✅ (9.6 → Phase 11) |
 | **10** | Medjaÿ et combat automatique | `03` | ✅ |
-| **11** | Mode Aventure : Memphis, succession des règnes, héritage familial | `14`, `13`, `01` | à cadrer |
-| **12** | Découpage et intégration des sprites | `15` | à cadrer |
+| **11** | Mode Aventure : Memphis, succession des règnes, héritage familial | `14`, `13`, `01` | cadrée |
 
-Le document 15 (interface & direction artistique) est **transverse** : chaque
-phase l'utilise au fur et à mesure, la phase 12 ne concerne que l'intégration
-des images elles-mêmes — **hors planche « tuiles »**, découpée dès la Phase 3
-pour l'écran de carte.
+**La Phase 11 est la dernière.** L'intégration des sprites, un temps prévue en
+Phase 12, **n'est plus une phase** (décision de la joueuse) : le document 15 est
+transverse, chaque phase l'utilise au fur et à mesure, et le travail restant est
+un **découpage d'images**, pas un système de jeu. Le rythme d'une phase — un
+cadrage, des lots, un journal — ne lui apportait rien. Il se mènera au fil de
+l'eau, planche par planche ; le pipeline est décrit en § 7.
 
 **Réordonnancements par rapport à la première version.** Les cycles (doc 05)
 sont montés de la Phase 5 initiale à la Phase 2 : ils ne sont pas un système
@@ -806,6 +807,167 @@ sans toucher à l'issue du combat.
 
 ---
 
+## 4 quinquies. Phase 11 — Mode Aventure, succession des règnes et héritage familial  *(cadrée)*
+
+Le mode Aventure **existe déjà comme choix au lancement** : on peut ouvrir une
+partie à Memphis, avec sa difficulté et sa taille de grille, et y jouer tout ce
+que les dix phases précédentes ont posé. Ce qui manque n'est pas le mode, c'est
+**ce qui le distingue de la campagne** — une succession de règnes, un contenu
+royal qui se renouvelle, et une fin qu'on ne subit pas.
+
+Elle hérite aussi de deux lots reportés : la **succession familiale** (9.6) et
+les **effets de Résidence familiale** du doc 01, jamais implantés.
+
+### Ce qui existe déjà, et qu'il ne faut pas refaire
+
+| Le document demande | Le jeu fait |
+|---|---|
+| Une seule ville, Memphis, absente de la campagne | `LanceurDePartie::VILLE_DU_MODE_AVENTURE` |
+| Nil et désert, ni Méditerranée ni mer Rouge | `LanceurDePartie::geographieDuModeAventure()` |
+| Argile, roseaux, calcaire, natron, poisson | La même méthode, aux quatre ressources de zone près |
+| Grille plus généreuse, difficulté au choix | Le formulaire de lancement les propose déjà |
+| Toutes les mécaniques du jeu, sans « une mission = un objectif » | `FilRouge`, `AchevementDeMission`, `Legs` et `Progression` se taisent hors campagne |
+| La faveur divine n'appartient pas au règne | `FaveurDivine` est portée par la ville, jamais par la mission |
+
+### Le défaut de fond : Memphis ne commerce avec personne
+
+`Commerce::partenairesDe()` lit le catalogue **par numéro de mission**, et rend
+un tableau vide quand il n'y en a pas. En mode Aventure, **aucune route n'est
+donc ouvrable** : l'Entrepôt et le Port ne servent à rien, et les ressources
+importées sont hors d'atteinte.
+
+C'est le contraire exact de ce que le doc 14 dit de Memphis : « son atout réel
+est l'**accès privilégié aux ressources importées** de tout le pays, pas une
+richesse minière propre ». Le document lui refuse délibérément l'or, le cuivre
+et la turquoise en zone locale — c'est le commerce qui devait compenser, et il
+n'existe pas.
+
+Trois autres systèmes se taisent pour la même raison, mais celui-là rend le
+mode structurellement injouable sur la durée, ce qui est précisément son propos.
+
+### Les lots
+
+| Lot | Contenu | |
+|---|---|---|
+| 11.0 | Les arbitrages, avant d'écrire | |
+| 11.1 | Memphis commerce : des partenaires sans numéro de mission | |
+| 11.2 | La succession des règnes : durées, transitions, pharaons | |
+| 11.3 | Le contenu royal qui se renouvelle : chantiers, cartouches, stèles | |
+| 11.4 | Le score cumulatif, et une fin qu'on choisit | |
+| 11.5 | La succession familiale : générations et héritiers *(ex-lot 9.6)* | |
+| 11.6 | Les effets de Résidence familiale du doc 01 | |
+
+#### 11.1 — Memphis commerce
+
+Le catalogue des partenaires est indexé par mission ; il faut lui donner une
+entrée pour un mode qui n'en a pas. Le doc 14 dit quoi y mettre : Memphis est un
+**carrefour**, pas un site d'extraction, et son profil doit donc être plus large
+que celui d'aucune mission — le Nil vers le nord et le sud, les pistes vers
+l'est et l'ouest.
+
+C'est aussi ce qui rend le lot 11.2 jouable : un règne qui change sans que le
+commerce suive ne changerait rien à la partie.
+
+**À trancher** : les partenaires de Memphis sont-ils **fixes**, ou **suivent-ils
+le règne** — un pharaon tourné vers la Nubie ouvrant d'autres routes qu'un
+pharaon tourné vers le Levant ? La seconde lecture donne au 11.2 sa conséquence
+économique, et c'est elle qui ferait de la succession autre chose qu'un
+habillage.
+
+#### 11.2 — La succession des règnes
+
+Le document est chiffré, et se garde d'une fausse précision : un règne ne se
+convertit **pas** année pour année, mais par **catégorie de longueur** —
+court (< 15 ans) 10-15 cycles, moyen (15-30) 16-25, long (> 30) 26-35. L'ordre
+relatif est respecté sans prétendre simuler un calendrier.
+
+Il donne treize règnes en exemple, de la XVIIIᵉ à la XIXᵉ dynastie, et laisse
+la liste extensible. À chaque succession : un **texte de transition**, de
+nouvelles **quêtes de chantiers royaux**, et la faveur divine **inchangée** —
+elle appartient à la famille, pas au règne.
+
+**Le sourcing est le vrai travail**, comme pour les cartouches et les stèles :
+huit pharaons de la campagne sont déjà documentés, les autres — Amenhotep Iᵉʳ,
+Thoutmôsis II, Amenhotep II, Thoutmôsis IV, Toutânkhamon, Horemheb, Ramsès II —
+demandent le même soin. **La règle du projet vaut ici comme pour les
+hiéroglyphes** : rien d'inventé, et l'on n'affiche rien plutôt qu'une
+approximation.
+
+#### 11.3 — Le contenu royal qui se renouvelle
+
+`QuetesDeChantier` refuse aujourd'hui de rien réclamer hors campagne, et le
+`CartoucheRoyal` comme la `SteleHistorique` sont attachés à un numéro de
+mission. C'est la conséquence directe du 11.2 : un règne apporte son pharaon,
+donc son cartouche, ses chantiers et sa stèle.
+
+**Le gain pédagogique est l'argument du document** : une partie Aventure fait
+rencontrer bien plus de pharaons que les huit de la campagne. C'est aussi le
+plus gros volume de contenu de la phase.
+
+#### 11.4 — Le score et la fin
+
+Pas d'objectif fermé : un **score cumulatif** — richesse, population, renommée —
+que le joueur suit à tout moment, et qu'il arrête quand il veut. Le jeu sait
+déjà tout compter : `ObjectifsDeMission` mesure exactement ces grandeurs pour
+la campagne, et le score n'en est qu'une lecture continue.
+
+**À trancher** : la partie s'arrête-t-elle à la fin du Nouvel Empire, ou
+tourne-t-elle indéfiniment une fois la succession épuisée ? Le document pose la
+question sans y répondre.
+
+#### 11.5 — La succession familiale *(ex-lot 9.6)*
+
+Reporté depuis la Phase 9, et pour une raison qui tient toujours : une
+génération dure **60 cycles ± 20**, quand une mission de campagne les dépasse
+rarement. Ici, une partie qui traverse treize règnes en compte plusieurs
+centaines : le lot trouve enfin le mode où il se déclenche.
+
+Le mécanisme est déjà à moitié écrit — `TraitDeCandidat`, `GenerateurDeCandidat`
+et l'offre d'emploi se transposent presque tels quels. **Ce qui persiste** : la
+renommée, les contacts, la faveur divine, la ville. **Ce qui se renouvelle** :
+le trait actif et le nom du chef de famille. Il manque une liste de **prénoms
+égyptiens attestés**, du même travail de sourcing que les cartouches.
+
+#### 11.6 — Les effets de Résidence familiale
+
+Le doc 01 leur donne cinq niveaux, dont le jeu n'applique aucun : emplacement
+Medjaÿ aux niveaux 1, 3 et 5, **trait familial** aux niveaux 2 et 5, bonus de
+renommée passif au niveau 4.
+
+**Un doublon à trancher, signalé au lot 10.2** : le document chiffre l'effectif
+Medjaÿ à la Caserne (`3 + 2 × niveau`) **et** promet des emplacements à la
+Résidence, sans les chiffrer. Le jeu suit la Caserne ; si la Résidence doit
+peser aussi, il faut décider comment les deux se composent.
+
+Le **trait familial** est le vrai contenu neuf : un trait qui appartient à la
+lignée et non à un employé, choisi par le joueur — le premier effet du jeu qui
+se choisisse plutôt qu'il ne se tire.
+
+#### À trancher avec la joueuse
+
+| Question | Enjeu |
+|---|---|
+| Les partenaires de Memphis sont-ils fixes ou liés au règne ? | La seconde lecture donne à la succession une conséquence économique ; la première la réduit à un habillage narratif |
+| La partie Aventure a-t-elle une fin ? | Le document pose la question sans y répondre. Une fin au Nouvel Empire donne une dernière image ; l'infini tient la promesse du bac à sable |
+| Le mode Aventure alimente-t-il la lignée ? | Laissé ouvert en Phase 9 : il lit l'acquis de renommée sans jamais le nourrir, faute de mission à achever. Une succession de règnes offre enfin des jalons où l'encaisser |
+| La Résidence familiale pèse-t-elle sur l'effectif Medjaÿ ? | Le doc 01 le promet sans le chiffrer, alors qu'il chiffre celui de la Caserne. Deux sources pour un même nombre demandent une règle de composition |
+| Combien de règnes sourcer avant de livrer ? | Les treize de l'exemple, ou la XVIIIᵉ dynastie seule ? Chaque règne demande le sourcing des cartouches et des stèles — c'est le poste le plus lourd de la phase |
+
+#### Définition de « fini »
+
+Parcours de bout en bout : lancer une partie Aventure à Memphis → ouvrir une
+route commerciale et faire rentrer un convoi → jouer assez de cycles pour voir
+un règne s'achever → lire le texte de transition, voir le cartouche changer et
+de nouvelles quêtes de chantier apparaître → consulter son score cumulatif →
+mener une génération à son terme et choisir un héritier.
+
+Tests sur les invariants : la faveur divine **ne se réinitialise pas** à un
+changement de règne, aucun système de campagne ne se réveille en Aventure — ni
+fil rouge, ni achèvement de mission, ni legs —, et une partie Aventure ne
+consomme ni n'ouvre de mission de campagne.
+
+---
+
 ## 5. Ce qui vient
 
 ### Deux formats plus pauvres que ce que le doc 10 annonce
@@ -836,17 +998,16 @@ Un seul vrai écart de contenu : le document veut pour la mission 9 « grauwacke
 portant bien de l'or, l'aligner est trivial — reste à savoir si deux objectifs
 de ressource pure sur la même mission ne la rendent pas monotone.
 
-### Les phases à cadrer
+### Ce qu'il reste de feuille de route
 
 Les **Phases 9 et 10 sont livrées** ; leurs récits sont au journal
-([`phases-livrees.md`](phases-livrees.md), § 5.12 et § 5.13). Les deux
-suivantes traduisent chacune un document déjà spécifié ; leur cadrage se fera à
-leur tour.
+([`phases-livrees.md`](phases-livrees.md), § 5.12 et § 5.13).
 
-| Phase | Sujet | Ce qu'elle apporte |
-|---|---|---|
-| **11** — Mode Aventure (`14`) | Memphis, succession des règnes, partie sans fin | Le mode existe déjà comme choix au lancement, sans contenu propre. **Reçoit le lot 9.6** (générations et héritiers), qui ne se déclenche presque jamais en campagne, **les effets de Résidence familiale** du doc 01 — traits de lignée et emplacements Medjaÿ, tous deux non chiffrés — et la question laissée ouverte par la Phase 9 : le mode lit l'acquis de la lignée sans jamais l'alimenter |
-| **12** — Sprites (`15`) | Découpage et intégration des 18 planches | Hors planche « tuiles », déjà intégrée en Phase 3 |
+La **Phase 11 est cadrée** et garde son format détaillé, lot par lot, jusqu'à sa
+livraison (§ 4 quinquies). **C'est la dernière** : l'intégration des sprites,
+un temps prévue en Phase 12, se mène désormais hors phase (§ 7), et le jeu entre
+ensuite dans le temps du playtest — c'est lui qui décidera des calibrages
+signalés au § 6, non un cadrage de plus.
 
 ---
 
@@ -896,7 +1057,12 @@ document ne dit rien.
 
 ---
 
-## 7. Pipeline des assets graphiques
+## 7. Pipeline des assets graphiques  *(hors phase)*
+
+**Ce travail ne fait pas l'objet d'une phase** (décision de la joueuse) : c'est
+un découpage d'images, pas un système de jeu, et il se mène au fil de l'eau,
+planche par planche, quand un écran en a besoin. Ce qui suit est la marche à
+suivre, pas une feuille de route.
 
 Les **18 planches** décrites dans le document 15 sont **déjà générées** et
 présentes dans le sous-dossier `Sprites/` du Drive (bâtiments ×12, carte,
