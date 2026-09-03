@@ -6,6 +6,7 @@ namespace App\Game;
 
 use App\Entity\Building;
 use App\Entity\City;
+use App\Entity\Parcelle;
 use App\Entity\Zone;
 
 /**
@@ -147,13 +148,41 @@ final readonly class Effectifs
     }
 
     /**
+     * Les bras que les champs semés réclament, dans la limite de ce que la
+     * ville en a.
+     *
+     * **On les met de côté avant de servir les bâtiments** (playtest) : c'est
+     * le seul changement d'ordre du jeu, et il vient d'un défaut mesuré. Une
+     * ville qui bâtissait voyait ses actifs absorbés par ses bâtiments — les
+     * champs n'en recevaient **aucun**, rendaient au tiers, et la ville tombait
+     * en famine pour avoir construit. Ni un convoi de départ plus nombreux ni
+     * plus de champs par case n'y changeaient rien : les bras n'arrivaient
+     * jamais jusqu'à la terre.
+     *
+     * **Une ville se nourrit avant de faire de la poterie.** C'est la seule
+     * priorité que le jeu impose, et elle ne porte que sur les champs
+     * **semés** — une carrière ou une pêcherie se sert après les bâtiments,
+     * comme avant.
+     */
+    public static function brasPourLesChamps(City $ville, int $cycle): int
+    {
+        $reclames = 0;
+
+        foreach ($ville->getZones() as $zone) {
+            $reclames += self::TRAVAILLEURS_PAR_CHAMP * $zone->getChamps();
+        }
+
+        return min($reclames, self::brasDisponibles($ville, $cycle));
+    }
+
+    /**
      * Répartit les bras de la ville entre ses bâtiments, et rend pour chacun
      * son effectif et son rendement.
      *
-     * **L'ordre de service est alphabétique**, donc stable et explicable, mais
-     * arbitraire : le joueur ne peut pas encore dire quel bâtiment servir en
-     * premier quand les bras manquent. C'est un manque assumé de ce lot, à
-     * reprendre si le playtest montre qu'il coûte des parties.
+     * **Les champs semés sont servis d'abord** (voir `brasPourLesChamps()`) :
+     * ce qui reste va aux bâtiments. Entre eux, l'ordre est alphabétique, donc
+     * stable et explicable, mais arbitraire — le joueur ne peut pas encore dire
+     * quel bâtiment servir en premier quand les bras manquent.
      *
      * @return array<string, array{batiment: Building, requis: int, affectes: int, rendement: int}>
      *                                                                                              indexé par la valeur du type de bâtiment
@@ -166,7 +195,7 @@ final readonly class Effectifs
             static fn (Building $a, Building $b): int => $a->getType()->libelle() <=> $b->getType()->libelle(),
         );
 
-        $bras = self::brasDisponibles($ville, $cycle);
+        $bras = max(0, self::brasDisponibles($ville, $cycle) - self::brasPourLesChamps($ville, $cycle));
         $repartition = [];
 
         foreach ($batiments as $batiment) {
@@ -299,8 +328,8 @@ final readonly class Effectifs
      * lui donnent. Comme pour les bâtiments, l'ordre à l'intérieur est stable
      * mais arbitraire — le joueur ne choisit pas encore qui servir d'abord.
      *
-     * @return array<string, array{zone: Zone, ressource: ?Ressource, requis: int, affectes: int, rendement: int}>
-     *                                                                                                             indexé par « x:y:ressource »
+     * @return array<string, array{zone: Zone, ressource: ?Ressource, parcelle: ?Parcelle, requis: int, affectes: int, bonus: int, rendement: int}>
+     *                                                                                                                                              indexé par « x:y:ressource »
      */
     public static function repartirLeTerritoire(City $ville, int $cycle): array
     {
@@ -311,23 +340,38 @@ final readonly class Effectifs
         }
 
         $repartition = [];
+        $exploitations = self::exploitations($ville);
 
-        foreach (self::exploitations($ville) as $cle => $exploitation) {
+        // Les champs d'abord, le reste ensuite : les bras qu'on leur a réservés
+        // dans `repartir()` doivent leur revenir, pas être pris au passage par
+        // une carrière mieux placée sur la grille. Une ville se nourrit avant
+        // d'extraire.
+        uasort(
+            $exploitations,
+            static fn (array $a, array $b): int => (null === $a['ressource'] ? 0 : 1) <=> (null === $b['ressource'] ? 0 : 1),
+        );
+
+        foreach ($exploitations as $cle => $exploitation) {
             $gouvernant = self::batimentGouvernant($exploitation['ressource']);
             $niveau = self::niveauDuGouvernant($ville, $exploitation['ressource']);
             $qualite = EffetDeChef::qualiteDeDirection($ville, $gouvernant, $cycle);
             $requis = self::equipageRequis($exploitation['ressource'], $niveau);
             $affectes = min($requis, max(0, $bras));
             $bras -= $affectes;
+            $bonus = self::bonusDeNiveauEnCentiemes($niveau, $qualite);
 
             $repartition[$cle] = [
                 'zone' => $exploitation['zone'],
                 'ressource' => $exploitation['ressource'],
+                'parcelle' => $exploitation['parcelle'],
                 'requis' => $requis,
                 'affectes' => $affectes,
+                // Ce que le bâtiment gouvernant ajoute, isolé : la récolte d'une
+                // parcelle ne se compte pas comme celle d'un filon (voir
+                // `Recoltes`), mais le niveau du Grenier y pèse pareillement.
+                'bonus' => $bonus,
                 'rendement' => intdiv(
-                    self::rendementEnCentiemes($affectes, $requis)
-                        * self::bonusDeNiveauEnCentiemes($niveau, $qualite),
+                    self::rendementEnCentiemes($affectes, $requis) * $bonus,
                     self::RENDEMENT_PLEIN,
                 ),
             ];
@@ -345,10 +389,24 @@ final readonly class Effectifs
     }
 
     /**
+     * La clé d'une parcelle : son rang la distingue des autres champs de la
+     * même case, qui ont chacun leur culture, leur cycle et leur homme.
+     */
+    public static function cleDeParcelle(Parcelle $parcelle): string
+    {
+        return \sprintf(
+            '%d:%d:champ:%d',
+            $parcelle->getZone()->getX(),
+            $parcelle->getZone()->getY(),
+            $parcelle->getRang(),
+        );
+    }
+
+    /**
      * Tout ce qui travaille sur le territoire : les champs semés et les
      * gisements en activité. Un filon dormant ne réclame personne.
      *
-     * @return array<string, array{zone: Zone, ressource: ?Ressource}>
+     * @return array<string, array{zone: Zone, ressource: ?Ressource, parcelle: ?Parcelle}>
      */
     private static function exploitations(City $ville): array
     {
@@ -361,14 +419,24 @@ final readonly class Effectifs
         $exploitations = [];
 
         foreach ($zones as $zone) {
-            if ($zone->porteUnChamp()) {
-                $exploitations[self::cleDe($zone, null)] = ['zone' => $zone, 'ressource' => null];
+            // **Une exploitation par parcelle**, pas par case : chacune a sa
+            // culture, son cycle et son homme.
+            foreach ($zone->getParcelles() as $parcelle) {
+                $exploitations[self::cleDeParcelle($parcelle)] = [
+                    'zone' => $zone,
+                    'ressource' => null,
+                    'parcelle' => $parcelle,
+                ];
             }
 
             foreach ($zone->getGisements() as $gisement) {
                 if ($gisement->estExploitee()) {
                     $ressource = $gisement->getRessource();
-                    $exploitations[self::cleDe($zone, $ressource)] = ['zone' => $zone, 'ressource' => $ressource];
+                    $exploitations[self::cleDe($zone, $ressource)] = [
+                        'zone' => $zone,
+                        'ressource' => $ressource,
+                        'parcelle' => null,
+                    ];
                 }
             }
         }

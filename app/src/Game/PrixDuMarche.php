@@ -89,34 +89,35 @@ final readonly class PrixDuMarche
             // la matière brute, sans quoi personne ne fabriquerait rien ; mais
             // pas au point que vendre brut n'ait plus jamais de sens.
             //
-            // **Recalculés au lot 5.2**, qui a réécrit les recettes à
-            // plusieurs ingrédients : un lot rend désormais plusieurs pièces,
-            // ce qui amortit le deben et fait baisser le prix unitaire.
-            // `Recette::coutDunLot()` est la source, `RecetteTest` le vérifie.
-            Ressource::Poterie->value => 7,      // 17 le lot, 4 pièces
-            Ressource::Pain->value => 9,         // 26 le lot, 5 pièces
-            Ressource::Vannerie->value => 7,     // 18 le lot, 4 pièces
-            Ressource::Papyrus->value => 12,     // 22 le lot, 3 pièces
-            Ressource::Sandales->value => 8,     // 20 le lot, 4 pièces
-            Ressource::Tissus->value => 27,      // 49 le lot, 3 pièces
+            // **Recalculés depuis le retrait du deben des recettes** (décision
+            // de la joueuse, playtest) : un lot ne coûte plus que ses matières,
+            // la main-d'œuvre étant déjà payée par les salaires. Le coût d'un
+            // lot baisse, donc le prix qui s'en déduit baisse avec lui.
+            // `Recette::coutDunLot()` est la source, `RessourcesFabriqueesTest`
+            // le vérifie.
+            Ressource::Poterie->value => 6,      // 14 le lot, 4 pièces
+            Ressource::Pain->value => 8,         // 24 le lot, 5 pièces
+            Ressource::Vannerie->value => 7,     // 16 le lot, 4 pièces
+            Ressource::Papyrus->value => 10,     // 18 le lot, 3 pièces
+            Ressource::Sandales->value => 7,     // 18 le lot, 4 pièces
+            Ressource::Tissus->value => 24,      // 44 le lot, 3 pièces
             // La bière se fait avec du pain : son coût dépend du prix de
             // celui-ci, et se fixe donc après lui.
-            Ressource::Biere->value => 19,       // 46 le lot, 4 pièces
+            Ressource::Biere->value => 16,       // 40 le lot, 4 pièces
 
             // La Forge : le doc 08 ne chiffre ni ses recettes ni ses prix.
-            // **Recalculés au lot 5.3**, sur les recettes réelles — une lame de
-            // cuivre et son manche, une hache et ses liens de lin.
-            Ressource::Outils->value => 32,      // 59 le lot, 3 pièces
-            Ressource::Armes->value => 47,       // 86 le lot, 3 pièces
+            // Calculés sur les recettes réelles — une lame de cuivre et son
+            // manche, une hache et ses liens de lin.
+            Ressource::Outils->value => 30,      // 54 le lot, 3 pièces
+            Ressource::Armes->value => 43,       // 78 le lot, 3 pièces
 
             // Craft de luxe : ce que l'Entrepôt de haut niveau finit par
-            // ouvrir, et le sommet de la chaîne de valeur du jeu.
-            // Recalculés au lot 5.8 sur les recettes réelles. Une pièce de
-            // prestige se fait à l'unité : le deben du lot ne s'amortit sur
-            // rien, et le prix unitaire reste donc élevé.
-            Ressource::Bijoux->value => 205,     // 124 le lot, 1 pièce
-            Ressource::Statuettes->value => 137, // 83 le lot, 1 pièce
-            Ressource::Vases->value => 99,       // 60 le lot, 1 pièce
+            // ouvrir, et le sommet de la chaîne de valeur du jeu. Une pièce de
+            // prestige se fait à l'unité, sur des matières qui coûtent cher :
+            // le prix unitaire reste donc élevé.
+            Ressource::Bijoux->value => 189,     // 114 le lot, 1 pièce
+            Ressource::Statuettes->value => 112, // 68 le lot, 1 pièce
+            Ressource::Vases->value => 86,       // 52 le lot, 1 pièce
         ];
     }
 

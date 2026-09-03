@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Game;
 
 use App\Entity\GameSave;
+use App\Entity\PresentRoyal;
 use App\Entity\QueteDeChantier;
 use Doctrine\ORM\EntityManagerInterface;
 use Random\Randomizer;
@@ -41,10 +42,42 @@ final readonly class QuetesDeChantier
     public const int RENOMMEE_PERDUE = 2;
     public const int FAVEUR_GAGNEE = 10;
 
+    /**
+     * Ce que le pharaon renvoie, en centièmes de la valeur au cours de ce qui
+     * a été livré (décision de la joueuse au playtest).
+     *
+     * **Pourquoi une contrepartie.** Honorer une demande ne rapportait que de
+     * la renommée et de la faveur : la ville se dépouillait de vingt à
+     * cinquante unités d'une ressource sans jamais rien voir revenir. Sur une
+     * partie où le deben ne rentrait presque pas, refuser était toujours le
+     * choix rationnel, et tout ce système d'ancrage historique devenait un
+     * malus qu'on évitait.
+     *
+     * **Pourquoi pas cent.** Le présent vaut moins que le don : servir le roi
+     * reste une dépense, dont la renommée et la faveur sont le vrai gain. À
+     * parité, la quête serait devenue une vente sans risque et sans choix.
+     */
+    public const int PRESENT_EN_CENTIEMES = 60;
+
+    /**
+     * Quinzaines que met le convoi royal à remonter jusqu'à la ville. Le
+     * présent n'arrive pas au clic : c'est un revenu qu'on anticipe, pas un
+     * troc.
+     */
+    public const int QUINZAINES_DE_ROUTE = 3;
+
+    /**
+     * Ce que le roi joint au deben, quand ses magasins portent quelque chose
+     * que la région ne produit pas.
+     */
+    public const int UNITES_JOINTES_MIN = 8;
+    public const int UNITES_JOINTES_MAX = 16;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
         private MissionCatalogue $missions,
         private Successions $successions,
+        private GeographieDeLaPartie $geographies,
         private Randomizer $hasard = new Randomizer(),
     ) {
     }
@@ -55,28 +88,69 @@ final readonly class QuetesDeChantier
     public function avancerDUnCycle(GameSave $partie): array
     {
         $ville = $partie->getVille();
+
+        // Ce que le roi renvoie arrive d'abord : un présent en route ne dépend
+        // pas de la demande en cours, et se recevrait mal le jour même où l'on
+        // en refuse une autre.
+        $messages = $this->recevoirLesPresents($partie);
+
         $quete = $ville->getQueteDeChantier();
 
         if (null !== $quete) {
             if (!$quete->avancerDUnCycle()) {
-                return [];
+                return $messages;
             }
 
             $ville->retirerLaQueteDeChantier();
             $partie->getFamille()->ajusterRenommee(-self::RENOMMEE_PERDUE);
             $this->entityManager->remove($quete);
 
-            return [\sprintf(
+            return [...$messages, \sprintf(
                 'Le délai est passé : la pierre pour %s n\'est jamais partie. On le remarque.',
                 $quete->getChantier()->libelle(),
             )];
         }
 
         if (0 !== $partie->getCycle() % self::CYCLES_ENTRE_DEUX) {
-            return [];
+            return $messages;
         }
 
-        return $this->reclamer($partie);
+        return [...$messages, ...$this->reclamer($partie)];
+    }
+
+    /**
+     * Les convois royaux qui entrent en ville.
+     *
+     * @return list<string>
+     */
+    private function recevoirLesPresents(GameSave $partie): array
+    {
+        $ville = $partie->getVille();
+        $messages = [];
+
+        foreach ($ville->getPresentsRoyaux()->toArray() as $present) {
+            if (!$present->avancerDUnCycle()) {
+                continue;
+            }
+
+            $ressource = $present->getRessource();
+            $refuse = $ville->surplusRefuse([$ressource->value => $present->getQuantite()]);
+            $ville->crediterRessources([$ressource->value => $present->getQuantite()]);
+            $ville->recevoirLePresent($present);
+            $this->entityManager->remove($present);
+
+            $manque = $refuse[$ressource->value] ?? 0;
+
+            $messages[] = \sprintf(
+                'Un convoi du palais entre en ville : %d %s, en reconnaissance de %s.%s',
+                $present->getQuantite(),
+                $ressource->libelle(),
+                $present->getChantier(),
+                $manque > 0 ? \sprintf(' Vos réserves étant pleines, %d n\'ont pas pu être rangés.', $manque) : '',
+            );
+        }
+
+        return $messages;
     }
 
     /**
@@ -110,15 +184,107 @@ final readonly class QuetesDeChantier
             ));
         }
 
+        $annonce = $this->preparerLePresent($partie, $quete);
+
         $ville->retirerLaQueteDeChantier();
         $this->entityManager->remove($quete);
         $this->entityManager->flush();
 
         return \sprintf(
-            'Votre chargement part pour %s. %s',
+            'Votre chargement part pour %s. %s%s',
             $quete->getChantier()->libelle(),
             $quete->getChantier()->ceQuOnEnSait(),
+            $annonce,
         );
+    }
+
+    /**
+     * Ce que le roi renvoie, et qui remontera le fleuve pendant quelques
+     * quinzaines.
+     *
+     * **Du deben d'abord**, proportionnel à la valeur de ce qui a été donné :
+     * c'est la contrepartie qui rend une demande acceptable à une ville qui
+     * n'a rien en caisse. **Et souvent un matériau que la région ne produit
+     * pas** : les magasins royaux tenaient l'Égypte entière, et rien n'est
+     * plus juste pour un camp minier du Sinaï que de recevoir du bois qu'aucun
+     * de ses ouadis ne porte. C'est aussi ce qui donne à ces quêtes un intérêt
+     * qui n'est pas seulement monétaire.
+     *
+     * @return string ce qu'on en annonce au joueur, à joindre au récit
+     */
+    private function preparerLePresent(GameSave $partie, QueteDeChantier $quete): string
+    {
+        $ville = $partie->getVille();
+        $chantier = $quete->getChantier()->libelle();
+        $annonces = [];
+
+        $valeur = (PrixDuMarche::pour($quete->getRessource()) ?? 0) * $quete->getQuantite();
+        $deben = intdiv($valeur * self::PRESENT_EN_CENTIEMES, 100);
+
+        if ($deben > 0) {
+            $ville->attendreUnPresentRoyal(new PresentRoyal(
+                $ville,
+                Ressource::Deben,
+                $deben,
+                self::QUINZAINES_DE_ROUTE,
+                $chantier,
+            ));
+            $annonces[] = \sprintf('%d deben', $deben);
+        }
+
+        $jointe = $this->ceQueLaRegionNaPas($partie);
+
+        if (null !== $jointe) {
+            $quantite = $this->hasard->getInt(self::UNITES_JOINTES_MIN, self::UNITES_JOINTES_MAX);
+            $ville->attendreUnPresentRoyal(new PresentRoyal(
+                $ville,
+                $jointe,
+                $quantite,
+                self::QUINZAINES_DE_ROUTE,
+                $chantier,
+            ));
+            $annonces[] = \sprintf('%d %s', $quantite, $jointe->libelle());
+        }
+
+        if ([] === $annonces) {
+            return '';
+        }
+
+        return \sprintf(
+            ' Le palais annonce un présent en retour — %s —, qui vous parviendra dans %d quinzaines.',
+            implode(' et ', $annonces),
+            self::QUINZAINES_DE_ROUTE,
+        );
+    }
+
+    /**
+     * Un matériau utile que la région ne porte en aucun gisement, tiré au sort.
+     * Nul si la région produit déjà tout ce dont on se sert pour bâtir.
+     *
+     * On ne pioche que parmi les **matériaux de construction** : renvoyer du
+     * lapis-lazuli ou de l'ivoire ferait un cadeau de prestige, joli mais sans
+     * emploi pour une ville qui manque de charpente.
+     */
+    private function ceQueLaRegionNaPas(GameSave $partie): ?Ressource
+    {
+        $locales = $this->geographies->pour($partie)->ressourcesDeZone;
+
+        $manquants = array_values(array_filter(
+            [
+                Ressource::BoisLocal,
+                Ressource::Roseaux,
+                Ressource::Argile,
+                Ressource::Calcaire,
+                Ressource::Cuivre,
+            ],
+            static fn (Ressource $ressource): bool => !in_array($ressource, $locales, true),
+        ));
+
+        if ([] === $manquants) {
+            return null;
+        }
+
+        return $manquants[$this->hasard->getInt(0, count($manquants) - 1)];
     }
 
     /**

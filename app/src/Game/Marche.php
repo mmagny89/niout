@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Game;
 
+use App\Entity\City;
 use App\Entity\GameSave;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -111,8 +112,7 @@ final readonly class Marche
         // second** (lot 9.3) : on achète moins cher et l'on vend plus cher à
         // qui l'on connaît, mais deux divisions entières enchaînées perdraient
         // des deben à chaque étape. Une multiplication, une division.
-        $coefficient = EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Marche, $partie->getCycle())
-            + AvantageDeNegoce::deLaRenommee($partie->getFamille()->getRenommee());
+        $coefficient = $this->coefficientDeVente($partie);
 
         $recette = intdiv($prix * $quantite * $coefficient, Effectifs::RENDEMENT_PLEIN);
 
@@ -141,6 +141,168 @@ final readonly class Marche
         $this->entityManager->flush();
 
         return $recette;
+    }
+
+    /**
+     * Le jour de marché : tout ce qui dépasse les seuils de garde part à
+     * l'étal (`ReserveGardee`).
+     *
+     * **Pourquoi cette vente automatique existe.** Sans elle, le Marché ne
+     * rapportait un deben que si le joueur venait cliquer, ressource par
+     * ressource, à chaque quinzaine. Une partie menée normalement — explorer,
+     * bâtir, avancer le temps — ne produisait donc **aucune monnaie**, alors
+     * que les salaires tombaient à chaque cycle : la caisse ne pouvait que
+     * descendre, et la seule stratégie viable était de ne rien entreprendre.
+     *
+     * **Le joueur déclare ce qu'il garde, pas ce qu'il vend** (décision de la
+     * joueuse). « Sur mes cent argiles, j'en veux soixante » : le surplus part,
+     * quinzaine après quinzaine, jusqu'à ce que le stock retombe à soixante et
+     * s'y tienne. Un plafond de vente aurait obligé à recalculer sa consigne
+     * chaque fois que la production change ; un plancher de garde se pose une
+     * fois — il dit ce dont on a besoin — et le reste se règle tout seul.
+     *
+     * **C'est déterministe.** Le surplus part en entier, dans la limite du
+     * débouché. Ajouter un tirage par-dessus le débouché — qui varie déjà avec
+     * la population et le niveau du Marché — aurait rendu illisible une
+     * consigne dont tout l'intérêt est qu'on la pose et qu'on l'oublie.
+     *
+     * **Ce que ça ne change pas.** Le débouché de la quinzaine borne toujours
+     * l'ensemble, ventes à la main comprises : le Marché reste la place d'une
+     * ville, jamais le vaste monde. Un gros surplus met donc plusieurs
+     * quinzaines à s'écouler, et la vraie richesse continue de passer par les
+     * routes commerciales.
+     *
+     * **Ça ne donne pas de renommée** (décision assumée). Le doc 13 accorde un
+     * point pour un « gros contrat conclu » : le commerce de détail quotidien
+     * n'en est pas un, et l'accorder ici ferait monter la jauge d'un point par
+     * quinzaine sans que le joueur ait rien décidé — cent points en cent
+     * cycles, là où le document en fait l'affaire d'une campagne entière.
+     * Vendre gros, à la main, reste donc ce qui fait connaître une famille.
+     *
+     * L'ordre de service est celui des lignes : sur la dernière place du
+     * débouché, la première ressource déclarée passe avant.
+     *
+     * @return list<string> ce qu'il faut en rapporter au joueur
+     */
+    public function tenirLEtal(GameSave $partie): array
+    {
+        $ville = $partie->getVille();
+
+        if (!$ville->possede(TypeDeBatiment::Marche)) {
+            return [];
+        }
+
+        $reste = $this->venteRestante($partie);
+
+        if ($reste < 1 || $ville->getReservesGardees()->isEmpty()) {
+            return [];
+        }
+
+        $coefficient = $this->coefficientDeVente($partie);
+        $recetteTotale = 0;
+        $ecoule = [];
+
+        foreach ($ville->getReservesGardees() as $reserve) {
+            if ($reste < 1) {
+                break;
+            }
+
+            $ressource = $reserve->getRessource();
+            $prix = PrixDuMarche::pour($ressource);
+
+            if (null === $prix) {
+                continue;
+            }
+
+            // Ce qui dépasse le seuil, et rien d'autre : en deçà, la ville ne
+            // vend jamais. C'est ce que le joueur a réservé à ses chantiers et
+            // à ses caravanes.
+            $quantite = $reserve->surplusDans($ville);
+
+            if ($quantite < 1) {
+                continue;
+            }
+
+            // Ce que le débouché restant permet encore d'écouler de cette
+            // ressource. On borne **la quantité**, pas la recette : vendre
+            // puis découvrir qu'on a dépassé la place ferait perdre la
+            // marchandise. Le surplus qui ne passe pas aujourd'hui repassera
+            // à la quinzaine suivante — le seuil, lui, ne bouge pas.
+            $tenable = intdiv($reste * Effectifs::RENDEMENT_PLEIN, max(1, $prix * $coefficient));
+            $quantite = min($quantite, $tenable);
+
+            if ($quantite < 1) {
+                continue;
+            }
+
+            $recette = intdiv($prix * $quantite * $coefficient, Effectifs::RENDEMENT_PLEIN);
+
+            if ($recette < 1 || !$ville->debiterRessources([$ressource->value => $quantite])) {
+                continue;
+            }
+
+            $ville->crediterRessources([Ressource::Deben->value => $recette]);
+            $ville->compterUneVenteAuMarche($recette);
+            $ville->compterUnEchange($recette);
+
+            $reste -= $recette;
+            $recetteTotale += $recette;
+            $ecoule[] = \sprintf('%d %s', $quantite, $ressource->libelle());
+        }
+
+        if ([] === $ecoule) {
+            return [];
+        }
+
+        $this->entityManager->flush();
+
+        return [\sprintf(
+            'Jour de marché : la ville vous a pris %s, pour %d deben.',
+            $this->enumerer($ecoule),
+            $recetteTotale,
+        )];
+    }
+
+    /**
+     * Ce que vaut une vente au Marché, en centièmes du cours de base : les
+     * bras de la place et la compétence de ceux qui les dirigent, plus ce que
+     * la renommée de la famille vaut au négoce.
+     *
+     * **Un seul coefficient, pas deux multiplications enchaînées** : la
+     * renommée s'ajoute à la qualité de direction, elle ne pose pas un second
+     * facteur. Deux divisions entières perdraient des deben à chaque étape
+     * sans que personne sache l'expliquer ensuite.
+     */
+    private function coefficientDeVente(GameSave $partie): int
+    {
+        $ville = $partie->getVille();
+
+        $coefficient = EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Marche, $partie->getCycle())
+            + AvantageDeNegoce::deLaRenommee($partie->getFamille()->getRenommee());
+
+        // La marge que le joueur fait payer à ses propres habitants **est un
+        // facteur, pas un terme** : elle multiplie ce que vaut la vente, là où
+        // la compétence et la renommée s'additionnent entre elles. Ce sont deux
+        // choses différentes — l'une dit ce que le Marché sait tirer d'un lot,
+        // l'autre ce qu'on décide d'en demander.
+        //
+        // Une seule division, comme partout : deux divisions entières
+        // enchaînées perdraient des deben à chaque étape.
+        return intdiv($coefficient * $ville->getMargeDuMarche(), City::MARGE_DE_BASE);
+    }
+
+    /**
+     * @param list<string> $elements
+     */
+    private function enumerer(array $elements): string
+    {
+        if (count($elements) < 2) {
+            return $elements[0] ?? '';
+        }
+
+        $dernier = array_pop($elements);
+
+        return implode(', ', $elements).' et '.$dernier;
     }
 
     /**

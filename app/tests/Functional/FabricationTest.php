@@ -429,6 +429,146 @@ final class FabricationTest extends KernelTestCase
         return $quinzaines;
     }
 
+    /**
+     * **Le défaut que la consigne corrige** (playtest) : un ordre tient une à
+     * trois quinzaines, puis l'Atelier s'arrêtait et attendait qu'on revienne
+     * le relancer à la main. Sur une partie où l'on passe des quinzaines
+     * entières sur la carte, il dormait l'essentiel du temps.
+     */
+    public function testUneConsigneRemetLAtelierAuTravailToutSeul(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('consigne@example.com');
+        $ville = $partie->getVille();
+
+        $ville->consigner(Recette::Poterie, 1);
+        $this->fabrication()->lancer($partie, Recette::Poterie, 1);
+
+        // Un Atelier sans chef ni bras avance à moitié : la poterie d'une
+        // quinzaine en demande donc deux. On laisse le temps qu'il faut, puis
+        // la consigne doit avoir relancé dans la foulée de la livraison.
+        for ($i = 0; $i < 3; ++$i) {
+            $this->cycle()->passer($partie);
+        }
+
+        $ordre = $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier);
+        self::assertNotNull($ordre, 'La consigne doit remettre l\'Atelier au travail.');
+        self::assertSame(Recette::Poterie, $ordre->getRecette());
+        self::assertGreaterThan(0, $ville->quantite(Ressource::Poterie), 'Le premier lot est bien rentré.');
+    }
+
+    /**
+     * **Sans consigne, rien ne se relance** : le comportement d'avant reste le
+     * défaut, et l'automatisation est un choix explicite.
+     */
+    public function testSansConsigneLAtelierSArrete(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('sans-consigne@example.com');
+        $ville = $partie->getVille();
+
+        $this->fabrication()->lancer($partie, Recette::Poterie, 1);
+
+        for ($i = 0; $i < 3; ++$i) {
+            $this->cycle()->passer($partie);
+        }
+
+        self::assertGreaterThan(0, $ville->quantite(Ressource::Poterie), 'Le lot est bien rentré.');
+        self::assertNull($ville->ordreDeFabricationDe(TypeDeBatiment::Atelier), 'Et rien ne s\'est relancé.');
+    }
+
+    /**
+     * **Une consigne ne force rien** : elle passe par les mêmes vérifications
+     * qu'une commande à la main. Faute de matières, l'atelier s'arrête — et le
+     * dit **une seule fois**, sans quoi il répéterait la même phrase à chaque
+     * quinzaine et noierait le journal.
+     */
+    public function testFauteDeMatieresElleSArreteEtNeLeDitQuUneFois(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('consigne-sans-matieres@example.com');
+        $ville = $partie->getVille();
+
+        $ville->consigner(Recette::Poterie, 1);
+        $ville->debiterRessources([Ressource::Argile->value => $ville->quantite(Ressource::Argile)]);
+
+        $premier = $this->fabrication()->avancerDUnCycle($partie);
+        $second = $this->fabrication()->avancerDUnCycle($partie);
+
+        self::assertNotEmpty($premier, 'L\'arrêt doit être annoncé.');
+        self::assertSame([], $second, 'Mais une seule fois.');
+
+        $consigne = $ville->consigneDeFabricationDe(TypeDeBatiment::Atelier);
+        self::assertNotNull($consigne);
+        self::assertTrue($consigne->estEnAttenteDeMatieres());
+    }
+
+    /**
+     * Et elle **reprend d'elle-même** dès que les matières reviennent : une
+     * consigne à l'arrêt n'est pas une consigne levée.
+     */
+    public function testElleReprendDesQueLesMatieresReviennent(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('consigne-reprise@example.com');
+        $ville = $partie->getVille();
+
+        $ville->consigner(Recette::Poterie, 1);
+        $ville->debiterRessources([Ressource::Argile->value => $ville->quantite(Ressource::Argile)]);
+        $this->fabrication()->avancerDUnCycle($partie);
+
+        $ville->crediterRessources([Ressource::Argile->value => 100]);
+        $messages = $this->fabrication()->avancerDUnCycle($partie);
+
+        self::assertNotNull($ville->ordreDeFabricationDe(TypeDeBatiment::Atelier));
+        self::assertNotEmpty($messages);
+
+        $consigne = $ville->consigneDeFabricationDe(TypeDeBatiment::Atelier);
+        self::assertNotNull($consigne);
+        self::assertFalse($consigne->estEnAttenteDeMatieres());
+    }
+
+    /**
+     * **Un seul ordre à la fois reste la règle** : la consigne relance, elle
+     * ne parallélise pas. C'est ce qui donne son coût d'opportunité à la
+     * fabrication, et l'automatiser ne doit pas le lever.
+     */
+    public function testLaConsigneNeParallelisePas(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('consigne-serie@example.com');
+        $ville = $partie->getVille();
+
+        $ville->consigner(Recette::Tissus, 1);
+        $this->fabrication()->lancer($partie, Recette::Tissus, 1);
+
+        for ($i = 0; $i < 5; ++$i) {
+            $this->fabrication()->avancerDUnCycle($partie);
+            self::assertLessThanOrEqual(1, $ville->getOrdresDeFabrication()->count());
+        }
+    }
+
+    /**
+     * Une seule consigne par bâtiment : la réorienter change la recette au
+     * lieu d'en empiler une seconde.
+     */
+    public function testUneSeuleConsigneParBatiment(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('consigne-unicite@example.com');
+        $ville = $partie->getVille();
+
+        $ville->consigner(Recette::Poterie, 1);
+        $ville->consigner(Recette::Papyrus, 2);
+
+        self::assertCount(1, $ville->getConsignesDeFabrication());
+
+        $consigne = $ville->consigneDeFabricationDe(TypeDeBatiment::Atelier);
+        self::assertNotNull($consigne);
+        self::assertSame(Recette::Papyrus, $consigne->getRecette());
+        self::assertSame(2, $consigne->getLots());
+    }
+
     private function villeAvecAtelier(string $email, int $niveau = 4): GameSave
     {
         $partie = $this->lancerPartie($email);

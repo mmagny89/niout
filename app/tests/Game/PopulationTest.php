@@ -77,15 +77,24 @@ final class PopulationTest extends TestCase
     }
 
     /**
-     * Les volontaires du pharaon : de quoi tenir quelques exploitations sans
-     * que la ville commence déjà repue.
+     * Le convoi du pharaon : assez de bras pour tenir quelques exploitations
+     * **et** ses bâtiments, et assez de monde pour que loger devienne le
+     * premier geste.
      */
     public function testLesVolontairesDuPharaonSontUneVilleCredible(): void
     {
         $habitants = Population::ACTIFS_AU_DEPART + Population::ENFANTS_AU_DEPART + Population::ANCIENS_AU_DEPART;
 
-        self::assertSame(10, $habitants);
-        self::assertSame(2, Population::foyersPour($habitants), 'Deux maisonnées, que la Résidence seule ne logerait pas.');
-        self::assertGreaterThanOrEqual(2, Population::ACTIFS_AU_DEPART, 'Il faut de quoi tenir au moins un gisement.');
+        self::assertSame(17, $habitants);
+        self::assertSame(
+            4,
+            Population::foyersPour($habitants),
+            'Quatre maisonnées, quand la Résidence seule n\'en loge qu\'une : bâtir des maisons est le premier geste.',
+        );
+        self::assertGreaterThanOrEqual(
+            8,
+            Population::ACTIFS_AU_DEPART,
+            'Assez de bras pour que le territoire en reçoive après les bâtiments.',
+        );
     }
 }

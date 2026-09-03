@@ -72,9 +72,11 @@ final class BonusDeDepartTest extends KernelTestCase
 
     /**
      * **Il ne dépasse jamais la dotation** (arbitrage 9.0). Neuf missions
-     * accomplies vaudraient cent quatre-vingts deben, davantage que ce que le
-     * pharaon envoie : le plafond se lit sur la dotation elle-même, ce qui le
-     * fait suivre tout changement de coût des bâtiments d'ouverture.
+     * accomplies vaudraient à elles seules de quoi refaire une bonne part de
+     * ce que le pharaon envoie. Le plafond se lit **sur la dotation
+     * elle-même**, ressource par ressource : il n'y a rien à calibrer, et il
+     * suit tout changement de coût des bâtiments d'ouverture comme toute
+     * hausse du convoi de départ.
      */
     public function testLeBonusNeDepasseJamaisLaDotation(): void
     {
@@ -96,10 +98,11 @@ final class BonusDeDepartTest extends KernelTestCase
 
         self::assertSame(9, $this->bonus()->missionsQuiComptent($partie));
 
-        // Sans plafond, neuf missions dépasseraient à elles seules ce que le
-        // pharaon envoie : c'est très exactement la raison du plafond.
+        // Le bonus brut de neuf missions est loin d'être négligeable devant la
+        // dotation : c'est ce qui rend le plafond nécessaire, et c'est lui
+        // qu'on vérifie ensuite, ressource par ressource.
         self::assertGreaterThan(
-            $dotation[Ressource::Deben->value],
+            intdiv($dotation[Ressource::Deben->value], 2),
             9 * BonusDeDepart::DEBEN_PAR_MISSION,
         );
 

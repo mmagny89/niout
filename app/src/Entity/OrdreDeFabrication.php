@@ -73,6 +73,27 @@ class OrdreDeFabrication
         $this->dureeEnCycles = $recette->quinzainesDunLot() * $lots;
     }
 
+    /**
+     * Remet le même ordre à l'ouvrage, pour une consigne permanente
+     * (`ConsigneDeFabrication`).
+     *
+     * **On réemploie la ligne, on ne la recrée pas** — piège déjà payé
+     * ailleurs, sur les gisements puis sur les convois : supprimer puis
+     * réinsérer dans la même quinzaine fait sauter la contrainte d'unicité,
+     * **Doctrine insérant avant de supprimer**. Un atelier qui enchaîne deux
+     * lots est exactement ce cas, et il se produit à tous les cycles.
+     */
+    public function repartir(Recette $recette, int $lots): static
+    {
+        $this->recette = $recette;
+        $this->batiment = $recette->batiment();
+        $this->lots = $lots;
+        $this->dureeEnCycles = $recette->quinzainesDunLot() * $lots;
+        $this->avancementEnDixiemes = 0;
+
+        return $this;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

@@ -27,6 +27,7 @@ final readonly class PassageDeCycle
         private GeographieDeLaPartie $geographies,
         private Fabrication $fabrication,
         private Commerce $commerce,
+        private Marche $marche,
         private Mecontentement $mecontentement,
         private Negligence $negligence,
         private Providence $providence,
@@ -86,6 +87,17 @@ final readonly class PassageDeCycle
         // vient d'apporter.
         $subsistance = $this->subsistance->avancerDUnCycle($partie);
         $evenements = [...$evenements, ...$subsistance['evenements']];
+
+        // Le jour de marché, une fois la ville nourrie : les habitants
+        // achètent ce qu'on leur a laissé à l'étal. **Après la subsistance,
+        // jamais avant** — un étal garni de blé aurait sinon pu vendre la
+        // ration du jour et affamer la ville pour quelques deben, ce qu'aucun
+        // joueur n'aurait vu venir.
+        //
+        // Il consomme le débouché de la quinzaine qui se solde, comme les
+        // ventes faites à la main pendant celle-ci : c'est la même place, elle
+        // ne se sature qu'une fois.
+        $evenements = [...$evenements, ...$this->marche->tenirLEtal($partie)];
 
         // Les deux causes se rejoignent ici, et nulle part ailleurs : on ne
         // mange pas, ou l'on n'est pas payé. Le mécontentement pèse ensuite

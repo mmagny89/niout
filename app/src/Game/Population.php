@@ -41,13 +41,34 @@ final readonly class Population
     public const int FAMILLES_PAR_NIVEAU_DE_QUARTIER = 20;
 
     /**
-     * Les volontaires que le pharaon a envoyés s'installer avec la famille du
-     * joueur. Deux maisonnées, ni plus : de quoi tenir quelques exploitations
-     * sans que la ville commence déjà repue.
+     * Le convoi que le pharaon envoie fonder la ville : la famille du joueur et
+     * les volontaires qui l'accompagnent (décision de la joueuse au playtest).
+     *
+     * **Dix-sept personnes, dont huit bras.** On en comptait dix, dont quatre
+     * bras, et c'était trop peu pour deux raisons qui se rejoignaient :
+     *
+     * - **Les bras n'arrivaient pas jusqu'à la terre.** Un chef embauché sort
+     *   du vivier d'actifs, et les bâtiments se servent avant le territoire
+     *   (`Effectifs::repartir()`) : trois bâtiments dirigés absorbaient les
+     *   quatre actifs, les champs n'en recevaient aucun, et la ville tombait
+     *   en famine pour avoir bâti. Mesuré.
+     * - **Le premier acte n'était pas lisible.** Une ville de dix habitants
+     *   tient dans deux maisonnées : la pression du logement existait — la
+     *   capacité sans Quartier est d'un seul foyer — sans jamais se faire
+     *   sentir. À dix-sept, il en faut quatre, et **bâtir des maisons devient
+     *   le premier geste**, avant même les champs.
+     *
+     * **Rien n'est offert au passage** : la dotation royale se taille sur la
+     * consommation réelle du convoi et sur une année de ses salaires, donc
+     * elle suit. Un convoi plus nombreux mange plus, et il faut le loger.
+     *
+     * Historiquement, un pharaon qui fonde une ville n'envoie pas un couple et
+     * ses enfants : les expéditions de fondation comptaient des dizaines
+     * d'hommes, et celle du Ouadi Hammamat plus de huit mille (doc 09).
      */
-    public const int ACTIFS_AU_DEPART = 4;
-    public const int ENFANTS_AU_DEPART = 5;
-    public const int ANCIENS_AU_DEPART = 1;
+    public const int ACTIFS_AU_DEPART = 8;
+    public const int ENFANTS_AU_DEPART = 7;
+    public const int ANCIENS_AU_DEPART = 2;
 
     /**
      * Ce que devient la population chaque année, en pourcentage de chaque

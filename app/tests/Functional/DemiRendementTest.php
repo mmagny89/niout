@@ -220,7 +220,7 @@ final class DemiRendementTest extends KernelTestCase
             ->poserUnContenu(ContenuDeZone::ChampEligible)
             ->decouvrir();
 
-        static::getContainer()->get(Exploitations::class)->semer($partie, $zone, Culture::Ble);
+        static::getContainer()->get(Exploitations::class)->semer($partie, $zone, 1, Culture::Ble);
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier));
 
         if (!$avecBras) {

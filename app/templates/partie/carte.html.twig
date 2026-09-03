@@ -186,18 +186,22 @@
                         {% elseif not zoneDetaillee.estDecouverte %}
                             Nul ne sait ce qui s'y trouve. Une reconnaissance le dira.
                         {% elseif zoneDetaillee.porteUnChamp %}
-                            {% set etape = zoneDetaillee.etapeDuChamp(partie.dateDeJeu.saison, partie.dateDeJeu.rangDansLaSaison) %}
-                            Un champ y est établi, semé de <strong>{{ zoneDetaillee.culture.libelle }}</strong>.
-                            {% set equipageDuChamp = equipages[zoneDetaillee.x ~ ':' ~ zoneDetaillee.y ~ ':champ'] %}
-                            {% if equipageDuChamp %}
-                                <span class="text-encre-500" data-chiffres>
-                                    {{ equipageDuChamp.affectes }} / {{ equipageDuChamp.requis }} travailleurs
-                                    · {{ equipageDuChamp.rendement }} % de rendement
-                                </span>
-                            {% endif %}
-                            {{ zoneDetaillee.culture.usage }}
+                            {{ zoneDetaillee.champs }} champ{{ zoneDetaillee.champs > 1 ? 's' : '' }} sur cette terre,
+                            chacun avec sa culture et son propre cycle.
                             <br>
-                            <strong>{{ etape.libelle }}</strong> — {{ etape.explication }}
+                            {% for parcelle in zoneDetaillee.parcelles %}
+                                {% set etape = parcelle.etape(partie.dateDeJeu.saison, partie.dateDeJeu.rangDansLaSaison) %}
+                                {% set equipage = equipages[zoneDetaillee.x ~ ':' ~ zoneDetaillee.y ~ ':champ:' ~ parcelle.rang] %}
+                                <strong>{{ parcelle.culture.libelle }}</strong> —
+                                {{ etape.libelle|lower }}, {{ etape.explication|lower }}
+                                {% if equipage %}
+                                    <span class="text-encre-500" data-chiffres>
+                                        · {{ equipage.affectes }} / {{ equipage.requis }} travailleur{{ equipage.requis > 1 ? 's' : '' }}
+                                        · {{ equipage.rendement }} % de rendement
+                                    </span>
+                                {% endif %}
+                                <br>
+                            {% endfor %}
                         {% elseif zoneDetaillee.porteUnGisement %}
                             Ce que la case recèle :
                         {% else %}
@@ -330,8 +334,8 @@
 
                     {% if zoneDetaillee.porteUnChamp and not aUnGrenier %}
                         <p class="mt-3 text-sm text-terre-600">
-                            Sans Grenier, ce champ travaille pour rien : la récolte n'a nulle part
-                            où se conserver.
+                            Sans Grenier, ces champs travaillent pour rien : la récolte n'a nulle
+                            part où se conserver.
                         </p>
                     {% endif %}
 
@@ -419,20 +423,49 @@
                             </ul>
                         {% endif %}
 
-                        {% if zoneDetaillee.accepteUnChamp and not zoneDetaillee.porteUnChamp and partie.estEnCours %}
-                            <form method="post" action="{{ path('app_partie_semer', {id: partie.id}) }}" class="mt-5 flex flex-wrap items-center gap-3">
+                        {% if zoneDetaillee.accepteUnChamp and partie.estEnCours %}
+                            <h4 class="mt-6 font-display text-encre-900">Les parcelles de cette terre</h4>
+                            <p class="mt-1 max-w-2xl text-sm text-encre-500">
+                                Une case est une terre, pas un champ : on y sème jusqu'à
+                                <span data-chiffres>{{ champsMax }}</span> parcelles,
+                                <strong class="text-encre-700">chacune avec sa culture et son
+                                propre cycle</strong>. Laissez une place vide pour ne rien y semer,
+                                ou l'arracher. Chaque parcelle réclame son homme.
+                            </p>
+
+                            <form method="post" action="{{ path('app_partie_semer', {id: partie.id}) }}" class="mt-3">
                                 <input type="hidden" name="_token" value="{{ csrf_token('semer') }}">
                                 <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
-                                <label for="culture" class="text-sm text-encre-600">Semer</label>
-                                <select id="culture" name="culture"
-                                        class="rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900">
-                                    {% for culture in cultures %}
-                                        <option value="{{ culture.value }}">{{ culture.libelle }}</option>
+
+                                <ul class="space-y-2 list-none p-0">
+                                    {% for rang in 1..champsMax %}
+                                        {% set parcelle = zoneDetaillee.parcelleAuRang(rang) %}
+                                        <li class="flex flex-wrap items-center gap-3">
+                                            <label for="culture-{{ rang }}" class="w-24 text-sm text-encre-600">
+                                                Parcelle {{ rang }}
+                                            </label>
+                                            <select id="culture-{{ rang }}" name="culture-{{ rang }}"
+                                                    class="rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900">
+                                                <option value="">— en friche —</option>
+                                                {% for culture in cultures %}
+                                                    <option value="{{ culture.value }}"
+                                                            {{ parcelle and parcelle.culture == culture ? 'selected' : '' }}>
+                                                        {{ culture.libelle }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if parcelle %}
+                                                <span class="text-sm text-encre-500">
+                                                    {{ parcelle.etape(partie.dateDeJeu.saison, partie.dateDeJeu.rangDansLaSaison).libelle }}
+                                                </span>
+                                            {% endif %}
+                                        </li>
                                     {% endfor %}
-                                </select>
+                                </ul>
+
                                 <button type="submit"
-                                        class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
-                                    Établir un champ
+                                        class="mt-3 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                    Semer cette terre
                                 </button>
                             </form>
                         {% endif %}

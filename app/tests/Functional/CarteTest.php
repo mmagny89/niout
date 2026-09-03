@@ -55,7 +55,7 @@ final class CarteTest extends WebTestCase
         $zone->definirTerrain(TypeDeTerrain::Fertile)
             ->poserUnContenu(ContenuDeZone::ChampEligible)
             ->decouvrir()
-            ->semer(Culture::Ble);
+            ->semerLaParcelle(1, Culture::Ble);
 
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 

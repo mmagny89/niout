@@ -40,8 +40,15 @@ final readonly class Stockage
      * dotation au ras ferait démarrer la ville saturée : la première carrière
      * ouverte ne rapporterait rien, et le joueur perdrait sa récolte avant
      * d'avoir compris qu'il avait un plafond.
+     *
+     * **Les vivres sont passés de 250 à 450** avec le convoi de dix-sept
+     * personnes (`Population::ACTIFS_AU_DEPART`) : la dotation royale porte une
+     * année de nourriture, soit désormais 325 unités, et elle ne tenait plus
+     * dans 250 — la ville en perdait une part au premier cycle, sans avoir rien
+     * fait. C'est le couplage que `StockageTest` garde : **toute hausse de la
+     * population de départ remonte la dotation, donc réclame cette marge.**
      */
-    public const int RESERVE_DE_BASE_EN_VIVRES = 250;
+    public const int RESERVE_DE_BASE_EN_VIVRES = 450;
     public const int RESERVE_DE_BASE_EN_MATERIAUX = 250;
 
     /**

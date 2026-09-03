@@ -91,7 +91,7 @@ final class OuvertureDePartieTest extends KernelTestCase
             }
 
             if (0 === $champs && $zone->accepteUnChamp() && !$zone->porteUnChamp()) {
-                $exploitations->semer($partie, $zone, Culture::Ble);
+                $exploitations->semer($partie, $zone, 1, Culture::Ble);
                 ++$champs;
             }
         }

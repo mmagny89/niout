@@ -106,6 +106,23 @@ geste** — un diagnostic sans remède se subit. Sur la carte et en tête de vil
 ils tiennent en une ligne de pastilles avec leur détail dans un `<details>`
 natif : tout ce qui ne défile pas est de la hauteur en moins.
 
+**Chaque réglage vit là où il se comprend** (playtest) : la **répartition des
+réserves** — ce qu'on garde de chaque ressource, donc ce qui part au Marché —
+est à l'**Entrepôt**, qui tient les stocks, en un seul tableau plutôt qu'une
+ligne par ressource dispersée ailleurs ; le **prix fait aux habitants** est au
+**Marché**, avec ce qu'il coûte en mécontentement dit à côté ; le **salaire des
+bras** est à la **Résidence familiale**, avec la main-d'œuvre. Un même réglage
+à deux endroits finirait par diverger, et ce sont les écrans qui cesseraient de
+dire la vérité.
+
+**La Résidence porte « ce que vous attendez »** (`TravauxEnCours`) : chantiers,
+ouvrages d'atelier, expéditions, convois et présents du roi en une seule liste,
+triés du plus proche au plus lointain. Ils vivaient chacun dans leur panneau —
+pour savoir ce qu'on attendait avant d'avancer d'une quinzaine, il fallait en
+ouvrir six. **Cette liste ne porte aucune action** : chaque chose garde son
+écran, avec son détail et ses boutons. Elle ne répond qu'à une question, et il
+faut qu'elle se lise d'un coup d'œil.
+
 **Une action ne renvoie jamais sur le premier onglet** (`retourALaVille()`,
 `retourDemande()`). Toute interaction de la ville se solde par une redirection,
 donc par un rechargement complet : sans reprise, vendre au Marché ramenait sur

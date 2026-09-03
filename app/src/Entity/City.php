@@ -12,6 +12,7 @@ use App\Game\FamilleDeRessource;
 use App\Game\Inscription;
 use App\Game\PalierDeFaveur;
 use App\Game\Population;
+use App\Game\Recette;
 use App\Game\Ressource;
 use App\Game\Stockage;
 use App\Game\SymboleHieroglyphique;
@@ -132,6 +133,38 @@ class City
     private Collection $medjays;
 
     /**
+     * Ce que chaque atelier refait de lui-même, tant qu'on ne lève pas la
+     * consigne (`ConsigneDeFabrication`). Sans elles, l'Atelier et la Forge
+     * s'arrêtaient au bout d'une à trois quinzaines et dormaient jusqu'à ce
+     * qu'on revienne les relancer à la main.
+     *
+     * @var Collection<int, ConsigneDeFabrication>
+     */
+    #[ORM\OneToMany(targetEntity: ConsigneDeFabrication::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $consignesDeFabrication;
+
+    /**
+     * Ce que la ville garde en réserve, ressource par ressource : en deçà de
+     * ces seuils elle ne vend jamais, au-delà le surplus part au Marché
+     * (`ReserveGardee`). Sans eux, le Marché ne rapportait que si le joueur
+     * venait cliquer à chaque quinzaine, et une partie jouée normalement ne
+     * produisait aucune monnaie.
+     *
+     * @var Collection<int, ReserveGardee>
+     */
+    #[ORM\OneToMany(targetEntity: ReserveGardee::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $reservesGardees;
+
+    /**
+     * Ce que le pharaon renvoie pour une demande honorée, et qui remonte le
+     * fleuve pendant quelques quinzaines (`PresentRoyal`).
+     *
+     * @var Collection<int, PresentRoyal>
+     */
+    #[ORM\OneToMany(targetEntity: PresentRoyal::class, mappedBy: 'ville', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $presentsRoyaux;
+
+    /**
      * La population, en trois nombres et pas un de plus (décision de la
      * joueuse) : ceux qui travaillent, ceux qui grandissent, ceux qui ont
      * fini. Aucun individu n'est suivi — ce qui compte est de savoir combien
@@ -175,6 +208,9 @@ class City
         $this->routesCommerciales = new ArrayCollection();
         $this->faveurs = new ArrayCollection();
         $this->dossiers = new ArrayCollection();
+        $this->reservesGardees = new ArrayCollection();
+        $this->consignesDeFabrication = new ArrayCollection();
+        $this->presentsRoyaux = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -615,11 +651,194 @@ class City
     }
 
     /**
+     * Ce que la ville fait payer ses propres habitants, en centièmes du cours
+     * de base (décision de la joueuse au playtest).
+     *
+     * **Le levier, et son prix.** Vendre cher rapporte davantage par unité,
+     * mais le débouché de la place étant compté en deben, on écoule d'autant
+     * moins de marchandise — et **la ville s'en plaint** (`Mecontentement`).
+     * Vendre bon marché écoule le surplus bien plus vite et laisse les gens
+     * tranquilles. Il n'y a donc pas de bonne valeur unique : cela dépend de
+     * ce dont on manque, des deben ou de la place en réserve.
+     *
+     * Cent, c'est le cours de base — ni faveur ni abus.
+     */
+    #[ORM\Column(options: ['default' => 100])]
+    private int $margeDuMarche = self::MARGE_DE_BASE;
+
+    public const int MARGE_DE_BASE = 100;
+    public const int MARGE_MINIMALE = 50;
+    public const int MARGE_MAXIMALE = 200;
+
+    public function getMargeDuMarche(): int
+    {
+        return $this->margeDuMarche;
+    }
+
+    public function fixerLaMargeDuMarche(int $marge): static
+    {
+        $this->margeDuMarche = max(self::MARGE_MINIMALE, min(self::MARGE_MAXIMALE, $marge));
+
+        return $this;
+    }
+
+    /**
+     * Ce qu'un travailleur touche par quinzaine, en deben (décision de la
+     * joueuse au playtest).
+     *
+     * **Distinct du salaire d'un chef**, qui se négocie candidat par candidat
+     * à l'embauche : celui-ci vaut pour tous les bras de la ville, qui n'ont
+     * pas de profil tiré.
+     *
+     * Un deben était la valeur figée du doc 03. La rendre réglable donne une
+     * prise sur la première charge récurrente du jeu — mais **payer moins
+     * mécontente**, et payer davantage apaise : sans cette contrepartie, il
+     * n'existerait qu'une seule bonne valeur, zéro.
+     */
+    #[ORM\Column(options: ['default' => 1])]
+    private int $salaireDeBase = self::SALAIRE_JUSTE;
+
+    public const int SALAIRE_JUSTE = 1;
+    public const int SALAIRE_MINIMAL = 0;
+    public const int SALAIRE_MAXIMAL = 3;
+
+    public function getSalaireDeBase(): int
+    {
+        return $this->salaireDeBase;
+    }
+
+    public function fixerLeSalaireDeBase(int $salaire): static
+    {
+        $this->salaireDeBase = max(self::SALAIRE_MINIMAL, min(self::SALAIRE_MAXIMAL, $salaire));
+
+        return $this;
+    }
+
+    /**
      * Nouveau jour de marché : le débouché de la quinzaine se reconstitue.
      */
     public function rouvrirLEtal(): static
     {
         $this->venduAuMarche = 0;
+
+        return $this;
+    }
+
+    /**
+     * Les seuils de garde posés par le joueur, ressource par ressource.
+     *
+     * @return Collection<int, ReserveGardee>
+     */
+    public function getReservesGardees(): Collection
+    {
+        return $this->reservesGardees;
+    }
+
+    public function reserveGardeeDe(Ressource $ressource): ?ReserveGardee
+    {
+        foreach ($this->reservesGardees as $reserve) {
+            if ($reserve->getRessource() === $ressource) {
+                return $reserve;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Pose ou corrige ce qu'on garde d'une ressource. Une seule ligne par
+     * ressource — c'est un seuil, pas une pile de consignes.
+     *
+     * Tant qu'aucun seuil n'est posé, **rien ne part** : le silence se lit
+     * « je garde tout », qui est le comportement d'avant et le seul défaut sûr.
+     */
+    public function garderEnReserve(Ressource $ressource, int $quantite): ReserveGardee
+    {
+        $reserve = $this->reserveGardeeDe($ressource);
+
+        if (null === $reserve) {
+            $reserve = new ReserveGardee($this, $ressource, $quantite);
+            $this->reservesGardees->add($reserve);
+
+            return $reserve;
+        }
+
+        return $reserve->fixerLaQuantite($quantite);
+    }
+
+    public function cesserDeGarder(ReserveGardee $reserve): static
+    {
+        $this->reservesGardees->removeElement($reserve);
+
+        return $this;
+    }
+
+    /**
+     * Les consignes permanentes des ateliers.
+     *
+     * @return Collection<int, ConsigneDeFabrication>
+     */
+    public function getConsignesDeFabrication(): Collection
+    {
+        return $this->consignesDeFabrication;
+    }
+
+    public function consigneDeFabricationDe(TypeDeBatiment $batiment): ?ConsigneDeFabrication
+    {
+        foreach ($this->consignesDeFabrication as $consigne) {
+            if ($consigne->getBatiment() === $batiment) {
+                return $consigne;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Pose ou réoriente la consigne d'un atelier. Une seule par bâtiment — on
+     * réoriente le même atelier, on n'en empile pas les ordres.
+     */
+    public function consigner(Recette $recette, int $lots): ConsigneDeFabrication
+    {
+        $consigne = $this->consigneDeFabricationDe($recette->batiment());
+
+        if (null === $consigne) {
+            $consigne = new ConsigneDeFabrication($this, $recette, $lots);
+            $this->consignesDeFabrication->add($consigne);
+
+            return $consigne;
+        }
+
+        return $consigne->reorienter($recette, $lots);
+    }
+
+    public function leverLaConsigne(ConsigneDeFabrication $consigne): static
+    {
+        $this->consignesDeFabrication->removeElement($consigne);
+
+        return $this;
+    }
+
+    /**
+     * Les présents du pharaon encore en route.
+     *
+     * @return Collection<int, PresentRoyal>
+     */
+    public function getPresentsRoyaux(): Collection
+    {
+        return $this->presentsRoyaux;
+    }
+
+    public function attendreUnPresentRoyal(PresentRoyal $present): static
+    {
+        $this->presentsRoyaux->add($present);
+
+        return $this;
+    }
+
+    public function recevoirLePresent(PresentRoyal $present): static
+    {
+        $this->presentsRoyaux->removeElement($present);
 
         return $this;
     }
