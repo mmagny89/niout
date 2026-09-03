@@ -33,6 +33,11 @@ final class CompteController extends AbstractController
             'missionsParPartie' => $this->libellesDeMission($sesParties, $missions),
             'plafondAtteint' => $parties->plafondAtteintPour($user),
             'maxParties' => GameSave::MAX_PAR_COMPTE,
+            // **Le plafond ne compte que les parties en cours** : une partie
+            // close reste consultable et n'occupe aucune place. L'écran doit
+            // donc compter comme lui, sinon « 5 sur 5 » s'afficherait à côté
+            // d'un bouton « Commencer une partie » bien actif.
+            'partiesEnCours' => $parties->compterEnCoursPourJoueur($user),
             // Date limite de vérification, affichée tant que l'adresse ne l'est
             // pas — le compte reste utilisable jusque-là (voir User).
             'dateLimiteVerification' => $user->isVerified()

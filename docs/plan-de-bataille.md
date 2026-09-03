@@ -178,7 +178,6 @@ garde plus que **ce qui n'est pas fait** : ce qu'il faut corriger, ce qu'il faut
 
 | Défaut | Où | Pourquoi il compte |
 |---|---|---|
-| **Le plafond de cinq parties compte les parties achevées** | `GameSaveRepository::compterPourJoueur()` | Un joueur qui accomplit cinq missions ne peut plus en lancer une sixième : **la campagne de dix missions est infinissable** sans supprimer des parties. Le docblock de `GameSave::MAX_PAR_COMPTE` et le § 3 disent tous deux « parties **en cours** » — c'est l'implémentation qui diverge. Trouvé au lot 9.5 ; à traiter **avant tout playtest** |
 | **Deux mini-jeux plus pauvres que ce que le doc 10 annonce** | `Enigme` | La **reconnaissance astronomique** (associer un décan à un mois) et l'**association symbolique** (relier un animal à son dieu) sont des questionnaires à choix multiple là où le document annonce un mini-jeu d'association. Le fond est juste — l'astronomie et l'iconographie sont réelles —, la forme est plus pauvre. Sans urgence |
 | **La mission 9 demande une trésorerie là où le doc 09 veut de l'or** | `ObjectifsDeMission` | Le Ouadi Hammamat en porte : l'aligner est trivial. Reste à savoir si deux objectifs de ressource pure sur la même mission ne la rendent pas monotone — c'est pourquoi ce n'est pas encore fait |
 
@@ -348,7 +347,7 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Mot de passe oublié | **Inclus dès la Phase 1** |
 | Base de données | **PostgreSQL** |
 | Hébergement | Pas de choix figé — **VPS envisagé** pour la production ultérieure. Plan indépendant de l'hébergeur |
-| Parties simultanées | **Oui**, jusqu'à **5** `GameSave` actifs par compte |
+| Parties simultanées | **Oui**, jusqu'à **5** parties **en cours** par compte. Une partie close — achevée ou échouée — n'occupe aucune place : elle reste consultable, et on ne la supprime jamais. Compter les closes rendait la campagne de dix missions infinissable, défaut corrigé et tenu par `GameSaveRepositoryTest` |
 | CSS | **Tailwind CSS 4.3** via `symfonycasts/tailwind-bundle`, pas de Node.js |
 | Serveur staging/prod | **Dédié** (`--dedicated-server`), pas de Traefik partagé |
 | Stock des ressources | **Générique** (table ressource → quantité), migré dès le lot 3.1 |

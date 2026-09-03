@@ -50,8 +50,14 @@
         <section class="mt-10">
             <div class="flex flex-wrap items-baseline justify-between gap-3">
                 <h2 class="text-2xl text-encre-900">Vos parties</h2>
+                {# Le plafond ne compte que les parties **en cours** : une
+                   partie close reste consultable sans occuper de place, sans
+                   quoi jouer longtemps finirait par interdire de jouer. #}
                 <p class="text-sm text-encre-500" data-chiffres>
-                    {{ parties|length }} sur {{ maxParties }}
+                    {{ partiesEnCours }} en cours sur {{ maxParties }}
+                    {%- if parties|length > partiesEnCours %},
+                        {{ parties|length - partiesEnCours }} close{{ parties|length - partiesEnCours > 1 ? 's' : '' }}
+                    {%- endif %}
                 </p>
             </div>
 
