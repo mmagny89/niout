@@ -13,6 +13,7 @@ use App\Game\LanceurDePartie;
 use App\Game\MissionCatalogue;
 use App\Game\QueteImpossible;
 use App\Game\QuetesDeChantier;
+use App\Game\Successions;
 use App\Game\TypeDeBatiment;
 use Doctrine\ORM\EntityManagerInterface;
 use Random\Engine\Mt19937;
@@ -203,6 +204,7 @@ final class QuetesDeChantierTest extends WebTestCase
         return new QuetesDeChantier(
             static::getContainer()->get(EntityManagerInterface::class),
             new MissionCatalogue(),
+            static::getContainer()->get(Successions::class),
             new Randomizer(new Mt19937(20260901)),
         );
     }

@@ -50,6 +50,13 @@ enum CartoucheRoyal: string
     case OusermaatreMeryamon = 'ousermaatre_meryamon';
     case HeqamaatreSetepenamon = 'heqamaatre_setepenamon';
     case NeferkheperoureOuaenre = 'neferkheperoure_ouaenre';
+    case Djeserkare = 'djeserkare';
+    case Aakheperenre = 'aakheperenre';
+    case Aakheperoure = 'aakheperoure';
+    case Menkheperoure = 'menkheperoure';
+    case Nebkheperoure = 'nebkheperoure';
+    case Kheperkheperoure = 'kheperkheperoure';
+    case DjeserkheperoureSetepenre = 'djeserkheperoure_setepenre';
 
     /**
      * Le cartouche du pharaon qui commandite cette mission, s'il est établi.
@@ -66,6 +73,16 @@ enum CartoucheRoyal: string
             'Séthi Ier' => self::Menmaatre,
             'Ramsès III' => self::OusermaatreMeryamon,
             'Ramsès IV' => self::HeqamaatreSetepenamon,
+            // Les sept que la succession du mode Aventure a demandés (lot
+            // 11.3) : la campagne n'en commandite aucun, mais une partie à
+            // Memphis les traverse tous.
+            'Amenhotep Ier' => self::Djeserkare,
+            'Thoutmôsis II' => self::Aakheperenre,
+            'Amenhotep II' => self::Aakheperoure,
+            'Thoutmôsis IV' => self::Menkheperoure,
+            'Toutânkhamon' => self::Nebkheperoure,
+            'Aÿ' => self::Kheperkheperoure,
+            'Horemheb' => self::DjeserkheperoureSetepenre,
             default => null,
         };
     }
@@ -90,6 +107,13 @@ enum CartoucheRoyal: string
             self::OusermaatreMeryamon => '𓇳𓄊𓁦𓈘𓇋𓏠𓈖',
             self::HeqamaatreSetepenamon => '𓇳𓋾𓁧𓏠𓈖𓍉𓈖',
             self::NeferkheperoureOuaenre => '𓇳𓄤𓆣𓇳𓏦𓌡𓈖',
+            self::Djeserkare => '𓇳𓂦𓂓',
+            self::Aakheperenre => '𓇳𓉻𓆣𓈖',
+            self::Aakheperoure => '𓇳𓉻𓆣𓏦',
+            self::Menkheperoure => '𓇳𓏠𓆣𓏦',
+            self::Nebkheperoure => '𓇳𓎟𓆣𓏦',
+            self::Kheperkheperoure => '𓇳𓆣𓆣𓏦',
+            self::DjeserkheperoureSetepenre => '𓇳𓂦𓆣𓏦𓍉𓈖',
         };
     }
 
@@ -111,6 +135,13 @@ enum CartoucheRoyal: string
             self::OusermaatreMeryamon => ['N5', 'F12', 'C10', 'N36', 'M17', 'Y5', 'N35'],
             self::HeqamaatreSetepenamon => ['N5', 'S38', 'C10A', 'Y5', 'N35', 'U21', 'N35'],
             self::NeferkheperoureOuaenre => ['N5', 'F35', 'L1', 'N5', 'Z2A', 'T21', 'N35'],
+            self::Djeserkare => ['N5', 'D45', 'D28'],
+            self::Aakheperenre => ['N5', 'O29', 'L1', 'N35'],
+            self::Aakheperoure => ['N5', 'O29', 'L1', 'Z2A'],
+            self::Menkheperoure => ['N5', 'Y5', 'L1', 'Z2A'],
+            self::Nebkheperoure => ['N5', 'V30', 'L1', 'Z2A'],
+            self::Kheperkheperoure => ['N5', 'L1', 'L1', 'Z2A'],
+            self::DjeserkheperoureSetepenre => ['N5', 'D45', 'L1', 'Z2A', 'U21', 'N35'],
         };
     }
 
@@ -129,6 +160,13 @@ enum CartoucheRoyal: string
             self::OusermaatreMeryamon => 'wsr-mꜣꜥt-rꜥ mrj-jmn',
             self::HeqamaatreSetepenamon => 'ḥqꜣ-mꜣꜥt-rꜥ stp.n-jmn',
             self::NeferkheperoureOuaenre => 'nfr-ḫprw-rꜥ wꜥ-n-rꜥ',
+            self::Djeserkare => 'ḏsr-kꜣ-rꜥ',
+            self::Aakheperenre => 'ꜥꜣ-ḫpr-n-rꜥ',
+            self::Aakheperoure => 'ꜥꜣ-ḫprw-rꜥ',
+            self::Menkheperoure => 'mn-ḫprw-rꜥ',
+            self::Nebkheperoure => 'nb-ḫprw-rꜥ',
+            self::Kheperkheperoure => 'ḫpr-ḫprw-rꜥ',
+            self::DjeserkheperoureSetepenre => 'ḏsr-ḫprw-rꜥ stp.n-rꜥ',
         };
     }
 
@@ -147,6 +185,13 @@ enum CartoucheRoyal: string
             self::OusermaatreMeryamon => 'Ousermaâtré-Méryamon',
             self::HeqamaatreSetepenamon => 'Héqamaâtré-Sétepenamon',
             self::NeferkheperoureOuaenre => 'Néferkhéperourê-Ouâenrê',
+            self::Djeserkare => 'Djéserkaré',
+            self::Aakheperenre => 'Aâkhéperenré',
+            self::Aakheperoure => 'Aâkhéperourê',
+            self::Menkheperoure => 'Menkhéperourê',
+            self::Nebkheperoure => 'Nebkhéperourê',
+            self::Kheperkheperoure => 'Khéperkhéperourê',
+            self::DjeserkheperoureSetepenre => 'Djéserkhéperourê-Sétepenrê',
         };
     }
 
@@ -166,6 +211,13 @@ enum CartoucheRoyal: string
             self::OusermaatreMeryamon => 'Puissante est la Maât de Rê, aimé d\'Amon',
             self::HeqamaatreSetepenamon => 'Rê est celui qui gouverne par la Maât, élu d\'Amon',
             self::NeferkheperoureOuaenre => 'Belles sont les manifestations de Rê, l\'unique de Rê',
+            self::Djeserkare => 'Sacré est le ka de Rê',
+            self::Aakheperenre => 'Grande est la manifestation de Rê',
+            self::Aakheperoure => 'Grandes sont les manifestations de Rê',
+            self::Menkheperoure => 'Stables sont les manifestations de Rê',
+            self::Nebkheperoure => 'Le maître des manifestations de Rê',
+            self::Kheperkheperoure => 'La manifestation des manifestations de Rê',
+            self::DjeserkheperoureSetepenre => 'Sacrées sont les manifestations de Rê, élu de Rê',
         };
     }
 }

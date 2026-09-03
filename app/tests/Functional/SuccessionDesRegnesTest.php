@@ -39,7 +39,7 @@ final class SuccessionDesRegnesTest extends KernelTestCase
         foreach ($regnes as $regne) {
             self::assertSame(18, $regne->dynastie, 'La première livraison porte la XVIIIᵉ dynastie.');
             self::assertNotSame('', $regne->pharaon);
-            self::assertNotSame('', $regne->nomDeTrone);
+            self::assertNotSame('', $regne->nomDeTrone());
             self::assertNotSame('', $regne->avenement);
         }
     }

@@ -44,6 +44,7 @@ final readonly class QuetesDeChantier
     public function __construct(
         private EntityManagerInterface $entityManager,
         private MissionCatalogue $missions,
+        private Successions $successions,
         private Randomizer $hasard = new Randomizer(),
     ) {
     }
@@ -143,18 +144,49 @@ final readonly class QuetesDeChantier
     }
 
     /**
+     * Le pharaon dont on attend une requête, et la géographie où l'on ira
+     * chercher ce qu'il demande.
+     *
+     * @return array{0: ?string, 1: ?GeographieDeRegion}
+     */
+    private function quiReclame(GameSave $partie): array
+    {
+        if (!$partie->estCampagne()) {
+            $regne = $this->successions->regneEnCours($partie);
+
+            return null === $regne
+                ? [null, null]
+                : [$regne->pharaon, LanceurDePartie::geographieDuModeAventure()];
+        }
+
+        $numero = $partie->getMission();
+
+        if (null === $numero) {
+            return [null, null];
+        }
+
+        $mission = $this->missions->get($numero);
+
+        return [$mission->pharaon, $mission->geographie];
+    }
+
+    /**
      * @return list<string>
      */
     private function reclamer(GameSave $partie): array
     {
-        $numero = $partie->getMission();
+        // **Le pharaon qui réclame n'est pas le même selon le mode** : en
+        // campagne c'est le commanditaire de la mission, en Aventure celui qui
+        // règne (doc 14, lot 11.3). Un règne qui ne réclamerait rien serait un
+        // règne muet, et le renouvellement du contenu royal est précisément ce
+        // que le document attend de la succession.
+        [$pharaon, $geographie] = $this->quiReclame($partie);
 
-        if (!$partie->estCampagne() || null === $numero) {
+        if (null === $pharaon || null === $geographie) {
             return [];
         }
 
-        $mission = $this->missions->get($numero);
-        $chantier = ChantierRoyal::pour($mission->pharaon);
+        $chantier = ChantierRoyal::pour($pharaon);
 
         if (null === $chantier) {
             return [];
@@ -163,7 +195,7 @@ final readonly class QuetesDeChantier
         // Il réclame ce que la région porte : envoyer chercher au loin ce
         // qu'on a sous les pieds n'aurait pas de sens, et rendrait la quête
         // impossible dans la moitié des missions.
-        $possibles = $mission->geographie->ressourcesDeZone;
+        $possibles = $geographie->ressourcesDeZone;
 
         if ([] === $possibles) {
             return [];
@@ -178,7 +210,7 @@ final readonly class QuetesDeChantier
 
         return [\sprintf(
             '%s réclame %d %s pour %s. Vous avez %d quinzaines.',
-            $mission->pharaon,
+            $pharaon,
             $quantite,
             $ressource->libelle(),
             $chantier->libelle(),
