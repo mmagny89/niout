@@ -1197,13 +1197,22 @@ achevées — exactement ce que `Lignees::encaisser()` aurait versé.
 - **Une partie abandonnée ne lègue plus rien de neuf non plus.** Elle est
   supprimée en cascade, donc ni contact ni route connue n'en survivent — cohérent
   avec les deben et la renommée, mais à savoir avant d'abandonner.
-- **Le plafond de cinq parties par compte compte aussi les parties achevées**
-  (`GameSaveRepository::compterPourJoueur`). Un joueur qui accomplit cinq
-  missions ne peut plus en lancer une sixième : la campagne de dix missions est
-  infinissable sans supprimer des parties. Le docblock et le plan disent tous
-  deux « parties **en cours** simultanément » — c'est l'implémentation qui
-  diverge. Découvert en écrivant `BonusDeDepartTest`, qui a dû contourner le
-  lanceur ; **défaut ouvert, hors périmètre de la phase**.
+- **Le plafond de cinq parties comptait aussi les parties achevées**
+  (`GameSaveRepository`). Un joueur qui accomplissait cinq missions ne pouvait
+  plus en lancer une sixième : **la campagne de dix missions était infinissable**
+  sans supprimer des parties — alors qu'une partie close est précisément ce
+  qu'on ne supprime jamais. Le docblock et le plan disaient tous deux « parties
+  **en cours** simultanément » : c'était l'implémentation qui divergeait de
+  l'intention, et rien ne le signalait.
+
+  Découvert en écrivant `BonusDeDepartTest`, qui a dû contourner le lanceur
+  pour simuler neuf missions accomplies. **Corrigé depuis** : le plafond lit
+  `compterEnCoursPourJoueur()`, et deux tests le tiennent — vérifiés en
+  réintroduisant le défaut, sans quoi ils n'auraient rien prouvé.
+
+  **La leçon vaut au-delà du défaut** : un contournement dans un test est un
+  symptôme. Quand un test doit éviter le chemin normal pour arriver à son
+  scénario, c'est souvent le chemin normal qui a tort.
 
 #### Ce que la phase laisse ouvert
 

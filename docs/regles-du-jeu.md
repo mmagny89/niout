@@ -383,6 +383,12 @@ Trois règles à ne pas défaire :
   famille, pas au mode — l'asymétrie d'avant venait d'un manque de jalon, non
   d'une règle. `Lignees::encaisser()` ne sait pas ce qui s'achève, seulement
   qu'il faut relever l'acquis : **c'est l'appelant qui décide du jalon**.
+- **Le plafond de cinq parties ne compte que les parties en cours**
+  (`GameSaveRepository::compterEnCoursPourJoueur()`). Une partie close —
+  achevée ou échouée — reste consultable et n'occupe aucune place : c'est ce
+  qui permet à une campagne de dix missions d'aller à son terme. Compter les
+  closes revenait à interdire de jouer à qui avait beaucoup joué. **Défaut
+  réel, payé.**
 - **Une succession familiale change le chef, jamais la maison**
   (`SuccessionFamiliale`, doc 13). Une génération dure soixante cycles ± vingt,
   ce qui la rend propre au mode Aventure — une mission de campagne les dépasse

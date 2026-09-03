@@ -67,6 +67,81 @@ final class GameSaveRepositoryTest extends KernelTestCase
         self::assertTrue($this->depot()->plafondAtteintPour($joueur));
     }
 
+    /**
+     * **Une partie close n'occupe pas de place.**.
+     *
+     * Défaut réel, payé : le plafond comptait toutes les parties, closes
+     * comprises. Un joueur qui accomplissait cinq missions ne pouvait plus en
+     * lancer une sixième — **la campagne de dix missions était donc
+     * infinissable** sans supprimer des parties, alors qu'une partie close est
+     * précisément ce qu'on ne supprime jamais (décision actée).
+     */
+    public function testUnePartieAcheveeNoccupePasDePlace(): void
+    {
+        self::bootKernel();
+        $joueur = $this->creerJoueur('campagne-longue@example.com');
+
+        foreach (range(1, GameSave::MAX_PAR_COMPTE) as $rang) {
+            $this->creerPartie($joueur, 'Ville '.$rang)->achever(100);
+        }
+
+        $this->gestionnaire()->flush();
+
+        self::assertFalse(
+            $this->depot()->plafondAtteintPour($joueur),
+            'Cinq missions accomplies ne doivent pas interdire la sixième.',
+        );
+        self::assertSame(0, $this->depot()->compterEnCoursPourJoueur($joueur));
+        self::assertSame(
+            GameSave::MAX_PAR_COMPTE,
+            $this->depot()->compterPourJoueur($joueur),
+            'Elles restent consultables : on ne les supprime jamais.',
+        );
+    }
+
+    /**
+     * **Une partie échouée non plus** : elle est close au même titre, et le
+     * doc 02 tient à ce qu'elle reste consultable — « chaque partie est une
+     * run complète, y compris quand elle finit mal ».
+     */
+    public function testUnePartieEchoueeNoccupePasDePlace(): void
+    {
+        self::bootKernel();
+        $joueur = $this->creerJoueur('campagne-echouee@example.com');
+
+        foreach (range(1, GameSave::MAX_PAR_COMPTE) as $rang) {
+            $this->creerPartie($joueur, 'Ville '.$rang)->echouer();
+        }
+
+        $this->gestionnaire()->flush();
+
+        self::assertFalse($this->depot()->plafondAtteintPour($joueur));
+    }
+
+    /**
+     * Et le plafond mord toujours sur ce qu'il doit borner : cinq parties **en
+     * cours** ferment la porte, quel que soit le nombre de parties closes à
+     * côté.
+     */
+    public function testLePlafondMordSurLesPartiesEnCoursMemeAvecDesClosesACote(): void
+    {
+        self::bootKernel();
+        $joueur = $this->creerJoueur('melange@example.com');
+
+        foreach (range(1, 3) as $rang) {
+            $this->creerPartie($joueur, 'Close '.$rang)->achever(100);
+        }
+
+        foreach (range(1, GameSave::MAX_PAR_COMPTE) as $rang) {
+            $this->creerPartie($joueur, 'En cours '.$rang);
+        }
+
+        $this->gestionnaire()->flush();
+
+        self::assertTrue($this->depot()->plafondAtteintPour($joueur));
+        self::assertSame(GameSave::MAX_PAR_COMPTE, $this->depot()->compterEnCoursPourJoueur($joueur));
+    }
+
     private function creerJoueur(string $email): User
     {
         $user = new User();
