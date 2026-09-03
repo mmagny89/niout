@@ -156,23 +156,6 @@ enum Recette: string
     }
 
     /**
-     * Ce qu'un lot coûte en deben, par-dessus les matières : l'outil qu'on
-     * remplace, le tour qu'on répare, la main qu'on paie au façon.
-     */
-    public function debenDunLot(): int
-    {
-        return match ($this) {
-            self::Pain, self::Vannerie, self::Sandales => 2,
-            self::Poterie, self::Biere => 3,
-            self::Papyrus => 4,
-            self::Tissus, self::Outils => 5,
-            self::Armes, self::Vases => 8,
-            self::Statuettes => 15,
-            self::Bijoux => 10,
-        };
-    }
-
-    /**
      * Combien d'objets un lot rend. On n'allume pas un four pour une jarre.
      */
     public function piecesDunLot(): int
@@ -279,12 +262,26 @@ enum Recette: string
     }
 
     /**
-     * Ce qu'un lot coûte en tout, deben compris — ce à quoi la marge de
-     * transformation se rapporte (`PrixDuMarche::MARGE_DE_TRANSFORMATION`).
+     * Ce qu'un lot coûte — **les matières, et rien d'autre**. C'est à cela que
+     * la marge de transformation se rapporte
+     * (`PrixDuMarche::MARGE_DE_TRANSFORMATION`).
+     *
+     * **Un lot ne coûte plus de deben** (décision de la joueuse, playtest) :
+     * il en réclamait un forfait, censé payer « la main au façon ». Or la main
+     * est **déjà payée** — les travailleurs de l'Atelier et de la Forge
+     * touchent leur solde à chaque quinzaine comme tous les autres
+     * (`Salaires`). Le forfait la faisait payer deux fois, et il le faisait au
+     * pire moment : à l'engagement, en début de partie, quand la ville n'a
+     * pas encore de quoi. Une ville sans deben ne pouvait donc pas fabriquer
+     * ce qui lui en aurait rapporté.
+     *
+     * Conséquence assumée : le coût d'un lot baisse, donc le prix de vente de
+     * l'objet baisse avec lui — la marge se rapporte au coût, et elle est
+     * mesurée. On gagne un peu moins par lot, mais on peut commencer.
      */
     public function coutDunLot(): int
     {
-        $total = $this->debenDunLot();
+        $total = 0;
 
         foreach ($this->ingredientsDunLot() as $valeur => $quantite) {
             $total += (PrixDuMarche::pour(Ressource::from($valeur)) ?? 0) * $quantite;

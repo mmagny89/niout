@@ -425,6 +425,92 @@
         </p>
 {% endif %}
 
+{# Le salaire des bras vit ici, avec la main-d'œuvre : c'est le seul salaire
+   que le joueur fixe lui-même, celui d'un chef se négociant candidat par
+   candidat à l'embauche. #}
+<h3 class="mt-8 text-xl text-encre-900">Ce que vous payez vos bras</h3>
+<p class="mt-2 max-w-2xl text-sm text-encre-500">
+    Le salaire d'un travailleur, par quinzaine. L'usage est de
+    <span data-chiffres>{{ salaireJuste }}</span> deben :
+    <strong class="text-encre-700">payer moins mécontente la ville</strong>, et
+    payer <span data-chiffres>{{ salaireGenereux }}</span> ou plus l'apaise deux
+    fois plus vite. Les chefs ne sont pas concernés — leur salaire se négocie à
+    l'embauche.
+</p>
+
+{% if partie.estEnCours %}
+    <form method="post" action="{{ path('app_partie_train_de_vie', {id: partie.id}) }}"
+          class="mt-3 flex flex-wrap items-baseline gap-3">
+        <input type="hidden" name="_token" value="{{ csrf_token('train-de-vie') }}">
+        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+
+        <label for="salaire" class="text-sm text-encre-600">Un travailleur touche</label>
+        <input type="number" id="salaire" name="salaire" value="{{ ville.salaireDeBase }}"
+               min="{{ salaireMinimal }}" max="{{ salaireMaximal }}"
+               class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
+               data-chiffres>
+        <span class="text-sm text-encre-500">deben la quinzaine</span>
+
+        <button type="submit"
+                class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-lapis-600 hover:bg-lapis-500/10">
+            Fixer le salaire
+        </button>
+    </form>
+{% endif %}
+
+{% if griefsDeLaVille is not empty %}
+    <ul class="mt-3 space-y-1 list-none p-0 text-sm text-terre-600">
+        {% for grief in griefsDeLaVille %}
+            <li>{{ grief }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{# Tout ce qui est en route, en une seule liste. Ce panneau ne remplace aucun
+   des écrans qui suivent et ne porte aucune action : il répond à une seule
+   question — qu'est-ce que j'attends, et pour combien de temps ? #}
+<h3 class="mt-8 text-xl text-encre-900">Ce que vous attendez</h3>
+{% if travauxEnCours is empty %}
+    <p class="mt-2 text-sm text-encre-500">
+        Rien n'est en route : aucun chantier, aucun ouvrage, aucune expédition,
+        aucun convoi. Avancer d'une quinzaine ne vous apportera que vos
+        récoltes.
+    </p>
+{% else %}
+    <div class="mt-4 overflow-x-auto">
+        <table class="w-full min-w-lg border-collapse text-sm">
+            <caption class="sr-only">Travaux, ouvrages et convois en cours, du plus proche au plus lointain</caption>
+            <thead>
+                <tr class="border-b border-ocre-500/30 text-left text-encre-500">
+                    <th scope="col" class="py-2 pr-4 font-medium">Quoi</th>
+                    <th scope="col" class="py-2 pr-4 font-medium">Détail</th>
+                    <th scope="col" class="py-2 font-medium">Échéance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for travail in travauxEnCours %}
+                    <tr class="border-b border-ocre-500/15">
+                        <th scope="row" class="py-2 pr-4 text-left font-normal text-encre-900">
+                            <span class="text-encre-500">{{ travail.categorie }}</span> ·
+                            {{ travail.libelle }}
+                        </th>
+                        <td class="py-2 pr-4 text-encre-600">{{ travail.detail }}</td>
+                        <td class="py-2 {{ travail.quinzaines == 0 ? 'text-terre-600' : 'text-encre-600' }}" data-chiffres>
+                            {% if travail.quinzaines == 0 %}
+                                à l'arrêt
+                            {% elseif travail.quinzaines == 1 %}
+                                la prochaine quinzaine
+                            {% else %}
+                                dans {{ travail.quinzaines }} quinzaines
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
 {% if chantiers|length > 0 %}
     <h3 class="mt-8 text-xl text-encre-900">Chantiers en cours</h3>
     <ul class="mt-4 space-y-3 list-none p-0">

@@ -118,12 +118,12 @@ final class SubsistanceTest extends KernelTestCase
         $ville = $partie->getVille();
 
         self::assertSame(Population::ACTIFS_AU_DEPART, $ville->getActifs());
-        self::assertSame(10, $ville->population());
-        self::assertSame(6, $ville->getInactifs(), 'Cinq enfants et un ancien.');
+        self::assertSame(17, $ville->population());
+        self::assertSame(9, $ville->getInactifs(), 'Sept enfants et deux anciens.');
 
-        // Quatre actifs à deux demi-rations, six inactifs à une : quatorze,
-        // soit sept vivres.
-        self::assertSame(7, $ville->consommationDeNourriture());
+        // Huit actifs à deux demi-rations, neuf inactifs à une : vingt-cinq,
+        // soit treize vivres.
+        self::assertSame(13, $ville->consommationDeNourriture());
     }
 
     /**
@@ -137,9 +137,10 @@ final class SubsistanceTest extends KernelTestCase
         $ville = $partie->getVille();
         $populationAvant = $ville->population();
 
-        // Dix habitants tiennent en deux maisonnées, alors que la Résidence
-        // familiale n'en loge qu'une : la ville manque déjà de logements.
-        self::assertSame(2, $ville->foyersOccupes());
+        // Dix-sept habitants tiennent en quatre maisonnées, alors que la
+        // Résidence familiale n'en loge qu'une : la ville manque de logements
+        // dès son arrivée, et c'est ce qui fait du Quartier le premier geste.
+        self::assertSame(4, $ville->foyersOccupes());
         self::assertSame(1, $ville->capaciteEnFoyers());
         self::assertTrue($ville->manqueDeLogements());
 
@@ -148,7 +149,7 @@ final class SubsistanceTest extends KernelTestCase
         self::assertSame($populationAvant, $ville->population(), 'Bâtir n\'a fait naître personne.');
         self::assertSame(21, $ville->capaciteEnFoyers(), 'Un niveau de Quartier, plus la Résidence.');
         self::assertFalse($ville->manqueDeLogements());
-        self::assertSame(19, $ville->foyersLibres());
+        self::assertSame(17, $ville->foyersLibres());
     }
 
     /**
@@ -187,8 +188,8 @@ final class SubsistanceTest extends KernelTestCase
         self::assertSame(2, $partie->dateDeJeu()->annee, 'Une année complète a bien passé.');
         // La population reste plausible : personne ne naît, donc elle ne peut
         // que décroître, mais pas s'effondrer en un an.
-        self::assertLessThanOrEqual(10, $ville->population());
-        self::assertGreaterThanOrEqual(6, $ville->population());
+        self::assertLessThanOrEqual(17, $ville->population());
+        self::assertGreaterThanOrEqual(10, $ville->population());
         self::assertSame($ville->getActifs() + $ville->getInactifs(), $ville->population());
     }
 

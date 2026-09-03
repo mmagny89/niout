@@ -202,6 +202,22 @@ peut être juste de son côté sans que l'ensemble le soit.
 
 ## Population, logement et rations
 
+**Le pharaon envoie un convoi, pas une famille** (`Population::ACTIFS_AU_DEPART`,
+décision de la joueuse au playtest) : **dix-sept personnes, dont huit bras**. On
+en comptait dix, dont quatre, et c'était trop peu pour deux raisons qui se
+rejoignaient — les bras n'arrivaient pas jusqu'à la terre une fois les
+bâtiments servis, et une ville de dix habitants tenant dans deux maisonnées, la
+pression du logement ne se faisait jamais sentir. À dix-sept il en faut quatre,
+quand la Résidence seule n'en loge qu'une : **bâtir des maisons devient le
+premier geste**, avant même les champs.
+
+Deux couplages à ne pas perdre de vue : la dotation royale se taille sur la
+consommation réelle du convoi et sur une année de ses salaires, donc **elle
+suit** ; et cette dotation doit tenir dans la réserve de départ, ce qui a
+imposé de porter `Stockage::RESERVE_DE_BASE_EN_VIVRES` de 250 à 450 — sans
+quoi la ville perdait des vivres au premier cycle sans avoir rien fait. **Toute
+hausse future du convoi rejoue ces deux calculs.**
+
 **La population se compte en trois nombres, jamais en individus** (décision de
 la joueuse) : `City::$actifs`, `$enfants`, `$anciens`. Aucun habitant n'est
 suivi un par un — ce qui compte est de savoir combien de bras la ville a et
@@ -412,6 +428,53 @@ inactif — et ne se convertit en vivres qu'une fois, à l'échelle de la ville
 (`Population::vivresPourDemiRations()`). Jamais de 0,5 en circulation, jamais
 d'arrondi groupe par groupe.
 
+**Une case est une terre, pas un champ** (`Parcelle`, `Zone::CHAMPS_MAX` = 4,
+décision de la joueuse au playtest). Sur une grille de neuf cases figurant tout
+un Delta, un seul champ par case était une limite d'affichage déguisée en
+règle : deux cases cultivables plafonnaient la ville à deux champs, quelle que
+soit sa population. Cinq règles :
+
+- **Chaque parcelle est indépendante** : elle a **sa culture** et **son propre
+  cycle agricole**. On sème du blé à côté de l'orge sur le même limon, et
+  chacun mûrit à son rythme. C'est ce qui a imposé une entité plutôt qu'un
+  compteur sur la case — un compteur aurait forcé une culture unique et un
+  semis commun.
+- **Chaque parcelle est une exploitation à part entière** : sa propre clé
+  (`Effectifs::cleDeParcelle()`), son propre homme, son propre rendement. Le
+  plancher de 50 % — « la famille moissonne elle-même » — s'applique donc
+  parcelle par parcelle, et l'on retombe naturellement sur ce que rendait un
+  champ unique quand personne n'y travaille.
+- **Le rang n'est qu'une place**, de 1 à 4 : il ordonne l'affichage et rend
+  l'unicité vérifiable en base. Arracher la parcelle 2 ne décale pas la 3, et
+  semer deux fois le même rang **remplace** au lieu d'empiler.
+- **Ressemer la même culture ne fait rien**, et surtout ne remet pas le cycle à
+  zéro : rouvrir l'écran et valider sans y penser coûterait sinon la récolte en
+  cours. Changer de culture, en revanche, recommence — c'est le sens du geste.
+- **L'ancienne règle « on ne sème pas deux fois la même case » n'a plus lieu
+  d'être** : c'est le rang qui est unique, pas la case.
+
+**Une ville se nourrit avant de faire de la poterie**
+(`Effectifs::brasPourLesChamps()`, décision de la joueuse au playtest). C'est
+la **seule priorité que le jeu impose** dans la répartition des bras, et elle
+vient d'un défaut mesuré : les bâtiments se servaient avant le territoire, les
+champs recevaient **zéro bras**, et la ville tombait en famine pour avoir
+bâti. Ni un convoi de départ plus nombreux — les bras passaient de 1 à 5 sans
+qu'aucun n'atteigne la terre — ni plus de champs par case n'y changeaient rien.
+
+Trois bornes :
+
+- Elle ne porte que sur les **champs semés**. Une carrière ou une pêcherie se
+  sert après les bâtiments, comme avant : on peut vivre sans calcaire.
+- Les bras réservés doivent **leur revenir** : dans le territoire aussi, les
+  champs passent avant les gisements, sinon une carrière mieux placée sur la
+  grille les prendrait au passage.
+- Entre bâtiments, l'ordre reste alphabétique et arbitraire — le joueur ne
+  choisit toujours pas lequel servir en premier.
+
+**Mesuré** : avec cette priorité et une parcelle de quatre champs, une ville du
+Delta qui a dressé Grenier, Quartier et Marché passe deux ans sans famine, là
+où elle échouait auparavant.
+
 **Un champ ne nourrit qu'à sa récolte** (`EtapeDeChamp::Recolte`), jamais
 pendant le semis, la pousse ou le repos. Un champ du Nil suit la saison
 (`RendementDesChamps` — Akhèt et Perèt rendent 0, seul Chémou moissonne) ; un
@@ -486,6 +549,124 @@ délai d'un convoi. **Le plafond se vérifie avant le débit** : un lot repris a
 stock repasserait par le plafond de réserve, et un Entrepôt plein le refuserait
 — le joueur perdrait sa marchandise pour avoir visé trop gros. Et un lot trop
 grand est **refusé**, jamais vendu à moitié.
+
+**Le Marché rapporte sans qu'on vienne cliquer** (`ReserveGardee`,
+`Marche::tenirLEtal()`, décision de la joueuse au playtest). Défaut réel,
+payé : le Marché n'était qu'un formulaire, et une partie menée normalement —
+explorer, bâtir, avancer le temps — **ne produisait aucune monnaie**, alors que
+les salaires tombaient à chaque quinzaine. La caisse ne pouvait que descendre,
+et la seule stratégie viable était de ne rien entreprendre.
+
+**Le joueur déclare ce qu'il garde, jamais ce qu'il vend** — « sur mes cent
+argiles, j'en veux soixante ». Tout ce qui dépasse le seuil part à l'étal, jour
+de marché après jour de marché, jusqu'à ce que le stock y retombe et s'y
+tienne. Le sens de lecture est la décision : un plafond de vente obligerait à
+recalculer sa consigne chaque fois que la production change, quand un
+**plancher de garde** se pose une fois — il dit ce dont les chantiers et les
+caravanes ont besoin — et laisse le reste se régler seul. Sept règles à ne pas
+défaire :
+
+- **C'est un seuil, pas un dépôt** : la marchandise ne quitte jamais la réserve
+  tant qu'elle n'est pas vendue. Une resserre hors plafond viderait `Stockage`
+  de son sens.
+- **Sans seuil posé, rien ne part.** Le silence se lit « je garde tout », qui
+  est le comportement d'avant et le seul défaut sûr : une consigne jamais
+  donnée ne doit pas vider une réserve.
+- **Zéro est une valeur légitime** — « vends-moi tout » —, contrairement aux
+  quantités du reste du jeu : c'est un seuil, pas un lot.
+- **Le débouché de la quinzaine borne l'ensemble**, ventes à la main comprises
+  — c'est la même place, elle ne se sature qu'une fois. Un gros surplus met
+  donc plusieurs quinzaines à s'écouler, et c'est ce qui empêche le Marché de
+  devenir un doublon des caravanes.
+- **C'est déterministe.** Le surplus part en entier, dans la limite du
+  débouché. Un tirage par-dessus un débouché qui varie déjà avec la population
+  et le niveau du Marché rendrait illisible une consigne dont tout l'intérêt
+  est qu'on la pose et qu'on l'oublie.
+- **Il ne donne pas de renommée.** Le doc 13 accorde un point pour un « gros
+  contrat conclu » ; le commerce de détail quotidien n'en est pas un, et
+  l'accorder ici ferait monter la jauge d'un point par quinzaine sans que le
+  joueur ait rien décidé — cent points en cent cycles, là où le document en
+  fait l'affaire d'une campagne entière.
+- **Il passe après la subsistance** dans le cycle : un seuil posé sur le blé
+  aurait sinon vendu la ration du jour et affamé la ville pour quelques deben,
+  ce qu'aucun joueur n'aurait vu venir.
+- **On borne la quantité, pas la recette** : vendre puis découvrir qu'on a
+  dépassé la place ferait perdre la marchandise. Ce qui ne passe pas
+  aujourd'hui repassera à la quinzaine suivante — le seuil, lui, ne bouge pas.
+
+**Un atelier peut se remettre au travail tout seul** (`ConsigneDeFabrication`,
+décision de la joueuse au playtest). Un ordre tient une à trois quinzaines ;
+passé ce délai, l'Atelier et la Forge s'arrêtaient et attendaient qu'on
+revienne les relancer à la main. Sur une partie où l'on passe des quinzaines
+entières sur la carte, les deux dormaient l'essentiel du temps — et c'est là
+que se fabrique tout ce qui a de la valeur. Cinq règles :
+
+- **Un seul ordre à la fois reste la règle** : la consigne relance, elle ne
+  parallélise pas. C'est ce qui donne son coût d'opportunité à la fabrication.
+- **Elle ne force rien** : la relance passe par les mêmes vérifications qu'une
+  commande à la main — niveau, second déblocage, matières. Elle épargne le
+  clic, pas les règles.
+- **Faute de matières, elle le dit une fois** puis se tait, tout en retentant à
+  chaque quinzaine, et **reprend d'elle-même** quand les matières reviennent.
+  Un message répété indéfiniment noierait le journal — le défaut exact payé sur
+  le gisement épuisé.
+- **Un ordre reconduit réemploie sa ligne, il ne se recrée pas.** Piège déjà
+  payé sur les gisements puis sur les convois, et repayé ici : supprimer puis
+  réinsérer dans la même quinzaine fait sauter la contrainte d'unicité,
+  **Doctrine insérant avant de supprimer**. Un atelier qui enchaîne deux lots
+  est ce cas-là, et il se produit à tous les cycles.
+- **Elle se heurte volontairement au seuil de garde** : si le Marché écoule
+  l'argile que l'Atelier réclame, c'est au joueur d'arbitrer en remontant son
+  seuil. Deux consignes qui se contredisent doivent se voir, pas se résoudre en
+  silence au profit de l'une des deux.
+
+**L'atelier puise dans la réserve de la ville, qui est celle de l'Entrepôt**
+(précision, pas un changement). Le stock est **un seul ensemble** : l'Entrepôt
+et le Grenier n'en fixent que le **plafond** — matériaux pour l'un, vivres pour
+l'autre. Il n'existe pas de resserre séparée dont l'Atelier tirerait ses
+matières, et il ne doit pas en exister : deux compteurs pour une même
+marchandise finiraient par diverger.
+
+**Ce qui est en route se lit en un seul endroit** (`TravauxEnCours`, décision
+de la joueuse au playtest). Chantiers, ouvrages d'atelier, expéditions, convois
+et présents du roi vivaient chacun dans leur panneau : pour savoir ce qu'on
+attendait avant d'avancer d'une quinzaine, il fallait en ouvrir six. Trois
+règles : la liste **ne porte aucune action** — chaque chose garde son écran
+avec son détail et ses boutons —, tout y est ramené à des **quinzaines
+restantes** parce que c'est la seule grandeur qui permette de comparer un
+chantier et une caravane, et **rien n'y est persisté**, la liste se déduisant
+de l'état comme le carnet de contacts.
+
+**Fabriquer ne coûte pas de deben** (`Recette::coutDunLot()`, décision de la
+joueuse au playtest). Un lot en réclamait un forfait, censé payer « la main au
+façon » — or la main est **déjà payée** : les travailleurs de l'Atelier et de
+la Forge touchent leur solde à chaque quinzaine comme tous les autres. Le
+forfait la faisait payer deux fois, et au pire moment : à l'engagement, quand
+une ville de début de partie n'a rien en caisse. **Une ville sans deben ne
+pouvait donc pas fabriquer ce qui lui en aurait rapporté.** Conséquence
+assumée : le coût d'un lot baisse, donc le prix de vente de l'objet baisse avec
+lui — la marge de transformation se rapporte au coût, et elle est mesurée. On
+gagne un peu moins par lot, mais on peut commencer.
+
+**Honorer une demande du pharaon n'est pas une perte sèche** (`PresentRoyal`,
+décision de la joueuse au playtest). Livrer ne rapportait que de la renommée et
+de la faveur : la ville se dépouillait de vingt à cinquante unités sans jamais
+rien voir revenir, et **refuser était toujours le choix rationnel** — ce qui
+vidait de son sens un système dont le doc 09 fait un pilier de l'ancrage
+historique. Le roi renvoie donc un présent, et trois bornes le tiennent :
+
+- **Il vaut 60 % de la valeur au cours de ce qui a été donné**, jamais cent :
+  servir le roi reste une dépense, dont la renommée et la faveur sont le vrai
+  gain. À parité, la quête deviendrait une vente sans risque, donc sans choix.
+- **Il arrive trois quinzaines plus tard** : le convoi remonte le fleuve. C'est
+  un revenu qu'on anticipe, pas un troc, et cela garde à la livraison son
+  caractère de service rendu.
+- **Il joint souvent un matériau que la région ne porte pas**
+  (`ceQueLaRegionNaPas()`), et seulement parmi ceux dont on bâtit : les
+  magasins royaux tenaient l'Égypte entière, et rien n'est plus juste pour un
+  camp minier du Sinaï que de recevoir du bois qu'aucun de ses ouadis ne porte.
+  Renvoyer du lapis-lazuli ferait un cadeau de prestige sans emploi pour une
+  ville qui manque de charpente.
 
 ## Mode d'essai, routes mutantes et pièges techniques
 
@@ -737,8 +918,35 @@ ensemble.
 
 ## Mécontentement, salaires et emploi
 
-**Le mécontentement a deux causes et un seul mécanisme** (`Mecontentement`) :
-la faim et les salaires impayés mènent à la même colère, comptée une fois. Il
+**Le prix fait aux habitants est un levier, pas un curseur à pousser**
+(`City::$margeDuMarche`, décision de la joueuse au playtest). La ville vendait
+au cours de base, sans qu'on puisse y toucher. Le joueur fixe désormais ce que
+ses propres gens paient, entre 50 et 200 % du cours. **Trois choses le
+retiennent d'aller au maximum** : le débouché de la quinzaine étant compté en
+deben, vendre cher **écoule d'autant moins de marchandise** — le stock ne se
+vide plus ; au-delà de `MARGE_QUI_FACHE` la ville se plaint et le
+mécontentement monte ; et vendre bon marché, à l'inverse, vide les réserves
+bien plus vite. **Il n'y a donc pas de bonne valeur unique** : cela dépend de
+ce dont on manque, des deben ou de la place. La marge est un **facteur** sur le
+coefficient de vente, là où la compétence et la renommée s'additionnent entre
+elles — une seule division, comme partout.
+
+**Le salaire des bras se règle, et se juge** (`City::$salaireDeBase`, décision
+de la joueuse au playtest). C'est la première charge récurrente du jeu, et le
+joueur n'avait aucune prise dessus. Il vaut pour tous les travailleurs, jamais
+pour un chef — celui-ci se négocie candidat par candidat à l'embauche. Deux
+contreparties, sans lesquelles il n'existerait qu'une seule bonne valeur, zéro :
+**payer sous l'usage** (`City::SALAIRE_JUSTE`) mécontente la ville, **payer
+généreusement** (`Mecontentement::SALAIRE_GENEREUX`) l'apaise deux fois plus
+vite. La constante `Salaires::SALAIRE_DUN_TRAVAILLEUR` reste la **référence**
+— c'est sur elle que la dotation royale taille une année de salaires, quel que
+soit le réglage du joueur.
+
+**Le mécontentement a quatre causes et un seul mécanisme** (`Mecontentement`) :
+la faim, les salaires impayés, un prix abusif et un salaire de misère mènent à
+la même colère, comptée une fois. **Cumuler deux griefs ne fâche pas deux fois
+plus vite** — c'est ce qui garde le compteur lisible et permet à la spirale de
+se redresser. Il
 monte et se résorbe d'un cran par quinzaine — symétrie délibérée, qui interdit
 le yo-yo sans rendre la remontée désespérée. Son malus de production est
 **délibérément distinct du rendement d'effectif** : le plancher de 50 % vaut
@@ -1012,6 +1220,12 @@ secondaire s'enterre, sans quoi conclure au hasard puis recommencer serait
 toujours la meilleure stratégie. **Aucune ne retire de ressource** — le temps
 est la seule monnaie d'une erreur — et **le dénouement se dit dans les deux
 cas**.
+
+**L'émissaire coûte vingt deben, pas trente** (playtest). Le doc 04 en demandait
+trente à l'époque où il faisait aussi le travail d'un éclaireur ; il ne va plus
+que vers une case **déjà reconnue** et n'en rapporte qu'un témoignage. Le
+**rayon gratuit de trois cases lui vaut**, comme à l'éclaireur et au chef
+d'expédition — seul le prospecteur en est exclu.
 
 **Un éclaireur va vers l'inconnu, un émissaire va vers les gens**
 (`RoleDExploration::viseUneCaseInconnue()`) : le premier ne part que vers une

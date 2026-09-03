@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Game;
 
+use App\Entity\City;
 use App\Entity\GameSave;
 
 /**
@@ -74,17 +75,94 @@ final readonly class Mecontentement
     public const int QUINZAINES_PAR_POINT_DE_RENOMMEE = 4;
 
     /**
-     * La quinzaine s'est-elle mal passée ? Deux causes, jamais davantage.
+     * À partir de quelle marge la ville trouve qu'on abuse, en centièmes du
+     * cours de base. **Valeur inventée.**.
+     *
+     * Trente pour cent au-dessus du cours : de quoi laisser une vraie latitude
+     * — on peut se faire une marge confortable sans fâcher personne — mais pas
+     * de quoi pressurer les gens en silence.
+     */
+    public const int MARGE_QUI_FACHE = 130;
+
+    /**
+     * À partir de quel salaire les bras s'estiment bien traités, et apaisent
+     * la ville deux fois plus vite. Sans cette contrepartie, il n'existerait
+     * qu'une seule bonne valeur de salaire : zéro.
+     */
+    public const int SALAIRE_GENEREUX = 2;
+
+    /**
+     * La quinzaine s'est-elle mal passée ?
+     *
+     * **Quatre causes, un seul mécanisme.** La faim, les salaires impayés, un
+     * prix abusif à l'étal et un salaire de misère mènent à la même colère,
+     * comptée une seule fois : ce n'est pas parce qu'on cumule deux griefs que
+     * la ville se fâche deux fois plus vite. C'est ce qui garde le compteur
+     * lisible, et ce qui permet à la spirale de se redresser.
      */
     public function enregistrer(GameSave $partie, bool $famine, bool $impayes): void
     {
-        if ($famine || $impayes) {
+        $ville = $partie->getVille();
+
+        if ($famine || $impayes || self::prixAbusif($ville) || self::salaireDeMisere($ville)) {
             $partie->aggraverLeMecontentement(self::PLAFOND);
 
             return;
         }
 
         $partie->apaiserLeMecontentement();
+
+        // Bien payer ne fait pas que ne pas fâcher : cela répare plus vite ce
+        // qui a été abîmé. C'est la seule raison qu'un joueur puisse avoir de
+        // payer au-delà du juste salaire.
+        if ($ville->getSalaireDeBase() >= self::SALAIRE_GENEREUX) {
+            $partie->apaiserLeMecontentement();
+        }
+    }
+
+    /**
+     * Vendre au-dessus de ce que les gens acceptent de payer.
+     */
+    public static function prixAbusif(City $ville): bool
+    {
+        return $ville->getMargeDuMarche() > self::MARGE_QUI_FACHE;
+    }
+
+    /**
+     * Payer les bras en dessous du salaire d'usage.
+     */
+    public static function salaireDeMisere(City $ville): bool
+    {
+        return $ville->getSalaireDeBase() < City::SALAIRE_JUSTE;
+    }
+
+    /**
+     * Ce qui fâche la ville en ce moment, dit en clair — pour que l'écran
+     * nomme la cause **et** le geste, plutôt que d'afficher un compteur qu'on
+     * subit sans comprendre.
+     *
+     * @return list<string>
+     */
+    public static function griefs(City $ville): array
+    {
+        $griefs = [];
+
+        if (self::prixAbusif($ville)) {
+            $griefs[] = \sprintf(
+                'On trouve vos prix excessifs : %d %% du cours, quand la ville en supporte %d.',
+                $ville->getMargeDuMarche(),
+                self::MARGE_QUI_FACHE,
+            );
+        }
+
+        if (self::salaireDeMisere($ville)) {
+            $griefs[] = \sprintf(
+                'Vos travailleurs sont payés %d deben la quinzaine, en dessous de l\'usage.',
+                $ville->getSalaireDeBase(),
+            );
+        }
+
+        return $griefs;
     }
 
     /**

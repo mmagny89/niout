@@ -3,6 +3,50 @@
 {{ include('partie/batiments/_entete.html.twig') }}
 {{ include('partie/batiments/_direction.html.twig') }}
 
+<h3 class="mt-8 text-xl text-encre-900">Le prix que vous faites</h3>
+<p class="mt-2 max-w-2xl text-sm text-encre-500">
+    Ce que vos propres habitants paient, en pourcentage du cours. Vendre cher
+    rapporte plus par unité — mais la place n'absorbe qu'un montant par
+    quinzaine, donc <strong class="text-encre-700">vous écoulez d'autant moins
+    de marchandise</strong>, et au-delà de
+    <span data-chiffres>{{ margeQuiFache }} %</span> la ville s'en plaint.
+    Vendre bon marché vide vos réserves bien plus vite et laisse les gens
+    tranquilles.
+</p>
+
+{% if partie.estEnCours %}
+    <form method="post" action="{{ path('app_partie_train_de_vie', {id: partie.id}) }}"
+          class="mt-3 flex flex-wrap items-baseline gap-3">
+        <input type="hidden" name="_token" value="{{ csrf_token('train-de-vie') }}">
+        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+
+        <label for="marge" class="text-sm text-encre-600">Vos habitants paient</label>
+        <input type="number" id="marge" name="marge" value="{{ ville.margeDuMarche }}"
+               min="{{ margeMinimale }}" max="{{ margeMaximale }}" step="5"
+               class="w-24 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
+               data-chiffres>
+        <span class="text-sm text-encre-500">% du cours</span>
+
+        <button type="submit"
+                class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-lapis-600 hover:bg-lapis-500/10">
+            Fixer le prix
+        </button>
+    </form>
+{% endif %}
+
+<p class="mt-3 text-sm {{ prixAbusif ? 'text-terre-600' : 'text-encre-500' }}">
+    {% if prixAbusif %}
+        On trouve vos prix excessifs, et cela mécontente la ville.
+    {% else %}
+        Un prix que la ville accepte sans rien dire.
+    {% endif %}
+</p>
+
+<p class="mt-3 text-sm text-encre-500">
+    Ce que vous gardez de chaque ressource — et donc ce qui part ici de
+    lui-même — se règle à l'Entrepôt, qui tient vos stocks.
+</p>
+
 <h3 class="mt-8 text-xl text-encre-900">L'étal</h3>
 <p class="mt-2 max-w-2xl text-sm text-encre-500">
     Vous vendez ici <strong class="text-encre-700">aux gens de la ville
@@ -51,6 +95,7 @@
                             </button>
                         </span>
                     </form>
+
                 {% else %}
                     <span class="text-lg text-encre-900">{{ lot.ressource.libelle }}</span>
                     <span class="text-sm text-encre-500" data-chiffres>{{ lot.quantite }} en réserve</span>

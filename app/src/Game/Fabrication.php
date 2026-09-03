@@ -219,13 +219,17 @@ final readonly class Fabrication
     }
 
     /**
-     * Ce qu'un ordre de `$lots` lots consomme, deben compris.
+     * Ce qu'un ordre de `$lots` lots consomme : **des matières, jamais du
+     * deben** (voir `Recette::coutDunLot()`). La main-d'œuvre est déjà payée
+     * par les salaires de la quinzaine ; la faire payer une seconde fois ici
+     * interdisait de fabriquer à qui n'avait plus rien en caisse — c'est-à-dire
+     * précisément à qui en avait besoin.
      *
      * @return array<string, int>
      */
     public static function matieresPour(Recette $recette, int $lots): array
     {
-        $matieres = [Ressource::Deben->value => $recette->debenDunLot() * $lots];
+        $matieres = [];
 
         foreach ($recette->ingredientsDunLot() as $valeur => $quantite) {
             $matieres[$valeur] = $quantite * $lots;

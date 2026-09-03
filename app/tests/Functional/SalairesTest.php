@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional;
 
 use App\Entity\Building;
+use App\Entity\City;
 use App\Entity\Employee;
 use App\Entity\GameSave;
 use App\Entity\User;
@@ -13,6 +14,7 @@ use App\Game\ContenuDeZone;
 use App\Game\Culture;
 use App\Game\Exploitations;
 use App\Game\LanceurDePartie;
+use App\Game\Mecontentement;
 use App\Game\PassageDeCycle;
 use App\Game\Ressource;
 use App\Game\Salaires;
@@ -197,7 +199,7 @@ final class SalairesTest extends KernelTestCase
         $zone->definirTerrain(TypeDeTerrain::Fertile)
             ->poserUnContenu(ContenuDeZone::ChampEligible)
             ->decouvrir();
-        static::getContainer()->get(Exploitations::class)->semer($partie, $zone, Culture::Ble);
+        static::getContainer()->get(Exploitations::class)->semer($partie, $zone, 1, Culture::Ble);
 
         return $partie;
     }
@@ -246,6 +248,75 @@ final class SalairesTest extends KernelTestCase
         $gestionnaire->flush();
 
         return static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
+    }
+
+    /**
+     * **Le salaire des bras se règle** (playtest) : c'est la première charge
+     * récurrente du jeu, et le joueur n'avait aucune prise dessus.
+     */
+    public function testLeSalaireReglableChangeLaMasseSalariale(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('salaire-reglable@example.com');
+        $ville = $partie->getVille();
+
+        // Deux hommes sur une carrière : de quoi que le réglage se voie.
+        $zone = $this->premiereZoneHorsVille($partie);
+        $zone->decouvrir();
+        $zone->poserUnGisement(Ressource::Calcaire, 999);
+        static::getContainer()->get(Exploitations::class)->exploiter($partie, $zone, Ressource::Calcaire);
+
+        $auJusteSalaire = $this->salaires()->masseSalariale($ville, $partie->getCycle());
+        self::assertSame(2 * City::SALAIRE_JUSTE, $auJusteSalaire);
+
+        $ville->fixerLeSalaireDeBase(City::SALAIRE_MAXIMAL);
+        self::assertSame(2 * City::SALAIRE_MAXIMAL, $this->salaires()->masseSalariale($ville, $partie->getCycle()));
+
+        $ville->fixerLeSalaireDeBase(City::SALAIRE_MINIMAL);
+        self::assertSame(0, $this->salaires()->masseSalariale($ville, $partie->getCycle()), 'Ne rien payer ne coûte rien — mais fâche.');
+    }
+
+    /**
+     * **Payer sous l'usage mécontente**, payer au-dessus apaise deux fois plus
+     * vite : sans ces deux contreparties, il n'existerait qu'une bonne valeur
+     * de salaire, et ce serait zéro.
+     */
+    public function testPayerSousLUsageMecontenteEtPayerBienApaise(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('salaire-grief@example.com');
+        $ville = $partie->getVille();
+        $mecontentement = static::getContainer()->get(Mecontentement::class);
+
+        $ville->fixerLeSalaireDeBase(0);
+        self::assertTrue(Mecontentement::salaireDeMisere($ville));
+        self::assertNotEmpty(Mecontentement::griefs($ville));
+
+        // Une quinzaine sans famine ni impayés : seul le salaire fâche.
+        $mecontentement->enregistrer($partie, false, false);
+        self::assertGreaterThan(0, $partie->getQuinzainesDeMecontentement());
+
+        // Bien payer répare deux fois plus vite qu'un salaire d'usage.
+        $ville->fixerLeSalaireDeBase(Mecontentement::SALAIRE_GENEREUX);
+        $avant = $partie->getQuinzainesDeMecontentement();
+        $mecontentement->enregistrer($partie, false, false);
+
+        self::assertSame(max(0, $avant - 2), $partie->getQuinzainesDeMecontentement());
+    }
+
+    /**
+     * Le réglage est borné : ni esclavage, ni prodigalité sans fin.
+     */
+    public function testLeSalaireResteDansSesBornes(): void
+    {
+        self::bootKernel();
+        $ville = $this->lancerPartie('salaire-bornes@example.com')->getVille();
+
+        $ville->fixerLeSalaireDeBase(100);
+        self::assertSame(City::SALAIRE_MAXIMAL, $ville->getSalaireDeBase());
+
+        $ville->fixerLeSalaireDeBase(-3);
+        self::assertSame(City::SALAIRE_MINIMAL, $ville->getSalaireDeBase());
     }
 
     private function salaires(): Salaires

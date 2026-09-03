@@ -9,6 +9,7 @@ use App\Entity\GameSave;
 use App\Entity\User;
 use App\Game\ChantierRoyal;
 use App\Game\Divinite;
+use App\Game\GeographieDeLaPartie;
 use App\Game\LanceurDePartie;
 use App\Game\MissionCatalogue;
 use App\Game\QueteImpossible;
@@ -171,6 +172,97 @@ final class QuetesDeChantierTest extends WebTestCase
         }
     }
 
+    /**
+     * **Honorer une demande n'est plus une perte sèche** (playtest). Le roi
+     * renvoie un présent : sans lui, la ville se dépouillait de vingt à
+     * cinquante unités sans jamais rien voir revenir, et refuser était
+     * toujours le choix rationnel.
+     */
+    public function testLivrerPrepareUnPresentDuPharaon(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('present@example.com');
+        $ville = $partie->getVille();
+
+        $quete = $this->jusquALaQuete($partie);
+        $ville->crediterRessources([$quete->getRessource()->value => $quete->getQuantite()]);
+
+        $message = static::getContainer()->get(QuetesDeChantier::class)->livrer($partie);
+
+        self::assertNotCount(0, $ville->getPresentsRoyaux(), 'Le roi doit renvoyer quelque chose.');
+        self::assertStringContainsString('présent en retour', $message);
+
+        foreach ($ville->getPresentsRoyaux() as $present) {
+            self::assertSame(QuetesDeChantier::QUINZAINES_DE_ROUTE, $present->getQuinzainesAvantArrivee());
+        }
+    }
+
+    /**
+     * **Il n'arrive pas au clic** : le convoi royal remonte le fleuve. C'est un
+     * revenu qu'on anticipe, pas un troc.
+     */
+    public function testLePresentArriveApresQuelquesQuinzaines(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('present-route@example.com');
+        $ville = $partie->getVille();
+        $quetes = $this->quetes();
+
+        $quete = $this->jusquALaQuete($partie);
+        $ville->crediterRessources([$quete->getRessource()->value => $quete->getQuantite()]);
+        static::getContainer()->get(QuetesDeChantier::class)->livrer($partie);
+
+        $debenAvant = $ville->getDeben();
+        $attendus = count($ville->getPresentsRoyaux());
+        self::assertGreaterThan(0, $attendus);
+
+        for ($i = 0; $i < QuetesDeChantier::QUINZAINES_DE_ROUTE - 1; ++$i) {
+            $partie->avancerDUnCycle();
+            $quetes->avancerDUnCycle($partie);
+        }
+
+        self::assertCount($attendus, $ville->getPresentsRoyaux(), 'Rien n\'arrive avant terme.');
+
+        $partie->avancerDUnCycle();
+        $messages = $quetes->avancerDUnCycle($partie);
+
+        self::assertCount(0, $ville->getPresentsRoyaux());
+        self::assertGreaterThan($debenAvant, $ville->getDeben());
+        self::assertNotEmpty(array_filter(
+            $messages,
+            static fn (string $message): bool => str_contains($message, 'convoi du palais'),
+        ));
+    }
+
+    /**
+     * **Le présent vaut moins que le don.** Servir le roi reste une dépense,
+     * dont la renommée et la faveur sont le vrai gain — à parité, la quête
+     * serait devenue une vente sans risque, donc sans choix.
+     */
+    public function testLePresentNeRembourseJamaisTout(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('present-marge@example.com');
+        $ville = $partie->getVille();
+
+        $quete = $this->jusquALaQuete($partie);
+        $ville->crediterRessources([$quete->getRessource()->value => $quete->getQuantite()]);
+
+        $valeur = (\App\Game\PrixDuMarche::pour($quete->getRessource()) ?? 0) * $quete->getQuantite();
+        static::getContainer()->get(QuetesDeChantier::class)->livrer($partie);
+
+        $deben = 0;
+
+        foreach ($ville->getPresentsRoyaux() as $present) {
+            if (\App\Game\Ressource::Deben === $present->getRessource()) {
+                $deben = $present->getQuantite();
+            }
+        }
+
+        self::assertLessThan($valeur, $deben);
+        self::assertSame(intdiv($valeur * QuetesDeChantier::PRESENT_EN_CENTIEMES, 100), $deben);
+    }
+
     private function jusquALaQuete(GameSave $partie): \App\Entity\QueteDeChantier
     {
         $quetes = $this->quetes();
@@ -205,6 +297,7 @@ final class QuetesDeChantierTest extends WebTestCase
             static::getContainer()->get(EntityManagerInterface::class),
             new MissionCatalogue(),
             static::getContainer()->get(Successions::class),
+            static::getContainer()->get(GeographieDeLaPartie::class),
             new Randomizer(new Mt19937(20260901)),
         );
     }

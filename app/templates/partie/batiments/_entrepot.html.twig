@@ -14,6 +14,93 @@
     {% endif %}
 </p>
 
+{# La répartition des ressources vit ici, pas au Marché : c'est l'Entrepôt qui
+   tient les stocks, et c'est d'un seul tableau qu'on veut décider de ce qu'on
+   garde et de ce qui part. Le Marché ne garde que la vente à la main et le
+   prix qu'on fait payer. #}
+<h3 class="mt-8 text-xl text-encre-900">Ce que vous gardez, ce qui part</h3>
+<p class="mt-2 max-w-3xl text-sm text-encre-500">
+    Pour chaque ressource, dites <strong class="text-encre-700">combien vous en
+    gardez</strong> : le surplus part au Marché de lui-même, jour de marché
+    après jour de marché, jusqu'à ce que vos réserves y retombent. Rien n'est
+    prélevé maintenant — la marchandise ne quitte la réserve qu'au moment
+    d'être vendue.
+</p>
+{% if not aUnMarche %}
+    <p class="mt-2 text-sm text-terre-600">
+        Sans Marché, rien ne peut partir : ces seuils resteront sans effet
+        jusqu'à ce que vous en dressiez un.
+    </p>
+{% endif %}
+
+{% if repartition is empty %}
+    <p class="mt-4 text-sm text-encre-500">Vos réserves sont vides.</p>
+{% else %}
+    <div class="mt-4 overflow-x-auto">
+        <table class="w-full min-w-xl border-collapse text-sm">
+            <caption class="sr-only">Répartition des ressources entre ce qui est gardé et ce qui part au Marché</caption>
+            <thead>
+                <tr class="border-b border-ocre-500/30 text-left text-encre-500">
+                    <th scope="col" class="py-2 pr-4 font-medium">Ressource</th>
+                    <th scope="col" class="py-2 pr-4 font-medium">En réserve</th>
+                    <th scope="col" class="py-2 pr-4 font-medium">Cours</th>
+                    <th scope="col" class="py-2 pr-4 font-medium">Vous gardez</th>
+                    <th scope="col" class="py-2 font-medium">Part au Marché</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in repartition %}
+                    <tr class="border-b border-ocre-500/15">
+                        <th scope="row" class="py-2 pr-4 text-left font-normal text-encre-900">
+                            {{ ligne.ressource.libelle }}
+                        </th>
+                        <td class="py-2 pr-4 text-encre-600" data-chiffres>{{ ligne.enReserve }}</td>
+                        <td class="py-2 pr-4 text-encre-600" data-chiffres>{{ ligne.prix }} deben</td>
+                        <td class="py-2 pr-4">
+                            {% if partie.estEnCours %}
+                                <form method="post" action="{{ path('app_partie_reserve', {id: partie.id}) }}"
+                                      class="flex items-baseline gap-2">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('reserve') }}">
+                                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                                    <input type="hidden" name="ressource" value="{{ ligne.ressource.value }}">
+                                    <label for="garde-{{ ligne.ressource.value }}" class="sr-only">
+                                        Unités de {{ ligne.ressource.libelle }} à garder
+                                    </label>
+                                    <input type="number" id="garde-{{ ligne.ressource.value }}" name="quantite"
+                                           value="{{ ligne.seuil is null ? ligne.enReserve : ligne.seuil }}" min="0"
+                                           class="w-24 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
+                                           data-chiffres>
+                                    <button type="submit"
+                                            class="rounded-sm border border-lapis-500/50 px-2 py-1 text-sm text-lapis-600 hover:bg-lapis-500/10">
+                                        Fixer
+                                    </button>
+                                    {% if ligne.seuil is not null %}
+                                        <button type="submit" name="retirer" value="1"
+                                                class="rounded-sm border border-ocre-500/40 px-2 py-1 text-sm text-encre-600 hover:bg-ocre-500/10">
+                                            Tout garder
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            {% else %}
+                                <span data-chiffres>{{ ligne.seuil is null ? 'tout' : ligne.seuil }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 {{ ligne.surplus > 0 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+                            {% if ligne.seuil is null %}
+                                rien
+                            {% elseif ligne.surplus > 0 %}
+                                {{ ligne.surplus }}
+                            {% else %}
+                                rien ne dépasse
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
 {{ include('partie/batiments/_exploitations.html.twig', {titreDuRecap: 'Vos carrières et vos mines', recapVide: 'Aucun filon reconnu. Les gisements se découvrent en explorant.'}) }}
 
 {{ include('partie/batiments/_rival.html.twig') }}

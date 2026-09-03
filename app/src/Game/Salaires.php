@@ -44,8 +44,15 @@ final readonly class Salaires
      * l'équipage d'une carrière (2 deben) largement rentable face aux vingt
      * unités qu'elle livre, tout en pesant à l'échelle d'une ville qui en
      * emploie quinze.
+     *
+     * **C'est désormais le salaire d'usage, pas une valeur figée** : le joueur
+     * règle le sien sur la ville (`City::getSalaireDeBase()`). Cette constante
+     * reste la référence — payer en dessous mécontente, payer au-dessus apaise
+     * (`Mecontentement`) — et sert de base au calcul de la dotation royale, qui
+     * doit couvrir une année de salaires d'usage quel que soit le réglage du
+     * joueur.
      */
-    public const int SALAIRE_DUN_TRAVAILLEUR = 1;
+    public const int SALAIRE_DUN_TRAVAILLEUR = City::SALAIRE_JUSTE;
 
     /**
      * Règle la quinzaine : débite ce que la ville peut, et dit qui n'a pas
@@ -110,8 +117,12 @@ final readonly class Salaires
     {
         $du = [];
 
+        // Le salaire que le joueur a fixé, pas la constante : c'est lui que la
+        // ville verse, et c'est lui qu'elle juge (`Mecontentement`).
+        $salaire = $ville->getSalaireDeBase();
+
         foreach (Effectifs::repartir($ville, $cycle) as $valeur => $ligne) {
-            $cout = $ligne['affectes'] * self::SALAIRE_DUN_TRAVAILLEUR;
+            $cout = $ligne['affectes'] * $salaire;
 
             foreach ($ville->chefsDe($ligne['batiment']->getType()) as $chef) {
                 if ($chef->estEnPoste($cycle)) {
@@ -125,7 +136,7 @@ final readonly class Salaires
         }
 
         foreach (Effectifs::repartirLeTerritoire($ville, $cycle) as $cle => $ligne) {
-            $cout = $ligne['affectes'] * self::SALAIRE_DUN_TRAVAILLEUR;
+            $cout = $ligne['affectes'] * $salaire;
 
             if ($cout > 0) {
                 $du[$cle] = $cout;

@@ -7,6 +7,76 @@
    chacun dans son propre onglet. #}
 {% set atelier = ateliers[onglet.type.value] ?? null %}
 {% if atelier %}
+    <h3 class="mt-8 text-xl text-encre-900">Consigne permanente</h3>
+    <p class="mt-2 max-w-2xl text-sm text-encre-500">
+        Dites une fois ce que ce bâtiment doit refaire, et il s'y remettra
+        <strong class="text-encre-700">dès qu'il se libère</strong>, sans que
+        vous ayez à revenir. Il prend ses matières dans vos réserves à chaque
+        relance — jamais d'avance — et s'arrête en le disant si elles viennent
+        à manquer.
+    </p>
+
+    {% if atelier.consigne %}
+        <div class="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-2 rounded-sm border border-lapis-500/30 bg-lapis-500/5 px-4 py-3">
+            <span class="font-display text-encre-900">{{ atelier.consigne.recette.libelle }}</span>
+            <span class="text-sm text-encre-500" data-chiffres>
+                {{ atelier.consigne.lots }} lot{{ atelier.consigne.lots > 1 ? 's' : '' }} à chaque fois
+            </span>
+            {% if atelier.consigne.estEnAttenteDeMatieres %}
+                <span class="text-sm text-terre-600">à l'arrêt, faute de matières</span>
+            {% endif %}
+            {% if partie.estEnCours %}
+                <form method="post" action="{{ path('app_partie_consigne', {id: partie.id}) }}" class="ml-auto">
+                    <input type="hidden" name="_token" value="{{ csrf_token('consigne') }}">
+                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                    <input type="hidden" name="batiment" value="{{ atelier.type.value }}">
+                    <button type="submit" name="lever" value="1"
+                            class="rounded-sm border border-ocre-500/40 px-3 py-1.5 text-sm text-encre-600 hover:bg-ocre-500/10">
+                        Lever la consigne
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    {% else %}
+        <p class="mt-3 text-sm text-encre-500">
+            Aucune consigne : ce bâtiment s'arrêtera à la fin de son ouvrage et
+            attendra que vous le relanciez.
+        </p>
+    {% endif %}
+
+    {% if partie.estEnCours and atelier.recettes is not empty %}
+        <form method="post" action="{{ path('app_partie_consigne', {id: partie.id}) }}"
+              class="mt-3 flex flex-wrap items-baseline gap-3">
+            <input type="hidden" name="_token" value="{{ csrf_token('consigne') }}">
+            <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+
+            <label for="consigne-recette-{{ atelier.type.value }}" class="text-sm text-encre-600">
+                {{ atelier.consigne ? 'Réorienter vers' : 'Mettre en consigne' }}
+            </label>
+            <select id="consigne-recette-{{ atelier.type.value }}" name="recette"
+                    class="rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900">
+                {% for offre in atelier.recettes %}
+                    <option value="{{ offre.recette.value }}"
+                            {{ atelier.consigne and atelier.consigne.recette == offre.recette ? 'selected' : '' }}>
+                        {{ offre.recette.libelle }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label for="consigne-lots-{{ atelier.type.value }}" class="text-sm text-encre-600">Lots</label>
+            <input type="number" id="consigne-lots-{{ atelier.type.value }}" name="lots"
+                   value="{{ atelier.consigne ? atelier.consigne.lots : 1 }}"
+                   min="1" max="{{ atelier.lotsMaximum }}"
+                   class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
+                   data-chiffres>
+
+            <button type="submit"
+                    class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-lapis-600 hover:bg-lapis-500/10">
+                {{ atelier.consigne ? 'Corriger' : 'Consigner' }}
+            </button>
+        </form>
+    {% endif %}
+
     <h3 class="mt-8 text-xl text-encre-900">À l'ouvrage</h3>
 
     {% if atelier.ordre %}

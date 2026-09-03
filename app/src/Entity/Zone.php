@@ -6,12 +6,7 @@ namespace App\Entity;
 
 use App\Game\ContenuDeZone;
 use App\Game\Culture;
-use App\Game\CycleAgricoleTerrestre;
-use App\Game\EffetDeFaveur;
-use App\Game\EtapeDeChamp;
-use App\Game\RendementDesChamps;
 use App\Game\Ressource;
-use App\Game\Saison;
 use App\Game\TypeDeTerrain;
 use App\Repository\ZoneRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -69,18 +64,21 @@ class Zone
     private Collection $gisements;
 
     /**
-     * Ce qui est semé sur cette case, si un champ y est établi (doc 01, doc 02).
+     * Les champs semés ici (doc 01, doc 02). **Une case porte jusqu'à
+     * `CHAMPS_MAX` parcelles, chacune avec sa culture et son propre cycle** :
+     * on sème du blé à côté de l'orge si l'on veut.
+     *
+     * @var Collection<int, Parcelle>
      */
-    #[ORM\Column(nullable: true, enumType: Culture::class)]
-    private ?Culture $culture = null;
+    #[ORM\OneToMany(targetEntity: Parcelle::class, mappedBy: 'zone', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $parcelles;
 
     /**
-     * Quinzaines écoulées depuis le semis — nul hors culture, et hors sujet
-     * sur le Nil, dont le rythme reste celui de la crue
-     * (`RendementDesChamps`) plutôt que d'un compteur propre à la case.
+     * Combien de champs une même terre peut porter. Quatre : de quoi qu'une
+     * case cultivable pèse dans l'alimentation d'une ville qui grandit, sans
+     * qu'une seule case suffise à la nourrir tout entière.
      */
-    #[ORM\Column(nullable: true)]
-    private ?int $quinzainesDepuisSemis = null;
+    public const int CHAMPS_MAX = 4;
 
     #[ORM\Column]
     private bool $decouverte = false;
@@ -94,6 +92,7 @@ class Zone
     public function __construct(City $ville, int $x, int $y, TypeDeTerrain $terrain)
     {
         $this->gisements = new ArrayCollection();
+        $this->parcelles = new ArrayCollection();
         $this->ville = $ville;
         $this->x = $x;
         $this->y = $y;
@@ -243,14 +242,40 @@ class Zone
         return $this->decouverte;
     }
 
-    public function getCulture(): ?Culture
+    /**
+     * Les champs semés sur cette case, **chacun avec sa culture et son propre
+     * cycle** (`Parcelle`). Une case est une terre, pas un champ : on y sème
+     * jusqu'à `CHAMPS_MAX` parcelles, du blé à côté de l'orge si l'on veut.
+     *
+     * @return Collection<int, Parcelle>
+     */
+    public function getParcelles(): Collection
     {
-        return $this->culture;
+        return $this->parcelles;
+    }
+
+    public function parcelleAuRang(int $rang): ?Parcelle
+    {
+        foreach ($this->parcelles as $parcelle) {
+            if ($parcelle->getRang() === $rang) {
+                return $parcelle;
+            }
+        }
+
+        return null;
     }
 
     public function porteUnChamp(): bool
     {
-        return null !== $this->culture;
+        return !$this->parcelles->isEmpty();
+    }
+
+    /**
+     * Combien de champs la case porte réellement.
+     */
+    public function getChamps(): int
+    {
+        return $this->parcelles->count();
     }
 
     /**
@@ -264,49 +289,62 @@ class Zone
             && ContenuDeZone::ChampEligible === $this->contenu;
     }
 
-    public function semer(Culture $culture): static
+    /**
+     * Sème une parcelle à ce rang, ou la ressème si elle existe déjà.
+     *
+     * **Ressemer repart de zéro** : c'est le sens du geste. Pour ne pas perdre
+     * le cycle en cours, l'appelant ne doit tout simplement pas ressemer une
+     * parcelle qui porte déjà la culture voulue — c'est ce que fait
+     * `Exploitations::semer()`.
+     */
+    public function semerLaParcelle(int $rang, Culture $culture): Parcelle
     {
-        $this->culture = $culture;
-        // Le compteur ne sert qu'au cycle terrestre — sur le Nil, la saison
-        // suffit à situer le champ, sans état propre à la case.
-        $this->quinzainesDepuisSemis = TypeDeTerrain::Nil === $this->terrain ? null : 0;
+        $parcelle = $this->parcelleAuRang($rang);
+
+        if (null === $parcelle) {
+            $parcelle = new Parcelle($this, $rang, $culture);
+            $this->parcelles->add($parcelle);
+
+            return $parcelle;
+        }
+
+        return $parcelle->semer($culture);
+    }
+
+    public function arracherLaParcelle(Parcelle $parcelle): static
+    {
+        $this->parcelles->removeElement($parcelle);
 
         return $this;
     }
 
-    public function getQuinzainesDepuisSemis(): ?int
+    /**
+     * Les cultures semées ici, sans doublon, pour que l'écran les nomme d'un
+     * trait.
+     *
+     * @return list<Culture>
+     */
+    public function culturesSemees(): array
     {
-        return $this->quinzainesDepuisSemis;
+        $cultures = [];
+
+        foreach ($this->parcelles as $parcelle) {
+            $cultures[$parcelle->getCulture()->value] = $parcelle->getCulture();
+        }
+
+        return array_values($cultures);
     }
 
     /**
-     * Fait avancer le cycle agricole terrestre d'une quinzaine. Sans effet sur
-     * un champ du Nil ou une case sans champ.
+     * Fait avancer le cycle agricole de chaque parcelle d'une quinzaine.
      */
     public function avancerLeCycleAgricole(): static
     {
-        if (null !== $this->quinzainesDepuisSemis) {
-            ++$this->quinzainesDepuisSemis;
+        foreach ($this->parcelles as $parcelle) {
+            $parcelle->avancerLeCycleAgricole();
         }
 
         return $this;
-    }
-
-    /**
-     * L'étape du champ établi ici, pour l'affichage — null hors culture.
-     */
-    public function etapeDuChamp(?Saison $saisonActuelle, ?int $rangDansLaSaison): ?EtapeDeChamp
-    {
-        if (!$this->porteUnChamp()) {
-            return null;
-        }
-
-        return TypeDeTerrain::Nil === $this->terrain
-            ? RendementDesChamps::etape($saisonActuelle, $rangDansLaSaison)
-            : CycleAgricoleTerrestre::etape(
-                $this->quinzainesDepuisSemis ?? 0,
-                EffetDeFaveur::jachereRaccourcie($this->ville),
-            );
     }
 
     public function decouvrir(): static

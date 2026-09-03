@@ -181,24 +181,24 @@ final readonly class Recoltes
     private function moissonner(GameSave $partie, Paie $paie, int $humeur): array
     {
         $ville = $partie->getVille();
-        $champs = [];
+        $parcelles = [];
 
         foreach ($ville->getZones() as $zone) {
-            if ($zone->porteUnChamp()) {
-                $champs[] = $zone;
+            foreach ($zone->getParcelles() as $parcelle) {
+                $parcelles[] = $parcelle;
             }
         }
 
-        if ([] === $champs) {
+        if ([] === $parcelles) {
             return [];
         }
 
         // Le cycle terrestre avance dans tous les cas — semis, pousse et
         // repos se poursuivent même sans Grenier, seule la conservation de la
-        // récolte en dépend. Un champ du Nil n'a pas de compteur propre : sa
-        // case reste inchangée, seule la saison le fait avancer.
-        foreach ($champs as $zone) {
-            $zone->avancerLeCycleAgricole();
+        // récolte en dépend. Une parcelle du Nil n'a pas de compteur propre :
+        // seule la saison la fait avancer.
+        foreach ($parcelles as $parcelle) {
+            $parcelle->avancerLeCycleAgricole();
         }
 
         if (!$ville->possede(TypeDeBatiment::Grenier)) {
@@ -211,9 +211,8 @@ final readonly class Recoltes
         /** @var array<string, int> $recolte */
         $recolte = [];
 
-        foreach ($champs as $zone) {
-            $culture = $zone->getCulture();
-            \assert(null !== $culture);
+        foreach ($parcelles as $parcelle) {
+            $zone = $parcelle->getZone();
 
             $quantite = TypeDeTerrain::Nil === $zone->getTerrain()
                 ? RendementDesChamps::pourUneQuinzaine($date->saison, $date->rangDansLaSaison, $partie->getCrue())
@@ -221,16 +220,16 @@ final readonly class Recoltes
                 // donc celle d'avant, seule pertinente pour ce qui vient de
                 // mûrir.
                 : CycleAgricoleTerrestre::pourUneQuinzaine(
-                    ($zone->getQuinzainesDepuisSemis() ?? 1) - 1,
+                    ($parcelle->getQuinzainesDepuisSemis() ?? 1) - 1,
                     // Osiris ne fait pas rendre plus, il fait revenir plus tôt.
-                    EffetDeFaveur::jachereRaccourcie($partie->getVille()),
+                    EffetDeFaveur::jachereRaccourcie($ville),
                 );
 
             if ($quantite <= 0) {
                 continue;
             }
 
-            $cle = Effectifs::cleDe($zone, null);
+            $cle = Effectifs::cleDeParcelle($parcelle);
 
             // Une équipe impayée ne moissonne pas — à la différence d'un champ
             // simplement dépeuplé, que la famille reprend à moitié.
@@ -238,8 +237,11 @@ final readonly class Recoltes
                 continue;
             }
 
-            // Un champ sans bras donne encore, mais moitié moins : la famille
-            // le moissonne elle-même.
+            // **Chaque parcelle a son homme**, et la famille n'en moissonne
+            // qu'une, à moitié : c'est le rendement d'effectif habituel, appliqué
+            // parcelle par parcelle. Sans bras du tout, on retombe donc sur le
+            // plancher d'un seul champ — semer quatre parcelles qu'on ne peut
+            // pas tenir ne donne pas quatre fois la moitié.
             $rendement = intdiv(
                 ($equipages[$cle]['rendement'] ?? Effectifs::RENDEMENT_PLANCHER) * $humeur,
                 Effectifs::RENDEMENT_PLEIN,
@@ -250,7 +252,7 @@ final readonly class Recoltes
                 continue;
             }
 
-            $valeur = $culture->ressource()->value;
+            $valeur = $parcelle->getCulture()->ressource()->value;
             $recolte[$valeur] = ($recolte[$valeur] ?? 0) + $quantite;
         }
 

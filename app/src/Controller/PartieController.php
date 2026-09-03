@@ -68,6 +68,7 @@ use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
 use App\Game\Population;
+use App\Game\PrixDuMarche;
 use App\Game\Progression;
 use App\Game\Prospection;
 use App\Game\QueteImpossible;
@@ -91,6 +92,7 @@ use App\Game\Successions;
 use App\Game\SymboleHieroglyphique;
 use App\Game\Temple;
 use App\Game\TranscriptionDuNom;
+use App\Game\TravauxEnCours;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
 use App\Repository\GameSaveRepository;
@@ -219,6 +221,7 @@ final class PartieController extends AbstractController
         Successions $successions,
         ScoreDAventure $score,
         SuccessionFamiliale $successionFamiliale,
+        TravauxEnCours $travaux,
     ): Response {
         $ville = $partie->getVille();
         $geographie = $geographies->pour($partie);
@@ -246,6 +249,7 @@ final class PartieController extends AbstractController
             // familiale, et il fallait rouvrir son onglet à chaque geste.
             'ongletActif' => $ongletActif,
             'chantiers' => $ville->getChantiers(),
+            'travauxEnCours' => $travaux->pour($partie),
             'batimentsDresses' => $this->batimentsTriesParLibelle($ville),
             'offres' => $catalogue->pour($ville),
             'aUnMarche' => $ville->possede(TypeDeBatiment::Marche),
@@ -253,6 +257,20 @@ final class PartieController extends AbstractController
             // Le débouché de la quinzaine se lit **avant** la vente : découvrir
             // la borne par un refus serait la subir au lieu de la jouer.
             'plafondDuMarche' => Marche::plafondDeLaQuinzaine($partie),
+            // Le prix qu'on fait payer au peuple, et ce qu'il en coûte.
+            'margeQuiFache' => Mecontentement::MARGE_QUI_FACHE,
+            'margeMinimale' => City::MARGE_MINIMALE,
+            'margeMaximale' => City::MARGE_MAXIMALE,
+            'prixAbusif' => Mecontentement::prixAbusif($ville),
+            'salaireMinimal' => City::SALAIRE_MINIMAL,
+            'salaireMaximal' => City::SALAIRE_MAXIMAL,
+            'salaireJuste' => City::SALAIRE_JUSTE,
+            'salaireGenereux' => Mecontentement::SALAIRE_GENEREUX,
+            'griefsDeLaVille' => Mecontentement::griefs($ville),
+            // La répartition des réserves, à l'Entrepôt : c'est lui qui tient
+            // les stocks, et c'est d'un seul tableau qu'on décide de ce qu'on
+            // garde et de ce qui part.
+            'repartition' => $this->repartitionDesReserves($ville),
             'venteRestante' => $marche->venteRestante($partie),
             'niveauDuMarche' => $ville->batimentDeType(TypeDeBatiment::Marche)?->getNiveau() ?? 0,
             // La renommée était nulle part à l'écran : ce qu'elle change — le
@@ -423,6 +441,194 @@ final class PartieController extends AbstractController
         } catch (VenteImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }
+
+        return $this->retourALaVille($request, $partie);
+    }
+
+    /**
+     * Pose, corrige ou lève le seuil en deçà duquel la ville ne vend jamais
+     * une ressource. Tout ce qui dépasse part au Marché, jour de marché après
+     * jour de marché.
+     *
+     * **Rien n'est débité ici** : c'est un seuil, pas un dépôt. La marchandise
+     * ne quitte la réserve qu'au moment d'être vendue.
+     */
+    #[Route('/{id}/ville/reserve', name: 'app_partie_reserve', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function reserve(Request $request, GameSave $partie, EntityManagerInterface $gestionnaire): Response
+    {
+        if (!$this->isCsrfTokenValid('reserve', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $ressource = Ressource::tryFrom((string) $request->request->get('ressource'));
+
+        if (null === $ressource) {
+            throw $this->createNotFoundException('Ressource inconnue.');
+        }
+
+        $ville = $partie->getVille();
+
+        if ($request->request->has('retirer')) {
+            $reserve = $ville->reserveGardeeDe($ressource);
+
+            if (null !== $reserve) {
+                $ville->cesserDeGarder($reserve);
+                $gestionnaire->remove($reserve);
+                $gestionnaire->flush();
+                $this->addFlash('succes', \sprintf(
+                    'Le %s ne part plus au Marché de lui-même : vous gardez tout.',
+                    $ressource->libelle(),
+                ));
+            }
+
+            return $this->retourALaVille($request, $partie);
+        }
+
+        $quantite = $request->request->getInt('quantite');
+
+        if ($quantite < 0) {
+            $this->addFlash('erreur', 'On ne garde pas une quantité négative.');
+
+            return $this->retourALaVille($request, $partie);
+        }
+
+        if (null === PrixDuMarche::pour($ressource)) {
+            $this->addFlash('erreur', \sprintf('Le %s ne se négocie pas : c\'est la monnaie.', $ressource->libelle()));
+
+            return $this->retourALaVille($request, $partie);
+        }
+
+        $ville->garderEnReserve($ressource, $quantite);
+        $gestionnaire->flush();
+
+        $surplus = max(0, $ville->quantite($ressource) - $quantite);
+
+        $this->addFlash('succes', \sprintf(
+            'Vous gardez désormais %d %s. %s',
+            $quantite,
+            $ressource->libelle(),
+            $surplus > 0
+                ? \sprintf('Le surplus — %d pour l\'instant — partira au Marché au fil des quinzaines.', $surplus)
+                : 'Rien ne dépasse ce seuil pour le moment.',
+        ));
+
+        return $this->retourALaVille($request, $partie);
+    }
+
+    /**
+     * Règle ce que la ville fait payer ses habitants, et ce qu'elle paie ses
+     * travailleurs.
+     *
+     * **Les deux ont une contrepartie**, sans quoi il n'existerait qu'une
+     * bonne valeur pour chacun : un prix abusif et un salaire de misère
+     * mécontentent la ville (`Mecontentement`), et un salaire généreux
+     * l'apaise deux fois plus vite.
+     */
+    #[Route('/{id}/ville/train-de-vie', name: 'app_partie_train_de_vie', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function trainDeVie(Request $request, GameSave $partie, EntityManagerInterface $gestionnaire): Response
+    {
+        if (!$this->isCsrfTokenValid('train-de-vie', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $ville = $partie->getVille();
+
+        if ($request->request->has('marge')) {
+            $ville->fixerLaMargeDuMarche($request->request->getInt('marge'));
+            $this->addFlash('succes', \sprintf(
+                'Vos habitants paieront %d %% du cours. %s',
+                $ville->getMargeDuMarche(),
+                Mecontentement::prixAbusif($ville)
+                    ? 'On trouvera cela cher, et on le fera savoir.'
+                    : 'Un prix que la ville accepte.',
+            ));
+        }
+
+        if ($request->request->has('salaire')) {
+            $ville->fixerLeSalaireDeBase($request->request->getInt('salaire'));
+            $this->addFlash('succes', \sprintf(
+                'Vos travailleurs toucheront %d deben la quinzaine. %s',
+                $ville->getSalaireDeBase(),
+                match (true) {
+                    Mecontentement::salaireDeMisere($ville) => 'C\'est sous l\'usage, et cela se paiera en mécontentement.',
+                    $ville->getSalaireDeBase() >= Mecontentement::SALAIRE_GENEREUX => 'De quoi apaiser la ville plus vite.',
+                    default => 'Le salaire d\'usage.',
+                },
+            ));
+        }
+
+        $gestionnaire->flush();
+
+        return $this->retourALaVille($request, $partie);
+    }
+
+    /**
+     * Pose, réoriente ou lève la consigne permanente d'un atelier : ce qu'il
+     * refait de lui-même à chaque fois qu'il se libère.
+     *
+     * **Rien n'est débité ici** : c'est une consigne, pas un ordre. Les
+     * matières seront prises à chaque relance, et seulement si elles sont là.
+     */
+    #[Route('/{id}/ville/consigne', name: 'app_partie_consigne', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function consigne(Request $request, GameSave $partie, EntityManagerInterface $gestionnaire): Response
+    {
+        if (!$this->isCsrfTokenValid('consigne', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $ville = $partie->getVille();
+
+        if ($request->request->has('lever')) {
+            $type = TypeDeBatiment::tryFrom((string) $request->request->get('batiment'));
+
+            if (null === $type) {
+                throw $this->createNotFoundException('Bâtiment inconnu.');
+            }
+
+            $consigne = $ville->consigneDeFabricationDe($type);
+
+            if (null !== $consigne) {
+                $ville->leverLaConsigne($consigne);
+                $gestionnaire->remove($consigne);
+                $gestionnaire->flush();
+                $this->addFlash('succes', \sprintf(
+                    '%s ne se remettra plus à l\'ouvrage de lui-même.',
+                    $type->libelle(),
+                ));
+            }
+
+            return $this->retourALaVille($request, $partie);
+        }
+
+        $recette = Recette::tryFrom((string) $request->request->get('recette'));
+
+        if (null === $recette) {
+            throw $this->createNotFoundException('Recette inconnue.');
+        }
+
+        $atelier = $ville->batimentDeType($recette->batiment());
+
+        if (null === $atelier) {
+            $this->addFlash('erreur', \sprintf('Il vous faut %s pour cela.', $recette->batiment()->libelle()));
+
+            return $this->retourALaVille($request, $partie);
+        }
+
+        $lots = max(1, min($request->request->getInt('lots', 1), Fabrication::lotsMaximum($atelier->getNiveau())));
+
+        $ville->consigner($recette, $lots);
+        $gestionnaire->flush();
+
+        $this->addFlash('succes', \sprintf(
+            '%s se remettra désormais à %s — %d lot%s — dès qu\'il se libère, tant que les matières suivent.',
+            $recette->batiment()->libelle(),
+            mb_strtolower($recette->libelle()),
+            $lots,
+            $lots > 1 ? 's' : '',
+        ));
 
         return $this->retourALaVille($request, $partie);
     }
@@ -1171,6 +1377,7 @@ final class PartieController extends AbstractController
                 ? $explorations->dureeVers($partie, $detaillee)
                 : null,
             'cultures' => Culture::cases(),
+            'champsMax' => Zone::CHAMPS_MAX,
             'aUnGrenier' => $ville->possede(TypeDeBatiment::Grenier),
             'peutFouiller' => $detaillee instanceof Zone && $enquetes->peutFouiller($ville, $detaillee),
             // L'émissaire ne va que là où l'on sait déjà qu'il y a quelqu'un,
@@ -1262,22 +1469,70 @@ final class PartieController extends AbstractController
     public function semer(Request $request, GameSave $partie, Exploitations $exploitations): Response
     {
         $zone = $this->zonePostee($request, $partie, 'semer');
-        $culture = Culture::tryFrom((string) $request->request->get('culture'));
 
-        if (null === $culture) {
-            throw $this->createNotFoundException('Culture inconnue.');
+        // Les quatre places de la case, d'un coup : chacune porte sa culture,
+        // ou rien. C'est un seul formulaire, donc une seule décision — semer,
+        // changer et arracher se disent ensemble.
+        $semees = [];
+        $arrachees = 0;
+
+        for ($rang = 1; $rang <= Zone::CHAMPS_MAX; ++$rang) {
+            $demande = (string) $request->request->get('culture-'.$rang, '');
+
+            try {
+                if ('' === $demande) {
+                    if (null !== $zone->parcelleAuRang($rang)) {
+                        $exploitations->arracher($partie, $zone, $rang);
+                        ++$arrachees;
+                    }
+
+                    continue;
+                }
+
+                $culture = Culture::tryFrom($demande);
+
+                if (null === $culture) {
+                    throw $this->createNotFoundException('Culture inconnue.');
+                }
+
+                $deja = $zone->parcelleAuRang($rang)?->getCulture();
+                $exploitations->semer($partie, $zone, $rang, $culture);
+
+                if ($deja !== $culture) {
+                    $semees[] = $culture->libelle();
+                }
+            } catch (ExploitationImpossible $impossible) {
+                $this->addFlash('erreur', $impossible->getMessage());
+
+                return $this->retourALaCarte($partie, $zone);
+            }
         }
 
-        try {
-            $exploitations->semer($partie, $zone, $culture);
-            $this->addFlash('succes', $partie->getVille()->possede(TypeDeBatiment::Grenier)
-                ? \sprintf('Le champ est établi. On y sème %s.', $culture->libelle())
-                : \sprintf(
-                    'Le champ est établi et semé de %s. Sans Grenier, rien de ce qu\'il donnera ne se conservera.',
-                    $culture->libelle(),
-                ));
-        } catch (ExploitationImpossible $impossible) {
-            $this->addFlash('erreur', $impossible->getMessage());
+        $dit = [];
+
+        if ([] !== $semees) {
+            $dit[] = \sprintf(
+                'On sème %s',
+                implode(', ', array_map(mb_strtolower(...), $semees)),
+            );
+        }
+
+        if ($arrachees > 0) {
+            $dit[] = \sprintf('%d parcelle%s arrachée%s', $arrachees, $arrachees > 1 ? 's' : '', $arrachees > 1 ? 's' : '');
+        }
+
+        if ([] === $dit) {
+            $this->addFlash('succes', 'Rien de changé sur cette terre.');
+        } else {
+            $this->addFlash('succes', \sprintf(
+                '%s. La case compte %d champ%s, soit autant de bras.%s',
+                implode(', et ', $dit),
+                $zone->getChamps(),
+                $zone->getChamps() > 1 ? 's' : '',
+                $partie->getVille()->possede(TypeDeBatiment::Grenier)
+                    ? ''
+                    : ' Sans Grenier, rien de ce qu\'ils donneront ne se conservera.',
+            ));
         }
 
         return $this->retourALaCarte($partie, $zone);
@@ -1648,12 +1903,51 @@ final class PartieController extends AbstractController
     }
 
     /**
-     * Ce que chaque bâtiment qui fabrique sait faire, et ce qu'il fait déjà.
+     * Ce que la ville a en réserve, ce qu'elle en garde, ce qui part — une
+     * ligne par ressource négociable et non vide.
+     *
+     * Le seuil est `null` tant qu'aucune consigne n'est posée : le silence se
+     * lit « je garde tout », et l'écran doit le dire ainsi plutôt que d'
+     * afficher un zéro qui voudrait dire l'inverse.
+     *
+     * @return list<array{ressource: Ressource, enReserve: int, prix: int, seuil: ?int, surplus: int}>
+     */
+    private function repartitionDesReserves(City $ville): array
+    {
+        $lignes = [];
+
+        foreach ($ville->getStock() as $ligne) {
+            $ressource = $ligne->getRessource();
+            $prix = PrixDuMarche::pour($ressource);
+
+            if (null === $prix || $ligne->getQuantite() < 1) {
+                continue;
+            }
+
+            $reserve = $ville->reserveGardeeDe($ressource);
+
+            $lignes[] = [
+                'ressource' => $ressource,
+                'enReserve' => $ligne->getQuantite(),
+                'prix' => $prix,
+                'seuil' => $reserve?->getQuantiteGardee(),
+                'surplus' => $reserve?->surplusDans($ville) ?? 0,
+            ];
+        }
+
+        usort($lignes, static fn (array $a, array $b): int => $a['ressource']->libelle() <=> $b['ressource']->libelle());
+
+        return $lignes;
+    }
+
+    /**
+     * Ce que chaque bâtiment qui fabrique sait faire, ce qu'il fait déjà, et
+     * ce qu'il refera de lui-même.
      *
      * L'Atelier et la Forge partagent tout : un seul gabarit les rend, une
      * seule boucle les prépare.
      *
-     * @return array<string, array{type: TypeDeBatiment, niveau: int, lotsMaximum: int, recettes: list<array{recette: Recette, matieres: array<string, int>, realisable: bool, empechement: ?string}>, ordre: ?\App\Entity\OrdreDeFabrication}>
+     * @return array<string, array{type: TypeDeBatiment, niveau: int, lotsMaximum: int, recettes: list<array{recette: Recette, matieres: array<string, int>, realisable: bool, empechement: ?string}>, ordre: ?\App\Entity\OrdreDeFabrication, consigne: ?\App\Entity\ConsigneDeFabrication}>
      */
     private function ateliersDeLaVille(GameSave $partie, Fabrication $fabrication): array
     {
@@ -1673,6 +1967,7 @@ final class PartieController extends AbstractController
                 'lotsMaximum' => Fabrication::lotsMaximum($batiment->getNiveau()),
                 'recettes' => $fabrication->offrePour($partie, $type),
                 'ordre' => $ville->ordreDeFabricationDe($type),
+                'consigne' => $ville->consigneDeFabricationDe($type),
             ];
         }
 
@@ -1735,7 +2030,7 @@ final class PartieController extends AbstractController
      * Les filons dormants et taris y figurent au même titre que ceux en
      * activité : c'est justement ce qu'on cherche à voir.
      *
-     * @return array<string, list<array{zone: Zone, ressource: ?Ressource, etat: string, restant: ?int, affectes: int, requis: int, rendement: int, produit: bool}>>
+     * @return array<string, list<array{zone: Zone, ressource: ?Ressource, libelle: ?string, etat: string, restant: ?int, affectes: int, requis: int, rendement: int, produit: bool}>>
      */
     private function exploitationsParGouvernant(GameSave $partie): array
     {
@@ -1750,12 +2045,12 @@ final class PartieController extends AbstractController
 
             foreach ($this->exploitationsDe($zone) as $ligne) {
                 $ressource = $ligne['ressource'];
-                $cle = Effectifs::cleDe($zone, $ressource);
-                $equipage = $equipages[$cle] ?? null;
+                $equipage = $equipages[$ligne['cle']] ?? null;
 
                 $recap[Effectifs::batimentGouvernant($ressource)->value][] = [
                     'zone' => $zone,
                     'ressource' => $ressource,
+                    'libelle' => $ligne['libelle'],
                     'etat' => $ligne['etat'],
                     'restant' => $ligne['restant'],
                     'affectes' => $equipage['affectes'] ?? 0,
@@ -1775,19 +2070,30 @@ final class PartieController extends AbstractController
     /**
      * Ce qu'une case porte d'exploitable — un champ, des filons, ou rien.
      *
-     * @return list<array{ressource: ?Ressource, etat: string, restant: ?int}>
+     * @return list<array{ressource: ?Ressource, cle: string, libelle: ?string, etat: string, restant: ?int}>
      */
     private function exploitationsDe(Zone $zone): array
     {
         $lignes = [];
 
-        if ($zone->porteUnChamp()) {
-            $lignes[] = ['ressource' => null, 'etat' => 'en_activite', 'restant' => null];
+        // **Une ligne par parcelle** : chacune a sa culture, son cycle et son
+        // homme, et c'est parcelle par parcelle que le joueur veut savoir s'il
+        // produit.
+        foreach ($zone->getParcelles() as $parcelle) {
+            $lignes[] = [
+                'ressource' => null,
+                'cle' => Effectifs::cleDeParcelle($parcelle),
+                'libelle' => $parcelle->getCulture()->libelle(),
+                'etat' => 'en_activite',
+                'restant' => null,
+            ];
         }
 
         foreach ($zone->getGisements() as $gisement) {
             $lignes[] = [
                 'ressource' => $gisement->getRessource(),
+                'cle' => Effectifs::cleDe($zone, $gisement->getRessource()),
+                'libelle' => null,
                 'etat' => match (true) {
                     // L'épuisement passe avant tout : un filon tari est fermé
                     // par `Recoltes`, mais il reste sur la carte et se rouvre
