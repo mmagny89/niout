@@ -273,6 +273,30 @@
     <p class="mt-2 max-w-3xl text-sm text-encre-600">{{ regne.avenement }}</p>
 {% endif %}
 
+{# Pas d'objectif fermé en Aventure : un score qu'on regarde monter, et le
+   détail de ce qui le compose — un total nu ne dit pas quoi faire pour le
+   faire monter (doc 14, lot 11.4). #}
+{% if scoreDAventure is not null %}
+    <h3 class="mt-8 text-xl text-encre-900">
+        Ce que votre ville vaut — <span data-chiffres>{{ scoreDAventure }}</span>
+    </h3>
+    <table class="mt-3 w-full max-w-3xl border-collapse text-sm">
+        <tbody>
+            {% for ligne in detailDuScore %}
+                <tr class="border-t border-ocre-500/20">
+                    <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">{{ ligne.libelle }}</th>
+                    <td class="px-4 py-2 text-right text-encre-500" data-chiffres>{{ ligne.mesure }}</td>
+                    <td class="px-4 py-2 text-right text-encre-900" data-chiffres>{{ ligne.points }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="mt-2 max-w-3xl text-sm text-encre-500">
+        Rien à atteindre : le mode dure autant que la succession, et vous
+        arrêtez quand il vous plaît.
+    </p>
+{% endif %}
+
 {% if mission %}
         <h2 class="text-2xl text-encre-900">
             Mission <span data-chiffres>{{ mission.numero }}</span> sur 10 — {{ mission.ville }}

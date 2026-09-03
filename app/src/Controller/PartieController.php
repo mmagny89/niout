@@ -79,6 +79,7 @@ use App\Game\Ressource;
 use App\Game\Rivaux;
 use App\Game\RoleDExploration;
 use App\Game\Salaires;
+use App\Game\ScoreDAventure;
 use App\Game\SensDEchange;
 use App\Game\SigneAlphabetique;
 use App\Game\SpecialisationMedjay;
@@ -214,6 +215,7 @@ final class PartieController extends AbstractController
         CarnetDeContacts $carnet,
         Medjays $medjaysService,
         Successions $successions,
+        ScoreDAventure $score,
     ): Response {
         $ville = $partie->getVille();
         $geographie = $geographies->pour($partie);
@@ -269,6 +271,11 @@ final class PartieController extends AbstractController
             'regne' => $successions->regneEnCours($partie),
             'rangDuRegne' => $successions->rangEnCours($partie),
             'nombreDeRegnes' => $successions->nombreDeRegnes(),
+            // Le score cumulatif du mode Aventure (lot 11.4) : pas d'objectif
+            // fermé, seulement quelque chose à regarder monter — et le détail,
+            // car un total nu ne dit pas quoi faire pour le faire monter.
+            'scoreDAventure' => $partie->estCampagne() ? null : $score->total($partie),
+            'detailDuScore' => $partie->estCampagne() ? [] : $score->detail($partie),
             'coutDUnAppel' => $appels->cout($partie),
             // La Caserne (lot 10.2) : la troupe, ce qu'elle coûte, et ce qui
             // empêche d'en lever un de plus — dit avant la tentative.

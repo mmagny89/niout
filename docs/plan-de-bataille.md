@@ -853,7 +853,7 @@ mode structurellement injouable sur la durée, ce qui est précisément son prop
 | 11.1 | La succession des règnes : durées, transitions, pharaons | ✅ |
 | 11.2 | Memphis commerce : des partenaires qui suivent le règne | ✅ |
 | 11.3 | Le contenu royal qui se renouvelle : chantiers, cartouches, stèles | ✅ |
-| 11.4 | Le score cumulatif, et une fin qu'on choisit | |
+| 11.4 | Le score cumulatif, et une fin qu'on choisit | ✅ |
 | 11.5 | La succession familiale : générations et héritiers *(ex-lot 9.6)* | |
 | 11.6 | Les effets de Résidence familiale du doc 01 | |
 
@@ -1001,7 +1001,22 @@ donc son cartouche, ses chantiers et sa stèle.
 rencontrer bien plus de pharaons que les huit de la campagne. C'est aussi le
 plus gros volume de contenu de la phase.
 
-#### 11.4 — Le score et la fin
+#### 11.4 — Le score et la fin  *(livré)*
+
+`ScoreDAventure` **lit ce que le jeu sait déjà compter** — les quatre grandeurs
+qu'`ObjectifDeMission` mesure pour la campagne. Rien n'y réinvente une mesure
+existante ; seuls les **poids sont inventés**, pour qu'aucune grandeur n'écrase
+les autres : une ville riche compte ses deben par milliers quand elle compte ses
+habitants par dizaines.
+
+Le détail est montré autant que le total : **un total nu ne se joue pas**, on ne
+sait pas quoi faire pour le faire monter.
+
+**La succession épuisée clôt la partie**, et le dernier règne compte comme les
+autres — son acquis rejoint la lignée avant la fermeture. Le score final se
+range dans le champ du score de mission : les deux disent la même chose, ce
+qu'une run a valu, et l'écran de reprise n'a pas à connaître deux notions pour
+une idée.
 
 Pas d'objectif fermé : un **score cumulatif** — richesse, population, renommée —
 que le joueur suit à tout moment, et qu'il arrête quand il veut. Le jeu sait
