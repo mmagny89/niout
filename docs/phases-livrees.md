@@ -1357,3 +1357,129 @@ découvre les routes, et la garnison cesse d'être une dépense entre deux assau
 - **Six valeurs inventées** — défense d'une bande, qualité sans arme, butin,
   risque de pillage, couverture d'un Medjaÿ, les deux moitiés de Bagarreur —
   toutes signalées dans le code et au tableau du plan.
+
+---
+
+### 5.14 Phase 11 — Mode Aventure, succession des règnes et héritage familial  ✅
+
+Le mode Aventure **existait déjà comme choix au lancement** : on pouvait ouvrir
+une partie à Memphis et y jouer tout ce que les dix phases précédentes avaient
+posé. Ce qui manquait n'était pas le mode, c'était **ce qui le distingue de la
+campagne** — une succession de règnes, un contenu royal qui se renouvelle, une
+fin qu'on ne subit pas.
+
+| Lot | Contenu | |
+|---|---|---|
+| 11.0 | Les arbitrages, avant d'écrire | ✅ |
+| 11.1 | La succession des règnes | ✅ |
+| 11.2 | Memphis commerce, et ses routes suivent le règne | ✅ |
+| 11.3 | Le contenu royal qui se renouvelle | ✅ |
+| 11.4 | Le score cumulatif et la fin de partie | ✅ |
+| 11.5 | La succession familiale *(ex-lot 9.6)* | ✅ |
+| 11.6 | Les effets de Résidence familiale | ✅ |
+
+#### Le défaut de fond : Memphis ne commerçait avec personne
+
+`Commerce::partenairesDe()` lisait le catalogue **par numéro de mission** et
+rendait un tableau vide quand il n'y en avait pas. En mode Aventure, **aucune
+route n'était ouvrable** : l'Entrepôt et le Port ne servaient à rien.
+
+C'était le contraire exact de ce que le doc 14 dit de Memphis. Il lui refuse
+**délibérément** l'or, le cuivre et la turquoise en zone locale, parce que « son
+atout réel est l'accès privilégié aux ressources importées » : le commerce
+devait compenser l'absence de mines, et il n'existait pas.
+
+#### Ce que « les routes suivent le règne » a changé
+
+L'arbitrage du 11.0 a réordonné la phase : des partenaires qui suivent le règne
+ne pouvaient pas être posés avant que le règne existe. La succession est donc
+passée devant le commerce.
+
+Il a surtout donné à la succession une **conséquence économique** plutôt qu'un
+habillage narratif. Pount s'ouvre sous Hatchepsout, Babylone et Alashiya au
+temps des lettres d'Amarna, le Naharina sous les règnes qui portent la frontière
+vers l'Euphrate. **Aÿ n'ouvre que le fleuve** — quatre ans de règne, tout entier
+à l'intérieur : un règne maigre se sent alors dans l'économie et pas seulement
+dans le texte.
+
+Un **socle** demeure sous tous les règnes — le Delta au nord, Thèbes au sud —
+sans quoi un pharaon tourné vers l'intérieur aurait reproduit le défaut qu'on
+venait de corriger.
+
+#### Ce qui se déduit plutôt que de se persister
+
+Trois fois dans la phase, la donnée s'est déduite au lieu de se garder :
+
+- le **règne en cours**, de la somme des durées — allonger la succession
+  jusqu'à Ramsès XI ne demandera donc ni migration ni changement de code ;
+- les **partenaires de Memphis**, du règne ;
+- les **héritiers proposés**, d'une graine gardée sur la famille — seule la
+  graine se persiste, si bien que deux visites du même écran montrent les mêmes
+  héritiers sans qu'aucune table ne les porte.
+
+C'est la même discipline que le carnet de contacts de la Phase 9. Une seule
+migration a été nécessaire dans toute la phase, pour la succession familiale.
+
+#### Le sourcing, encore une fois le gros du travail
+
+Sept cartouches et sept chantiers, un par pharaon que la campagne ne
+commandite pas. Trente prénoms de chefs de famille, tirés des registres de Deir
+el-Médineh et des tombes de particuliers thébaines — **jamais de nom de roi**,
+la famille du joueur n'étant pas royale.
+
+**Les glyphes ont été générés depuis leurs codes de Gardiner**, jamais saisis à
+la main : Unicode nomme chaque caractère par son code, ce qui rend la
+correspondance exacte et supprime la seule table qui pouvait diverger.
+`CodesDeGardinerTest` en confronte désormais 114, contre 85 avant la phase.
+
+**Smenkhkarê n'est pas dans la succession**, et c'est délibéré : son existence
+propre, sa durée et jusqu'à son identité sont débattues. La règle du projet
+interdit d'afficher ce qui ne s'établit pas. **Aÿ y figure**, lui, bien que
+l'exemple du doc 14 l'omette : il est solidement attesté.
+
+#### Deux doublons supprimés
+
+- **Le nom de trône était écrit deux fois**, sur `Regne` et sur
+  `CartoucheRoyal`, et les deux avaient déjà divergé d'un accent —
+  `Nebpehtyré` d'un côté, `Nebpehtyrê` de l'autre. Il se lit désormais sur le
+  cartouche seul.
+- **Le doublon d'effectif Medjaÿ du doc 01**, signalé au lot 10.2 et tranché
+  ici : la Caserne et la Résidence familiale **s'ajoutent**, un homme par palier
+  de Résidence. Sans Caserne il n'y a toujours aucun homme — elle ajoute des
+  places, elle n'en crée pas de nulle part.
+
+#### Un écart au document, assumé
+
+Le doc 01 promet un **trait familial** aux niveaux 2 et 5 de Résidence. Il est
+livré, mais sous une autre forme : il ne se choisit pas à un palier de bâtiment,
+il **vient avec l'héritier** qu'on retient. C'est plus fidèle à l'esprit du
+doc 13 — un trait appartient à quelqu'un — et cela évite deux mécanismes pour
+une seule idée. Le bonus de renommée passif du niveau 4 reste ouvert.
+
+#### Ce qui a coûté
+
+- **Une classe `readonly` ne peut pas porter de propriété statique à valeur par
+  défaut.** La mémoïsation de la liste des règnes a donc été abandonnée plutôt
+  que de contorsionner la classe : treize objets par appel ne coûtent rien, et
+  c'est le test qui présumait l'identité des instances qui a été corrigé.
+- **Deux annotations de type fausses de suite**, attrapées par PHPStan. C'est le
+  bon ordre des choses, mais du temps perdu à écrire des types non vérifiés.
+- **`Rivaux` se repliait sur la mission 1** quand il n'y avait pas de mission
+  (`getMission() ?? 1`). Inoffensif tant que l'Aventure n'avait aucune route ; il
+  serait devenu visible dès le lot 11.2.
+
+#### Ce que la phase laisse ouvert
+
+- **Les XIXᵉ et XXᵉ dynasties**, jusqu'à Ramsès XI. La borne visée est la fin du
+  Nouvel Empire ; d'ici là, c'est le dernier règne connu qui fait fin. Les
+  ajouter ne demande **aucun code**, seulement du sourcing — un cartouche et un
+  chantier par pharaon.
+- **Les stèles restent hors du mode.** Elles closent l'acte III d'un fil rouge,
+  et l'Aventure n'en a pas : les y forcer aurait demandé d'inventer une intrigue
+  par règne, ce que le document ne demande nulle part.
+- **Les paramètres personnalisables du doc 14** — point de départ dans la
+  succession, vitesse de succession — ne sont pas offerts au lancement. La
+  taille de grille et la difficulté le sont déjà.
+- **Le bonus de renommée passif** du niveau 4 de Résidence.
+- **Cinq valeurs inventées** : les poids du score, et le seuil de conversion du
+  score en centièmes de réussite.
