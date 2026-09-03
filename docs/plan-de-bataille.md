@@ -140,7 +140,7 @@ vues, pas de la conception.
 | **8 ter** | Écriture : l'alphabet des scribes et les stèles | `10`, `09` | ✅ |
 | **9** | Renommée, héritage et succession familiale | `13` | ✅ (9.6 → Phase 11) |
 | **10** | Medjaÿ et combat automatique | `03` | ✅ |
-| **11** | Mode Aventure : Memphis, succession des règnes, héritage familial | `14`, `13`, `01` | cadrée |
+| **11** | Mode Aventure : Memphis, succession des règnes, héritage familial | `14`, `13`, `01` | ✅ |
 
 **La Phase 11 est la dernière.** L'intégration des sprites, un temps prévue en
 Phase 12, **n'est plus une phase** (décision de la joueuse) : le document 15 est
@@ -807,7 +807,7 @@ sans toucher à l'issue du combat.
 
 ---
 
-## 4 quinquies. Phase 11 — Mode Aventure, succession des règnes et héritage familial  *(cadrée)*
+## 4 quinquies. Phase 11 — Mode Aventure, succession des règnes et héritage familial  *(livrée)*
 
 Le mode Aventure **existe déjà comme choix au lancement** : on peut ouvrir une
 partie à Memphis, avec sa difficulté et sa taille de grille, et y jouer tout ce
@@ -854,8 +854,8 @@ mode structurellement injouable sur la durée, ce qui est précisément son prop
 | 11.2 | Memphis commerce : des partenaires qui suivent le règne | ✅ |
 | 11.3 | Le contenu royal qui se renouvelle : chantiers, cartouches, stèles | ✅ |
 | 11.4 | Le score cumulatif, et une fin qu'on choisit | ✅ |
-| 11.5 | La succession familiale : générations et héritiers *(ex-lot 9.6)* | |
-| 11.6 | Les effets de Résidence familiale du doc 01 | |
+| 11.5 | La succession familiale : générations et héritiers *(ex-lot 9.6)* | ✅ |
+| 11.6 | Les effets de Résidence familiale du doc 01 | ✅ |
 
 #### 11.0 — Les arbitrages, tranchés
 
@@ -1035,7 +1035,23 @@ terminer (arbitrage 11.0). Une longue partie à Memphis peut donc profiter aux
 missions de campagne suivantes — assumé : la renommée est un acquis de famille,
 et le doc 13 ne l'a jamais restreinte à la campagne.
 
-#### 11.5 — La succession familiale *(ex-lot 9.6)*
+#### 11.5 — La succession familiale  *(livré)*
+
+**Rien ne se persiste des héritiers, seulement la graine qui les décide** :
+deux visites du même écran en montrent les mêmes, sans qu'aucune table ne les
+porte. Même principe que le carnet de contacts et la succession des règnes — la
+donnée se déduit, elle ne se garde pas.
+
+Le nom de famille demeure, le **chef** change : la lignée porte le nom, la
+génération porte quelqu'un. Ce qui persiste — renommée, contacts, faveur divine,
+ville entière — traverse la succession sans y toucher.
+
+`PrenomEgyptien` porte trente prénoms attestés, tirés des registres de Deir
+el-Médineh et des tombes de particuliers thébaines. **Jamais de nom de roi** :
+la famille du joueur n'est pas royale, et le doc 09 posait déjà la règle pour
+`Family::NOM_PAR_DEFAUT`. **Hommes et femmes ensemble** — le doc 02 rappelle que
+les Égyptiennes travaillaient et disposaient d'une autonomie juridique
+inhabituelle.
 
 Reporté depuis la Phase 9, et pour une raison qui tient toujours : une
 génération dure **60 cycles ± 20**, quand une mission de campagne les dépasse
@@ -1048,7 +1064,18 @@ renommée, les contacts, la faveur divine, la ville. **Ce qui se renouvelle** :
 le trait actif et le nom du chef de famille. Il manque une liste de **prénoms
 égyptiens attestés**, du même travail de sourcing que les cartouches.
 
-#### 11.6 — Les effets de Résidence familiale
+#### 11.6 — Les effets de Résidence familiale  *(livré)*
+
+**Les emplacements Medjaÿ s'ajoutent à la Caserne** (arbitrage 11.0) : un homme
+par palier atteint — niveaux 1, 3 et 5. La Caserne décide de l'essentiel, trois
+hommes au plus viennent de la Résidence, et **sans Caserne il n'y a toujours
+aucun homme** : elle ajoute des places, elle n'en crée pas de nulle part.
+
+Le **trait familial** des niveaux 2 et 5 est livré par le 11.5, sous une forme
+que le document ne prévoyait pas tout à fait : il ne se choisit pas à un palier
+de bâtiment mais **vient avec l'héritier** qu'on retient. C'est plus fidèle à
+l'esprit du doc 13 — un trait appartient à quelqu'un — et cela évite deux
+mécanismes pour une idée. Le bonus de renommée passif du niveau 4 reste ouvert.
 
 Le doc 01 leur donne cinq niveaux, dont le jeu n'applique aucun : emplacement
 Medjaÿ aux niveaux 1, 3 et 5, **trait familial** aux niveaux 2 et 5, bonus de

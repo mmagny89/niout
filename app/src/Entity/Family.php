@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Game\PalierDeRenommee;
+use App\Game\TraitDeCandidat;
 use App\Repository\FamilyRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -64,6 +65,77 @@ class Family
      * `$renommeeDeDepart` est l'acquis de la lignée (`Lignees::renommeeDeDepart()`).
      * Nul par défaut : une première partie part de rien.
      */
+    /**
+     * Le chef de famille en titre, et la génération à laquelle il appartient
+     * (doc 13, lot 11.5).
+     *
+     * **Le nom de famille ne change pas, le chef change.** C'est toute la
+     * distinction : la lignée porte le nom, la génération porte quelqu'un.
+     */
+    #[ORM\Column(length: 60, nullable: true)]
+    private ?string $chefDeFamille = null;
+
+    #[ORM\Column]
+    private int $generation = 1;
+
+    /**
+     * Le trait de la génération en cours. **Il se renouvelle à chaque
+     * succession**, quand la renommée, les contacts et la ville, eux,
+     * persistent : rien ne se perd, c'est la ville qui compte, pas la personne
+     * (doc 13).
+     */
+    #[ORM\Column(nullable: true, enumType: TraitDeCandidat::class)]
+    private ?TraitDeCandidat $traitDeLignee = null;
+
+    /**
+     * La graine qui décide des héritiers proposés. **Gardée plutôt que le
+     * tirage lui-même** : deux visites du même écran montrent alors les mêmes
+     * héritiers, sans qu'aucune table ne les porte.
+     */
+    #[ORM\Column]
+    private int $graineDesHeritiers = 0;
+
+    public function getChefDeFamille(): ?string
+    {
+        return $this->chefDeFamille;
+    }
+
+    public function getGeneration(): int
+    {
+        return $this->generation;
+    }
+
+    public function getTraitDeLignee(): ?TraitDeCandidat
+    {
+        return $this->traitDeLignee;
+    }
+
+    public function getGraineDesHeritiers(): int
+    {
+        return $this->graineDesHeritiers;
+    }
+
+    public function preparerUneSuccession(int $graine): static
+    {
+        $this->graineDesHeritiers = $graine;
+
+        return $this;
+    }
+
+    /**
+     * Un héritier prend la suite : le nom de famille demeure, la génération
+     * s'incrémente, et le trait de la précédente cède la place.
+     */
+    public function accueillirUnHeritier(string $prenom, ?TraitDeCandidat $trait): static
+    {
+        $this->chefDeFamille = $prenom;
+        $this->traitDeLignee = $trait;
+        ++$this->generation;
+        $this->graineDesHeritiers = 0;
+
+        return $this;
+    }
+
     public function __construct(string $nom, int $renommeeDeDepart = self::RENOMMEE_MIN)
     {
         $this->nom = $nom;

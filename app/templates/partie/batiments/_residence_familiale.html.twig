@@ -166,6 +166,21 @@
                     {{ partie.famille.renommee }} / {{ renommeeMax }}
                 </td>
             </tr>
+            {% if chefDeFamille %}
+                <tr class="border-t border-ocre-500/20">
+                    <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">À sa tête</th>
+                    <td class="px-4 py-2 text-right text-encre-900">
+                        {{ chefDeFamille }}
+                        <span class="text-sm text-encre-500" data-chiffres>· {{ generation }}<sup>e</sup> génération</span>
+                    </td>
+                </tr>
+                {% if traitDeLignee %}
+                    <tr class="border-t border-ocre-500/20">
+                        <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Ce qu'on en dit</th>
+                        <td class="px-4 py-2 text-right text-encre-900">{{ traitDeLignee.libelle }}</td>
+                    </tr>
+                {% endif %}
+            {% endif %}
             <tr class="border-t border-ocre-500/20">
                 <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Votre famille est</th>
                 <td class="px-4 py-2 text-right text-encre-900">{{ palier.libelle }}</td>
@@ -271,6 +286,39 @@
         <span data-chiffres>règne {{ rangDuRegne }} sur {{ nombreDeRegnes }}</span>
     </p>
     <p class="mt-2 max-w-3xl text-sm text-encre-600">{{ regne.avenement }}</p>
+{% endif %}
+
+{# La génération a fait son temps : le joueur choisit qui prend la suite.
+   **Ce qui persiste** — renommée, contacts, faveur divine, la ville entière —
+   n'est pas en jeu ; seul le chef change (doc 13, lot 11.5). #}
+{% if heritiers is not empty %}
+    <h3 class="mt-8 text-xl text-encre-900">La maison change de mains</h3>
+    <p class="mt-2 max-w-3xl text-sm text-encre-600">
+        La génération a fait son temps. Choisissez qui prend la suite : la
+        ville, la renommée et vos contacts ne changent pas — c'est la personne
+        qui change, pas la maison.
+    </p>
+
+    <ul class="mt-4 space-y-3 list-none p-0">
+        {% for rang, heritier in heritiers %}
+            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                <h4 class="font-display text-lg text-encre-900">{{ heritier.prenom }}</h4>
+                <p class="mt-1 text-sm text-encre-600">{{ heritier.description }}</p>
+
+                {% if partie.estEnCours %}
+                    <form method="post" action="{{ path('app_partie_heritier', {id: partie.id}) }}" class="mt-3">
+                        <input type="hidden" name="_token" value="{{ csrf_token('heritier') }}">
+                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                        <input type="hidden" name="heritier" value="{{ rang }}">
+                        <button type="submit"
+                                class="rounded-sm border border-ocre-500/40 px-3 py-1 text-sm text-encre-700 hover:bg-ocre-500/10">
+                            Qu'il prenne la suite
+                        </button>
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
 {% endif %}
 
 {# Pas d'objectif fermé en Aventure : un score qu'on regarde monter, et le
