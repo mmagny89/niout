@@ -117,12 +117,15 @@ final class RenommeeDeLigneeTest extends WebTestCase
     }
 
     /**
-     * **Le mode Aventure lit l'acquis mais ne l'alimente pas** : il ne s'achève
-     * pas, ses règnes se succèdent dans la même partie (doc 14). Y verser de la
-     * renommée reviendrait à faire monter la campagne depuis un mode qui n'en
-     * fait pas partie.
+     * **Les deux modes alimentent la lignée** (arbitrage 11.0). L'Aventure le
+     * fait à chaque fin de règne (`Successions`), la campagne à l'achèvement
+     * d'une mission : la renommée appartient à la famille, pas au mode.
+     *
+     * L'asymétrie d'avant venait d'un manque de jalon, pas d'une règle — le
+     * mode n'avait aucune mission à terminer tant que les règnes n'existaient
+     * pas.
      */
-    public function testLeModeAventureNalimentePasLaLignee(): void
+    public function testLeModeAventureAlimenteAussiLaLignee(): void
     {
         self::bootKernel();
         $joueur = $this->creerJoueur('lignee-aventure@example.com');
@@ -132,7 +135,7 @@ final class RenommeeDeLigneeTest extends WebTestCase
         $this->lignees()->encaisser($aventure);
         $this->gestionnaire()->flush();
 
-        self::assertSame(0, $this->lignees()->pour($joueur)->getRenommeeAcquise());
+        self::assertSame(50, $this->lignees()->pour($joueur)->getRenommeeAcquise());
     }
 
     /**

@@ -850,7 +850,7 @@ mode structurellement injouable sur la durée, ce qui est précisément son prop
 | Lot | Contenu | |
 |---|---|---|
 | 11.0 | Les arbitrages, avant d'écrire | ✅ |
-| 11.1 | La succession des règnes : durées, transitions, pharaons | |
+| 11.1 | La succession des règnes : durées, transitions, pharaons | ✅ |
 | 11.2 | Memphis commerce : des partenaires qui suivent le règne | |
 | 11.3 | Le contenu royal qui se renouvelle : chantiers, cartouches, stèles | |
 | 11.4 | Le score cumulatif, et une fin qu'on choisit | |
@@ -890,7 +890,29 @@ un acquis de famille, et le doc 13 ne l'a jamais restreinte à la campagne. Si l
 playtest montre qu'un bac à sable devient le chemin court vers une campagne
 facile, le remède sera un plafond, pas un cloisonnement.
 
-#### 11.1 — La succession des règnes
+#### 11.1 — La succession des règnes  *(livré)*
+
+`SuccessionDesRegnes` porte la liste — du contenu, comme le catalogue des
+missions —, `Successions` les règles, `LongueurDeRegne` les trois catégories.
+
+**Le règne se déduit du cycle**, il ne se persiste pas : les durées étant du
+contenu, la somme est connue d'avance, et une colonne n'aurait rien dit que la
+liste ne sache déjà. Allonger la succession jusqu'à Ramsès XI ne demandera donc
+aucune migration.
+
+**Treize règnes, et un absent nommé.** Smenkhkarê ne figure pas dans la liste,
+et c'est délibéré : son existence propre, sa durée et jusqu'à son identité sont
+débattues — on l'a tour à tour confondu avec Neferneferouaton et placé avant ou
+après elle. La règle du projet interdit d'afficher ce qui ne s'établit pas ; il
+rejoindra la liste si la question se tranche. Aÿ, lui, est solidement attesté et
+y figure, bien que l'exemple du doc 14 l'omette.
+
+**Six des treize ont déjà leur cartouche**, hérité de la campagne. Les sept
+autres n'affichent rien plutôt qu'un signe approché — le lot 11.3 les sourcera.
+
+`Lignees::encaisser()` **perd sa restriction à la campagne** (arbitrage 11.0) :
+c'est désormais l'appelant qui décide du jalon — une mission achevée, ou un
+règne qui s'achève.
 
 Le document est chiffré, et se garde d'une fausse précision : un règne ne se
 convertit **pas** année pour année, mais par **catégorie de longueur** —

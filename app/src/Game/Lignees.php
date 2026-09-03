@@ -55,16 +55,20 @@ final readonly class Lignees
     }
 
     /**
-     * Verse à la lignée la renommée que cette partie avait à la fin de sa
-     * mission. **Campagne seule** : le mode Aventure ne s'achève pas, et ses
-     * règnes se succèdent dans la même partie (doc 14).
+     * Verse à la lignée la renommée que la famille a en ce moment.
+     *
+     * **Les deux modes l'alimentent** (arbitrage 11.0) : la campagne à
+     * l'achèvement d'une mission, l'Aventure à chaque fin de règne. La
+     * renommée appartient à la famille, pas au mode — l'asymétrie d'avant ne se
+     * justifiait par aucun document, et l'Aventure n'avait simplement aucun
+     * jalon où la verser tant que les règnes n'existaient pas.
+     *
+     * **C'est l'appelant qui décide du jalon, jamais cette méthode** : elle ne
+     * sait pas ce qui vient de s'achever, seulement qu'il faut relever
+     * l'acquis. L'acquis ne peut que monter, ici comme ailleurs.
      */
     public function encaisser(GameSave $partie): void
     {
-        if (!$partie->estCampagne()) {
-            return;
-        }
-
         $this->pour($partie->getJoueur())->relever($partie->getFamille()->getRenommee());
     }
 }
