@@ -29,13 +29,164 @@ final readonly class CataloguePartenaires
 
     public function partenaire(int $numeroDeMission, string $cle): ?PartenaireCommercial
     {
-        foreach ($this->pourLaMission($numeroDeMission) as $partenaire) {
+        return self::trouver($this->pourLaMission($numeroDeMission), $cle);
+    }
+
+    /**
+     * Ce que Memphis peut atteindre sous ce règne (doc 14, lot 11.2).
+     *
+     * **Un socle, et ce que le règne ouvre** (arbitrage 11.0). Le socle est le
+     * fleuve — le Delta au nord, Thèbes au sud —, et il ne dépend d'aucun roi :
+     * sans lui, un règne tourné vers l'intérieur laisserait Memphis sans le
+     * moindre débouché, ce qui reproduirait le défaut que ce lot corrige.
+     *
+     * Le reste **suit le pharaon**, et c'est ce qui fait de la succession autre
+     * chose qu'un habillage : sous Hatchepsout on arme pour Pount, sous
+     * Amenhotep III on traite avec Babylone, sous Aÿ on se contente du fleuve.
+     * Toutes ces relations sont attestées pour le règne où elles figurent.
+     *
+     * @return list<PartenaireCommercial>
+     */
+    public function pourMemphis(?Regne $regne): array
+    {
+        $atteignables = self::leFleuve();
+
+        foreach (self::ouvertsParLeRegne($regne) as $partenaire) {
+            $atteignables[] = $partenaire;
+        }
+
+        return $atteignables;
+    }
+
+    public function partenaireDeMemphis(?Regne $regne, string $cle): ?PartenaireCommercial
+    {
+        return self::trouver($this->pourMemphis($regne), $cle);
+    }
+
+    /**
+     * @param list<PartenaireCommercial> $parmi
+     */
+    private static function trouver(array $parmi, string $cle): ?PartenaireCommercial
+    {
+        foreach ($parmi as $partenaire) {
             if ($partenaire->cle === $cle) {
                 return $partenaire;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Le fleuve, sous tous les règnes. Memphis est au point où le Nil se divise
+     * : le Delta commence au nord, la vallée remonte au sud, et rien de ce que
+     * fait un pharaon ne change cela.
+     *
+     * @return list<PartenaireCommercial>
+     */
+    private static function leFleuve(): array
+    {
+        return [
+            self::partenaireDe('delta', 'Le Delta', TypeDeRoute::Fluviale, 2,
+                [Ressource::Ble, Ressource::Lin, Ressource::Poisson],
+                [Ressource::Calcaire, Ressource::Natron, Ressource::Outils],
+                'Le fleuve s\'ouvre en éventail au nord : les terres les plus grasses d\'Égypte, à deux quinzaines de barque.'),
+            self::partenaireDe('thebes', 'Thèbes', TypeDeRoute::Fluviale, 3,
+                [Ressource::Gres, Ressource::Biere, Ressource::Tissus],
+                [Ressource::Calcaire, Ressource::Natron, Ressource::Papyrus],
+                'On remonte le courant vers le sud, jusqu\'à la ville d\'Amon.'),
+        ];
+    }
+
+    /**
+     * Ce que le règne ouvre en propre — chaque relation attestée pour ce
+     * pharaon-là. Un règne bref peut n'ouvrir rien : c'est alors le fleuve
+     * seul, et c'est une contrainte de jeu autant qu'un fait.
+     *
+     * @return list<PartenaireCommercial>
+     */
+    private static function ouvertsParLeRegne(?Regne $regne): array
+    {
+        if (null === $regne) {
+            return [];
+        }
+
+        return match ($regne->pharaon) {
+            // La reconquête rouvre le Chemin d'Horus, fermé par les Hyksôs.
+            'Ahmôsis Ier' => [self::canaan()],
+            // Deux règnes tournés vers le sud : la Nubie s'agite, les
+            // garnisons s'y renforcent, et l'or de Koush redescend.
+            'Amenhotep Ier', 'Thoutmôsis II' => [self::kouch()],
+            // La frontière portée jusqu'à l'Euphrate met l'Égypte au contact
+            // du Naharina.
+            'Thoutmôsis Ier', 'Amenhotep II' => [self::naharina()],
+            // L'expédition de Pount est l'acte le plus célèbre de son règne.
+            'Hatchepsout' => [self::pount(), self::kouch()],
+            // Dix-sept campagnes au Levant, de Megiddo au Mitanni.
+            'Thoutmôsis III' => [self::canaan(), self::naharina()],
+            // La paix avec le Mitanni, scellée par un mariage.
+            'Thoutmôsis IV' => [self::naharina()],
+            // L'apogée diplomatique : on correspond avec Babylone, on achète
+            // le cuivre d'Alashiya, on marie des princesses étrangères.
+            'Amenhotep III' => [self::alashiya(), self::babylone(), self::naharina()],
+            // Les lettres d'Amarna : la correspondance continue, les vassaux
+            // du Levant beaucoup moins.
+            'Akhenaton' => [self::alashiya(), self::babylone()],
+            // La restauration regarde d'abord vers le sud.
+            'Toutânkhamon' => [self::kouch()],
+            // Un général sur le trône, et l'ordre rétabli jusqu'à Canaan.
+            'Horemheb' => [self::canaan()],
+            // Aÿ : un règne bref, tout entier à l'intérieur. Le fleuve seul.
+            default => [],
+        };
+    }
+
+    private static function canaan(): PartenaireCommercial
+    {
+        return self::partenaireDe('canaan', 'Canaan', TypeDeRoute::Terrestre, 4,
+            [Ressource::Cuivre, Ressource::BoisDeCedre],
+            [Ressource::Ble, Ressource::Lin, Ressource::Poterie],
+            'Le Chemin d\'Horus, ses forts et ses puits, jusqu\'aux villes de Canaan.');
+    }
+
+    private static function kouch(): PartenaireCommercial
+    {
+        return self::partenaireDe('kouch', 'Koush', TypeDeRoute::Fluviale, 5,
+            [Ressource::Or, Ressource::Ivoire, Ressource::Ebene, Ressource::PeauxEtPlumes],
+            [Ressource::Poterie, Ressource::Tissus, Ressource::Biere],
+            'Le fleuve remonte au-delà des cataractes, vers l\'or et l\'ivoire de Nubie.');
+    }
+
+    private static function naharina(): PartenaireCommercial
+    {
+        return self::partenaireDe('naharina', 'Naharina', TypeDeRoute::Terrestre, 6,
+            [Ressource::Cuivre, Ressource::BoisDeCedre],
+            [Ressource::Or, Ressource::Lin, Ressource::Papyrus],
+            'Le pays des deux fleuves, au bout de la route du nord-est : on y va en armes ou en ambassade.');
+    }
+
+    private static function pount(): PartenaireCommercial
+    {
+        return self::partenaireDe('pount', 'Pount', TypeDeRoute::Maritime, 8,
+            [Ressource::Encens, Ressource::Myrrhe, Ressource::Ebene, Ressource::Ivoire],
+            [Ressource::Tissus, Ressource::Poterie],
+            'La traversée de la mer Rouge, la plus longue du jeu — et la seule qui rapporte l\'encens.');
+    }
+
+    private static function alashiya(): PartenaireCommercial
+    {
+        return self::partenaireDe('alashiya', 'Alashiya', TypeDeRoute::Maritime, 5,
+            [Ressource::Cuivre],
+            [Ressource::Ble, Ressource::Papyrus, Ressource::Tissus],
+            'L\'île du cuivre, au nord de la Méditerranée : ses rois en expédient par tonnes entières.');
+    }
+
+    private static function babylone(): PartenaireCommercial
+    {
+        return self::partenaireDe('babylone', 'Babylone', TypeDeRoute::Terrestre, 8,
+            [Ressource::LapisLazuli],
+            [Ressource::Or, Ressource::Tissus, Ressource::Papyrus],
+            'Le plus lointain des correspondants : on échange des lettres, de l\'or et du lapis venu de plus loin encore.');
     }
 
     /**

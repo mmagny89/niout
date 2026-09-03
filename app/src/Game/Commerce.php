@@ -37,6 +37,7 @@ final readonly class Commerce
         private CarnetDeContacts $carnet,
         private GameSaveRepository $parties,
         private Medjays $medjays,
+        private Successions $successions,
         private Randomizer $hasard = new Randomizer(),
     ) {
     }
@@ -705,11 +706,24 @@ final readonly class Commerce
     {
         $mission = $partie->getMission();
 
+        // **Memphis a ses propres débouchés, et ils suivent le règne** (doc 14,
+        // lot 11.2). Le catalogue s'indexait par numéro de mission et rendait
+        // un tableau vide sans elle : le mode Aventure n'avait donc aucune
+        // route ouvrable, ce qui rendait l'Entrepôt et le Port inutiles alors
+        // que le document fait de Memphis un carrefour.
+        if (!$partie->estCampagne()) {
+            return $this->partenaires->pourMemphis($this->successions->regneEnCours($partie));
+        }
+
         return null === $mission ? [] : $this->partenaires->pourLaMission($mission);
     }
 
-    private function partenaireDe(GameSave $partie, string $cle): ?PartenaireCommercial
+    public function partenaireDe(GameSave $partie, string $cle): ?PartenaireCommercial
     {
+        if (!$partie->estCampagne()) {
+            return $this->partenaires->partenaireDeMemphis($this->successions->regneEnCours($partie), $cle);
+        }
+
         $mission = $partie->getMission();
 
         return null === $mission ? null : $this->partenaires->partenaire($mission, $cle);

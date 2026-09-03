@@ -63,7 +63,32 @@ final readonly class Rivaux
         private EntityManagerInterface $entityManager,
         private CataloguePartenaires $partenaires = new CataloguePartenaires(),
         private Randomizer $hasard = new Randomizer(),
+        private ?Successions $successions = null,
     ) {
+    }
+
+    /**
+     * Le partenaire d'une route, quel que soit le mode.
+     *
+     * **Le repli sur la mission 1 était un défaut** (lot 11.2) : en Aventure,
+     * où il n'y a pas de mission, un rival cherchait le partenaire dans le
+     * catalogue du Delta — donc ne le trouvait jamais dès que Memphis eut ses
+     * propres routes. `Successions` est optionnelle pour que la classe reste
+     * instanciable sans conteneur, comme le catalogue et le hasard le sont
+     * déjà.
+     */
+    private function partenaireDe(GameSave $partie, string $cle): ?PartenaireCommercial
+    {
+        if (!$partie->estCampagne()) {
+            return $this->partenaires->partenaireDeMemphis(
+                $this->successions?->regneEnCours($partie),
+                $cle,
+            );
+        }
+
+        $mission = $partie->getMission();
+
+        return null === $mission ? null : $this->partenaires->partenaire($mission, $cle);
     }
 
     /**
@@ -189,7 +214,7 @@ final readonly class Rivaux
         }
 
         $route = $routes[$this->hasard->getInt(0, \count($routes) - 1)];
-        $partenaire = $this->partenaires->partenaire($partie->getMission() ?? 1, $route->getPartenaire());
+        $partenaire = $this->partenaireDe($partie, $route->getPartenaire());
 
         $rival = new RivalCommercial(
             $ville,
