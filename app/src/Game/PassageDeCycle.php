@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 final readonly class PassageDeCycle
 {
     public function __construct(
+        private Successions $successions,
         private Chantiers $chantiers,
         private Explorations $explorations,
         private Recoltes $recoltes,
@@ -116,6 +117,13 @@ final readonly class PassageDeCycle
         // surplus. Après `avancerDUnCycle()`, jamais avant — le débouché
         // appartient à la quinzaine qui s'ouvre, pas à celle qui se solde.
         $partie->getVille()->rouvrirLEtal();
+
+        // **L'avènement se dit après la bascule**, jamais avant : c'est la
+        // quinzaine qui s'ouvre qui voit le nouveau roi, pas celle qui se
+        // solde sous l'ancien (doc 14, lot 11.1).
+        foreach ($this->successions->avenementAuCycle($partie) as $annonce) {
+            $evenements[] = $annonce;
+        }
 
         // Tout ce qui se compte à l'année se résout ici, une fois la bascule
         // franchie — et pas au premier cycle d'une partie, où la ville vient

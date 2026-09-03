@@ -257,6 +257,22 @@
     {% endif %}
 </p>
 
+{# En Aventure, il n'y a pas de mission mais un **règne** : la ville existe
+   pour elle-même, et les pharaons se succèdent au-dessus d'elle (doc 14,
+   lot 11.1). Le cartouche ne s'affiche que là où sa lecture est établie — on
+   n'en approxime jamais un. #}
+{% if regne %}
+    <h2 class="text-2xl text-encre-900">
+        {{ regne.pharaon }}
+        <span class="font-hieroglyphes text-encre-600">{{ regne.cartouche ? regne.cartouche.signes : '' }}</span>
+    </h2>
+    <p class="mt-2 max-w-3xl text-sm text-encre-500">
+        {{ regne.nomDeTrone }} · {{ regne.longueur.libelle }} ·
+        <span data-chiffres>règne {{ rangDuRegne }} sur {{ nombreDeRegnes }}</span>
+    </p>
+    <p class="mt-2 max-w-3xl text-sm text-encre-600">{{ regne.avenement }}</p>
+{% endif %}
+
 {% if mission %}
         <h2 class="text-2xl text-encre-900">
             Mission <span data-chiffres>{{ mission.numero }}</span> sur 10 — {{ mission.ville }}

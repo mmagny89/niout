@@ -84,6 +84,7 @@ use App\Game\SigneAlphabetique;
 use App\Game\SpecialisationMedjay;
 use App\Game\SpecialiteDeChef;
 use App\Game\SteleHistorique;
+use App\Game\Successions;
 use App\Game\SymboleHieroglyphique;
 use App\Game\Temple;
 use App\Game\TranscriptionDuNom;
@@ -212,6 +213,7 @@ final class PartieController extends AbstractController
         GeographieDeLaPartie $geographies,
         CarnetDeContacts $carnet,
         Medjays $medjaysService,
+        Successions $successions,
     ): Response {
         $ville = $partie->getVille();
         $geographie = $geographies->pour($partie);
@@ -262,6 +264,11 @@ final class PartieController extends AbstractController
             // Les villes où la famille a déjà servi (lot 9.4) : elles font un
             // prix sur ce que leur région porte.
             'carnet' => $carnet->lisible($partie),
+            // Le règne en cours du mode Aventure (lot 11.1) : la ville n'y a
+            // pas de commanditaire, elle traverse des souverains.
+            'regne' => $successions->regneEnCours($partie),
+            'rangDuRegne' => $successions->rangEnCours($partie),
+            'nombreDeRegnes' => $successions->nombreDeRegnes(),
             'coutDUnAppel' => $appels->cout($partie),
             // La Caserne (lot 10.2) : la troupe, ce qu'elle coûte, et ce qui
             // empêche d'en lever un de plus — dit avant la tentative.

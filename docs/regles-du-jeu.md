@@ -365,6 +365,18 @@ Trois règles à ne pas défaire :
   malus de compétence partout — les Medjaÿ n'étant pas des employés, « affecté
   aux Medjaÿ » se lit « en poste à la Caserne ». Un chef qui se bat bien dirige
   mal ailleurs, et c'est ce qui rend le trait intéressant.
+- **En Aventure, le règne se déduit du cycle** (`SuccessionDesRegnes`, doc 14).
+  Les durées sont du contenu, la somme est connue d'avance : rien ne se
+  persiste, et allonger la liste jusqu'à la fin du Nouvel Empire ne demandera
+  aucune migration. **Rien ne doit supposer qu'elle s'arrête à un pharaon
+  nommé.** Un règne ne se convertit pas année pour année mais par **catégorie de
+  longueur** (`LongueurDeRegne`) : l'ordre relatif est respecté sans faire
+  passer une durée de jeu pour une donnée historique.
+- **Les deux modes alimentent la lignée** : la campagne à l'achèvement d'une
+  mission, l'Aventure à chaque fin de règne. La renommée appartient à la
+  famille, pas au mode — l'asymétrie d'avant venait d'un manque de jalon, non
+  d'une règle. `Lignees::encaisser()` ne sait pas ce qui s'achève, seulement
+  qu'il faut relever l'acquis : **c'est l'appelant qui décide du jalon**.
 - **Un mort emporte son expérience, un blessé garde la sienne** (doc 03). C'est
   le vrai enjeu de la perte définitive — pas le coût du recrutement, mais tout
   ce qu'il faut réapprendre.
