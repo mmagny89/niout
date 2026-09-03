@@ -96,9 +96,14 @@ enum RoleDExploration: string
             self::Eclaireur => 10,
             self::Emissaire => 30,
             self::ChefDExpedition => 50,
-            // Plus cher que l'éclaireur, moins que l'expédition lourde : une
-            // équipe de sondeurs, pas une caravane.
-            self::Prospecteur => 40,
+            // Le prospecteur coûtait quarante deben, plus cher que l'émissaire.
+            // **Vingt-cinq** depuis le playtest (décision de la joueuse) : il
+            // est **le seul rôle exclu du rayon gratuit**, donc le seul à payer
+            // plein tarif partout — et sur une petite carte, où toutes les
+            // cases sont dans ce rayon, c'est le seul à payer tout court.
+            // Rouvrir une veine ne doit pas coûter la moitié d'une expédition
+            // en armes.
+            self::Prospecteur => 25,
         };
     }
 
@@ -131,7 +136,9 @@ enum RoleDExploration: string
             self::Eclaireur => 5,
             self::Emissaire => 10,
             self::ChefDExpedition => 20,
-            self::Prospecteur => 15,
+            // Une équipe de sondeurs part pour quelques jours, pas pour une
+            // campagne : dix vivres, comme l'émissaire.
+            self::Prospecteur => 10,
         };
     }
 
