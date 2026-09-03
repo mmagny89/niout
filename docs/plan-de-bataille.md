@@ -851,7 +851,7 @@ mode structurellement injouable sur la durée, ce qui est précisément son prop
 |---|---|---|
 | 11.0 | Les arbitrages, avant d'écrire | ✅ |
 | 11.1 | La succession des règnes : durées, transitions, pharaons | ✅ |
-| 11.2 | Memphis commerce : des partenaires qui suivent le règne | |
+| 11.2 | Memphis commerce : des partenaires qui suivent le règne | ✅ |
 | 11.3 | Le contenu royal qui se renouvelle : chantiers, cartouches, stèles | |
 | 11.4 | Le score cumulatif, et une fin qu'on choisit | |
 | 11.5 | La succession familiale : générations et héritiers *(ex-lot 9.6)* | |
@@ -935,7 +935,21 @@ livraison porte la XVIIIᵉ dynastie, donc la partie s'achève à Horemheb ; les
 XIXᵉ et XXᵉ s'ajouteront sans toucher au code, jusqu'à Ramsès XI. Rien ne doit
 supposer qu'elle s'arrête à un pharaon nommé.
 
-#### 11.2 — Memphis commerce
+#### 11.2 — Memphis commerce  *(livré)*
+
+`CataloguePartenaires::pourMemphis(?Regne)` : un **socle** — le Delta au nord,
+Thèbes au sud, sous tous les règnes — et ce que le pharaon ouvre en propre.
+Toutes les relations sont attestées pour le règne où elles figurent : Pount sous
+Hatchepsout, Babylone et Alashiya sous Amenhotep III et Akhenaton, le Naharina
+sous les règnes qui touchent l'Euphrate, Koush sous ceux qui regardent au sud.
+
+**Aÿ n'ouvre que le fleuve**, et c'est voulu : un règne de quatre ans, tout
+entier à l'intérieur. La contrainte de jeu suit le fait.
+
+**Un second défaut corrigé au passage** : `Rivaux` cherchait le partenaire d'une
+route dans le catalogue de **la mission 1** quand il n'y avait pas de mission
+(`getMission() ?? 1`). Inoffensif tant que l'Aventure n'avait aucune route ; il
+serait devenu visible dès celle-ci.
 
 Le catalogue des partenaires est indexé par mission ; il faut lui donner une
 entrée pour un mode qui n'en a pas. Le doc 14 dit quoi y mettre : Memphis est un

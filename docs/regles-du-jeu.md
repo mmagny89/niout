@@ -372,6 +372,12 @@ Trois règles à ne pas défaire :
   nommé.** Un règne ne se convertit pas année pour année mais par **catégorie de
   longueur** (`LongueurDeRegne`) : l'ordre relatif est respecté sans faire
   passer une durée de jeu pour une donnée historique.
+- **Memphis a ses propres débouchés, et ils suivent le règne**
+  (`CataloguePartenaires::pourMemphis()`, doc 14). Un **socle** — le Delta et
+  Thèbes — vaut sous tous les règnes : sans lui, un pharaon tourné vers
+  l'intérieur laisserait la ville sans commerce, ce qui est exactement le défaut
+  que ce lot corrige. Le reste suit le pharaon, chaque relation étant attestée
+  pour son règne. C'est ce qui fait de la succession autre chose qu'un habillage.
 - **Les deux modes alimentent la lignée** : la campagne à l'achèvement d'une
   mission, l'Aventure à chaque fin de règne. La renommée appartient à la
   famille, pas au mode — l'asymétrie d'avant venait d'un manque de jalon, non
