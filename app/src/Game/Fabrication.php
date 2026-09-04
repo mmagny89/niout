@@ -56,6 +56,22 @@ final readonly class Fabrication
      */
     public function lancer(GameSave $partie, Recette $recette, int $lots): OrdreDeFabrication
     {
+        $ordre = $this->engager($partie, $recette, $lots);
+
+        $this->entityManager->persist($ordre);
+        $this->entityManager->flush();
+
+        return $ordre;
+    }
+
+    /**
+     * Le même engagement, sans écriture : c'est ce que réclame une relance en
+     * cours de cycle, où `PassageDeCycle` réunit tout en une seule écriture.
+     *
+     * @throws FabricationImpossible
+     */
+    private function engager(GameSave $partie, Recette $recette, int $lots, ?OrdreDeFabrication $aReemployer = null): OrdreDeFabrication
+    {
         $ville = $partie->getVille();
         $type = $recette->batiment();
         $atelier = $ville->batimentDeType($type);
@@ -64,7 +80,7 @@ final readonly class Fabrication
             throw new FabricationImpossible(\sprintf('Il vous faut %s %s pour cela.', TypeDeBatiment::Forge === $type ? 'une' : 'un', $type->libelle()));
         }
 
-        if (null !== $ville->ordreDeFabricationDe($type)) {
+        if (null !== $ville->ordreDeFabricationDe($type) && $ville->ordreDeFabricationDe($type) !== $aReemployer) {
             throw new FabricationImpossible(\sprintf('Votre %s a déjà un ouvrage en cours.', $type->libelle()));
         }
 
@@ -95,11 +111,12 @@ final readonly class Fabrication
             throw new FabricationImpossible(\sprintf('Il vous manque %s.', implode(', ', $ville->manquesDe($matieres))));
         }
 
+        if (null !== $aReemployer) {
+            return $aReemployer->repartir($recette, $lots);
+        }
+
         $ordre = new OrdreDeFabrication($ville, $recette, $lots);
         $ville->ajouterOrdreDeFabrication($ordre);
-
-        $this->entityManager->persist($ordre);
-        $this->entityManager->flush();
 
         return $ordre;
     }
@@ -132,7 +149,7 @@ final readonly class Fabrication
         $ordre = $ville->ordreDeFabricationDe($type);
 
         if (null === $ordre) {
-            return [];
+            return $this->tenterLaConsigne($partie, $type)['messages'];
         }
 
         // La recette est passée : un Brasseur presse la bière, pas le papyrus.
@@ -149,7 +166,6 @@ final readonly class Fabrication
 
         $perdu = $ville->surplusRefuse($pieces);
         $ville->crediterRessources($pieces);
-        $ville->retirerOrdreDeFabrication($ordre);
 
         $messages = [\sprintf(
             'L\'Atelier livre %d %s.',
@@ -164,7 +180,69 @@ final readonly class Fabrication
             );
         }
 
-        return $messages;
+        // La consigne relance dans la foulée de la livraison : sans cela, elle
+        // ferait perdre une quinzaine à chaque ouvrage. Elle **réemploie la
+        // ligne** de l'ordre livré, jamais une nouvelle : Doctrine insérant
+        // avant de supprimer, une suppression suivie d'une insertion dans la
+        // même quinzaine ferait sauter l'unicité par bâtiment.
+        $relance = $this->tenterLaConsigne($partie, $type, $ordre);
+
+        // Sans consigne pour le reprendre, l'ordre livré quitte l'atelier.
+        if (!$relance['reprise']) {
+            $ville->retirerOrdreDeFabrication($ordre);
+        }
+
+        return [...$messages, ...$relance['messages']];
+    }
+
+    /**
+     * Relance l'atelier si une consigne le demande.
+     *
+     * Elle ne force rien : l'ordre passe par les mêmes vérifications qu'à la
+     * main. Faute de matières, l'atelier s'arrête et **ne le dit qu'une fois**
+     * (`ConsigneDeFabrication::signalerLAttente()`), puis retente à chaque
+     * quinzaine en silence.
+     *
+     * `reprise` dit si l'ordre passé en réemploi est reparti : c'est lui qui
+     * décide si l'atelier garde sa ligne ou la rend.
+     *
+     * @return array{messages: list<string>, reprise: bool}
+     */
+    private function tenterLaConsigne(GameSave $partie, TypeDeBatiment $type, ?OrdreDeFabrication $aReemployer = null): array
+    {
+        $ville = $partie->getVille();
+        $consigne = $ville->consigneDeFabricationDe($type);
+
+        if (null === $consigne) {
+            return ['messages' => [], 'reprise' => false];
+        }
+
+        try {
+            $this->engager($partie, $consigne->getRecette(), $consigne->getLots(), $aReemployer);
+        } catch (FabricationImpossible $empechement) {
+            return [
+                'messages' => $consigne->signalerLAttente()
+                    ? [\sprintf('%s s\'arrête : %s', $type->libelle(), lcfirst($empechement->getMessage()))]
+                    : [],
+                'reprise' => false,
+            ];
+        }
+
+        $attendait = $consigne->estEnAttenteDeMatieres();
+        $consigne->reprendre();
+
+        $messages = [\sprintf(
+            '%s se remet à %s.',
+            $type->libelle(),
+            $consigne->getRecette()->libelle(),
+        )];
+
+        return [
+            'messages' => $attendait
+                ? [\sprintf('%s reprend son ouvrage.', $type->libelle()), ...$messages]
+                : $messages,
+            'reprise' => true,
+        ];
     }
 
     /**
