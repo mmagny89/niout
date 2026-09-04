@@ -1,6 +1,11 @@
-# Override prod. Serveur dedie durablement a ce projet. Lancement toujours explicite :
+# Override prod. Serveur partage : un VPS ou Traefik tient seul les ports 80 et
+# 443 pour plusieurs projets. Lancement toujours explicite :
 #   docker compose -f compose.yml -f compose.prod.yml --env-file .env.prod.local up -d --wait
 # --env-file REMPLACE le .env racine (conventions, section 3).
+#
+# Prerequis, une seule fois sur l'hote : `docker network create traefik`, et un
+# Traefik branche dessus (pas en network_mode: host, qui l'empeche de joindre
+# les conteneurs par leur nom).
 services:
   php:
     build:
@@ -8,20 +13,38 @@ services:
     image: niout-php:prod
     environment:
       APP_SECRET: ${APP_SECRET:?APP_SECRET est requis en prod (secret applicatif Symfony) — fournir via --env-file .env.prod.local}
-      SERVER_NAME: ${SERVER_NAME:?SERVER_NAME est requis en prod (domaine servi par Caddy) — fournir via --env-file .env.prod.local}
-      CADDY_GLOBAL_OPTIONS: "email ${ACME_EMAIL:?ACME_EMAIL est requis en prod (contact Let's Encrypt) — fournir via --env-file .env.prod.local}"
+      # `:80` coupe l'auto-TLS de Caddy : derriere Traefik, le certificat et la
+      # redirection HTTP sont l'affaire du proxy. Deux ACME concurrents sur le
+      # meme domaine se disputeraient le challenge.
+      SERVER_NAME: ":80"
     # Defense en profondeur : le binaire frankenphp recoit
     # cap_net_bind_service au build (stage prod) ; ce sysctl autorise le
     # bind sur les ports <1024 par l'utilisateur non root independamment
     # de la capability (symfony-docker.md, "Pieges connus").
     sysctls:
       - net.ipv4.ip_unprivileged_port_start=0
-    ports:
-      - "${HTTP_PORT}:80"
-      - "${HTTPS_PORT}:443"
-      - "${HTTP3_PORT}:443/udp"
+    # Aucun `ports:` — sur un serveur partage, Traefik seul publie sur l'hote.
+    # C'est ce qui leve l'arbitrage de ports de la section 4 : plusieurs projets
+    # cohabitent sans se marcher dessus.
+    networks:
+      - niout
+      - traefik
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik
+      traefik.http.routers.niout.rule: Host(`${SERVER_HOST:?SERVER_HOST est requis en prod (domaine public, ex. niout.mmagny.fr) — fournir via --env-file .env.prod.local}`)
+      traefik.http.routers.niout.entrypoints: websecure
+      traefik.http.routers.niout.tls.certresolver: letsencrypt
+      traefik.http.services.niout.loadbalancer.server.port: "80"
 
   ember:
     profiles: [observability]
     ports:
       - "127.0.0.1:${EMBER_PORT}:9191"
+
+networks:
+  # Cree hors de tout stack et partage par tous les projets du VPS : Compose ne
+  # doit ni le creer ni le detruire, d'ou `external`.
+  traefik:
+    name: traefik
+    external: true
