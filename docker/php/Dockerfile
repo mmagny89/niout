@@ -116,12 +116,19 @@ RUN if [ -f composer.json ]; then \
 # message ne mentionne Tailwind autrement qu'au fond de la trace. Defaut reel,
 # paye deux fois — sur les tests fonctionnels, puis au premier deploiement.
 #
-# Les deux commandes sont conditionnees a leur presence : le bundle Tailwind
+# importmap:install precede la compilation : assets/vendor/ est ignore par git
+# (il se retelecharge), donc **absent d'un clone frais** — le serveur de
+# deploiement, justement. Sur une machine de developpement le dossier traine
+# deja et l'oubli ne se voit pas ; le build echoue sur "The @hotwired/stimulus
+# vendor asset is missing". Defaut reel, paye au premier build sur le VPS.
+#
+# Les trois commandes sont conditionnees a leur presence : le bundle Tailwind
 # comme AssetMapper sont optionnels dans un projet Symfony, et ce Dockerfile
 # est un gabarit partage.
 RUN if [ -f bin/console ]; then \
         commandes="$(php bin/console list --raw 2>/dev/null || true)"; \
         case "$commandes" in *tailwind:build*) php bin/console tailwind:build --minify ;; esac; \
+        case "$commandes" in *importmap:install*) php bin/console importmap:install ;; esac; \
         case "$commandes" in *asset-map:compile*) php bin/console asset-map:compile ;; esac; \
     fi
 
