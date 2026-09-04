@@ -131,6 +131,27 @@ jobs:
       run:
         working-directory: .
     steps:
+      # Un secret absent produirait sinon un « ssh "@" » et une page d'usage
+      # illisible : GitHub remplace une variable inconnue par une chaîne vide,
+      # sans jamais le signaler. Défaut réel, payé au premier déclenchement.
+      - name: Vérifie que les secrets sont posés
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          manquants=''
+          for nom in VPS_HOST VPS_USER VPS_SSH_KEY VPS_KNOWN_HOSTS; do
+            eval "valeur=\$$nom"
+            [ -n "$valeur" ] || manquants="$manquants $nom"
+          done
+          if [ -n "$manquants" ]; then
+            echo "Secrets manquants :$manquants" >&2
+            echo "À poser dans Settings → Secrets and variables → Actions." >&2
+            exit 1
+          fi
+
       - name: Prépare la connexion SSH
         run: |
           mkdir -p ~/.ssh
