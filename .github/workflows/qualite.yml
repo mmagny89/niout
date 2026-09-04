@@ -109,3 +109,45 @@ jobs:
       # lève une exception, et tout test qui rend une page échoue.
       - run: php bin/console tailwind:build
       - run: php bin/phpunit
+
+  # ---------------------------------------------------------------------------
+  # Déploiement — uniquement sur push vers main, jamais sur une pull request,
+  # et seulement une fois les quatre portes passées. `needs` porte les deux
+  # jobs terminaux : lint et analyse-statique sont déjà leurs prérequis.
+  deploiement:
+    name: Déploiement en production
+    needs: [audit-securite, tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # Deux déploiements simultanés se marcheraient dessus sur le VPS (même
+    # dossier, même stack Docker). `cancel-in-progress: false` : on ne coupe
+    # jamais un déploiement en cours, on attend son tour.
+    concurrency:
+      group: deploiement-production
+      cancel-in-progress: false
+    # Ce job ne fait pas de checkout : il n'a rien à lire du dépôt, et le
+    # working-directory `app` du haut de fichier n'existerait donc pas.
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - name: Prépare la connexion SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploiement
+          chmod 600 ~/.ssh/id_deploiement
+          # L'empreinte du serveur est vérifiée : sans known_hosts, il faudrait
+          # désactiver StrictHostKeyChecking, ce qui reviendrait à accepter
+          # n'importe quel serveur se présentant à cette adresse.
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      # Tout le déploiement vit dans /usr/local/bin/niout-deploie sur le VPS,
+      # pas ici : les chemins et les secrets restent sur le serveur, et la clé
+      # confiée à GitHub ne peut lancer que ce script (forced command dans
+      # authorized_keys).
+      - name: Déploie sur le VPS
+        run: >-
+          ssh -i ~/.ssh/id_deploiement
+          -o BatchMode=yes
+          "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          niout-deploie
