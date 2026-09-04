@@ -107,6 +107,24 @@ RUN if [ -f composer.json ]; then \
         composer dump-autoload --no-dev --optimize --classmap-authoritative; \
     fi
 
+# Compilation des assets, dans l'image et jamais au demarrage : le stage prod
+# tourne en lecture seule sous l'utilisateur 1000, et l'image doit etre servie
+# telle quelle.
+#
+# Sans la CSS compilee, AssetMapper cherche "tailwindcss" comme un fichier reel
+# et base.html.twig leve une exception : **toute page repond 500**, sans que le
+# message ne mentionne Tailwind autrement qu'au fond de la trace. Defaut reel,
+# paye deux fois — sur les tests fonctionnels, puis au premier deploiement.
+#
+# Les deux commandes sont conditionnees a leur presence : le bundle Tailwind
+# comme AssetMapper sont optionnels dans un projet Symfony, et ce Dockerfile
+# est un gabarit partage.
+RUN if [ -f bin/console ]; then \
+        commandes="$(php bin/console list --raw 2>/dev/null || true)"; \
+        case "$commandes" in *tailwind:build*) php bin/console tailwind:build --minify ;; esac; \
+        case "$commandes" in *asset-map:compile*) php bin/console asset-map:compile ;; esac; \
+    fi
+
 # ---------------------------------------------------------------------------
 # prod — worker actif, image rootless, opcache fige (conventions, section
 # 13 : opcache.validate_timestamps = 0 dans conf.d/20-app.prod.ini).
