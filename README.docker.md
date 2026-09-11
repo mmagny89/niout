@@ -92,8 +92,11 @@ l'hote (conventions, section 4).
 
 | Branche | Environnement | Dossier du clone | Domaine |
 |---|---|---|---|
-| `develop` | pre-production | `<racine>/niout-staging` | `ppd.<domaine>` |
-| `main` | production | `<racine>/niout-prod` | `<domaine>` |
+| `develop` | pre-production | `/docker/niout-staging` | `ppd.<domaine>` |
+| `main` | production | `/docker/niout-prod` | `<domaine>` |
+
+Les clones vivent sous `/docker` sur le VPS — la racine est libre, seul le nom
+de la feuille est normatif.
 
 **Le dossier du clone porte le nom du projet Compose, suffixe compris.** La
 *forced command* de `authorized_keys` porte le chemin absolu de

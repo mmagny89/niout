@@ -5,7 +5,7 @@
 # de authorized_keys, donc du serveur, jamais du client : rien de ce que GitHub
 # envoie n'influence ce qui est execute ici.
 #
-#   command="/srv/niout-prod/outils/deployer.sh prod",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-ed25519 AAAA... deploiement-github
+#   command="/docker/niout-prod/outils/deployer.sh prod",no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding ssh-ed25519 AAAA... deploiement-github
 #
 # La logique reste ici et non dans le workflow (conventions, section 22) : les
 # chemins et les secrets ne quittent pas le serveur, et la cle confiee a GitHub
