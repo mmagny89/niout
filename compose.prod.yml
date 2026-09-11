@@ -32,10 +32,10 @@ services:
     labels:
       traefik.enable: "true"
       traefik.docker.network: traefik
-      traefik.http.routers.niout.rule: Host(`${SERVER_HOST:?SERVER_HOST est requis en prod (domaine public, ex. niout.mmagny.fr) — fournir via --env-file .env.prod.local}`)
-      traefik.http.routers.niout.entrypoints: websecure
-      traefik.http.routers.niout.tls.certresolver: letsencrypt
-      traefik.http.services.niout.loadbalancer.server.port: "80"
+      traefik.http.routers.niout-prod.rule: Host(`${SERVER_HOST:?SERVER_HOST est requis en prod (domaine public, ex. niout.mmagny.fr) — fournir via --env-file .env.prod.local}`)
+      traefik.http.routers.niout-prod.entrypoints: websecure
+      traefik.http.routers.niout-prod.tls.certresolver: letsencrypt
+      traefik.http.services.niout-prod.loadbalancer.server.port: "80"
 
   ember:
     profiles: [observability]

@@ -1,10 +1,10 @@
 # Socle commun a tous les environnements (conventions, section 1). Genere
 # par .claude/scripts/setup-symfony.sh.
-name: niout
+name: niout-${ENV:?ENV est requis — suffixe des noms de conteneurs, reseau et volumes. Le declarer dans le fichier de secrets (ENV=prod) ou le .env racine (ENV=dev)}
 
 services:
   php:
-    container_name: niout-php
+    container_name: niout-${ENV:?ENV est requis — suffixe des noms de conteneurs, reseau et volumes. Le declarer dans le fichier de secrets (ENV=prod) ou le .env racine (ENV=dev)}-php
     build:
       context: .
       dockerfile: docker/php/Dockerfile
@@ -31,7 +31,7 @@ services:
         condition: service_healthy
 
   database:
-    container_name: niout-database
+    container_name: niout-${ENV:?ENV est requis — suffixe des noms de conteneurs, reseau et volumes. Le declarer dans le fichier de secrets (ENV=prod) ou le .env racine (ENV=dev)}-database
     image: postgres:${POSTGRES_VERSION}-alpine
     restart: unless-stopped
     environment:
@@ -54,7 +54,7 @@ services:
   # Sans profil ici (conventions, section 9) : les overrides staging/prod
   # lui en ajoutent un, jamais l'inverse.
   ember:
-    container_name: niout-ember
+    container_name: niout-${ENV:?ENV est requis — suffixe des noms de conteneurs, reseau et volumes. Le declarer dans le fichier de secrets (ENV=prod) ou le .env racine (ENV=dev)}-ember
     image: ghcr.io/alexandre-daubois/ember:${EMBER_VERSION}
     restart: unless-stopped
     environment:
@@ -68,14 +68,14 @@ services:
 
 networks:
   niout:
-    name: niout
+    name: niout-${ENV:?ENV est requis — suffixe des noms de conteneurs, reseau et volumes. Le declarer dans le fichier de secrets (ENV=prod) ou le .env racine (ENV=dev)}
 
 volumes:
   niout-caddy-data:
-    name: niout-caddy-data
+    name: niout-${ENV:?ENV est requis — suffixe des noms de conteneurs, reseau et volumes. Le declarer dans le fichier de secrets (ENV=prod) ou le .env racine (ENV=dev)}-caddy-data
   niout-caddy-config:
-    name: niout-caddy-config
+    name: niout-${ENV:?ENV est requis — suffixe des noms de conteneurs, reseau et volumes. Le declarer dans le fichier de secrets (ENV=prod) ou le .env racine (ENV=dev)}-caddy-config
   niout-caddy-admin:
-    name: niout-caddy-admin
+    name: niout-${ENV:?ENV est requis — suffixe des noms de conteneurs, reseau et volumes. Le declarer dans le fichier de secrets (ENV=prod) ou le .env racine (ENV=dev)}-caddy-admin
   niout-database-data:
-    name: niout-database-data
+    name: niout-${ENV:?ENV est requis — suffixe des noms de conteneurs, reseau et volumes. Le declarer dans le fichier de secrets (ENV=prod) ou le .env racine (ENV=dev)}-database-data

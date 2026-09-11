@@ -15,6 +15,14 @@
 {
 	{$CADDY_GLOBAL_OPTIONS}
 
+	# Metriques Prometheus natives de Caddy (conventions, section 9).
+	# Sans cette option, le handler `metrics` ci-dessous ne sert que les
+	# metriques du processus Go, pas celles du trafic HTTP.
+	#
+	# Option GLOBALE, pas `servers { metrics }` : la forme imbriquee est
+	# depreciee et disparait a la prochaine version majeure de Caddy.
+	metrics
+
 	frankenphp {
 		worker {
 			file /app/public/index.php
@@ -37,4 +45,17 @@
 		respond /health 200
 		php_server
 	}
+}
+
+# Ecoute interne dediee aux metriques Prometheus (conventions, sections 4 et 9).
+# JAMAIS publiee sur l'hote : elle n'est jointe que depuis le reseau
+# `monitoring`, par le Prometheus de l'hote. Un port publie exposerait
+# publiquement la latence, les codes d'erreur et le volume de trafic du site.
+#
+# Ce que ce handler ajoute par rapport a Ember : de vrais histogrammes
+# (`caddy_http_request_duration_seconds_bucket`, etiquetes par code, handler,
+# methode), donc des percentiles calculables. Ember n'expose que des moyennes
+# deja agregees, qui ne se re-decomposent pas.
+:2020 {
+	metrics
 }
