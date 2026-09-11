@@ -170,13 +170,14 @@ jobs:
           echo 'Entrees de known_hosts :'
           ssh-keygen -lf ~/.ssh/known_hosts || echo 'known_hosts illisible ou vide'
 
-      # Tout le déploiement vit dans /usr/local/bin/niout-deploie sur le VPS,
-      # pas ici : les chemins et les secrets restent sur le serveur, et la clé
-      # confiée à GitHub ne peut lancer que ce script (forced command dans
-      # authorized_keys).
+      # Tout le déploiement vit dans outils/deployer.sh sur le VPS, pas ici :
+      # les chemins et les secrets restent sur le serveur, et la clé confiée à
+      # GitHub ne peut lancer que ce script (forced command dans
+      # authorized_keys, qui ignore la commande envoyée par le client — celle
+      # ci-dessous n'est donc qu'une trace lisible dans les journaux).
       - name: Déploie sur le VPS
         run: >-
           ssh -i ~/.ssh/id_deploiement
           -o BatchMode=yes
           "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
-          niout-deploie
+          deployer-prod

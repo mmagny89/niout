@@ -67,6 +67,11 @@ $COMPOSE up -d --build --wait
 journal "Mise a jour du schema"
 $COMPOSE exec -T php php bin/console doctrine:migrations:migrate --no-interaction
 
+# Sans lui, chaque deploiement laisse l'image precedente sans etiquette et le
+# disque du serveur se remplit en silence.
+journal "Menage des images orphelines"
+docker image prune -f >/dev/null
+
 journal "Etat des conteneurs"
 $COMPOSE ps --format '  {{.Name}}  {{.Status}}'
 
