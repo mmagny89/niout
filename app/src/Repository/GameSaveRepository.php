@@ -38,6 +38,43 @@ class GameSaveRepository extends ServiceEntityRepository
     }
 
     /**
+     * Toutes les parties, rangées par joueur, pour l'écran d'administration.
+     *
+     * **Une seule requête, et les jointures sont délibérées** : l'écran affiche
+     * pour chaque partie le nom de sa ville et celui de sa famille. Sans le
+     * `addSelect`, Doctrine irait les chercher partie par partie — un N+1 dont
+     * le coût grandit avec le nombre de comptes, c'est-à-dire précisément là où
+     * cet écran sert.
+     *
+     * @return array<int, GameSave[]> indexé par identifiant de joueur
+     */
+    public function findGroupeesParJoueur(): array
+    {
+        $parties = $this->createQueryBuilder('p')
+            ->addSelect('ville', 'famille')
+            ->join('p.ville', 'ville')
+            ->join('p.famille', 'famille')
+            ->orderBy('p.lastOpenedAt', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
+
+        $parJoueur = [];
+
+        foreach ($parties as $partie) {
+            $idDuJoueur = $partie->getJoueur()->getId();
+
+            if (null === $idDuJoueur) {
+                continue;
+            }
+
+            $parJoueur[$idDuJoueur][] = $partie;
+        }
+
+        return $parJoueur;
+    }
+
+    /**
      * Sert à faire respecter le plafond de GameSave::MAX_PAR_COMPTE.
      */
     public function compterPourJoueur(User $joueur): int

@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\User;
-use App\Repository\GameSaveRepository;
-use App\Repository\LigneeRepository;
-use App\Repository\ResetPasswordRequestRepository;
 use App\Repository\UserRepository;
+use App\Security\SuppressionDeCompte;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Attribute\Option;
@@ -27,9 +25,7 @@ final class PurgeUnverifiedUsersCommand
 {
     public function __construct(
         private readonly UserRepository $userRepository,
-        private readonly ResetPasswordRequestRepository $resetPasswordRequestRepository,
-        private readonly GameSaveRepository $gameSaveRepository,
-        private readonly LigneeRepository $lignees,
+        private readonly SuppressionDeCompte $suppression,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -65,27 +61,11 @@ final class PurgeUnverifiedUsersCommand
             return Command::SUCCESS;
         }
 
+        // Un seul flush pour toute la fournée : la séquence de suppression,
+        // elle, vit dans SuppressionDeCompte, partagée avec l'écran
+        // d'administration.
         foreach ($comptes as $user) {
-            // Tout ce qui référence l'utilisateur par une clé étrangère doit
-            // partir d'abord, sinon la suppression échoue.
-            $this->resetPasswordRequestRepository->removeRequests($user);
-
-            // Les parties emportent avec elles leur famille et leur ville, par
-            // cascade déclarée sur GameSave.
-            foreach ($this->gameSaveRepository->findPourJoueur($user) as $partie) {
-                $this->entityManager->remove($partie);
-            }
-
-            // La lignée n'appartient à aucune partie — elle leur survit, c'est
-            // sa raison d'être — donc aucune cascade ne l'emporte : elle se
-            // supprime ici, avant le compte qu'elle référence.
-            $lignee = $this->lignees->findPourJoueur($user);
-
-            if (null !== $lignee) {
-                $this->entityManager->remove($lignee);
-            }
-
-            $this->entityManager->remove($user);
+            $this->suppression->programmer($user);
         }
 
         $this->entityManager->flush();

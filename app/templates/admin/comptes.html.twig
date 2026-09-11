@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Comptes — administration Niout{% endblock %}
+
+{% block body %}
+    <section class="mx-auto w-full max-w-5xl px-5 py-14">
+        <h1 class="text-3xl text-encre-900">Comptes</h1>
+        <p class="mt-2 text-sm text-encre-600" data-chiffres>
+            {{ lignes|length }} compte{{ lignes|length > 1 ? 's' : '' }} inscrit{{ lignes|length > 1 ? 's' : '' }},
+            du plus récent au plus ancien.
+        </p>
+
+        {% if lignes is empty %}
+            <p class="mt-6 text-sm text-encre-600">Aucun compte. La ville est vide.</p>
+        {% else %}
+            <ul class="mt-8 space-y-4 list-none p-0">
+                {% for ligne in lignes %}
+                    <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                        <div class="flex flex-wrap items-baseline justify-between gap-3">
+                            <h2 class="font-display text-xl text-encre-900">{{ ligne.compte.email }}</h2>
+                            <div class="flex flex-wrap items-baseline gap-2 text-xs">
+                                {% if ligne.compte.verified %}
+                                    <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-lapis-600">Vérifié</span>
+                                {% else %}
+                                    <span class="rounded-sm bg-ocre-400/20 px-2 py-0.5 text-ocre-600">
+                                        Non vérifié — purge le
+                                        {{ ligne.compte.createdAt|date_modify('+' ~ delaiDeVerification ~ ' days')|date('d/m/Y') }}
+                                    </span>
+                                {% endif %}
+                                {% if ligne.compte.estAdministratrice %}
+                                    <span class="rounded-sm bg-encre-900/10 px-2 py-0.5 text-encre-700">Administration</span>
+                                {% endif %}
+                                {% if ligne.compte.estDivinite %}
+                                    <span class="rounded-sm bg-encre-900/10 px-2 py-0.5 text-encre-700">Mode divin</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <p class="mt-1 text-sm text-encre-500" data-chiffres>
+                            Inscrit le {{ ligne.compte.createdAt|date('d/m/Y') }}
+                            · {{ ligne.enCours }} partie{{ ligne.enCours > 1 ? 's' : '' }} en cours sur {{ maxParties }}
+                            {%- if ligne.closes > 0 %}, {{ ligne.closes }} close{{ ligne.closes > 1 ? 's' : '' }}{% endif %}
+                        </p>
+
+                        {% if ligne.parties is empty %}
+                            <p class="mt-3 text-sm text-encre-600">Aucune partie lancée.</p>
+                        {% else %}
+                            {# Un tableau, et non des cartes comme sur « Mon compte » :
+                               ici on compare des comptes entre eux, et des colonnes
+                               alignées se lisent en diagonale. #}
+                            <div class="mt-4 overflow-x-auto">
+                                <table class="w-full min-w-xl border-collapse text-sm">
+                                    <thead>
+                                        <tr class="border-b border-ocre-500/25 text-left text-xs uppercase tracking-wide text-encre-500">
+                                            <th scope="col" class="py-2 pr-4 font-medium">Ville</th>
+                                            <th scope="col" class="py-2 pr-4 font-medium">Où elle en est</th>
+                                            <th scope="col" class="py-2 pr-4 font-medium">Cycle</th>
+                                            <th scope="col" class="py-2 pr-4 font-medium">Statut</th>
+                                            <th scope="col" class="py-2 font-medium">Ouverte le</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-ocre-500/15">
+                                        {% for decrite in ligne.parties %}
+                                            <tr>
+                                                <td class="py-2 pr-4 text-encre-900">
+                                                    {{ decrite.partie.ville.nom }}
+                                                    <span class="text-encre-500">· {{ decrite.partie.mode.libelle }}</span>
+                                                </td>
+                                                <td class="py-2 pr-4 text-encre-600">{{ decrite.mission }}</td>
+                                                <td class="py-2 pr-4 text-encre-600" data-chiffres>{{ decrite.partie.cycle }}</td>
+                                                <td class="py-2 pr-4 text-encre-600">{{ decrite.partie.statut.libelle }}</td>
+                                                <td class="py-2 text-encre-500" data-chiffres>
+                                                    {{ decrite.partie.lastOpenedAt|date('d/m/Y') }}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+
+                        {# Le compte de la session n'a pas de lien de suppression :
+                           se supprimer soi-même déconnecterait sur un utilisateur
+                           disparu, et pourrait retirer le dernier accès à cet écran. #}
+                        {% if ligne.compte.id != app.user.id %}
+                            <p class="mt-4">
+                                <a href="{{ path('app_admin_compte_supprimer', {id: ligne.compte.id}) }}"
+                                   class="text-sm text-encre-500 hover:text-terre-600">
+                                    Supprimer ce compte et ses parties
+                                </a>
+                            </p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
+{% endblock %}

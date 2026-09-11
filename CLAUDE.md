@@ -47,6 +47,8 @@ Le stack se lance sans `-f` : `COMPOSE_FILE` dans le `.env` racine chaîne déj�
 - Migrations : `docker compose exec php php bin/console doctrine:migrations:migrate`
 - Mode d'essai : `docker compose exec php php bin/console app:users:goddess <email>`
   (`--retirer` pour le reprendre)
+- Administration des comptes : `docker compose exec php php bin/console app:users:admin <email>`
+  (`--retirer` pour la reprendre) — ouvre `/admin/comptes`
 - Observabilité (Ember) : `curl http://127.0.0.1:9191/metrics`
 
 Portes qualité — les quatre doivent passer avant un merge (mêmes commandes qu'en CI) :
@@ -155,8 +157,14 @@ fonctionnent sans JavaScript (par exemple `renvoyer-verification`).
 `Family` et `City` appartiennent à leur `GameSave` (cascade `remove`) ; toute
 entité rattachée à une partie suit ce principe. **`Lignee` est l'exception** :
 elle appartient au *joueur* et survit à ses parties, donc aucune cascade ne
-l'emporte — `app:users:purge-unverified` la supprime explicitement, comme devra
-le faire toute entité qui référence `User` directement.
+l'emporte — elle se supprime explicitement, comme devra le faire toute entité
+qui référence `User` directement.
+
+Cette séquence de suppression n'a **qu'un seul exemplaire**,
+`Security\SuppressionDeCompte` : la purge des comptes non vérifiés et l'écran
+d'administration l'appellent tous deux. Une entité neuve qui référence `User`
+s'y ajoute là, et les deux appelants en profitent — les laisser diverger donne
+une purge qui marche et un écran qui échoue sur une contrainte, ou l'inverse.
 
 Les constructeurs nommés (`GameSave::pourCampagne()`) sont préférés à un
 constructeur public quand ils rendent un invariant impossible à violer.

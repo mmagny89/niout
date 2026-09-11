@@ -36,6 +36,21 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
+     * Tous les comptes, du plus récemment inscrit au plus ancien, pour l'écran
+     * d'administration : on y vient d'abord pour voir qui vient d'arriver.
+     *
+     * @return User[]
+     */
+    public function findPourAdministration(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->orderBy('u.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
      * Comptes dont le délai de grâce de vérification est écoulé, donc
      * supprimables (voir User::isPurgeable() pour la règle).
      *

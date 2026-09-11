@@ -36,7 +36,9 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
+        # Garde de préfixe, en plus des attributs #[IsGranted] du contrôleur :
+        # une action ajoutée sous /admin sans attribut reste protégée.
+        - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:

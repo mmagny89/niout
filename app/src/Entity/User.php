@@ -110,6 +110,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * Le rôle qui ouvre l'écran d'administration des comptes.
+     *
+     * **Comme ROLE_DIVIN, il ne s'accorde qu'en console** (`app:users:admin`).
+     * L'écran qu'il ouvre permet de supprimer définitivement le compte d'un
+     * tiers et toutes ses parties : un bouton qui permettrait de se l'octroyer
+     * ferait de cette suppression une action à la portée de n'importe quel
+     * inscrit.
+     */
+    public const string ROLE_ADMIN = 'ROLE_ADMIN';
+
+    public function estAdministratrice(): bool
+    {
+        return \in_array(self::ROLE_ADMIN, $this->getRoles(), true);
+    }
+
+    /**
      * @see UserInterface
      */
     public function getRoles(): array
