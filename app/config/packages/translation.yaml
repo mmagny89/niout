@@ -1,5 +1,8 @@
 framework:
-    default_locale: en
+    # L'interface est en français : la locale par défaut décide des catalogues
+    # embarqués de Symfony, dont « security » — en `en`, un échec de connexion
+    # s'affichait en anglais.
+    default_locale: fr
     translator:
         default_path: '%kernel.project_dir%/translations'
         providers:

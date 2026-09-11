@@ -77,6 +77,32 @@ final class ConnexionTest extends WebTestCase
         // L'utilisateur reste sur la page de connexion, avec un message d'erreur.
         self::assertRouteSame('app_login');
         self::assertSelectorExists('[role="alert"]');
+        // En français : le message vient du catalogue « security » de Symfony,
+        // qui suit `framework.default_locale`. Laissée à `en`, elle rendait
+        // « Invalid credentials. » au milieu d'une interface française.
+        self::assertSelectorTextContains('[role="alert"]', 'Identifiants invalides.');
+    }
+
+    /**
+     * L'œil qui dévoile le mot de passe est produit par Stimulus, que le client
+     * de test n'exécute pas : seule la structure est vérifiable ici — le champ
+     * et son bouton portent bien les cibles du contrôleur qui les relie.
+     */
+    public function testLeChampMotDePasseOffreUnBoutonPourLeDevoiler(): void
+    {
+        $client = static::createClient();
+
+        $crawler = $client->request('GET', '/connexion');
+
+        $conteneur = $crawler->filter('[data-controller="mot-de-passe"]');
+        self::assertCount(1, $conteneur);
+        self::assertCount(1, $conteneur->filter('input[data-mot-de-passe-target="champ"][name="_password"]'));
+
+        $bouton = $conteneur->filter('button[data-mot-de-passe-target="bouton"]');
+        self::assertCount(1, $bouton);
+        self::assertSame('mot-de-passe#basculer', $bouton->attr('data-action'));
+        // Rendu masqué : sans JavaScript, le bouton ne basculerait rien.
+        self::assertNotNull($bouton->attr('hidden'));
     }
 
     public function testUnJoueurConnectePeutSeDeconnecter(): void

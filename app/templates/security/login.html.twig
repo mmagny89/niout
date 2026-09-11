@@ -4,9 +4,15 @@
 {% block titre_page %}Connexion{% endblock %}
 
 {% block formulaire %}
+    {# `role="alert"` et non un simple encadré : la page est rechargée après
+       l'échec, et sans lui un lecteur d'écran laisse l'erreur passer
+       inaperçue au-dessus du champ qui reprend le focus. #}
     {% if error %}
-        <div role="alert" class="mb-5 rounded-sm border-l-4 border-terre-500 bg-terre-500/10 px-4 py-3 text-sm text-terre-700">
-            {{ error.messageKey|trans(error.messageData, 'security') }}
+        <div role="alert" class="mb-5 flex items-start gap-2 rounded-sm border-l-4 border-terre-500 bg-terre-500/10 px-4 py-3 text-sm text-terre-700">
+            <svg class="mt-0.5 size-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v3.5a.75.75 0 0 0 1.5 0v-3.5ZM10 13a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z" clip-rule="evenodd" />
+            </svg>
+            <span>{{ error.messageKey|trans(error.messageData, 'security') }}</span>
         </div>
     {% endif %}
 
@@ -25,11 +31,31 @@
                    autocomplete="email" required autofocus>
         </div>
 
-        <div class="mb-5">
+        <div class="mb-5" data-controller="mot-de-passe">
             <label for="password" class="block text-sm font-medium text-encre-700">Mot de passe</label>
-            <input type="password" name="_password" id="password"
-                   class="mt-1 block w-full rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-encre-900 focus:border-lapis-500 focus:outline-none focus:ring-1 focus:ring-lapis-500"
-                   autocomplete="current-password" required>
+            <div class="relative mt-1">
+                <input type="password" name="_password" id="password"
+                       data-mot-de-passe-target="champ"
+                       class="block w-full rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 pr-10 text-encre-900 focus:border-lapis-500 focus:outline-none focus:ring-1 focus:ring-lapis-500"
+                       autocomplete="current-password" required>
+                {# Rendu masqué, dévoilé par le contrôleur : sans JavaScript, un
+                   bouton qui ne bascule rien vaut moins que pas de bouton. #}
+                <button type="button" hidden
+                        data-mot-de-passe-target="bouton"
+                        data-action="mot-de-passe#basculer"
+                        aria-controls="password" aria-pressed="false"
+                        aria-label="Afficher le mot de passe"
+                        class="absolute inset-y-0 right-0 flex items-center px-3 text-encre-600 hover:text-encre-900 focus:outline-none focus:ring-1 focus:ring-lapis-500">
+                    <svg data-mot-de-passe-target="oeil" class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+                        <path fill-rule="evenodd" d="M.664 10.59a1.65 1.65 0 0 1 0-1.186A10.004 10.004 0 0 1 10 3c4.257 0 7.893 2.66 9.336 6.41.147.382.146.804 0 1.186A10.004 10.004 0 0 1 10 17c-4.257 0-7.893-2.66-9.336-6.41ZM14 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" clip-rule="evenodd" />
+                    </svg>
+                    <svg data-mot-de-passe-target="oeilBarre" class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" hidden>
+                        <path fill-rule="evenodd" d="M3.28 2.22a.75.75 0 1 0-1.06 1.06l14.5 14.5a.75.75 0 1 0 1.06-1.06l-1.745-1.745a10.03 10.03 0 0 0 3.3-4.38 1.651 1.651 0 0 0 0-1.185A10.004 10.004 0 0 0 10 3c-1.284 0-2.51.242-3.638.681L3.28 2.22ZM7.53 5.59a4 4 0 0 1 5.38 5.38l-1.17-1.17a2.5 2.5 0 0 0-3.04-3.04L7.53 5.59Z" clip-rule="evenodd" />
+                        <path d="M10.748 13.93 8.808 11.99a2.5 2.5 0 0 0 1.94 1.94ZM5.29 8.47l1.61 1.61a4 4 0 0 0 5.02 5.02l1.36 1.36c-1.03.35-2.13.54-3.28.54-4.257 0-7.893-2.66-9.336-6.41a1.651 1.651 0 0 1 0-1.185A10.026 10.026 0 0 1 5.29 8.47Z" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
         {# data-controller est indispensable, pas décoratif : la protection CSRF
