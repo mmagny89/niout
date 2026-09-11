@@ -49,6 +49,8 @@ Le stack se lance sans `-f` : `COMPOSE_FILE` dans le `.env` racine chaîne déj�
   (`--retirer` pour le reprendre)
 - Administration des comptes : `docker compose exec php php bin/console app:users:admin <email>`
   (`--retirer` pour la reprendre) — ouvre `/admin/comptes`
+- Mot de passe d'un compte : `docker compose exec php php bin/console app:users:password <email>`
+  (saisie masquée ; `--generer` pour en engendrer un et l'afficher une fois)
 - Observabilité (Ember) : `curl http://127.0.0.1:9191/metrics`
 
 Portes qualité — les quatre doivent passer avant un merge (mêmes commandes qu'en CI) :
