@@ -94,29 +94,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Le rôle qui ouvre le mode divin (`City::estEnModeDivin()`).
+     * Le rôle des comptes privilégiés : il ouvre l'administration des comptes
+     * **et** le mode divin (`City::estEnModeDivin()`).
      *
-     * **C'est la seule barrière du mode**, et elle ne s'accorde qu'en console
-     * (`app:users:goddess`) : aucun écran ne permet de se l'octroyer, et
-     * aucune inscription ne le donne. Un bouton visible de tous ne serait pas
-     * une barrière — le mode se contente donc de ne pas s'afficher pour qui ne
-     * l'a pas, et les routes le refusent en plus.
-     */
-    public const string ROLE_DIVIN = 'ROLE_DIVIN';
-
-    public function estDivinite(): bool
-    {
-        return \in_array(self::ROLE_DIVIN, $this->getRoles(), true);
-    }
-
-    /**
-     * Le rôle qui ouvre l'écran d'administration des comptes.
+     * **Un seul rôle, et il ne s'accorde qu'en console** (`app:users:admin`).
+     * Il y en avait deux — `ROLE_DIVIN` pour le mode d'essai, celui-ci pour
+     * l'administration — mais ils désignaient la même poignée de comptes et se
+     * donnaient de la même façon : deux commandes à jouer, deux barrières à
+     * tenir à jour, pour une seule population.
      *
-     * **Comme ROLE_DIVIN, il ne s'accorde qu'en console** (`app:users:admin`).
-     * L'écran qu'il ouvre permet de supprimer définitivement le compte d'un
-     * tiers et toutes ses parties : un bouton qui permettrait de se l'octroyer
-     * ferait de cette suppression une action à la portée de n'importe quel
-     * inscrit.
+     * **C'est la seule barrière du mode divin**, qui donne un million de
+     * chaque ressource, ouvre les dix missions et lève les plafonds de
+     * réserve ; c'est aussi la seule de l'écran qui supprime définitivement le
+     * compte d'un tiers. Aucun écran ne permet de se l'octroyer, et aucune
+     * inscription ne le donne : un bouton visible de tous ne serait pas une
+     * barrière. Le mode se contente donc de ne pas s'afficher pour qui ne l'a
+     * pas, et les routes le refusent en plus.
      */
     public const string ROLE_ADMIN = 'ROLE_ADMIN';
 

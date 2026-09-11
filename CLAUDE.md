@@ -45,10 +45,10 @@ Le stack se lance sans `-f` : `COMPOSE_FILE` dans le `.env` racine chaîne déj�
 - Rebuild des styles Tailwind : `docker compose exec php php bin/console tailwind:build`
   (ajouter `--watch` pendant le développement)
 - Migrations : `docker compose exec php php bin/console doctrine:migrations:migrate`
-- Mode d'essai : `docker compose exec php php bin/console app:users:goddess <email>`
-  (`--retirer` pour le reprendre)
-- Administration des comptes : `docker compose exec php php bin/console app:users:admin <email>`
-  (`--retirer` pour la reprendre) — ouvre `/admin/comptes`
+- Compte privilégié — administration (`/admin/comptes`) **et** mode d'essai :
+  `docker compose exec php php bin/console app:users:admin <email>`
+  (`--retirer` pour le reprendre). Un seul rôle pour les deux : ils désignaient
+  la même poignée de comptes.
 - Mot de passe d'un compte : `docker compose exec php php bin/console app:users:password <email>`
   (saisie masquée ; `--generer` pour en engendrer un et l'afficher une fois)
 - Observabilité (Ember) : `curl http://127.0.0.1:9191/metrics`

@@ -98,7 +98,7 @@ final readonly class Progression
      */
     public function missionsOuvertes(User $joueur): array
     {
-        $derniere = $joueur->estDivinite()
+        $derniere = $joueur->estAdministratrice()
             ? self::DERNIERE_MISSION
             : $this->prochaineMission($joueur);
 

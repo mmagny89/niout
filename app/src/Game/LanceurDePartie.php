@@ -46,7 +46,7 @@ final readonly class LanceurDePartie
      */
     /**
      * `$numeroDeMission` n'est renseigné que par le **mode divin**, qui ouvre
-     * les dix régions pour les essais (`User::ROLE_DIVIN`). Une campagne
+     * les dix régions pour les essais (`User::ROLE_ADMIN`). Une campagne
      * ordinaire démarre toujours à la première : l'ordre est imposé (doc 09).
      */
     public function lancerCampagne(User $joueur, string $nomDeFamille, ?int $numeroDeMission = null): GameSave

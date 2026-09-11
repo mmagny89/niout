@@ -27,11 +27,10 @@
                                         {{ ligne.compte.createdAt|date_modify('+' ~ delaiDeVerification ~ ' days')|date('d/m/Y') }}
                                     </span>
                                 {% endif %}
+                                {# Un seul rôle privilégié : il ouvre cet écran
+                                   et le mode divin. #}
                                 {% if ligne.compte.estAdministratrice %}
                                     <span class="rounded-sm bg-encre-900/10 px-2 py-0.5 text-encre-700">Administration</span>
-                                {% endif %}
-                                {% if ligne.compte.estDivinite %}
-                                    <span class="rounded-sm bg-encre-900/10 px-2 py-0.5 text-encre-700">Mode divin</span>
                                 {% endif %}
                             </div>
                         </div>

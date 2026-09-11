@@ -120,7 +120,7 @@
            quinzaines : c'est ce temps de jeu que le mode d'essai permet de
            sauter. Le bouton n'existe que pour un compte qui porte le rôle, et
            la route le vérifie de son côté. #}
-        {% if is_granted('ROLE_DIVIN') and partie.estEnModeDivin %}
+        {% if is_granted('ROLE_ADMIN') and partie.estEnModeDivin %}
             <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}" class="mt-4">
                 <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
                 <input type="hidden" name="retour" value="app_partie_carte">

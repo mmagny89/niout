@@ -162,7 +162,7 @@ final class RenommeeDeLigneeTest extends WebTestCase
         $user = new User();
         $user->setEmail($email);
         $user->setPassword('peu-importe-ici');
-        $user->setRoles([User::ROLE_DIVIN]);
+        $user->setRoles([User::ROLE_ADMIN]);
 
         $this->gestionnaire()->persist($user);
         $this->gestionnaire()->flush();

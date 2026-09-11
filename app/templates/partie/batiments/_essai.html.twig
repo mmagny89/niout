@@ -11,7 +11,7 @@
    confondre avec une vraie. Le bouton n'existe que pour un compte qui
    porte le rôle — la route le vérifie de son côté, l'absence
    d'affichage n'étant pas une barrière. #}
-{% if is_granted('ROLE_DIVIN') %}
+{% if is_granted('ROLE_ADMIN') %}
     <div class="mt-4 rounded-sm border border-lapis-500/40 bg-lapis-500/5 px-4 py-3 text-sm text-encre-700">
         {% if partie.estEnModeDivin %}
             <strong class="text-encre-900">Partie d'essai.</strong>

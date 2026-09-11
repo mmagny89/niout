@@ -835,11 +835,11 @@ final class PartieController extends AbstractController
      * c'est justement celle qu'on veut souvent pouvoir remettre debout pour
      * l'examiner. La propriété de la partie reste vérifiée, elle.
      *
-     * Le second : `ROLE_DIVIN` en plus, accordé en console seulement. C'est
+     * Le second : `ROLE_ADMIN` en plus, accordé en console seulement. C'est
      * la vraie barrière ; l'absence de bouton n'en serait pas une.
      */
     #[Route('/{id}/divin', name: 'app_partie_divin', requirements: ['id' => '\\d+'], methods: ['POST'])]
-    #[IsGranted(User::ROLE_DIVIN)]
+    #[IsGranted(User::ROLE_ADMIN)]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
     public function modeDivin(Request $request, GameSave $partie, ModeDivin $modeDivin): Response
     {
@@ -2151,7 +2151,7 @@ final class PartieController extends AbstractController
 
         // Le mode d'essai n'est pas un bâtiment : il ferme la barre, comme
         // avant, et n'existe que pour un compte qui porte le rôle.
-        if ($this->isGranted(User::ROLE_DIVIN)) {
+        if ($this->isGranted(User::ROLE_ADMIN)) {
             $onglets[] = ['cle' => 'essai', 'libelle' => 'Essai', 'type' => null, 'batiment' => null];
         }
 

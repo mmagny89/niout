@@ -180,7 +180,7 @@ final class SansNilTest extends WebTestCase
         $user->setPassword('peu-importe-ici');
         // Le mode d'essai ouvre les dix missions : c'est le seul moyen de
         // lancer Megiddo sans jouer les trois précédentes.
-        $user->setRoles([User::ROLE_DIVIN]);
+        $user->setRoles([User::ROLE_ADMIN]);
 
         $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
         $gestionnaire->persist($user);

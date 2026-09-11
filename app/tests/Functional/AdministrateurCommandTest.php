@@ -39,19 +39,20 @@ final class AdministrateurCommandTest extends KernelTestCase
     }
 
     /**
-     * Les deux rôles sont indépendants : retirer l'un ne doit pas emporter
-     * l'autre, la reconstruction de la liste étant le moment où c'est facile.
+     * Le rôle est unique : l'accorder deux fois ne doit pas le laisser en
+     * double dans le tableau persisté, ce que la reconstruction de la liste
+     * garantit.
      */
-    public function testRetirerLAccesLaisseLeModeDivinIntact(): void
+    public function testAccorderDeuxFoisNeDupliquePasLeRole(): void
     {
         self::bootKernel();
-        $this->creerCompte('deesse@example.com', [User::ROLE_ADMIN, User::ROLE_DIVIN]);
+        $this->creerCompte('deja@example.com', [User::ROLE_ADMIN]);
 
-        $this->lancer(['email' => 'deesse@example.com', '--retirer' => true]);
+        $this->lancer(['email' => 'deja@example.com']);
 
-        $compte = $this->recharger('deesse@example.com');
-        self::assertFalse($compte->estAdministratrice());
-        self::assertTrue($compte->estDivinite());
+        $compte = $this->recharger('deja@example.com');
+        self::assertTrue($compte->estAdministratrice());
+        self::assertSame([User::ROLE_ADMIN, 'ROLE_USER'], $compte->getRoles());
     }
 
     public function testUneAdresseInconnueEchoue(): void

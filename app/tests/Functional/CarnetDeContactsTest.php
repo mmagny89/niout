@@ -255,7 +255,7 @@ final class CarnetDeContactsTest extends KernelTestCase
         $joueur->setPassword('peu-importe-ici');
         // Le mode d'essai ouvre les dix régions : ces tests portent sur le
         // carnet, pas sur l'ordre de la campagne.
-        $joueur->setRoles([User::ROLE_DIVIN]);
+        $joueur->setRoles([User::ROLE_ADMIN]);
 
         $this->gestionnaire()->persist($joueur);
         $this->gestionnaire()->flush();

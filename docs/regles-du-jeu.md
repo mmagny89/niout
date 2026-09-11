@@ -671,9 +671,11 @@ historique. Le roi renvoie donc un présent, et trois bornes le tiennent :
 ## Mode d'essai, routes mutantes et pièges techniques
 
 **Le mode divin est un outil d'essai, pas une fonctionnalité** (`ModeDivin`,
-`User::ROLE_DIVIN`) : un million de chaque ressource, plafonds de réserve levés,
+`User::ROLE_ADMIN`) : un million de chaque ressource, plafonds de réserve levés,
 brouillard levé d'un geste, les dix missions ouvertes à la création. **Le rôle ne s'accorde qu'en console**
-(`app:users:goddess`) — aucun écran ne le donne, et cacher un bouton n'est pas
+(`app:users:admin`, qui ouvre aussi l'administration des comptes — un seul rôle
+pour les deux, ils désignaient la même poignée de comptes) — aucun écran ne le
+donne, et cacher un bouton n'est pas
 une barrière : la route vérifie le rôle en plus de la propriété. Une partie
 d'essai le dit en toutes lettres à l'écran, pour ne jamais se confondre avec une
 vraie. C'est aussi **la seule chose du jeu qui défait un échec**, ce qui lui vaut

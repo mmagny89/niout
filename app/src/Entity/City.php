@@ -181,7 +181,7 @@ class City
 
     /**
      * Partie d'essai : un million de chaque ressource, aucun plafond de
-     * réserve, les dix missions ouvertes (`User::ROLE_DIVIN`).
+     * réserve, les dix missions ouvertes (`User::ROLE_ADMIN`).
      *
      * **Le drapeau vit sur la ville et non sur la partie**, bien qu'il marque
      * la run entière : c'est la ville qui porte le stock et les plafonds, et

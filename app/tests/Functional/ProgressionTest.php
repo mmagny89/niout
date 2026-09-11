@@ -199,7 +199,7 @@ final class ProgressionTest extends WebTestCase
         $user->setPassword('peu-importe-ici');
 
         if ($divinite) {
-            $user->setRoles([User::ROLE_DIVIN]);
+            $user->setRoles([User::ROLE_ADMIN]);
         }
 
         $this->gestionnaire()->persist($user);

@@ -368,7 +368,7 @@ final class ErgonomieTest extends WebTestCase
         $user->setPassword('peu-importe-ici');
 
         if ($divin) {
-            $user->setRoles([User::ROLE_DIVIN]);
+            $user->setRoles([User::ROLE_ADMIN]);
         }
 
         $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);

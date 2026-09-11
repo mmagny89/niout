@@ -184,7 +184,7 @@ final class BonusDeDepartTest extends KernelTestCase
         $joueur = new User();
         $joueur->setEmail($email);
         $joueur->setPassword('peu-importe-ici');
-        $joueur->setRoles([User::ROLE_DIVIN]);
+        $joueur->setRoles([User::ROLE_ADMIN]);
 
         $this->gestionnaire()->persist($joueur);
         $this->gestionnaire()->flush();

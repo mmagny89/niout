@@ -14,16 +14,20 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Accorde ou retire le rôle qui ouvre l'administration des comptes.
+ * Accorde ou retire le rôle des comptes privilégiés : administration des
+ * comptes **et** mode divin.
  *
- * **En console et nulle part ailleurs**, pour la même raison que le mode divin
- * (`app:users:goddess`) : l'écran ouvert par ce rôle supprime définitivement le
- * compte d'un tiers et toutes ses parties. Un écran qui permettrait de se
+ * **En console et nulle part ailleurs.** Le rôle ouvre un écran qui supprime
+ * définitivement le compte d'un tiers, et un mode qui donne un million de
+ * chaque ressource et ouvre les dix missions. Un écran qui permettrait de se
  * l'octroyer ne serait pas une barrière.
+ *
+ * Cette commande remplace `app:users:goddess` : les deux rôles n'en font plus
+ * qu'un (voir `User::ROLE_ADMIN`).
  */
 #[AsCommand(
     name: 'app:users:admin',
-    description: 'Accorde (ou retire) l\'accès à l\'administration des comptes',
+    description: 'Accorde (ou retire) l\'administration des comptes et le mode divin',
 )]
 final class AdministrateurCommand
 {
@@ -48,10 +52,10 @@ final class AdministrateurCommand
             return Command::FAILURE;
         }
 
-        // Les rôles se reconstruisent à partir de ceux déjà portés : retirer
-        // l'accès ne doit pas emporter le mode divin au passage. ROLE_USER est
+        // Les rôles se reconstruisent à partir de ceux déjà portés : accorder
+        // deux fois ne doit pas laisser le rôle en double. ROLE_USER est
         // écarté parce que getRoles() l'ajoute d'office — le persister
-        // laisserait un doublon en base.
+        // laisserait, lui aussi, un doublon en base.
         $roles = array_values(array_filter(
             $compte->getRoles(),
             static fn (string $role): bool => User::ROLE_ADMIN !== $role && 'ROLE_USER' !== $role,
@@ -65,7 +69,7 @@ final class AdministrateurCommand
         $this->entityManager->flush();
 
         $io->success(\sprintf(
-            '%s %s l\'accès à l\'administration des comptes.',
+            '%s %s l\'administration des comptes et le mode divin.',
             $email,
             $retirer ? 'a perdu' : 'a reçu',
         ));
