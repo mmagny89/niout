@@ -29,6 +29,26 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(User::ROLE_ADMIN)]
 final class AdminController extends AbstractController
 {
+    /**
+     * La page de garde : ce que l'administration permet, et rien d'autre.
+     *
+     * Elle ne redirige pas vers les comptes, bien qu'ils en soient la seule
+     * section pour l'instant : une redirection rendrait `/admin` indiscernable
+     * de `/admin/comptes`, et la deuxième section arriverait sans endroit où
+     * se poser. Les quelques chiffres qu'elle porte lui évitent d'être un
+     * couloir vide.
+     */
+    #[Route('', name: 'app_admin', methods: ['GET'])]
+    public function index(UserRepository $comptes, GameSaveRepository $parties): Response
+    {
+        return $this->render('admin/index.html.twig', [
+            'nombreDeComptes' => $comptes->count([]),
+            'nombreDeComptesNonVerifies' => $comptes->count(['verified' => false]),
+            'nombreDeParties' => $parties->count([]),
+            'nombreDePartiesEnCours' => $parties->count(['statut' => StatutDePartie::EnCours]),
+        ]);
+    }
+
     #[Route('/comptes', name: 'app_admin_comptes', methods: ['GET'])]
     public function comptes(
         UserRepository $comptes,

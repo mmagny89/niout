@@ -41,6 +41,43 @@ final class AdministrationDesComptesTest extends WebTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
+    public function testLaPageDeGardeEstFermeeAUnJoueurOrdinaire(): void
+    {
+        $client = static::createClient();
+        $this->connecter($client, 'ordinaire@example.com');
+
+        $client->request('GET', '/admin');
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    /**
+     * La page de garde ne redirige pas vers les comptes : `/admin` et
+     * `/admin/comptes` doivent rester deux endroits distincts, sans quoi la
+     * deuxième section n'aurait nulle part où se poser.
+     */
+    public function testLaPageDeGardeMeneAuxComptesSansSYSubstituer(): void
+    {
+        $client = static::createClient();
+        $this->connecter($client, 'gardienne@example.com', administratrice: true);
+        $joueur = $this->creerJoueur('compte@example.com');
+        $this->creerPartie($joueur, 'Avaris');
+
+        $crawler = $client->request('GET', '/admin');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Administration');
+        self::assertCount(1, $crawler->filter('a[href="/admin/comptes"]'));
+        // Les chiffres de garde comptent réellement ce qu'il y a en base. La
+        // base de test n'est pas remise à zéro entre les cas : on la compare à
+        // elle-même plutôt qu'à un nombre écrit en dur, qui dépendrait de
+        // l'ordre d'exécution.
+        self::assertSelectorTextContains('dl', 'Comptes inscrits');
+        self::assertSelectorTextContains('dl', 'Parties');
+        self::assertSelectorTextContains('dl', (string) $this->depotDeComptes()->count([]));
+        self::assertSelectorTextContains('dl', (string) $this->depotDeParties()->count([]));
+    }
+
     public function testLEcranRecapituleLesComptesEtLeursParties(): void
     {
         $client = static::createClient();

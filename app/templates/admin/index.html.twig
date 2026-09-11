@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration — Niout{% endblock %}
+
+{% block body %}
+    <section class="mx-auto w-full max-w-3xl px-5 py-14">
+        <h1 class="text-3xl text-encre-900">Administration</h1>
+        <p class="mt-2 text-sm text-encre-600">
+            Ce que porte ce coin du site, et rien d'autre. L'accès ne s'accorde
+            qu'en console — il ouvre aussi le mode d'essai.
+        </p>
+
+        <dl class="mt-8 grid gap-4 sm:grid-cols-2" data-chiffres>
+            <div class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                <dt class="text-sm text-encre-500">Comptes inscrits</dt>
+                <dd class="mt-1 font-display text-3xl text-encre-900">{{ nombreDeComptes }}</dd>
+                <p class="mt-1 text-sm text-encre-600">
+                    {% if nombreDeComptesNonVerifies > 0 %}
+                        dont {{ nombreDeComptesNonVerifies }} en attente de vérification
+                    {% else %}
+                        tous vérifiés
+                    {% endif %}
+                </p>
+            </div>
+            <div class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                <dt class="text-sm text-encre-500">Parties</dt>
+                <dd class="mt-1 font-display text-3xl text-encre-900">{{ nombreDeParties }}</dd>
+                <p class="mt-1 text-sm text-encre-600">
+                    dont {{ nombreDePartiesEnCours }} en cours
+                </p>
+            </div>
+        </dl>
+
+        {# Une seule section pour l'instant : la liste n'en annonce pas d'autres
+           qui n'existent pas. #}
+        <ul class="mt-8 space-y-3 list-none p-0">
+            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                <h2 class="font-display text-xl text-encre-900">
+                    <a href="{{ path('app_admin_comptes') }}" class="text-encre-900 no-underline hover:text-terre-600">
+                        Comptes
+                    </a>
+                </h2>
+                <p class="mt-1 text-sm text-encre-600">
+                    Qui s'est inscrit, combien de parties chacun mène et où elles en
+                    sont. Permet de supprimer un compte et toutes ses parties —
+                    définitivement.
+                </p>
+            </li>
+        </ul>
+    </section>
+{% endblock %}

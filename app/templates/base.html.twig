@@ -33,7 +33,7 @@
                 <nav class="flex items-baseline gap-5 text-sm">
                     {% if app.user %}
                         {% if is_granted('ROLE_ADMIN') %}
-                            <a href="{{ path('app_admin_comptes') }}" class="text-encre-600 hover:text-terre-600">Comptes</a>
+                            <a href="{{ path('app_admin') }}" class="text-encre-600 hover:text-terre-600">Administration</a>
                         {% endif %}
                         <a href="{{ path('app_compte') }}" class="text-encre-700 hover:text-terre-600">Mon compte</a>
                         <a href="{{ path('app_logout') }}" class="text-encre-600 hover:text-terre-600">Déconnexion</a>

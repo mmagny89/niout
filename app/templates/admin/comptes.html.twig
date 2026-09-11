@@ -4,7 +4,13 @@
 
 {% block body %}
     <section class="mx-auto w-full max-w-5xl px-5 py-14">
-        <h1 class="text-3xl text-encre-900">Comptes</h1>
+        <p class="text-sm">
+            <a href="{{ path('app_admin') }}" class="text-encre-500 no-underline hover:text-terre-600">
+                &larr; Administration
+            </a>
+        </p>
+
+        <h1 class="mt-2 text-3xl text-encre-900">Comptes</h1>
         <p class="mt-2 text-sm text-encre-600" data-chiffres>
             {{ lignes|length }} compte{{ lignes|length > 1 ? 's' : '' }} inscrit{{ lignes|length > 1 ? 's' : '' }},
             du plus récent au plus ancien.
