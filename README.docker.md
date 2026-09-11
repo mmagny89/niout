@@ -149,10 +149,18 @@ sh outils/installer-deploiement.sh projet prod      # depuis le clone niout-prod
 Le script pose la *forced command* qui limite la cle confiee a GitHub au seul
 `outils/deployer.sh`. La cle privee ne s'affiche jamais au terminal.
 
-Quatre secrets GitHub sont a poser dans ce depot — `VPS_HOST`, `VPS_USER`,
-`VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`. Ils sont **propres a ce depot** : rien ne se
-partage avec un autre projet, sauf le compte machine qui lit les depots et le
-reseau Traefik.
+Quatre secrets GitHub sont a poser dans ce depot, sous leurs noms normatifs
+(conventions, section 22) :
+
+| Secret | Contenu |
+|---|---|
+| `DEPLOIEMENT_HOTE` | adresse du serveur |
+| `DEPLOIEMENT_UTILISATEUR` | utilisateur de deploiement |
+| `DEPLOIEMENT_CLE_PRIVEE` | cle privee dont la publique est dans `authorized_keys` |
+| `DEPLOIEMENT_KNOWN_HOSTS` | empreinte du serveur, epinglee |
+
+Ils sont **propres a ce depot** : rien ne se partage avec un autre projet,
+sauf le compte machine qui lit les depots et le reseau Traefik.
 
 Deploiement manuel, a verifier **avant** le declenchement automatique :
 
