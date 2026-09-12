@@ -32,16 +32,25 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          # L'etiquette, et non la branche : le CHANGELOG lu doit etre celui
-          # de la version publiee, pas celui du dernier commit de main.
-          ref: ${{ steps.etiquette.outputs.nom }}
+          # La branche par defaut, et non l'etiquette : c'est d'elle que vient
+          # le script d'extraction, qui doit etre le dernier en date. Une
+          # etiquette posee avant lui — v0.12.0 — ne le porte pas, et un
+          # checkout de l'etiquette echouait sur « No such file ».
+          ref: ${{ github.event.repository.default_branch }}
+          # Toute la profondeur : le CHANGELOG, lui, se lit a l'etiquette,
+          # ce qui suppose de l'avoir recuperee.
+          fetch-depth: 0
 
       - name: Extraire la section du CHANGELOG
         id: notes
+        env:
+          ETIQUETTE: ${{ steps.etiquette.outputs.nom }}
         run: |
-          # Le script est versionne et se joue en local avant d'etiqueter :
-          # une section absente ou mal formee se voit avant la publication.
-          sh outils/extraire-changelog.sh "${{ steps.etiquette.outputs.nom }}" > /tmp/notes.md
+          # Le contenu publie est celui de la version, pas celui du dernier
+          # commit de la branche : on lit le CHANGELOG tel qu'il etait a
+          # l'etiquette, avec le script tel qu'il est aujourd'hui.
+          git show "$ETIQUETTE:CHANGELOG.md" > /tmp/changelog.md
+          sh outils/extraire-changelog.sh "$ETIQUETTE" /tmp/changelog.md > /tmp/notes.md
           echo "--- Notes de version ---"
           cat /tmp/notes.md
 
