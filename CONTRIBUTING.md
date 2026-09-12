@@ -47,6 +47,25 @@ jamais Tailwind.
   d'être. Une règle sans son pourquoi se fait supprimer par le suivant, qui
   repaiera le défaut qu'elle évitait.
 
+## Publier une version
+
+Le journal des versions est la source : la release GitHub en découle, elle ne
+se rédige pas à part. Deux journaux qui divergent, c'est le second qu'on cesse
+de lire.
+
+```bash
+# 1. Basculer « Non publié » en une version datée dans CHANGELOG.md,
+#    puis vérifier ce que la release affichera :
+sh outils/extraire-changelog.sh 0.13.0
+
+# 2. Étiqueter et pousser — .github/workflows/release.yml fait le reste.
+git tag -a v0.13.0 -m "…" && git push origin v0.13.0
+```
+
+Le numéro suit le [versionnage sémantique](https://semver.org/lang/fr/) : une
+mécanique de jeu nouvelle monte la mineure, une correction seule monte le
+correctif. Tant que la majeure vaut `0`, un changement cassant monte la mineure.
+
 ## Signaler une faille de sécurité
 
 Pas par une issue publique — voir [SECURITY.md](SECURITY.md).

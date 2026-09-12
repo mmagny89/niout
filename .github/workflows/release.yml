@@ -1,0 +1,62 @@
+name: Publication
+
+# Une release se declenche par l'etiquette, jamais a la main : c'est
+# l'etiquette qui fait foi de ce qui est publie. L'entree manuelle n'existe
+# que pour rattraper une etiquette poussee avant ce workflow.
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch:
+    inputs:
+      etiquette:
+        description: "Etiquette a publier (ex. v0.12.0)"
+        required: true
+
+permissions:
+  # Seul droit necessaire : creer la release. Tout le reste reste en lecture.
+  contents: write
+
+jobs:
+  publier:
+    name: Publier la release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determiner l'etiquette
+        id: etiquette
+        run: |
+          if [ "${{ github.event_name }}" = workflow_dispatch ]; then
+            echo "nom=${{ inputs.etiquette }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "nom=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          # L'etiquette, et non la branche : le CHANGELOG lu doit etre celui
+          # de la version publiee, pas celui du dernier commit de main.
+          ref: ${{ steps.etiquette.outputs.nom }}
+
+      - name: Extraire la section du CHANGELOG
+        id: notes
+        run: |
+          # Le script est versionne et se joue en local avant d'etiqueter :
+          # une section absente ou mal formee se voit avant la publication.
+          sh outils/extraire-changelog.sh "${{ steps.etiquette.outputs.nom }}" > /tmp/notes.md
+          echo "--- Notes de version ---"
+          cat /tmp/notes.md
+
+      - name: Creer la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ETIQUETTE: ${{ steps.etiquette.outputs.nom }}
+        run: |
+          # --verify-tag : refuse de publier une etiquette qui n'existe pas
+          # sur le distant, plutot que d'en creer une silencieusement.
+          if gh release view "$ETIQUETTE" >/dev/null 2>&1; then
+            gh release edit "$ETIQUETTE" --notes-file /tmp/notes.md --title "$ETIQUETTE"
+          else
+            gh release create "$ETIQUETTE" \
+              --title "$ETIQUETTE" \
+              --notes-file /tmp/notes.md \
+              --verify-tag
+          fi
