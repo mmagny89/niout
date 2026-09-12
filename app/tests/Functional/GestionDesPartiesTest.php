@@ -12,6 +12,7 @@ use App\Repository\GameSaveRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DomCrawler\Crawler;
 
 final class GestionDesPartiesTest extends WebTestCase
 {
@@ -63,6 +64,29 @@ final class GestionDesPartiesTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertGreaterThan(0, $crawler->filter('main a[href="/parties"]')->count());
         self::assertCount(0, $crawler->filter('main a[href="/inscription"]'));
+    }
+
+    /**
+     * Les captures de la page d'accueil portent chacune un texte alternatif.
+     * Une image decorative s'en passe ; celles-ci montrent le jeu, donc leur
+     * absence retirerait le contenu a qui ne voit pas l'ecran.
+     */
+    public function testLesCapturesDeLAccueilSontDecrites(): void
+    {
+        $client = static::createClient();
+
+        $crawler = $client->request('GET', '/');
+
+        $captures = $crawler->filter('figure img');
+        self::assertCount(3, $captures);
+
+        $captures->each(function (Crawler $capture): void {
+            self::assertNotSame('', trim($capture->attr('alt') ?? ''));
+            // Largeur et hauteur reservent la place avant chargement : sans
+            // elles, le texte saute a l'arrivee de chaque image.
+            self::assertNotSame('', $capture->attr('width') ?? '');
+            self::assertNotSame('', $capture->attr('height') ?? '');
+        });
     }
 
     public function testUnCompteSansPartieLeDitClairement(): void

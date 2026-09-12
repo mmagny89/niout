@@ -39,6 +39,71 @@
         </div>
     </section>
 
+    {# Trois captures, pas davantage : elles portent les trois choses qu'un
+       texte ne montre pas — le territoire, la conduite de la ville, les
+       hiéroglyphes. Chacune fait face au paragraphe qui l'explique, le côté
+       alternant d'une rangée à l'autre : une capture qu'on n'a pas su lire ne
+       montre rien.
+
+       Les dimensions sont écrites en dur pour réserver la place avant
+       chargement, sans quoi le texte saute à l'arrivée de chaque image. Sur
+       mobile, la grille retombe en une colonne et `order` remet l'image en
+       tête : le texte annonce alors ce qui vient, au lieu de commenter ce
+       qu'on a déjà dépassé. #}
+    <section class="mx-auto max-w-5xl space-y-14 px-5 pb-16">
+        {% for capture in [
+            {
+                fichier: 'carte.webp', largeur: 1520, hauteur: 800,
+                titre: 'Un territoire qui se découvre',
+                texte: 'La carte est engendrée à la création de la partie — Nil, désert,
+                        terre broussailleuse, oasis selon la région — et reste sous le
+                        brouillard. Un éclaireur la lève case par case ; une case reconnue
+                        peut porter un gisement à exploiter, un champ à semer, une eau à
+                        pêcher une fois le Port dressé.',
+                alt: 'Carte isométrique du territoire de Malkata : le Nil bordé de roseaux
+                      et de palmiers, un village de briques crues sur sa rive, des champs
+                      irrigués en damier, et le désert de dunes à l\'est.',
+                imageAGauche: true,
+            },
+            {
+                fichier: 'ville.webp', largeur: 1600, hauteur: 748,
+                titre: 'Une ville qui se conduit par ses chiffres',
+                texte: 'Qui mange, qui travaille, ce qu\'il reste en réserve. Chaque bâtiment
+                        dressé ouvre son onglet, et le calendrier pharaonique n\'avance qu\'aux
+                        quinzaines que vous déclenchez — plus vite pendant la crue d\'Akhèt.',
+                alt: 'Tableau de bord de la ville : habitants, travail, réserves et renom,
+                      avec un onglet par bâtiment dressé.',
+                imageAGauche: false,
+            },
+            {
+                fichier: 'commande.webp', largeur: 1400, hauteur: 981,
+                titre: 'De vrais hiéroglyphes',
+                texte: 'Chaque signe affiché porte un vrai code de Gardiner, un vrai caractère
+                        Unicode et un sens attesté ; une suite de tests confronte les deux pour
+                        tous les signes déclarés. Quand une lecture ne s\'établit pas, le jeu
+                        n\'affiche rien plutôt qu\'une approximation.',
+                alt: 'Commande royale d\'Amenhotep III, avec son cartouche en hiéroglyphes,
+                      sa translittération nb-mȝꜥt-rꜥ et les codes de Gardiner des trois signes.',
+                imageAGauche: true,
+            },
+        ] %}
+            <div class="grid items-center gap-x-10 gap-y-5 md:grid-cols-5">
+                <figure class="overflow-hidden rounded-sm border border-ocre-500/30 bg-sable-50
+                               md:col-span-3 {{ capture.imageAGauche ? '' : 'md:order-last' }}">
+                    <img src="{{ asset('images/captures/' ~ capture.fichier) }}"
+                         width="{{ capture.largeur }}" height="{{ capture.hauteur }}"
+                         loading="lazy" decoding="async"
+                         class="block w-full"
+                         alt="{{ capture.alt }}">
+                </figure>
+                <div class="md:col-span-2">
+                    <h2 class="text-2xl text-encre-900">{{ capture.titre }}</h2>
+                    <p class="mt-3 text-encre-600">{{ capture.texte }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </section>
+
     <section class="border-y border-ocre-500/25 bg-sable-50">
         <div class="mx-auto max-w-5xl px-5 py-12">
             <h2 class="text-2xl text-encre-900">Aucune minuterie. Jamais.</h2>

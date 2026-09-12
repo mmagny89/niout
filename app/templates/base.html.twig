@@ -82,17 +82,30 @@
         <footer class="mt-16 border-t border-ocre-500/25 py-6">
             <div class="mx-auto flex max-w-5xl flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-5 text-xs text-encre-500">
                 <p>Niout — jeu de gestion situé dans l'Égypte du Nouvel Empire.</p>
-                {# Le code est public : le dire ici plutôt que nulle part. Les
-                   trois liens sortent du site, d'où rel="noopener" — et pas de
-                   target="_blank", qui décide à la place du visiteur. #}
+                {# Le code est public : le dire ici plutôt que nulle part. Ces
+                   trois liens quittent le site, donc nouvel onglet — et
+                   rel="noopener", sans quoi la page ouverte garde une prise sur
+                   celle-ci par window.opener. L'annonce « nouvelle fenêtre »
+                   n'est pas décorative : ouvrir un onglet sans le dire prive le
+                   visiteur du retour arrière, et un lecteur d'écran ne signale
+                   rien de lui-même. #}
                 <p class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                    <a href="{{ depot }}/releases/tag/v{{ version }}" rel="noopener"
-                       class="text-encre-500 hover:text-terre-600"
-                       data-chiffres>version {{ version }}</a>
-                    <a href="{{ depot }}/blob/main/CHANGELOG.md" rel="noopener"
-                       class="text-encre-500 hover:text-terre-600">Journal des versions</a>
-                    <a href="{{ depot }}" rel="noopener"
-                       class="text-encre-500 hover:text-terre-600">Code source</a>
+                    {% for lien in [
+                        { href: depot ~ '/releases/tag/v' ~ version, texte: 'version ' ~ version },
+                        { href: depot ~ '/blob/main/CHANGELOG.md', texte: 'Journal des versions' },
+                        { href: depot, texte: 'Code source' },
+                    ] %}
+                        <a href="{{ lien.href }}" target="_blank" rel="noopener"
+                           class="group inline-flex items-baseline gap-1 text-encre-500 hover:text-terre-600">
+                            {{ lien.texte }}
+                            <svg class="size-3 shrink-0 self-center opacity-60" viewBox="0 0 20 20"
+                                 fill="currentColor" aria-hidden="true">
+                                <path d="M11 3a1 1 0 1 0 0 2h2.586l-6.293 6.293a1 1 0 1 0 1.414 1.414L15 6.414V9a1 1 0 1 0 2 0V4a1 1 0 0 0-1-1h-5Z" />
+                                <path d="M5 5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-3a1 1 0 1 0-2 0v3H5V7h3a1 1 0 0 0 0-2H5Z" />
+                            </svg>
+                            <span class="sr-only">(nouvelle fenêtre)</span>
+                        </a>
+                    {% endfor %}
                 </p>
             </div>
         </footer>

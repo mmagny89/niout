@@ -12,6 +12,8 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+## [0.13.0] - 2026-09-12
+
 ### Ajouté
 
 - **« Mes parties » a son propre écran** (`/parties`), séparé de « Mon compte ».
@@ -20,6 +22,9 @@ la lecture de référence pour comprendre le code.
 - Pied de page : numéro de version, journal des versions et code source.
 - La page d'accueil mène aux parties quand on est déjà connecté, au lieu de
   proposer de créer un compte.
+- **Trois captures d'écran sur la page d'accueil** : le territoire, la conduite
+  de la ville, un cartouche royal. Le jeu se voyait décrit sans jamais se
+  montrer.
 
 ### Corrigé
 
@@ -67,5 +72,6 @@ au journal des phases.
 - Déploiement par clé SSH restreinte à un script unique (*forced command*),
   empreinte d'hôte épinglée.
 
-[Non publié]: https://github.com/mmagny89/niout/compare/v0.12.0...HEAD
+[Non publié]: https://github.com/mmagny89/niout/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/mmagny89/niout/releases/tag/v0.13.0
 [0.12.0]: https://github.com/mmagny89/niout/releases/tag/v0.12.0
