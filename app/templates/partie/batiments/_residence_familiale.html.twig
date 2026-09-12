@@ -18,8 +18,13 @@
    `<th scope="row">`, ce qui lie la valeur à ce qu'elle mesure. #}
 <h3 class="mt-6 text-xl text-encre-900">Tableau de bord</h3>
 
+{# Chaque tableau dans son propre conteneur qui défile : la règle vaut pour
+   tous, y compris ceux qui tiennent aujourd'hui. Un tableau sans cadre ne
+   déborde pas lui-même — il décale l'écran entier, barre de jeu comprise, et
+   l'on cherche longtemps d'où vient le décalage. #}
 <div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <table class="w-full border-collapse rounded-sm border border-ocre-500/30 bg-sable-50 text-sm">
+    <div class="overflow-x-auto rounded-sm border border-ocre-500/30 bg-sable-50">
+        <table class="w-full border-collapse text-sm">
         <caption class="px-4 pt-3 text-left font-display text-lg text-encre-900">Habitants</caption>
         <tbody data-chiffres>
             <tr class="border-t border-ocre-500/20">
@@ -57,8 +62,10 @@
             </tr>
         </tbody>
     </table>
+    </div>
 
-    <table class="w-full border-collapse rounded-sm border border-ocre-500/30 bg-sable-50 text-sm">
+    <div class="overflow-x-auto rounded-sm border border-ocre-500/30 bg-sable-50">
+        <table class="w-full border-collapse text-sm">
         <caption class="px-4 pt-3 text-left font-display text-lg text-encre-900">Travail</caption>
         <tbody data-chiffres>
             <tr class="border-t border-ocre-500/20">
@@ -99,8 +106,10 @@
             </tr>
         </tbody>
     </table>
+    </div>
 
-    <table class="w-full border-collapse rounded-sm border border-ocre-500/30 bg-sable-50 text-sm">
+    <div class="overflow-x-auto rounded-sm border border-ocre-500/30 bg-sable-50">
+        <table class="w-full border-collapse text-sm">
         <caption class="px-4 pt-3 text-left font-display text-lg text-encre-900">Réserves</caption>
         <tbody data-chiffres>
             <tr class="border-t border-ocre-500/20">
@@ -140,8 +149,10 @@
             </tr>
         </tbody>
     </table>
+    </div>
 
-    <table class="w-full border-collapse rounded-sm border border-ocre-500/30 bg-sable-50 text-sm">
+    <div class="overflow-x-auto rounded-sm border border-ocre-500/30 bg-sable-50">
+        <table class="w-full border-collapse text-sm">
         <caption class="px-4 pt-3 text-left font-display text-lg text-encre-900">Bourse et renom</caption>
         <tbody data-chiffres>
             <tr class="border-t border-ocre-500/20">
@@ -216,6 +227,7 @@
             {% endif %}
         </tbody>
     </table>
+    </div>
 </div>
 
 {# **Ce qui cloche est dit une fois, ici**, et non à côté de chaque chiffre :
@@ -328,7 +340,10 @@
     <h3 class="mt-8 text-xl text-encre-900">
         Ce que votre ville vaut — <span data-chiffres>{{ scoreDAventure }}</span>
     </h3>
-    <table class="mt-3 w-full max-w-3xl border-collapse text-sm">
+    {# Même parade que pour les exploitations : le tableau défile pour son
+       compte, la page ne bouge pas. #}
+    <div class="mt-3 overflow-x-auto">
+    <table class="w-full min-w-lg max-w-3xl border-collapse text-sm">
         <tbody>
             {% for ligne in detailDuScore %}
                 <tr class="border-t border-ocre-500/20">
@@ -339,6 +354,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     <p class="mt-2 max-w-3xl text-sm text-encre-500">
         Rien à atteindre : le mode dure autant que la succession, et vous
         arrêtez quand il vous plaît.

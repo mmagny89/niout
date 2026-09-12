@@ -27,6 +27,41 @@ final class InscriptionTest extends WebTestCase
         self::assertInstanceOf(User::class, $user);
     }
 
+    /**
+     * **Les règles du mot de passe se lisent avant d'être opposées.**.
+     *
+     * Les contraintes existaient — douze caractères, une force minimale,
+     * l'absence dans les fuites connues — mais rien ne les annonçait : on
+     * proposait un mot de passe, on se le voyait refuser, et le message ne
+     * disait pas quoi corriger.
+     *
+     * Ce que ce test peut garder, c'est la structure : le bloc de règles est
+     * présent, il est rattaché au champ par `aria-describedby` — sans quoi un
+     * lecteur d'écran ne l'associe pas à la saisie —, et le champ porte le
+     * contrôleur qui l'anime. La justesse de l'indicateur, elle, relève de
+     * `SeuilsDeForceTest`, et son animation ne se voit qu'en navigateur.
+     */
+    public function testLEcranAnnonceLesReglesDuMotDePasse(): void
+    {
+        $client = static::createClient();
+
+        $crawler = $client->request('GET', '/inscription');
+
+        $champ = $crawler->filter('[data-force-du-mot-de-passe-target="champ"]');
+        self::assertCount(1, $champ);
+        self::assertSame('regles-du-mot-de-passe', $champ->attr('aria-describedby'));
+
+        $regles = $crawler->filter('#regles-du-mot-de-passe');
+        self::assertCount(1, $regles);
+        self::assertStringContainsString('douze caractères', $regles->text());
+        self::assertStringContainsString('fuites de données connues', $regles->text());
+
+        // La jauge et les deux critères que le contrôleur coche en direct.
+        self::assertCount(1, $crawler->filter('[data-force-du-mot-de-passe-target="jauge"]'));
+        self::assertCount(1, $crawler->filter('[data-force-du-mot-de-passe-target="critereLongueur"]'));
+        self::assertCount(1, $crawler->filter('[data-force-du-mot-de-passe-target="critereForce"]'));
+    }
+
     public function testLeCompteEstUtilisableImmediatementMaisNonVerifie(): void
     {
         $client = static::createClient();

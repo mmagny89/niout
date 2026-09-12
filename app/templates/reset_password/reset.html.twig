@@ -6,7 +6,18 @@
 {% block formulaire %}
     {{ form_start(resetForm) }}
         {{ form_errors(resetForm) }}
-        {{ form_row(resetForm.plainPassword.first) }}
+        {# Le champ et ses règles vivent sous le même contrôleur : c'est lui
+           qui lit la frappe et coche ce qui est acquis. #}
+        <div data-controller="force-du-mot-de-passe">
+            {{ form_row(resetForm.plainPassword.first, {attr: {
+                'data-force-du-mot-de-passe-target': 'champ',
+                'data-action': 'input->force-du-mot-de-passe#evaluer',
+                'aria-describedby': 'regles-du-mot-de-passe',
+            }}) }}
+            <div id="regles-du-mot-de-passe">
+                {{ include('_regles_de_mot_de_passe.html.twig') }}
+            </div>
+        </div>
         {{ form_row(resetForm.plainPassword.second) }}
 
         <button type="submit"

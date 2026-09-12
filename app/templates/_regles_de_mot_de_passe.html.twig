@@ -1,0 +1,46 @@
+{# Ce qu'on attend d'un mot de passe, dit **avant** de le refuser.
+
+   Les trois règles sont celles du serveur, ni plus ni moins : annoncer une
+   exigence qui n'existe pas fait chercher une majuscule pour rien, en taire
+   une fait échouer sans comprendre.
+
+   La troisième ne se coche pas en direct, et c'est assumé : vérifier
+   l'appartenance à une fuite demande d'interroger un service tiers, ce qui ne
+   se fait qu'à l'envoi. Le dire vaut mieux que laisser croire à un oubli. #}
+<div class="mt-2 rounded-sm border border-ocre-500/25 bg-ocre-300/10 px-4 py-3">
+    <div class="flex items-center gap-3">
+        <div class="h-1.5 flex-1 overflow-hidden rounded-sm bg-ocre-500/20">
+            <div class="h-full rounded-sm transition-all" style="width: 0%"
+                 data-force-du-mot-de-passe-target="jauge"></div>
+        </div>
+        {# `aria-live="polite"` : le verdict change à chaque frappe. Sans lui,
+           il n'existe que pour qui voit l'écran ; en `assertive`, il couperait
+           la parole à chaque caractère. #}
+        <p class="w-24 shrink-0 text-right text-xs text-encre-600"
+           aria-live="polite" data-force-du-mot-de-passe-target="verdict"></p>
+    </div>
+
+    <ul class="mt-3 space-y-1 list-none p-0 text-xs">
+        <li class="flex gap-2 text-encre-500" data-force-du-mot-de-passe-target="critereLongueur">
+            <span class="w-3 shrink-0 text-center" aria-hidden="true" data-coche>·</span>
+            <span>Au moins douze caractères<span class="sr-only" data-etat></span></span>
+        </li>
+        <li class="flex gap-2 text-encre-500" data-force-du-mot-de-passe-target="critereForce">
+            <span class="w-3 shrink-0 text-center" aria-hidden="true" data-coche>·</span>
+            <span>Assez imprévisible pour atteindre « moyen »<span class="sr-only" data-etat></span></span>
+        </li>
+        <li class="flex gap-2 text-encre-500">
+            <span class="w-3 shrink-0 text-center" aria-hidden="true">·</span>
+            <span>Absent des fuites de données connues — vérifié à l'envoi</span>
+        </li>
+    </ul>
+
+    {# Le conseil compte autant que la règle. « Ⲡ@ssw0rd! » satisfait tous les
+       réflexes appris et reste faible ; quatre mots quelconques valent bien
+       mieux et se retiennent. #}
+    <p class="mt-3 text-xs text-encre-600">
+        Le plus simple est d'enchaîner quatre mots sans rapport —
+        <em>grenier-flamant-cuivre-orage</em>. C'est plus sûr qu'un mot court
+        truffé de symboles, et cela se retient.
+    </p>
+</div>

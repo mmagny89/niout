@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **L'écran de saisie d'un mot de passe dit ce qu'on attend** : les trois
+  règles, une jauge de force qui se met à jour à la frappe, et le conseil qui
+  vaut mieux qu'elles — quatre mots sans rapport battent un mot court truffé de
+  symboles. L'estimation est celle de Symfony, reproduite trait pour trait.
 - **La carte se manipule au doigt** : un doigt la déplace, deux la zooment
   autour du point tenu, la molette aussi. Un glissement n'ouvre plus la case
   qu'il traverse.
@@ -30,6 +34,11 @@ la lecture de référence pour comprendre le code.
   la ville de quatre rangées à une seule — sans qu'aucun compteur ni aucun
   onglet ne soit masqué.
 - Le titre de la page d'accueil ne prend plus cinq lignes sur un téléphone.
+- Les tableaux du Port, de l'Entrepôt et de la Résidence décalaient l'écran
+  entier sur un téléphone, barre de jeu comprise : ils défilent désormais dans
+  leur propre cadre.
+- L'onglet ouvert de la ville se ramène dans la bande visible, et prend enfin
+  sa couleur — seule sa soulignure était posée.
 
 ## [0.13.0] - 2026-09-12
 

@@ -55,12 +55,36 @@ export default class extends Controller {
             const actif = index === choisi;
             onglet.setAttribute('aria-selected', actif ? 'true' : 'false');
             onglet.setAttribute('tabindex', actif ? '0' : '-1');
-            onglet.classList.toggle(this.actifClass, actif);
-            onglet.classList.toggle(this.inactifClass, !actif);
+            // `actifClasses` au pluriel, et une bascule par classe :
+            // `this.actifClass` ne rend que **la première** des classes
+            // déclarées, et classList.toggle refuse une chaîne qui contient une
+            // espace. La couleur du texte de l'onglet actif n'était donc jamais
+            // posée — seule sa soulignure l'était, sans la moindre erreur.
+            this.actifClasses.forEach((classe) => onglet.classList.toggle(classe, actif));
+            this.inactifClasses.forEach((classe) => onglet.classList.toggle(classe, !actif));
         });
 
         this.panneauTargets.forEach((panneau, index) => {
             panneau.hidden = index !== choisi;
         });
+
+        this.amenerDansLaBande(this.ongletTargets[choisi]);
+    }
+
+    /**
+     * Ramène l'onglet choisi dans la bande visible.
+     *
+     * Sur un écran étroit, la barre d'onglets tient sur une seule ligne qui
+     * défile latéralement. Sans ce rappel, l'onglet ouvert restait hors champ :
+     * on lisait le panneau du Port en voyant la Résidence soulignée, et rien ne
+     * disait où l'on était. Tant que les onglets se repliaient sur plusieurs
+     * rangées, la question ne se posait pas.
+     *
+     * `block: 'nearest'` n'est pas décoratif : sans lui, le navigateur fait
+     * aussi défiler verticalement l'ancêtre défilant, et l'écran de ville
+     * sautait à chaque changement d'onglet.
+     */
+    amenerDansLaBande(onglet) {
+        onglet?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
     }
 }

@@ -54,6 +54,36 @@ final class ErgonomieTest extends WebTestCase
     }
 
     /**
+     * **Tout tableau vit dans un conteneur qui défile pour son compte.**.
+     *
+     * Un tableau de six colonnes ne rentre pas dans 375 pixels. Sans cadre à
+     * lui, ce n'est pas le tableau qui déborde mais **l'écran entier** qui se
+     * décale latéralement : la barre de jeu part à gauche, et l'on ne
+     * comprend pas d'où vient le décalage. Deux tableaux — les exploitations
+     * et le récapitulatif de la Résidence — étaient dans ce cas.
+     *
+     * Le contrôle est mécanique parce que le défaut se reproduit à chaque
+     * tableau neuf, et qu'il ne se voit qu'en réduisant la fenêtre.
+     */
+    public function testAucunTableauNEchappeAUnConteneurQuiDefile(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'tableaux@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        $orphelins = $crawler->filterXPath(
+            '//table[not(ancestor::*[contains(concat(" ", normalize-space(@class), " "), " overflow-x-auto ")])]'
+        );
+
+        self::assertCount(
+            0,
+            $orphelins,
+            'Envelopper le tableau dans <div class="overflow-x-auto"> : sinon c\'est la page qui défile.',
+        );
+    }
+
+    /**
      * **La carte reste visible sur un téléphone, et se manipule au doigt.**.
      *
      * Trois assertions de structure, chacune pour un défaut réel constaté au
