@@ -178,6 +178,53 @@ controle qui compte se fait depuis l'exterieur :
 curl -sI https://<domaine>/ | head -3
 ```
 
+## Emails
+
+`MAILER_DSN` et `MAILER_FROM` sont injectees par `compose.yml` et declarees
+obligatoires : **staging et production refusent de demarrer sans elles**. C'est
+voulu. Le transport `null://null` que depose la recette Symfony accepte chaque
+message et le jette, sans erreur ni journal ; un echec au demarrage vaut mieux
+qu'un silence qui avale les emails de verification.
+
+### Developpement
+
+Rien a faire : le service `mailpit` de `compose.dev.yml` attrape tout et
+l'affiche sur <http://localhost:8025>. Aucun message ne quitte la machine.
+
+```sh
+docker compose exec php php bin/console mailer:test vous@example.com
+```
+
+### Staging et production
+
+Les deux valeurs vivent dans le fichier de secrets de l'environnement
+(`.env.staging.local`, `.env.prod.local`), jamais dans un fichier committe.
+
+```
+MAILER_DSN=smtp://IDENTIFIANT:CLE_SMTP@smtp-relay.brevo.com:587
+MAILER_FROM=noreply@niout.mmagny.fr
+```
+
+Un DSN SMTP nu plutot qu'un pont dedie (`brevo+api://`, `brevo+smtp://`) :
+aucun paquet a installer, donc aucune dependance de plus a suivre, et changer
+de fournisseur ne demande qu'une ligne.
+
+**L'adresse expeditrice doit appartenir a un domaine authentifie chez le
+fournisseur** — sinon les messages partent en indesirables, ou sont refuses. Les
+enregistrements DNS a poser sur le domaine sont affiches par le fournisseur ; ils
+se recopient tels quels, ils ne s'inventent pas.
+
+Apres deploiement, eprouver la chaine depuis le conteneur, et **verifier la
+reception**, pas seulement l'absence d'erreur :
+
+```sh
+docker compose -f compose.yml -f compose.prod.yml --env-file .env.prod.local \
+  exec php php bin/console mailer:test vous@example.com
+```
+
+Une commande qui rend la main sans rien dire signifie que le transport a accepte
+le message, pas qu'il est arrive. Le tableau de bord du fournisseur dit le reste.
+
 ## Observabilite
 
 Deux sources, complementaires mais pas equivalentes.
