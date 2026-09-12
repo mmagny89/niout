@@ -1,5 +1,12 @@
 # Niout
 
+[![Qualité](https://github.com/mmagny89/niout/actions/workflows/qualite.yml/badge.svg?branch=main)](https://github.com/mmagny89/niout/actions/workflows/qualite.yml)
+[![Version](https://img.shields.io/github/v/tag/mmagny89/niout?label=version&sort=semver)](CHANGELOG.md)
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
+[![PHP 8.4](https://img.shields.io/badge/PHP-8.4-777bb4)](https://www.php.net/)
+[![Symfony 8.1](https://img.shields.io/badge/Symfony-8.1-000000)](https://symfony.com/)
+[![PHPStan niveau 8](https://img.shields.io/badge/PHPStan-niveau%208-2a5ea7)](https://phpstan.org/)
+
 Jeu de gestion jouable au navigateur, situé dans l'Égypte du Nouvel Empire
 (~1550-1070 av. J.-C.). Le joueur incarne une famille chargée par un pharaon de
 fonder, restaurer ou sécuriser une ville réelle : commerce, artisanat,
@@ -270,15 +277,16 @@ tous d'un coup, avec un message qui ne mentionne pas Tailwind clairement. D'où 
 ## Mode d'essai
 
 Éprouver le commerce longue distance ou une région du Sinaï demanderait des
-heures de jeu. Un compte peut donc recevoir le **mode divin**, qui ouvre les dix
+heures de jeu. Un compte privilégié dispose donc du **mode d'essai**, qui ouvre les dix
 missions à la création d'une partie, comble ses réserves d'un million de chaque
 ressource, plafonds levés, et lève le brouillard sur toute la carte :
 
 ```bash
-docker compose exec php php bin/console app:users:goddess vous@example.com
+docker compose exec php php bin/console app:users:admin vous@example.com
 ```
 
-Le rôle ne s'accorde que par cette commande — aucun écran ne le propose. Une
+Le rôle ne s'accorde que par cette commande — aucun écran ne le propose ;
+`--retirer` le reprend. C'est le même rôle qui ouvre l'administration des comptes. Une
 partie d'essai l'affiche en toutes lettres : elle ne se confond jamais avec une
 partie jouée.
 
@@ -292,6 +300,22 @@ Les vrais secrets vont exclusivement dans `.env.staging.local` et
 `.env.prod.local`, ignorés par git comme par Docker. Staging et production
 refusent de démarrer si l'un d'eux manque — c'est voulu.
 
+## Licence et contributions
+
+Le code est publié sous [licence MIT](LICENSE) : réutilisable librement, y
+compris commercialement, à condition de conserver la mention de copyright.
+
+Le vocabulaire, les textes de mission et les règles du jeu sont une création
+originale : les reprendre tels quels pour un autre jeu relève de la politesse
+autant que du droit d'auteur, la licence MIT ne portant que sur le code.
+
+Les versions sont consignées dans le [CHANGELOG](CHANGELOG.md), les failles se
+signalent selon la [politique de sécurité](SECURITY.md), et la marche à suivre
+pour proposer un changement est dans [CONTRIBUTING.md](CONTRIBUTING.md).
+
+C'est un projet personnel : les contributions extérieures ne sont pas
+attendues, mais une issue qui signale un défaut est toujours la bienvenue.
+
 ## Documentation
 
 | Document | Contenu |
@@ -302,6 +326,8 @@ refusent de démarrer si l'un d'eux manque — c'est voulu.
 | [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md) | Feuille de route, ce qui vient, décisions actées |
 | [`docs/phases-livrees.md`](docs/phases-livrees.md) | Journal des phases : intention, lots, pièges payés |
 | [`README.docker.md`](README.docker.md) | Détail du stack Docker, environnements, observabilité |
+| [`CHANGELOG.md`](CHANGELOG.md) | Ce qui a changé, version par version |
+| [`SECURITY.md`](SECURITY.md) | Comment signaler une faille, et ce qui est suivi |
 
 La conception du jeu (systèmes, économie, lore, direction artistique) vit dans un
 dossier Google Drive séparé, en seize documents numérotés `00` à `15`. Ils font

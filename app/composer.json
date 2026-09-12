@@ -1,8 +1,8 @@
 {
-    "name": "symfony/skeleton",
+    "name": "mmagny89/niout",
     "type": "project",
     "license": "MIT",
-    "description": "A minimal Symfony project recommended to create bare bones applications",
+    "description": "Jeu de gestion et d'aventure au navigateur, Égypte du Nouvel Empire",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
