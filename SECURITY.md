@@ -18,7 +18,7 @@ qui voudrait exploiter la faille avant qu'elle ne soit corrigée.
 Utiliser le signalement privé de GitHub :
 [Security → Report a vulnerability](https://github.com/mmagny89/niout/security/advisories/new).
 
-À défaut, écrire à mylene.magny@gmail.com avec `[Niout] sécurité` en objet.
+À défaut, écrire à contact@mmagny.fr avec `[Niout] sécurité` en objet.
 
 Un signalement utile porte : ce qui est vulnérable (URL, formulaire, commande),
 ce qu'on obtient en l'exploitant, et les étapes pour le reproduire.

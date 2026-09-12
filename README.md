@@ -3,7 +3,7 @@
 [![Qualité](https://github.com/mmagny89/niout/actions/workflows/qualite.yml/badge.svg?branch=main)](https://github.com/mmagny89/niout/actions/workflows/qualite.yml)
 [![Version](https://img.shields.io/github/v/tag/mmagny89/niout?label=version&sort=semver)](CHANGELOG.md)
 [![Licence MIT](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
-[![PHP 8.4](https://img.shields.io/badge/PHP-8.4-777bb4)](https://www.php.net/)
+[![PHP 8.5](https://img.shields.io/badge/PHP-8.5-777bb4)](https://www.php.net/)
 [![Symfony 8.1](https://img.shields.io/badge/Symfony-8.1-000000)](https://symfony.com/)
 [![PHPStan niveau 8](https://img.shields.io/badge/PHPStan-niveau%208-2a5ea7)](https://phpstan.org/)
 

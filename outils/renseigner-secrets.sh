@@ -51,7 +51,7 @@ produire() {
 			stty echo 2>/dev/null || true
 			echo >&2
 			[ -n "$motdepasse" ] || { echo "  Vide, abandon." >&2; exit 1; }
-			MDP="$motdepasse" docker run --rm -e MDP php:8.4-cli \
+			MDP="$motdepasse" docker run --rm -e MDP php:8.5-cli \
 				php -r 'echo password_hash(getenv("MDP"), PASSWORD_BCRYPT, ["cost" => 13]);'
 			motdepasse=
 			;;

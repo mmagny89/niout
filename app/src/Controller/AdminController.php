@@ -60,11 +60,17 @@ final class AdminController extends AbstractController
 
         return $this->render('admin/comptes.html.twig', [
             'lignes' => array_map(
-                fn (User $compte): array => $this->ligne(
-                    $compte,
-                    $partiesParJoueur[$compte->getId()] ?? [],
-                    $missions,
-                ),
+                function (User $compte) use ($partiesParJoueur, $missions): array {
+                    // Un compte venu du dépôt est forcément persisté : son
+                    // identifiant ne peut pas être nul, ce que la signature
+                    // nullable de getId() ne dit pas. L'affirmer ici vaut
+                    // mieux qu'un repli à zéro, qui irait chercher les
+                    // parties d'un compte inexistant sans rien signaler.
+                    $identifiant = $compte->getId();
+                    \assert(null !== $identifiant);
+
+                    return $this->ligne($compte, $partiesParJoueur[$identifiant] ?? [], $missions);
+                },
                 $tous,
             ),
             'maxParties' => GameSave::MAX_PAR_COMPTE,

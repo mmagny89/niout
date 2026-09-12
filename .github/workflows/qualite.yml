@@ -15,7 +15,7 @@ defaults:
 env:
   # Alignée sur PHP_VERSION du .env racine, elle-même la version de l'image
   # de production. Ne jamais tester sur une version plus récente que la prod.
-  PHP_VERSION: '8.4'
+  PHP_VERSION: '8.5'
   # En local, DATABASE_URL est injectée par compose.yml et volontairement
   # commentée dans app/.env (conventions, règle de non-duplication). La CI
   # n'utilise pas Docker Compose : sans cette ligne, le post-install-cmd de
