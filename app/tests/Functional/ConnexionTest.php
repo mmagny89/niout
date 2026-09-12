@@ -56,9 +56,36 @@ final class ConnexionTest extends WebTestCase
         ]);
         $client->submit($formulaire);
 
-        self::assertResponseRedirects();
+        // La cible est verifiee, et pas seulement le fait qu'il y ait une
+        // redirection : sans `default_target_path`, Symfony retombait sur `/`,
+        // la page de presentation publique qui propose encore « Se connecter ».
+        // On croyait la connexion sans effet. Un `assertResponseRedirects()`
+        // nu laissait passer exactement cela.
+        self::assertResponseRedirects('/parties');
         $client->followRedirect();
         self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Mes parties');
+    }
+
+    /**
+     * Le chemin memorise garde la priorite sur la cible par defaut : qui
+     * demande une page protegee avant de se connecter y revient apres, sinon
+     * chaque lien profond partage se perdrait sur la liste des parties.
+     */
+    public function testUnePageDemandeeAvantConnexionRestePrioritaire(): void
+    {
+        $client = static::createClient();
+        $this->creerUtilisateur('horemheb@example.com');
+
+        $client->request('GET', '/compte');
+
+        $crawler = $client->followRedirect();
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            '_username' => 'horemheb@example.com',
+            '_password' => self::MOT_DE_PASSE,
+        ]));
+
+        self::assertResponseRedirects('http://localhost/compte');
     }
 
     public function testUnMauvaisMotDePasseNeConnectePas(): void

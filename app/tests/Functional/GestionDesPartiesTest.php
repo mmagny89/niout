@@ -15,14 +15,14 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class GestionDesPartiesTest extends WebTestCase
 {
-    public function testLaPageDeCompteListeLesParties(): void
+    public function testLaPageDesPartiesLesListe(): void
     {
         $client = static::createClient();
         $joueur = $this->connecter($client, 'liste@example.com');
         $this->creerPartie($joueur, 'Avaris');
         $this->creerPartie($joueur, 'Memphis');
 
-        $crawler = $client->request('GET', '/compte');
+        $crawler = $client->request('GET', '/parties');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Avaris');
@@ -30,12 +30,47 @@ final class GestionDesPartiesTest extends WebTestCase
         self::assertCount(2, $crawler->filter('a:contains("Reprendre")'));
     }
 
+    /**
+     * « Mon compte » et « Mes parties » sont deux ecrans distincts. Le premier
+     * ne liste plus les parties — c'est la moitie du point — mais renvoie
+     * vers le second, sans quoi le decoupage ne ferait que cacher le jeu.
+     */
+    public function testLeCompteRenvoieVersLesPartiesSansLesLister(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'separation@example.com');
+        $this->creerPartie($joueur, 'Avaris');
+
+        $crawler = $client->request('GET', '/compte');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextNotContains('body', 'Avaris');
+        self::assertCount(0, $crawler->filter('a:contains("Reprendre")'));
+        self::assertCount(1, $crawler->filter('main a[href="/parties"]'));
+    }
+
+    /**
+     * La page d'accueil s'adresse a deux publics. Proposer « Créer un compte »
+     * a quelqu'un de deja connecte l'oblige a chercher ses parties ailleurs.
+     */
+    public function testLAccueilMeneAuxPartiesQuandOnEstConnecte(): void
+    {
+        $client = static::createClient();
+        $this->connecter($client, 'accueil@example.com');
+
+        $crawler = $client->request('GET', '/');
+
+        self::assertResponseIsSuccessful();
+        self::assertGreaterThan(0, $crawler->filter('main a[href="/parties"]')->count());
+        self::assertCount(0, $crawler->filter('main a[href="/inscription"]'));
+    }
+
     public function testUnCompteSansPartieLeDitClairement(): void
     {
         $client = static::createClient();
         $this->connecter($client, 'vide@example.com');
 
-        $client->request('GET', '/compte');
+        $client->request('GET', '/parties');
 
         self::assertSelectorTextContains('body', 'Aucune partie en cours');
     }
@@ -47,7 +82,7 @@ final class GestionDesPartiesTest extends WebTestCase
         $this->creerPartie($autre, 'Saï');
         $this->connecter($client, 'curieux@example.com');
 
-        $client->request('GET', '/compte');
+        $client->request('GET', '/parties');
 
         self::assertSelectorTextNotContains('body', 'Saï');
     }
@@ -101,7 +136,7 @@ final class GestionDesPartiesTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/abandonner', $id));
         $client->submit($crawler->selectButton('Oui, abandonner définitivement')->form());
 
-        self::assertResponseRedirects('/compte');
+        self::assertResponseRedirects('/parties');
         self::assertNull($this->depot()->find($id));
         self::assertSame(0, $this->depot()->compterPourJoueur($joueur));
     }

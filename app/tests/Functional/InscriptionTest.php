@@ -21,7 +21,7 @@ final class InscriptionTest extends WebTestCase
 
         $this->soumettreInscription($client, 'nakht@example.com');
 
-        self::assertResponseRedirects('/compte');
+        self::assertResponseRedirects('/parties');
 
         $user = $this->depotUtilisateurs()->findOneBy(['email' => 'nakht@example.com']);
         self::assertInstanceOf(User::class, $user);
@@ -37,10 +37,10 @@ final class InscriptionTest extends WebTestCase
         self::assertInstanceOf(User::class, $user);
         self::assertFalse($user->isVerified(), 'L\'adresse ne doit pas être vérifiée d\'emblée.');
 
-        // Connexion automatique : la page de compte, protégée, est accessible.
+        // Connexion automatique : la page des parties, protégée, est accessible.
         $client->followRedirect();
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Mon compte');
+        self::assertSelectorTextContains('h1', 'Mes parties');
     }
 
     public function testUnEmailDeVerificationEstEnvoye(): void

@@ -7,6 +7,14 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Numero de version affiche au pied de page, et seul endroit du code qui
+    # le porte. Il double necessairement le CHANGELOG — Symfony ne sait pas
+    # lire un fichier de la racine du depot, qui n'entre pas dans l'image de
+    # production. Le doublon est donc assume, mais verifie : le controle
+    # `check-gouvernance.sh` echoue si les deux divergent.
+    # A mettre a jour en meme temps que le CHANGELOG, avant d'etiqueter.
+    app.version: '0.12.0'
+    app.depot: 'https://github.com/mmagny89/niout'
 
 services:
     # default configuration for services in *this* file

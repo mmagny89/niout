@@ -123,7 +123,7 @@ final class PartieController extends AbstractController
         if ($parties->plafondAtteintPour($joueur)) {
             $this->addFlash('erreur', (new PlafondDePartiesAtteint())->getMessage());
 
-            return $this->redirectToRoute('app_compte');
+            return $this->redirectToRoute('app_parties');
         }
 
         // Ce que le joueur a ouvert : ses missions accomplies, et la
@@ -1735,7 +1735,7 @@ final class PartieController extends AbstractController
 
             $this->addFlash('succes', \sprintf('La partie %s est abandonnée.', $designation));
 
-            return $this->redirectToRoute('app_compte');
+            return $this->redirectToRoute('app_parties');
         }
 
         return $this->render('partie/abandonner.html.twig', [

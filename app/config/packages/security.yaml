@@ -23,6 +23,13 @@ security:
                 login_path: app_login
                 check_path: app_login
                 enable_csrf: true
+                # Sans cette ligne, une connexion sans page demandee au
+                # prealable retombe sur `/`, la page de presentation publique,
+                # qui propose encore « Se connecter » : on croit que rien ne
+                # s'est passe. On arrive desormais la ou l'on venait jouer.
+                # Un lien profond garde la priorite : Symfony n'utilise cette
+                # cible que faute de chemin memorise.
+                default_target_path: app_parties
             logout:
                 path: app_logout
                 # where to redirect after logout

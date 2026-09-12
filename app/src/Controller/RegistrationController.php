@@ -40,7 +40,7 @@ final class RegistrationController extends AbstractController
         Security $security,
     ): Response {
         if ($this->getUser() instanceof User) {
-            return $this->redirectToRoute('app_compte');
+            return $this->redirectToRoute('app_parties');
         }
 
         $user = new User();
@@ -68,7 +68,7 @@ final class RegistrationController extends AbstractController
                 User::DELAI_VERIFICATION_JOURS,
             ));
 
-            return $this->redirectToRoute('app_compte');
+            return $this->redirectToRoute('app_parties');
         }
 
         return $this->render('registration/register.html.twig', [

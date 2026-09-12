@@ -35,7 +35,8 @@
                         {% if is_granted('ROLE_ADMIN') %}
                             <a href="{{ path('app_admin') }}" class="text-encre-600 hover:text-terre-600">Administration</a>
                         {% endif %}
-                        <a href="{{ path('app_compte') }}" class="text-encre-700 hover:text-terre-600">Mon compte</a>
+                        <a href="{{ path('app_parties') }}" class="text-encre-700 hover:text-terre-600">Mes parties</a>
+                        <a href="{{ path('app_compte') }}" class="text-encre-600 hover:text-terre-600">Mon compte</a>
                         <a href="{{ path('app_logout') }}" class="text-encre-600 hover:text-terre-600">Déconnexion</a>
                     {% else %}
                         <a href="{{ path('app_login') }}" class="text-encre-700 hover:text-terre-600">Connexion</a>
@@ -79,9 +80,21 @@
 
         {% block piedDePage %}
         <footer class="mt-16 border-t border-ocre-500/25 py-6">
-            <p class="mx-auto max-w-5xl px-5 text-xs text-encre-500">
-                Niout — jeu de gestion situé dans l'Égypte du Nouvel Empire.
-            </p>
+            <div class="mx-auto flex max-w-5xl flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-5 text-xs text-encre-500">
+                <p>Niout — jeu de gestion situé dans l'Égypte du Nouvel Empire.</p>
+                {# Le code est public : le dire ici plutôt que nulle part. Les
+                   trois liens sortent du site, d'où rel="noopener" — et pas de
+                   target="_blank", qui décide à la place du visiteur. #}
+                <p class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                    <a href="{{ depot }}/releases/tag/v{{ version }}" rel="noopener"
+                       class="text-encre-500 hover:text-terre-600"
+                       data-chiffres>version {{ version }}</a>
+                    <a href="{{ depot }}/blob/main/CHANGELOG.md" rel="noopener"
+                       class="text-encre-500 hover:text-terre-600">Journal des versions</a>
+                    <a href="{{ depot }}" rel="noopener"
+                       class="text-encre-500 hover:text-terre-600">Code source</a>
+                </p>
+            </div>
         </footer>
         {% endblock %}
     </body>

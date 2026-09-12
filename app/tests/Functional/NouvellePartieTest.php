@@ -107,7 +107,7 @@ final class NouvellePartieTest extends WebTestCase
 
         $client->request('GET', '/partie/nouvelle');
 
-        self::assertResponseRedirects('/compte');
+        self::assertResponseRedirects('/parties');
         self::assertSame(GameSave::MAX_PAR_COMPTE, $this->depot()->compterPourJoueur($joueur));
     }
 

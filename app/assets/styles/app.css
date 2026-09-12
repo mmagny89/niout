@@ -79,6 +79,17 @@
         font-variant-numeric: tabular-nums;
     }
 
+    /* Tailwind v4 a retire le `cursor: pointer` que la preflight v3 posait
+       sur les boutons : depuis, un <button> affiche la fleche par defaut et
+       ne se distingue plus d'un texte au survol. Le retablir ici plutot que
+       d'ajouter `cursor-pointer` a chaque bouton — l'oubli d'un seul se voit
+       a l'usage et jamais a la relecture. Les boutons desactives gardent
+       leur curseur par defaut, qui dit justement qu'il n'y a rien a cliquer. */
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+
     :focus-visible {
         outline: 2px solid var(--color-lapis-500);
         outline-offset: 2px;

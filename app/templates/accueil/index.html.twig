@@ -15,14 +15,27 @@
             de l'Égypte antique. Commerce, artisanat, exploration, enquêtes et faveur des dieux
             s'entremêlent, dans un cadre historique tenu au plus près des sources.
         </p>
+        {# Deux appels a l'action, selon qui lit. Proposer « Créer un compte »
+           a quelqu'un qui en a deja un, connecte de surcroit, l'oblige a
+           chercher son chemin dans l'en-tete pour retrouver ses parties. #}
         <div class="mt-8 flex flex-wrap items-center gap-4">
-            <a href="{{ path('app_register') }}"
-               class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
-                Créer un compte
-            </a>
-            <a href="{{ path('app_login') }}" class="text-encre-700 hover:text-terre-600">
-                J'ai déjà un compte
-            </a>
+            {% if app.user %}
+                <a href="{{ path('app_parties') }}"
+                   class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                    Mes parties
+                </a>
+                <a href="{{ path('app_partie_nouvelle') }}" class="text-encre-700 hover:text-terre-600">
+                    Commencer une nouvelle partie
+                </a>
+            {% else %}
+                <a href="{{ path('app_register') }}"
+                   class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                    Créer un compte
+                </a>
+                <a href="{{ path('app_login') }}" class="text-encre-700 hover:text-terre-600">
+                    J'ai déjà un compte
+                </a>
+            {% endif %}
         </div>
     </section>
 
@@ -95,9 +108,9 @@
             <p class="text-encre-600">
                 <span class="font-display text-xl text-encre-900">Niout</span> — « la ville », en égyptien ancien.
             </p>
-            <a href="{{ path('app_register') }}"
+            <a href="{{ app.user ? path('app_parties') : path('app_register') }}"
                class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
-                Commencer
+                {{ app.user ? 'Reprendre' : 'Commencer' }}
             </a>
         </div>
     </section>

@@ -12,6 +12,23 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+### Ajouté
+
+- **« Mes parties » a son propre écran** (`/parties`), séparé de « Mon compte ».
+  La liste occupait les trois quarts d'une page où l'on venait pour jouer, pas
+  pour relire son adresse email.
+- Pied de page : numéro de version, journal des versions et code source.
+- La page d'accueil mène aux parties quand on est déjà connecté, au lieu de
+  proposer de créer un compte.
+
+### Corrigé
+
+- **Se connecter mène enfin dans le jeu.** Faute de cible par défaut, une
+  connexion retombait sur la page de présentation publique, qui propose encore
+  « Se connecter » : on croyait que rien ne s'était passé. Un lien profond
+  demandé avant la connexion garde la priorité.
+- Le curseur redevient une main au survol des boutons, partout dans le jeu.
+
 ## [0.12.0] - 2026-09-12
 
 Première version étiquetée. Elle ne marque pas un début de développement mais
