@@ -34,7 +34,7 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
         with:
           working-directory: app
       - run: vendor/bin/php-cs-fixer fix --dry-run --diff
@@ -49,7 +49,7 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
         with:
           working-directory: app
       # PHPStan lit le container compilé pour résoudre les services : il doit
@@ -67,7 +67,7 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
         with:
           working-directory: app
       - run: composer audit
@@ -96,7 +96,7 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
         with:
           working-directory: app
       # En environnement de test, doctrine.yaml ajoute le suffixe défini par
