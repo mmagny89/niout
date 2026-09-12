@@ -61,5 +61,43 @@
             </a>
         </div>
 
+
+        {# Changer son mot de passe sans passer par « mot de passe oublié » :
+           le parcours par email suppose de recevoir un message, ce qui prend du
+           temps et suppose une adresse vérifiée. #}
+        <section class="mt-10">
+            <h2 class="text-2xl text-encre-900">Changer le mot de passe</h2>
+            <p class="mt-2 text-sm text-encre-600">
+                Le mot de passe actuel est demandé : une session laissée ouverte sur
+                une machine partagée ne doit pas suffire à s'approprier le compte.
+            </p>
+
+            <div class="mt-5 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                {{ form_start(formulaireDeMotDePasse, {action: path('app_compte_mot_de_passe')}) }}
+                    {{ form_errors(formulaireDeMotDePasse) }}
+                    {{ form_row(formulaireDeMotDePasse.ancienMotDePasse) }}
+
+                    {# Mêmes règles annoncées qu'à l'inscription, et depuis le
+                       même gabarit : trois écrans qui les énonceraient chacun à
+                       sa façon finiraient par en énoncer une fausse. #}
+                    <div data-controller="force-du-mot-de-passe">
+                        {{ form_row(formulaireDeMotDePasse.plainPassword.first, {attr: {
+                            'data-force-du-mot-de-passe-target': 'champ',
+                            'data-action': 'input->force-du-mot-de-passe#evaluer',
+                            'aria-describedby': 'regles-du-mot-de-passe',
+                        }}) }}
+                        <div id="regles-du-mot-de-passe">
+                            {{ include('_regles_de_mot_de_passe.html.twig') }}
+                        </div>
+                    </div>
+                    {{ form_row(formulaireDeMotDePasse.plainPassword.second) }}
+
+                    <button type="submit"
+                            class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+                        Changer le mot de passe
+                    </button>
+                {{ form_end(formulaireDeMotDePasse) }}
+            </div>
+        </section>
     </section>
 {% endblock %}

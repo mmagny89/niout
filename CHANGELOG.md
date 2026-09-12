@@ -14,6 +14,9 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **« Mon compte » permet de changer son mot de passe**, en donnant l'ancien —
+  sans passer par le parcours « mot de passe oublié », qui suppose d'attendre
+  un message.
 - **L'écran de saisie d'un mot de passe dit ce qu'on attend** : les trois
   règles, une jauge de force qui se met à jour à la frappe, et le conseil qui
   vaut mieux qu'elles — quatre mots sans rapport battent un mot court truffé de

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\User;
+use App\Security\ContraintesDeMotDePasse;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -12,10 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\NotCompromisedPassword;
-use Symfony\Component\Validator\Constraints\PasswordStrength;
 
 /**
  * @extends AbstractType<User>
@@ -33,8 +31,8 @@ final class RegistrationFormType extends AbstractType
                     new Email(message: 'Cette adresse email n\'est pas valide.'),
                 ],
             ])
-            // Les mêmes exigences qu'à la réinitialisation (ChangePasswordFormType) :
-            // un mot de passe faible à l'inscription rendrait ces règles inutiles.
+            // Les mêmes exigences qu'ailleurs, et depuis la même source : un
+            // mot de passe faible accepté ici rendrait les autres inutiles.
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'mapped' => false,
@@ -42,17 +40,7 @@ final class RegistrationFormType extends AbstractType
                 'options' => ['attr' => ['autocomplete' => 'new-password']],
                 'first_options' => [
                     'label' => 'Mot de passe',
-                    'constraints' => [
-                        new NotBlank(message: 'Choisissez un mot de passe.'),
-                        new Length(
-                            min: 12,
-                            minMessage: 'Votre mot de passe doit compter au moins {{ limit }} caractères.',
-                            // Longueur maximale admise par Symfony, par sécurité.
-                            max: 4096,
-                        ),
-                        new PasswordStrength(message: 'Ce mot de passe est trop facile à deviner.'),
-                        new NotCompromisedPassword(message: 'Ce mot de passe apparaît dans une fuite de données connue. Choisissez-en un autre.'),
-                    ],
+                    'constraints' => ContraintesDeMotDePasse::liste(),
                 ],
                 'second_options' => ['label' => 'Confirmez le mot de passe'],
             ])
