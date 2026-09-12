@@ -12,6 +12,24 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+### Ajouté
+
+- **La carte se manipule au doigt** : un doigt la déplace, deux la zooment
+  autour du point tenu, la molette aussi. Un glissement n'ouvre plus la case
+  qu'il traverse.
+
+### Corrigé
+
+- **La carte était invisible sur un téléphone.** Les deux panneaux étaient en
+  rangée : le détail prenait toute la largeur, le territoire était comprimé à
+  zéro. Ils s'empilent désormais en dessous de 768 px.
+- **« Ajuster » n'ajustait pas vraiment**, sur toutes les tailles d'écran : la
+  grille était comprimée par la mise en page, ses tuiles débordaient, et le
+  calcul lisait une grille trois fois trop étroite.
+- La barre de jeu passe de 189 à 83 pixels sur un téléphone, et les onglets de
+  la ville de quatre rangées à une seule — sans qu'aucun compteur ni aucun
+  onglet ne soit masqué.
+
 ## [0.13.0] - 2026-09-12
 
 ### Ajouté

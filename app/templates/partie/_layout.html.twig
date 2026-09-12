@@ -18,8 +18,20 @@
        sous le contenu de la page — sous la carte mise à l'échelle en
        particulier, dont le `transform` crée le sien. #}
     <header class="relative z-50 shrink-0 border-b border-ocre-500/25 bg-sable-50">
-        <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2">
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-1.5 px-3 py-1.5 md:gap-y-2 md:px-4 md:py-2">
+            {# Sur un téléphone, les compteurs tiennent sur **une seule ligne
+               qui défile latéralement** au lieu de se replier sur trois : la
+               barre passait de 189 px à moins de la moitié, sur un écran qui
+               n'en compte que 812 et où la carte a besoin de chaque pixel.
+               Aucun compteur n'est masqué pour autant — le document 15 les veut
+               visibles en permanence, et en cacher sur mobile reviendrait à
+               jouer sans savoir de quoi l'on dispose.
+
+               `-mx-3 px-3` : la rangée qui défile mord sur la marge du parent,
+               pour que le premier et le dernier compteur ne paraissent pas
+               coupés au repos. #}
+            <div class="-mx-3 flex w-full flex-nowrap items-center gap-x-4 gap-y-2 overflow-x-auto px-3 text-sm
+                        md:mx-0 md:w-auto md:flex-wrap md:overflow-visible md:px-0">
                 <a href="{{ path('app_partie_carte', {id: partie.id}) }}"
                    class="font-display text-lg text-terre-600 no-underline">
                     {{ partie.ville.nom }}
@@ -28,7 +40,7 @@
                 {# Le deben ne se range dans aucune famille : il est la monnaie,
                    il n'a aucun plafond, et c'est le seul compteur qu'on
                    consulte à chaque décision. #}
-                <span class="flex items-baseline gap-1.5" data-chiffres data-compteur="deben">
+                <span class="flex shrink-0 items-baseline gap-1.5" data-chiffres data-compteur="deben">
                     <span class="text-encre-500">Deben</span>
                     <span class="font-medium text-encre-900">{{ partie.ville.deben }}</span>
                 </span>
@@ -38,8 +50,8 @@
                         ? partie.ville.vivresPresqueSatures
                         : (groupe.famille.value in ['materiaux', 'ouvrages'] ? partie.ville.materiauxPresqueSatures : false) %}
 
-                    <details class="relative">
-                        <summary class="cursor-pointer list-none rounded-sm px-2 py-1 hover:bg-ocre-300/20"
+                    <details class="relative shrink-0">
+                        <summary class="list-none rounded-sm px-2 py-1 hover:bg-ocre-300/20"
                                  title="{{ groupe.famille.description }}">
                             <span class="text-encre-500">{{ groupe.famille.libelle }}</span>
                             <span class="{{ sature ? 'text-terre-600' : 'text-encre-900' }}" data-chiffres>
@@ -71,7 +83,7 @@
                 {# La saturation des réserves se lit sans ouvrir un volet : le
                    joueur doit la voir venir, pas la découvrir en perdant une
                    moisson. #}
-                <span class="flex items-baseline gap-1.5" data-chiffres
+                <span class="flex shrink-0 items-baseline gap-1.5" data-chiffres
                       title="L'Entrepôt tient les matériaux et les ouvrages. Au-delà de {{ partie.ville.plafondDesMateriaux }}, ce qui rentre se perd.">
                     <span class="text-encre-500">Entrepôt</span>
                     <span class="{{ partie.ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-900' }}">
@@ -82,8 +94,8 @@
                 {# Un actif est un bras et une ration ; un inactif — enfant ou
                    ancien — une demi-ration. Le logement dit quand bâtir avant
                    d'espérer un habitant de plus. #}
-                <details class="relative">
-                    <summary class="cursor-pointer list-none rounded-sm px-2 py-1 hover:bg-ocre-300/20">
+                <details class="relative shrink-0">
+                    <summary class="list-none rounded-sm px-2 py-1 hover:bg-ocre-300/20">
                         <span class="text-encre-500">Habitants</span>
                         <span class="{{ partie.ville.manqueDeLogements ? 'text-terre-600' : 'text-encre-900' }}" data-chiffres>
                             {{ partie.ville.population }}
@@ -121,8 +133,8 @@
                 </details>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
-                <p class="text-sm text-encre-600">
+            <div class="flex w-full flex-nowrap items-center justify-between gap-3 md:w-auto md:justify-start">
+                <p class="min-w-0 truncate text-xs text-encre-600 md:overflow-visible md:text-sm">
                     {{ partie.dateDeJeu.libelle }}
                     <span class="text-encre-500" data-chiffres>· cycle {{ partie.cycle }}</span>
                     {# La crue de l'année conditionne la moisson de Chémou : le
@@ -172,7 +184,8 @@
                                        value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
                             {% endif %}
                             <button type="submit"
-                                    class="rounded-sm bg-lapis-500 px-4 py-1.5 text-sm font-medium text-sable-50 hover:bg-lapis-600">
+                                    class="whitespace-nowrap rounded-sm bg-lapis-500 px-3 py-2 text-sm font-medium
+                                           text-sable-50 hover:bg-lapis-600 md:px-4 md:py-1.5">
                                 Quinzaine suivante
                             </button>
                         </form>
@@ -192,7 +205,8 @@
                     {% endif %}
                 {% endblock %}
 
-                <a href="{{ path('app_parties') }}" class="text-sm text-encre-500 hover:text-terre-600">Mes parties</a>
+                <a href="{{ path('app_parties') }}"
+                   class="shrink-0 whitespace-nowrap text-sm text-encre-500 hover:text-terre-600">Mes parties</a>
             </div>
         </div>
     </header>

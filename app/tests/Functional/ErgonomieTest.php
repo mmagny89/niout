@@ -54,6 +54,48 @@ final class ErgonomieTest extends WebTestCase
     }
 
     /**
+     * **La carte reste visible sur un téléphone, et se manipule au doigt.**.
+     *
+     * Trois assertions de structure, chacune pour un défaut réel constaté au
+     * navigateur — aucun ne se voit d'un test qui ne calcule pas de mise en
+     * page :
+     *
+     * 1. Les deux panneaux s'empilent en dessous de `md`. En rangée, le
+     *    panneau de détail — 384 px — prenait toute la largeur d'un écran de
+     *    375, et la carte se retrouvait comprimée à zéro : l'écran de jeu
+     *    n'affichait plus le territoire du tout.
+     * 2. La grille porte `shrink-0`. Sans lui, le navigateur comprimait à la
+     *    largeur du panneau une grille de 932 px, dont les tuiles débordaient
+     *    en silence ; le calcul d'échelle lisait alors une grille trois fois
+     *    trop étroite et la croyait ajustée.
+     * 3. Le panneau porte `touch-none`. Sans lui, le navigateur happe le
+     *    glissement pour faire défiler la page et le pincement pour zoomer le
+     *    document, au lieu de laisser le contrôleur déplacer la carte.
+     */
+    public function testLaCarteTientSurUnTelephoneEtSeManipuleAuDoigt(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'mobile@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        $section = $crawler->filter('main section')->first()->attr('class') ?? '';
+        self::assertStringContainsString('flex-col', $section);
+        self::assertStringContainsString('md:flex-row', $section);
+
+        $panneau = $crawler->filter('[data-controller="carte"]');
+        self::assertCount(1, $panneau);
+        self::assertStringContainsString('touch-none', $panneau->attr('class') ?? '');
+
+        $grille = $crawler->filter('[data-carte-target="grille"]');
+        self::assertCount(1, $grille);
+        self::assertStringContainsString('shrink-0', $grille->attr('class') ?? '');
+
+        // Le cadre que le contrôleur mesure pour ajuster l'échelle.
+        self::assertCount(1, $crawler->filter('[data-carte-target="cadre"]'));
+    }
+
+    /**
      * **Le bandeau d'avertissement se replie sans JavaScript.** C'est un
      * `<details>` natif : le contrôleur Stimulus n'ajoute que la mémoire du
      * choix d'une page à l'autre. Un panneau qui ne se replierait qu'avec du

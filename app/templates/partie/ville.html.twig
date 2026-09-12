@@ -12,7 +12,7 @@
              data-onglets-actif-class="border-terre-500 text-terre-600"
              data-onglets-inactif-class="border-transparent text-encre-500">
 
-        <div class="shrink-0 border-b border-ocre-500/25 bg-sable-50 px-6 pt-4">
+        <div class="shrink-0 border-b border-ocre-500/25 bg-sable-50 px-4 pt-3 md:px-6 md:pt-4">
         <div class="flex flex-wrap items-baseline justify-between gap-4">
             <h1 class="font-display text-2xl text-encre-900">{{ ville.nom }}</h1>
             <div class="flex flex-wrap items-baseline gap-4">
@@ -60,7 +60,14 @@
                `onglets_controller.js` apparie onglets et panneaux par rang, pas
                par identifiant, et deux listes construites séparément
                finiraient par diverger. #}
-            <nav class="mt-4 flex flex-wrap gap-1 text-sm" role="tablist" aria-label="Sections de la ville">
+            {# Une seule ligne qui défile latéralement sur un téléphone, plutôt
+               que quatre rangées d'onglets repliés : la ville n'a que la
+               hauteur de la fenêtre, et ces trois rangées de trop se prenaient
+               sur le panneau ouvert. Même parti que les compteurs de la barre
+               de jeu. Aucun onglet n'est masqué. #}
+            <nav class="-mx-4 mt-3 md:-mx-6 md:mt-4 flex flex-nowrap gap-1 overflow-x-auto px-4 text-sm md:px-6
+                        md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+                 role="tablist" aria-label="Sections de la ville">
                 {% for onglet in onglets %}
                     <button type="button" role="tab" id="onglet-{{ onglet.cle }}"
                             aria-controls="panneau-{{ onglet.cle }}"
@@ -68,7 +75,7 @@
                             tabindex="{{ onglet.cle == ongletActif ? '0' : '-1' }}"
                             data-onglets-target="onglet" data-onglet-actif="{{ onglet.cle == ongletActif ? 'true' : 'false' }}"
                             data-action="onglets#choisir keydown->onglets#naviguer"
-                            class="border-b-2 px-3 py-2 hover:text-terre-600">{{ onglet.libelle }}</button>
+                            class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">{{ onglet.libelle }}</button>
                 {% endfor %}
             </nav>
         </div>

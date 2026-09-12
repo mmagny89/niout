@@ -20,18 +20,45 @@
     {% set cote = ville.tailleGrille %}
     {% set origineX = (cote - 1) * pas.x %}
 
-    {# Deux panneaux qui remplissent la fenêtre : le territoire à gauche, à
-       l'échelle qui le fait tenir en entier ; le détail à droite, seul à
-       défiler. La page, elle, ne défile jamais. #}
-    <section class="flex h-full min-h-0 overflow-hidden">
-        <div class="relative min-w-0 flex-1 overflow-hidden bg-sable-100"
+    {# Deux panneaux qui remplissent la fenêtre : le territoire, à l'échelle qui
+       le fait tenir en entier ; le détail, seul à défiler. La page, elle, ne
+       défile jamais.
+
+       **Côte à côte à partir de `md`, empilés en dessous.** En rangée sur un
+       téléphone, le panneau de détail — 384 px — prenait toute la largeur
+       disponible et la carte se retrouvait comprimée à zéro : l'écran de jeu
+       n'affichait plus le territoire du tout. Empilés, la carte garde une
+       hauteur à elle et le détail défile sous elle.
+
+       `touch-none` sur le panneau de carte : sans lui, le navigateur happe le
+       glissement pour faire défiler la page et le pincement pour zoomer le
+       document entier. C'est ce que le contrôleur doit faire à sa place, sur
+       la carte seule. #}
+    <section class="flex h-full min-h-0 flex-col overflow-hidden md:flex-row">
+        <div class="relative min-w-0 shrink-0 basis-[45%] touch-none overflow-hidden bg-sable-100
+                    md:h-auto md:min-h-0 md:flex-1 md:basis-auto"
              data-controller="carte"
              data-carte-min-value="0.25"
-             data-carte-max-value="1.5"
+             data-carte-max-value="3"
              data-carte-pas-value="0.15">
 
-            <div class="absolute inset-0 flex items-center justify-center p-4">
-                <div class="relative origin-center transition-transform"
+            {# `data-carte-target="cadre"` : c'est cette boite, marge intérieure
+               déduite, que la grille doit remplir. Mesurer le panneau à sa
+               place ignorait les 16 px de marge de chaque côté, et la carte
+               « ajustée » débordait de 32 px. #}
+            <div class="absolute inset-0 flex items-center justify-center p-2 md:p-4"
+                 data-carte-target="cadre">
+                {# `transition-transform` seulement hors geste : pendant un
+                   glissement ou un pincement, l'animation transforme chaque
+                   image en retard sur le doigt. Le contrôleur pose et retire
+                   la classe. #}
+                {# `shrink-0` : la grille est un élément flexible, et sans lui
+                   le navigateur la comprimait à la largeur du panneau — 932 px
+                   déclarés, 359 px réellement occupés. Les tuiles, elles,
+                   restaient à leur place et débordaient. Le calcul d'échelle
+                   lisait alors une grille trois fois trop étroite et croyait
+                   l'avoir fait tenir. #}
+                <div class="relative shrink-0 origin-center will-change-transform"
                      data-carte-target="grille"
                      style="width: {{ 2 * (cote - 1) * pas.x + cellule.largeur }}px;
                             height: {{ 2 * (cote - 1) * pas.y + cellule.hauteur }}px;">
@@ -77,27 +104,34 @@
 
             {# Les commandes flottent au-dessus du territoire plutôt que de lui
                prendre de la hauteur : c'est la carte qui doit occuper l'écran. #}
-            <div class="absolute left-4 top-4 flex items-center gap-2 rounded-sm border border-ocre-500/30
-                        bg-sable-50/90 px-3 py-2 text-sm shadow-sm">
-                <h1 class="font-display text-base text-encre-900">Territoire {{ ville.avecPreposition }}</h1>
-                <span class="text-encre-500" data-chiffres>{{ cote }} × {{ cote }}</span>
+            <div class="pointer-events-none absolute left-2 top-2 flex items-center gap-2 rounded-sm
+                        border border-ocre-500/30 bg-sable-50/90 px-2.5 py-1.5 text-sm shadow-sm md:left-4 md:top-4 md:px-3 md:py-2">
+                <h1 class="font-display text-sm text-encre-900 md:text-base">Territoire {{ ville.avecPreposition }}</h1>
+                <span class="text-xs text-encre-500 md:text-sm" data-chiffres>{{ cote }} × {{ cote }}</span>
             </div>
 
-            <div class="absolute bottom-4 left-4 flex items-center gap-1 rounded-sm border border-ocre-500/30
-                        bg-sable-50/90 p-1 text-sm shadow-sm">
+            {# Les commandes flottent au-dessus du territoire plutôt que de lui
+               prendre de la hauteur : c'est la carte qui doit occuper l'écran.
+               Les boutons font 44 px de côté — la cible minimale que WCAG 2.2
+               demande au doigt, et qu'un « − » de 24 px ne donnait pas. #}
+            <div class="absolute bottom-2 left-2 flex items-center gap-0.5 rounded-sm border border-ocre-500/30
+                        bg-sable-50/90 p-1 text-sm shadow-sm md:bottom-4 md:left-4">
                 <button type="button" data-action="carte#eloigner"
-                        class="rounded-sm px-2 py-1 text-encre-700 hover:bg-ocre-300/30" aria-label="Éloigner">−</button>
+                        class="size-11 rounded-sm text-lg text-encre-700 hover:bg-ocre-300/30 md:size-8 md:text-base"
+                        aria-label="Éloigner">−</button>
                 <span class="w-12 text-center text-xs text-encre-500" data-chiffres data-carte-target="facteur">100 %</span>
                 <button type="button" data-action="carte#approcher"
-                        class="rounded-sm px-2 py-1 text-encre-700 hover:bg-ocre-300/30" aria-label="Approcher">+</button>
+                        class="size-11 rounded-sm text-lg text-encre-700 hover:bg-ocre-300/30 md:size-8 md:text-base"
+                        aria-label="Approcher">+</button>
                 <button type="button" data-action="carte#revenir"
-                        class="rounded-sm px-2 py-1 text-xs text-encre-600 hover:bg-ocre-300/30">Ajuster</button>
+                        class="h-11 rounded-sm px-3 text-xs text-encre-600 hover:bg-ocre-300/30 md:h-8">Ajuster</button>
             </div>
         </div>
 
         {# Le panneau de droite : tout ce qui se lit, et le seul endroit qui
            défile. #}
-        <aside class="flex w-96 shrink-0 flex-col overflow-y-auto border-l border-ocre-500/25 bg-sable-50 p-5">
+        <aside class="flex min-h-0 w-full flex-1 flex-col overflow-y-auto border-t border-ocre-500/25
+                      bg-sable-50 p-4 md:w-96 md:flex-none md:border-l md:border-t-0 md:p-5">
             <div class="flex items-baseline justify-between gap-3">
                 <a href="{{ path('app_partie_ville', {id: partie.id}) }}" class="text-sm text-lapis-500">
                     Bâtiments {{ ville.avecPreposition }} →
