@@ -60,6 +60,16 @@ Portes qualité — les quatre doivent passer avant un merge (mêmes commandes q
 - Audit des dépendances : `docker compose exec php composer audit`
 - Tests : `docker compose exec php php bin/phpunit`
 
+Cinquième porte, hors CI car elle ne dépend pas du code applicatif — le dépôt
+étant public, elle vérifie ce qu'un tiers y lit : `.claude/scripts/check-gouvernance.sh`
+(licence, `SECURITY.md`, `CHANGELOG.md`, badges, étiquettes de version, absence
+de secret dans l'historique). À rejouer avant d'étiqueter une version.
+
+**Tout changement visible par qui joue ajoute une ligne sous « Non publié »
+dans [`CHANGELOG.md`](CHANGELOG.md)**, au moment du commit et non après coup :
+un journal reconstitué depuis `git log` dit ce que le code a fait, pas ce que
+la partie a gagné. Le *pourquoi* d'une phase reste dans `docs/phases-livrees.md`.
+
 **Un changement de CSS ou de JS qui ne se voit pas au navigateur** : chercher
 d'abord `app/public/assets/`. Ce dossier est le **résultat compilé** d'un
 `asset-map:compile` — utile en production, poison en développement : Caddy y
