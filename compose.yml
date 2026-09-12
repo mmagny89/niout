@@ -26,6 +26,10 @@ services:
       # qui accepte chaque message et le jette sans un mot.
       MAILER_DSN: ${MAILER_DSN:?MAILER_DSN manquant — transport des emails, a declarer dans le fichier de secrets}
       MAILER_FROM: ${MAILER_FROM:?MAILER_FROM manquant — adresse expeditrice des emails}
+      # Sans point-virgule avant le « ? » : la valeur vide est legitime en
+      # developpement, ou rien ne s'interpose. C'est l'oubli de la declaration
+      # qui doit echouer, pas la valeur vide.
+      SYMFONY_TRUSTED_PROXIES: ${SYMFONY_TRUSTED_PROXIES?SYMFONY_TRUSTED_PROXIES non declaree — vide en dev, private_ranges derriere un proxy}
     volumes:
       - niout-caddy-data:/data
       - niout-caddy-config:/config

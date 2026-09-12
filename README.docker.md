@@ -209,10 +209,16 @@ Un DSN SMTP nu plutot qu'un pont dedie (`brevo+api://`, `brevo+smtp://`) :
 aucun paquet a installer, donc aucune dependance de plus a suivre, et changer
 de fournisseur ne demande qu'une ligne.
 
-**L'adresse expeditrice doit appartenir a un domaine authentifie chez le
-fournisseur** — sinon les messages partent en indesirables, ou sont refuses. Les
-enregistrements DNS a poser sur le domaine sont affiches par le fournisseur ; ils
-se recopient tels quels, ils ne s'inventent pas.
+**L'adresse expeditrice doit appartenir au domaine exactement authentifie chez
+le fournisseur.** Les enregistrements DNS a poser sont affiches par lui ; ils se
+recopient tels quels, ils ne s'inventent pas.
+
+Piege deja paye : un sous-domaine n'herite pas de l'authentification de son
+parent cote fournisseur, meme quand il en herite cote DNS. Avec `mmagny.fr`
+authentifie, un envoi depuis `noreply@niout.mmagny.fr` est refuse net —
+« the sender you used is not valid » — alors que DKIM et DMARC sont pourtant
+alignes. Soit on authentifie aussi le sous-domaine, soit on expedie depuis le
+domaine authentifie.
 
 Apres deploiement, eprouver la chaine depuis le conteneur, et **verifier la
 reception**, pas seulement l'absence d'erreur :

@@ -168,6 +168,30 @@ Deux endroits déclarent aussi ces variables, et pour la même raison qu'un
 passent pas par Compose. Sans elles, la compilation du conteneur échoue sur
 « Environment variable not found », dans tous les jobs.
 
+## Derrière le proxy — `SYMFONY_TRUSTED_PROXIES`
+
+Staging et production tournent derrière un Traefik qui termine le TLS et
+transmet en clair. Sans `SYMFONY_TRUSTED_PROXIES=private_ranges`, Symfony
+ignore `X-Forwarded-Proto`, **se croit en HTTP** et fabrique toutes ses URL
+absolues en `http://` sur un site en `https://`.
+
+Défaut réel, payé : la connexion paraissait sans effet. Le formulaire est
+soumis par Turbo ; la réponse redirigeait vers `http://…`, que Turbo tient pour
+une autre origine et refuse d'afficher. La session était pourtant ouverte — on
+était connecté, sur un écran de connexion inchangé, sans la moindre erreur.
+Les liens de vérification d'email partaient du même mauvais pied.
+
+`private_ranges` et non une adresse : le proxy est joint par le réseau Docker,
+dont l'adresse change à chaque redémarrage. La variable est lue d'office par
+Symfony — `framework.trusted_proxies` vaut `%env(default::SYMFONY_TRUSTED_PROXIES)%`
+par défaut, aucun fichier de configuration à modifier. Elle est **vide en
+développement**, où rien ne s'interpose : faire confiance à des en-têtes que
+personne ne pose les rendrait falsifiables.
+
+**Un conteneur `healthy` ne prouve rien de tout cela.** Le contrôle se fait de
+l'extérieur, sur l'en-tête `Location` :
+`curl -sI https://<domaine>/compte | grep -i location` — il doit dire `https`.
+
 ## Protection CSRF — stateless
 
 Le projet utilise la protection CSRF **sans état** de Symfony (double-submit
