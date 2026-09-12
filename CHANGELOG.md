@@ -29,6 +29,7 @@ la lecture de référence pour comprendre le code.
 - La barre de jeu passe de 189 à 83 pixels sur un téléphone, et les onglets de
   la ville de quatre rangées à une seule — sans qu'aucun compteur ni aucun
   onglet ne soit masqué.
+- Le titre de la page d'accueil ne prend plus cinq lignes sur un téléphone.
 
 ## [0.13.0] - 2026-09-12
 
