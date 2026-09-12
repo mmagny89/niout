@@ -30,7 +30,7 @@ jobs:
             echo "nom=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # La branche par defaut, et non l'etiquette : c'est d'elle que vient
           # le script d'extraction, qui doit etre le dernier en date. Une
