@@ -5,7 +5,7 @@
 # susceptible de deposer une recette (ex. la recette Doctrine qui ecrit
 # DATABASE_URL, la recette framework-bundle qui ecrit APP_SECRET).
 #
-# Deux traitements distincts, pour deux raisons distinctes :
+# Trois traitements distincts, pour trois raisons distinctes :
 #
 #   1. Variables INJECTEES par le stack Docker (compose.yml ou ENV du
 #      Dockerfile). On les COMMENTE : la valeur du conteneur fait foi, et une
@@ -18,6 +18,13 @@
 #      (incident reel du 2026-08-27, valeur revoquee). On le VIDE dans les
 #      fichiers committes et on en genere un vrai dans .env.local, ignore par
 #      git. Le commenter ne suffirait pas : Symfony echouerait au demarrage.
+#
+#   3. Les memes variables injectees, DECLAREES dans app/.env.test. Les tests ne
+#      passent pas par Compose — ni ceux qu'on lance a la main, ni ceux de la
+#      CI — et une variable commentee au point 1 n'existe alors nulle part : la
+#      compilation du conteneur echoue sur « Environment variable not found »,
+#      dans tous les jobs, avec un message qui ne parle jamais d'email. Les
+#      valeurs y sont inertes : un test ne doit joindre personne.
 set -e
 
 APP_DIR=/app
@@ -29,7 +36,10 @@ fi
 # --- 1. Variables injectees par le conteneur -------------------------------
 
 ENV_FILE="$APP_DIR/.env"
-INJECTED_VARS="DATABASE_URL APP_ENV"
+# MAILER_DSN et MAILER_FROM sont injectees par compose.yml depuis 2026-09-12 :
+# la recette Flex depose MAILER_DSN=null://null, un transport qui accepte chaque
+# message et le jette sans un mot. Voir la section 8b des conventions.
+INJECTED_VARS="DATABASE_URL APP_ENV MAILER_DSN MAILER_FROM"
 
 if [ -f "$ENV_FILE" ]; then
 	for var in $INJECTED_VARS; do
@@ -98,4 +108,25 @@ if [ -n "$a_neutraliser" ]; then
 		mv "${fichier}.neutralized" "$fichier"
 		echo "neutralize-app-env: APP_SECRET vide dans $(basename "$fichier")" >&2
 	done
+fi
+
+# --- 3. Valeurs inertes pour les tests -------------------------------------
+#
+# Ce que le point 1 a commente dans app/.env doit exister quand meme hors
+# conteneur. `null://null` est ici le bon transport, et non le piege qu'il est
+# en production : un test ne doit joindre personne.
+
+TEST_FILE="$APP_DIR/.env.test"
+
+if [ -f "$TEST_FILE" ]; then
+	ajoutees=''
+	for ligne in 'MAILER_DSN=null://null' 'MAILER_FROM=noreply@localhost'; do
+		var="${ligne%%=*}"
+		if ! grep -qE "^${var}=" "$TEST_FILE"; then
+			[ -n "$ajoutees" ] || printf '\n# Injectees par compose.yml en conteneur, absentes hors conteneur : sans\n# elles, la compilation du conteneur echoue sur « Environment variable not\n# found » (conventions, section 8b). Valeurs inertes : un test ne joint\n# personne.\n' >> "$TEST_FILE"
+			printf '%s\n' "$ligne" >> "$TEST_FILE"
+			ajoutees="$ajoutees $var"
+		fi
+	done
+	[ -z "$ajoutees" ] || echo "neutralize-app-env: declarees dans .env.test :$ajoutees" >&2
 fi
