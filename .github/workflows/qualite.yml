@@ -23,6 +23,12 @@ env:
   # « Environment variable not found: DATABASE_URL », y compris sur les jobs
   # qui ne touchent jamais la base.
   DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app?serverVersion=18&charset=utf8
+  # Meme raison que DATABASE_URL : compose.yml injecte ces deux variables, donc
+  # app/.env ne les declare pas (regle de non-duplication). Le post-install-cmd
+  # de Composer compile le conteneur et echouerait sans elles, dans tous les
+  # jobs. Le transport null convient — la CI ne doit joindre personne.
+  MAILER_DSN: 'null://null'
+  MAILER_FROM: noreply@niout.test
 
 jobs:
   lint:

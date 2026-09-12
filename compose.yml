@@ -20,6 +20,12 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?serverVersion=${POSTGRES_VERSION}&charset=utf8
       RUN_MIGRATIONS: ${RUN_MIGRATIONS}
+      # Le transport des emails vient d'ici et de nulle part ailleurs : la
+      # valeur d'app/.env est neutralisee (regle de non-duplication). Sans
+      # cette injection, Symfony retombait sur le null:// de la recette Flex,
+      # qui accepte chaque message et le jette sans un mot.
+      MAILER_DSN: ${MAILER_DSN:?MAILER_DSN manquant — transport des emails, a declarer dans le fichier de secrets}
+      MAILER_FROM: ${MAILER_FROM:?MAILER_FROM manquant — adresse expeditrice des emails}
     volumes:
       - niout-caddy-data:/data
       - niout-caddy-config:/config

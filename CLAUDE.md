@@ -52,6 +52,10 @@ Le stack se lance sans `-f` : `COMPOSE_FILE` dans le `.env` racine chaîne déj�
 - Mot de passe d'un compte : `docker compose exec php php bin/console app:users:password <email>`
   (saisie masquée ; `--generer` pour en engendrer un et l'afficher une fois)
 - Observabilité (Ember) : `curl http://127.0.0.1:9191/metrics`
+- Emails de développement : <http://localhost:8025> (Mailpit). **Rien ne sort de
+  la machine** : le service retient tout ce que l'application envoie.
+  Essai du transport :
+  `docker compose exec php php bin/console mailer:test vous@example.com`
 
 Portes qualité — les quatre doivent passer avant un merge (mêmes commandes qu'en CI) :
 
@@ -138,6 +142,31 @@ Points à ne pas redécouvrir :
 - Le stack a été généré par `.claude/scripts/setup-symfony.sh`. Un défaut trouvé dans un
   fichier issu de `.claude/resources/` se corrige **dans la ressource**, pas seulement
   dans la copie du projet.
+
+## Emails
+
+`MAILER_DSN` et `MAILER_FROM` sont **injectées par `compose.yml`** et
+volontairement commentées dans `app/.env` (règle de non-duplication) — ne pas
+les y réactiver. En développement le DSN pointe sur Mailpit ; staging et
+production portent le leur dans leur fichier de secrets, et refusent de démarrer
+sans, ce qui est voulu.
+
+Ce qui a été payé : la recette Flex dépose `MAILER_DSN=null://null`, un
+transport qui **accepte chaque message et le jette** — pas d'erreur, pas de
+journal, pas de trace. Les emails de vérification n'arrivaient donc nulle part,
+en développement comme en production, sans le moindre signal. Un `MAILER_FROM`
+en `@niout.example` complétait le tableau : `.example` est un domaine réservé
+que rien ne délivre.
+
+Les emails partent en **synchrone**, choix acté dans `messenger.yaml` : le stack
+ne fait tourner aucun worker Messenger, et une file que personne ne consomme
+donne le même silence. Le jour où un worker est ajouté, le commentaire de ce
+fichier dit quoi rebasculer.
+
+Deux endroits déclarent aussi ces variables, et pour la même raison qu'un
+`DATABASE_URL` : `app/.env.test` et `.github/workflows/qualite.yml`, qui ne
+passent pas par Compose. Sans elles, la compilation du conteneur échoue sur
+« Environment variable not found », dans tous les jobs.
 
 ## Protection CSRF — stateless
 

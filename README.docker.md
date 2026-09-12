@@ -78,6 +78,7 @@ jamais le `container_name` (conventions, section 2).
 | `HTTP3_PORT` | 443/udp | dev, staging |
 | `POSTGRES_PORT` | 5432 | dev uniquement, sur `127.0.0.1` |
 | `EMBER_PORT` | 9191 | dev et, sur `127.0.0.1`, staging/prod |
+| `MAILPIT_PORT` | 8025 | dev uniquement, sur `127.0.0.1` — interface web de l'attrapeur d'emails ; son port SMTP (1025) reste interne |
 | `METRICS_PORT` | 2020 | **jamais publie** — metriques Caddy, joignables depuis le reseau seulement |
 
 En production, aucun port n'est publie : Traefik route par domaine.

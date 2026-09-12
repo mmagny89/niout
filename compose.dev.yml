@@ -15,6 +15,28 @@ services:
       - "${HTTPS_PORT}:443"
       - "${HTTP3_PORT}:443/udp"
 
+  # Attrapeur d'emails, developpement uniquement — absent de compose.yml, donc
+  # de staging et de production, qui portent un vrai transport dans leur
+  # fichier de secrets. Il retient tout ce que l'application envoie et l'affiche
+  # sur http://localhost:${MAILPIT_PORT} : aucun message ne quitte la machine,
+  # et l'on voit le rendu HTML exact plutot qu'un apercu de profileur.
+  #
+  # Ecart au manifeste des conventions, qui ne prevoit que php, database, ember
+  # et node : assume et signale. Sans lui, la seule facon d'eprouver un email en
+  # developpement est d'en envoyer un vrai.
+  mailpit:
+    image: axllent/mailpit:v${MAILPIT_VERSION}
+    container_name: niout-${ENV:?ENV manquant dans le fichier d-environnement}-mailpit
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 500
+    ports:
+      # L'interface web seulement. Le port SMTP (1025) reste sur le reseau du
+      # projet : rien sur l'hote n'a de raison de le joindre.
+      - "127.0.0.1:${MAILPIT_PORT}:8025"
+    networks:
+      - niout
+
   database:
     ports:
       - "127.0.0.1:${POSTGRES_PORT}:5432"
