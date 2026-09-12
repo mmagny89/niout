@@ -50,6 +50,10 @@
         </header>
         {% endblock %}
 
+        {# Où en est le jeu. Dans la coque de présentation seulement — voir le
+           gabarit pour la raison. #}
+        {% block avertissement %}{{ include('_avertissement.html.twig') }}{% endblock %}
+
         {# Barre de jeu : les partie/* la remplissent via partie/_layout.
            Les compteurs doivent rester visibles en permanence (doc 15). #}
         {% block barreDeJeu %}{% endblock %}

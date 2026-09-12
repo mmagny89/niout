@@ -1,0 +1,47 @@
+{# Le bandeau qui dit où en est le jeu.
+
+   `<details>` natif plutôt qu'un panneau piloté par du JavaScript : le repli
+   fonctionne sans lui, et le contenu reste dans le document — donc trouvable
+   par la recherche du navigateur, et lisible par un lecteur d'écran, même
+   replié. Le contrôleur Stimulus n'ajoute qu'une chose : se souvenir du choix
+   d'une page à l'autre. Sans lui, le bandeau se rouvre à chaque navigation, ce
+   qui transforme une information en importunité.
+
+   Il vit dans la coque de présentation seulement. La coque du jeu occupe
+   exactement la hauteur de la fenêtre et n'y défile jamais : un bandeau
+   permanent y prendrait sur le terrain, à chaque écran et pour toute la
+   partie. #}
+<details data-controller="avertissement" open
+         class="group border-b border-ocre-500/25 bg-ocre-300/15">
+    <summary class="mx-auto flex max-w-5xl list-none items-center gap-2 px-5 py-2.5
+                    text-sm text-encre-700 marker:content-none">
+        <svg class="size-4 shrink-0 text-ocre-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v3.5a.75.75 0 0 0 1.5 0v-3.5ZM10 13a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z" clip-rule="evenodd" />
+        </svg>
+        <span class="flex-1">
+            <strong class="font-medium">Le jeu est en cours d'équilibrage.</strong>
+            <span class="text-encre-600">Coûts, rendements et durées bougent encore.</span>
+        </span>
+        {# Le chevron pivote selon l'état, que `group-open` lit sur le
+           <details> parent — aucun JavaScript n'y touche. #}
+        <svg class="size-4 shrink-0 text-encre-500 transition-transform group-open:rotate-180"
+             viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+        </svg>
+    </summary>
+
+    <div class="mx-auto max-w-5xl px-5 pb-4 text-sm text-encre-600">
+        <p class="max-w-3xl">
+            Niout est jouable de bout en bout, mais son économie n'est pas figée : les
+            coûts de construction, les rendements des champs et des ateliers, les prix du
+            marché et les durées de chantier sont encore en cours de réglage. Une partie
+            commencée aujourd'hui peut donc devenir plus facile ou plus rude d'une version
+            à l'autre.
+        </p>
+        <p class="mt-2 max-w-3xl">
+            Ce qui change est consigné à chaque version dans le
+            <a href="{{ depot }}/blob/main/CHANGELOG.md" target="_blank" rel="noopener"
+               class="text-lapis-500 hover:text-lapis-600">journal des versions<span class="sr-only"> (nouvelle fenêtre)</span></a>.
+        </p>
+    </div>
+</details>

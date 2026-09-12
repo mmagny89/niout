@@ -54,6 +54,34 @@ final class ErgonomieTest extends WebTestCase
     }
 
     /**
+     * **Le bandeau d'avertissement se replie sans JavaScript.** C'est un
+     * `<details>` natif : le contrôleur Stimulus n'ajoute que la mémoire du
+     * choix d'une page à l'autre. Un panneau qui ne se replierait qu'avec du
+     * JavaScript ne se replierait pas du tout le jour où il ne charge pas.
+     *
+     * Et il n'entre pas dans la coque du jeu, qui occupe exactement la hauteur
+     * de la fenêtre : il y prendrait sur le terrain à chaque écran.
+     */
+    public function testLeBandeauDAvertissementSeReplieSeulEtEpargneLaCoqueDuJeu(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'bandeau@example.com');
+
+        $crawler = $client->request('GET', '/parties');
+
+        $bandeau = $crawler->filter('details[data-controller="avertissement"]');
+        self::assertCount(1, $bandeau);
+        self::assertCount(1, $bandeau->filter('summary'));
+        // Ouvert au premier passage : l'information doit se lire avant de se
+        // faire taire.
+        self::assertNotNull($bandeau->attr('open'));
+
+        $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        self::assertCount(0, $client->getCrawler()->filter('details[data-controller="avertissement"]'));
+    }
+
+    /**
      * **Les compteurs sont rangés par famille**, chacune derrière un volet.
      * Quarante nombres alignés, c'était une barre où l'on ne trouvait plus
      * rien — et qui débordait sur un écran étroit.

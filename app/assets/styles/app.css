@@ -86,6 +86,7 @@
        a l'usage et jamais a la relecture. Les boutons desactives gardent
        leur curseur par defaut, qui dit justement qu'il n'y a rien a cliquer. */
     button:not(:disabled),
+    summary,
     [role="button"]:not(:disabled) {
         cursor: pointer;
     }

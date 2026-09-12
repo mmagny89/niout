@@ -22,6 +22,9 @@ la lecture de référence pour comprendre le code.
 - Pied de page : numéro de version, journal des versions et code source.
 - La page d'accueil mène aux parties quand on est déjà connecté, au lieu de
   proposer de créer un compte.
+- **Un bandeau dit que le jeu est en cours d'équilibrage**, repliable et qui se
+  souvient du choix d'une page à l'autre. Il n'entre pas dans la coque du jeu,
+  qui occupe exactement la hauteur de la fenêtre.
 - **Trois captures d'écran sur la page d'accueil** : le territoire, la conduite
   de la ville, un cartouche royal. Le jeu se voyait décrit sans jamais se
   montrer.
