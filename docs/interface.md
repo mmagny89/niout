@@ -172,6 +172,21 @@ faute de matières —, et les matières d'un lot en pastilles. **La Caserne** m
 sa troupe en cases : un homme levé, une case pleine ; un blessé, terre cuite ;
 une place libre, des pointillés.
 
+**Chaque panneau de bâtiment range ses sections en sous-onglets**
+(`partie/_sous_onglets.html.twig`, trois macros : `debut`, `panneau`, et le
+`</div>` du conteneur). Même contrôleur que les onglets de la ville, appariement
+**par rang**, section ouverte retenue (`memoire`). Un panneau ouvre le conteneur,
+range ses sections, le referme ; les identifiants portent le préfixe du bâtiment
+(`port-section-peche`), le test de structure des onglets de la ville ne regardant
+que `panneau-*`. **La Direction est une section comme une autre**, la dernière,
+marquée « vacante » quand aucun chef n'est en poste — c'est ce qui la rend
+visible sans qu'elle occupe la hauteur du panneau. Ce qui se règle rarement (la
+répartition de l'Entrepôt, le prix du Marché, la consigne d'un atelier) a sa
+section plutôt que sa place en tête. `SousOngletsTest` contrôle toutes les barres
+d'un coup : onglets et panneaux dans le même ordre, un seul panneau ouvert,
+aucun identifiant en double. **L'Auberge n'en a pas** : une page courte n'a pas à
+payer un clic de plus.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

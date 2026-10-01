@@ -14,6 +14,14 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Chaque bâtiment range ses sections en sous-onglets**, pour que l'écran de
+  ville ne dépasse plus la fenêtre : Entrepôt (Réserve, Répartition, Carrières,
+  Routes), Grenier (Réserve, Champs), Port (Pêcheries, Routes), Marché (Étal,
+  Prix), Atelier et Forge (À l'ouvrage, Consigne), Caserne (Troupe, Recruter),
+  Temple (Offrandes, Oracle) et Quartier d'habitation (Habitants, Faire venir du
+  monde). La **Direction** de chaque bâtiment a son sous-onglet, marqué
+  « vacante » quand aucun chef n'y est en poste. La section ouverte est retenue
+  d'un rechargement à l'autre.
 - **Les écrans de bâtiment sont plus compacts et plus horizontaux** : les
   listes de cartes — bâtiments dressés et à bâtir, candidats, routes, étal du
   Marché, dossiers d'enquête, questions, dieux, recettes, troupe — se rangent

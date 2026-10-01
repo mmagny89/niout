@@ -2,7 +2,17 @@
    l'équipage réclamé par un champ semé et son rendement (lot 4.5). Ce qui se
    sème et se moissonne est sur la carte ; ce qui se conserve se lit ici. #}
 {{ include('partie/batiments/_entete.html.twig') }}
-{{ include('partie/batiments/_direction.html.twig') }}
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+{% set direction = directions[onglet.type.value] ?? null %}
+{% set sections = [
+    {cle: 'reserve', libelle: 'Réserve'},
+    {cle: 'champs', libelle: 'Champs'},
+] %}
+{% if direction %}
+    {% set sections = sections|merge([{cle: 'direction', libelle: direction.chefs is empty ? 'Direction · vacante' : 'Direction'}]) %}
+{% endif %}
+{{ sous.debut('grenier', partie.id, "Sections du Grenier", sections) }}
+{{ sous.panneau('grenier', 'reserve', true) }}
 
 <h3 class="mt-8 text-xl text-encre-900">La réserve</h3>
 {{ include('partie/batiments/_reserve_visuelle.html.twig', {vue: reserveDesVivres}) }}
@@ -20,5 +30,16 @@
     Monter le Grenier, c'est conserver davantage <em>et</em> mieux moissonner :
     les champs du territoire sont gouvernés d'ici.
 </p>
+    </div>
 
+{{ sous.panneau('grenier', 'champs', false) }}
 {{ include('partie/batiments/_exploitations.html.twig', {titreDuRecap: 'Vos champs', recapVide: 'Aucun champ semé. Les terres cultivables se choisissent sur le territoire.'}) }}
+    </div>
+
+{% if direction %}
+{{ sous.panneau('grenier', 'direction', false) }}
+{{ include('partie/batiments/_direction.html.twig') }}
+    </div>
+
+{% endif %}
+</div>

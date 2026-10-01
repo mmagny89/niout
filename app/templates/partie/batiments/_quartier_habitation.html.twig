@@ -3,7 +3,12 @@
    appelle du monde — les deux verrous, la place et la bourse, annoncés avant
    que la joueuse ne s'engage. #}
 {{ include('partie/batiments/_entete.html.twig') }}
-{{ include('partie/batiments/_direction.html.twig') }}
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+{{ sous.debut('quartier', partie.id, "Sections du Quartier d'habitation", [
+    {cle: 'habitants', libelle: 'Habitants'},
+    {cle: 'appel', libelle: 'Faire venir du monde'},
+]) }}
+{{ sous.panneau('quartier', 'habitants', true) }}
 
 <h3 class="mt-8 text-xl text-encre-900">Qui vit ici</h3>
 <p class="mt-2 text-sm text-encre-500">
@@ -22,7 +27,9 @@
         payer cesseront le travail.
     {% endif %}
 </p>
+    </div>
 
+{{ sous.panneau('quartier', 'appel', false) }}
 <div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
     <p class="text-sm text-encre-600">
         Votre famille est <strong class="font-medium text-encre-900">{{ palier.libelle|lower }}</strong> :
@@ -54,4 +61,6 @@
             </button>
         </form>
     {% endif %}
+</div>
+    </div>
 </div>

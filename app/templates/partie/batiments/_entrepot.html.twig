@@ -2,7 +2,19 @@
    et arme les routes de terre. Le rival, quand il y en a un, rogne ce qui
    passe par elles : il se traite donc ici. #}
 {{ include('partie/batiments/_entete.html.twig') }}
-{{ include('partie/batiments/_direction.html.twig') }}
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+{% set direction = directions[onglet.type.value] ?? null %}
+{% set sections = [
+    {cle: 'reserve', libelle: 'Réserve'},
+    {cle: 'repartition', libelle: 'Répartition'},
+    {cle: 'carrieres', libelle: 'Carrières'},
+    {cle: 'routes', libelle: 'Routes'},
+] %}
+{% if direction %}
+    {% set sections = sections|merge([{cle: 'direction', libelle: direction.chefs is empty ? 'Direction · vacante' : 'Direction'}]) %}
+{% endif %}
+{{ sous.debut('entrepot', partie.id, "Sections de l'Entrepôt", sections) }}
+{{ sous.panneau('entrepot', 'reserve', true) }}
 
 <h3 class="mt-8 text-xl text-encre-900">La réserve</h3>
 {{ include('partie/batiments/_reserve_visuelle.html.twig', {vue: reserveDesMateriaux}) }}
@@ -15,7 +27,9 @@
         Au-delà, ce qui rentre se perd — écoulez, offrez, ou agrandissez.
     {% endif %}
 </p>
+    </div>
 
+{{ sous.panneau('entrepot', 'repartition', false) }}
 {# La répartition des ressources vit ici, pas au Marché : c'est l'Entrepôt qui
    tient les stocks, et c'est d'un seul tableau qu'on veut décider de ce qu'on
    garde et de ce qui part. Le Marché ne garde que la vente à la main et le
@@ -102,8 +116,21 @@
         </table>
     </div>
 {% endif %}
+    </div>
 
+{{ sous.panneau('entrepot', 'carrieres', false) }}
 {{ include('partie/batiments/_exploitations.html.twig', {titreDuRecap: 'Vos carrières et vos mines', recapVide: 'Aucun filon reconnu. Les gisements se découvrent en explorant.'}) }}
+    </div>
 
+{{ sous.panneau('entrepot', 'routes', false) }}
 {{ include('partie/batiments/_rival.html.twig') }}
 {{ include('partie/batiments/_routes.html.twig') }}
+    </div>
+
+{% if direction %}
+{{ sous.panneau('entrepot', 'direction', false) }}
+{{ include('partie/batiments/_direction.html.twig') }}
+    </div>
+
+{% endif %}
+</div>

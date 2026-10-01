@@ -1,0 +1,44 @@
+{# Les sous-onglets d'un panneau de bâtiment : le même mécanisme partout, pour
+   que l'écran de ville ne soit jamais plus haut que la fenêtre.
+
+   Trois macros, parce qu'un panneau ouvre un conteneur, y range ses sections,
+   puis le referme :
+
+       {% import 'partie/_sous_onglets.html.twig' as sous %}
+       {{ sous.debut('port', partie.id, 'Sections du Port', [{cle: 'peche', libelle: 'Pêcheries'}, …]) }}
+       {{ sous.panneau('port', 'peche', true) }} … </div>
+       {{ sous.panneau('port', 'routes', false) }} … </div>
+       </div>
+
+   Elles reprennent `onglets_controller.js`, celui des onglets de la ville :
+   **onglets et panneaux s'apparient par rang**, dans le même ordre, et la
+   section ouverte est retenue d'un rechargement à l'autre (`memoire`) — régler
+   un prix ou engager un chantier recharge l'écran, et l'on ne doit pas
+   retomber sur la première section. Tout le contenu reste dans le document,
+   seulement masqué.
+
+   Les identifiants portent le préfixe du bâtiment (`port-section-peche`) : le
+   test de structure des onglets de la ville ne regarde que `panneau-*`. #}
+
+{% macro debut(prefixe, partieId, libelle, sections) %}
+<div data-controller="onglets"
+     data-onglets-memoire-value="{{ prefixe }}-{{ partieId }}"
+     data-onglets-actif-class="border-terre-500 text-terre-600"
+     data-onglets-inactif-class="border-transparent text-encre-500">
+    <nav class="mt-4 flex flex-nowrap gap-1 overflow-x-auto border-b border-ocre-500/25 text-sm"
+         role="tablist" aria-label="{{ libelle }}">
+        {% for section in sections %}
+            <button type="button" role="tab" id="{{ prefixe }}-onglet-{{ section.cle }}"
+                    aria-controls="{{ prefixe }}-section-{{ section.cle }}"
+                    aria-selected="{{ loop.first ? 'true' : 'false' }}" tabindex="{{ loop.first ? '0' : '-1' }}"
+                    data-onglets-target="onglet" data-onglet-actif="{{ loop.first ? 'true' : 'false' }}"
+                    data-action="onglets#choisir keydown->onglets#naviguer"
+                    class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">{{ section.libelle }}</button>
+        {% endfor %}
+    </nav>
+{% endmacro %}
+
+{% macro panneau(prefixe, cle, premier) %}
+    <div role="tabpanel" id="{{ prefixe }}-section-{{ cle }}" aria-labelledby="{{ prefixe }}-onglet-{{ cle }}"
+         data-onglets-target="panneau"{{ premier ? '' : ' hidden' }}>
+{% endmacro %}

@@ -7,7 +7,17 @@
    moins — vivent dans un repli : on les lit une fois, on ne les relit pas à
    chaque visite. #}
 {{ include('partie/batiments/_entete.html.twig') }}
-{{ include('partie/batiments/_direction.html.twig') }}
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+{% set direction = directions[onglet.type.value] ?? null %}
+{% set sections = [
+    {cle: 'etal', libelle: 'Étal'},
+    {cle: 'prix', libelle: 'Prix'},
+] %}
+{% if direction %}
+    {% set sections = sections|merge([{cle: 'direction', libelle: direction.chefs is empty ? 'Direction · vacante' : 'Direction'}]) %}
+{% endif %}
+{{ sous.debut('marche', partie.id, "Sections du Marché", sections) }}
+{{ sous.panneau('marche', 'etal', true) }}
 
 {# La place de la quinzaine, en cases : ce qui est déjà écoulé (terre cuite) et
    ce qu'elle absorbe encore (pointillés). Le dessin est masqué aux lecteurs
@@ -102,7 +112,9 @@
         {% endfor %}
     </ul>
 {% endif %}
+    </div>
 
+{{ sous.panneau('marche', 'prix', false) }}
 {# Le prix qu'on fait payer : un réglage rare, qui n'a pas à passer avant
    l'étal. Il vit en dessous, dans un repli ouvert d'office dès que la ville se
    plaint — c'est alors qu'on en a besoin. #}
@@ -147,3 +159,12 @@
         </form>
     {% endif %}
 </details>
+    </div>
+
+{% if direction %}
+{{ sous.panneau('marche', 'direction', false) }}
+{{ include('partie/batiments/_direction.html.twig') }}
+    </div>
+
+{% endif %}
+</div>

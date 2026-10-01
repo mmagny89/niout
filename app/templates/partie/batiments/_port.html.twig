@@ -4,7 +4,17 @@
    donne au bâtiment sa raison d'être. Les filets se jettent depuis la carte,
    case par case. #}
 {{ include('partie/batiments/_entete.html.twig') }}
-{{ include('partie/batiments/_direction.html.twig') }}
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+{% set direction = directions[onglet.type.value] ?? null %}
+{% set sections = [
+    {cle: 'peche', libelle: 'Pêcheries'},
+    {cle: 'routes', libelle: 'Routes'},
+] %}
+{% if direction %}
+    {% set sections = sections|merge([{cle: 'direction', libelle: direction.chefs is empty ? 'Direction · vacante' : 'Direction'}]) %}
+{% endif %}
+{{ sous.debut('port', partie.id, "Sections du Port", sections) }}
+{{ sous.panneau('port', 'peche', true) }}
 
 <p class="mt-6 max-w-3xl text-sm text-encre-500">
     Le niveau du Port élargit l'équipage d'une pêcherie et ce qu'elle rend.
@@ -13,5 +23,16 @@
 </p>
 
 {{ include('partie/batiments/_exploitations.html.twig', {titreDuRecap: 'Vos pêcheries', recapVide: 'Aucun banc reconnu. Les eaux poissonneuses se repèrent en explorant.'}) }}
+    </div>
 
+{{ sous.panneau('port', 'routes', false) }}
 {{ include('partie/batiments/_routes.html.twig') }}
+    </div>
+
+{% if direction %}
+{{ sous.panneau('port', 'direction', false) }}
+{{ include('partie/batiments/_direction.html.twig') }}
+    </div>
+
+{% endif %}
+</div>
