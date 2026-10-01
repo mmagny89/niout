@@ -14,6 +14,22 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Un impôt chaque mois** : les scribes du pharaon lèvent un deben par actif
+  valide à la fin de chaque mois (une quinzaine sur deux, rien pendant les
+  jours épagomènes). C'est un filet — il couvre la moitié d'un salaire — pour
+  qu'une ville qui n'a pas encore ouvert de route ne s'éteigne plus faute de
+  deben. La Résidence annonce le montant et l'échéance.
+- **Savoir lire rapporte** : la ville gagne un degré d'érudition — Lettré,
+  Scribe confirmé, Maître des écritures — à mesure qu'elle apprend de signes,
+  clé de lecture et alphabet confondus. Chaque degré majore l'impôt du mois de
+  10 %, 20 % puis 30 %. Un encart « Les écritures de votre ville », à la
+  Résidence et à la Maison des scribes, dit où l'on en est et ce que rapporte le
+  prochain degré.
+- **Les chefs se font valoir** : une annonce dit ce qu'un bâtiment sans chef
+  perd (il tourne à 50 %) et liste les spécialités possibles ; chaque candidat
+  est jugé en mots, et le plus compétent comme le moins cher sont signalés. La
+  Résidence liste les bâtiments encore sans chef.
+
 - **« Mon compte » permet de changer son mot de passe**, en donnant l'ancien —
   sans passer par le parcours « mot de passe oublié », qui suppose d'attendre
   un message.

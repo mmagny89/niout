@@ -123,6 +123,22 @@ final readonly class Candidat
     }
 
     /**
+     * Ce que valent ses étoiles, en mots : une étoile dit un rang, ce libellé
+     * dit ce que le bâtiment en tirera. **Qualitatif, comme le doc 03 le
+     * veut** — aucun pourcentage, qui rendrait la compétence au joueur.
+     */
+    public function appreciation(): string
+    {
+        return match ($this->etoiles()) {
+            1 => 'Il fera tourner la maison sans l\'améliorer.',
+            2 => 'Un homme de métier, sans éclat.',
+            3 => 'Un chef solide : la production s\'en ressent.',
+            4 => 'Un excellent chef : le bâtiment produit nettement plus.',
+            default => 'Un maître en son art : rien de comparable à portée.',
+        };
+    }
+
+    /**
      * L'ancienneté, traduite en libellé (doc 03) : le joueur doit sentir s'il
      * embauche pour longtemps, sans lire un nombre de quinzaines.
      */

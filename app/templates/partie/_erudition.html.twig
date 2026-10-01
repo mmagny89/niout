@@ -1,0 +1,49 @@
+{# Ce que la ville sait de l'écriture, et ce que cela lui rapporte.
+
+   Affiché à la Résidence (où l'on gouverne) et à la Maison des scribes (où l'on
+   apprend) : un apprentissage qui ne se voit qu'à l'endroit où on l'a déjà
+   choisi n'attire personne. Le gain est dit en toutes lettres — c'est l'impôt
+   du mois, levé par des scribes d'autant meilleurs qu'ils sont lettrés. #}
+{% set suivant = erudition.suivant %}
+<section class="mt-8 max-w-3xl rounded-sm border border-lapis-500/30 bg-lapis-500/5 p-5"
+         aria-labelledby="erudition-titre-{{ idSuffixe|default('r') }}">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+        <h3 id="erudition-titre-{{ idSuffixe|default('r') }}" class="font-display text-lg text-encre-900">
+            Les écritures de votre ville
+        </h3>
+        <span class="text-sm text-lapis-500">{{ erudition.libelle }}</span>
+    </div>
+
+    <p class="mt-2 text-sm text-encre-700">{{ erudition.description }}</p>
+
+    <p class="mt-3 flex items-center gap-3 text-sm text-encre-600" data-chiffres>
+        <span class="font-hieroglyphes text-2xl text-encre-900" aria-hidden="true">{{ motDeNiout }}</span>
+        <span>{{ nombreDeSignesAppris }} signe{{ nombreDeSignesAppris > 1 ? 's' : '' }} appris sur {{ totalDesSignes }}</span>
+    </p>
+
+    <progress class="mt-2 h-2 w-full" max="{{ totalDesSignes }}" value="{{ nombreDeSignesAppris }}"
+              aria-label="Signes appris : {{ nombreDeSignesAppris }} sur {{ totalDesSignes }}"></progress>
+
+    {% if suivant %}
+        <p class="mt-3 text-sm text-encre-600" data-chiffres>
+            Encore {{ suivant.seuilDEntree - nombreDeSignesAppris }} signe{{ suivant.seuilDEntree - nombreDeSignesAppris > 1 ? 's' : '' }}
+            pour devenir <strong class="font-medium">{{ suivant.libelle|lower }}</strong>
+            : l'impôt du mois y gagnerait {{ suivant.bonusDImpot - erudition.bonusDImpot }} % de plus.
+        </p>
+    {% endif %}
+
+    {% if maisonDesScribesDressee %}
+        {% if idSuffixe|default('r') == 'r' %}
+            <p class="mt-3 text-sm">
+                <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'maison_des_scribes'}) }}"
+                   class="text-lapis-500 underline hover:text-lapis-600">Ouvrir la Maison des scribes</a>
+                — monter le bâtiment, déchiffrer et répondre aux énigmes ouvrent de nouveaux signes.
+            </p>
+        {% endif %}
+    {% else %}
+        <p class="mt-3 text-sm text-encre-600">
+            Dressez la <strong class="font-medium">Maison des scribes</strong> pour apprendre à lire
+            et à écrire : chaque niveau ouvre de nouveaux signes.
+        </p>
+    {% endif %}
+</section>

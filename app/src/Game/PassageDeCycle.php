@@ -28,6 +28,7 @@ final readonly class PassageDeCycle
         private Fabrication $fabrication,
         private Commerce $commerce,
         private Marche $marche,
+        private Impots $impots,
         private Mecontentement $mecontentement,
         private Negligence $negligence,
         private Providence $providence,
@@ -98,6 +99,11 @@ final readonly class PassageDeCycle
         // ventes faites à la main pendant celle-ci : c'est la même place, elle
         // ne se sature qu'une fois.
         $evenements = [...$evenements, ...$this->marche->tenirLEtal($partie)];
+
+        // L'impôt du mois, une fois la quinzaine payée et nourrie : il
+        // renfloue la caisse pour la suivante, il ne rembourse pas celle qui
+        // se solde — sans quoi une paie impayée serait rattrapée après coup.
+        $evenements = [...$evenements, ...$this->impots->percevoir($partie)];
 
         // Les deux causes se rejoignent ici, et nulle part ailleurs : on ne
         // mange pas, ou l'on n'est pas payé. Le mécontentement pèse ensuite

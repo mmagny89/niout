@@ -204,6 +204,12 @@ final class MecontentementTest extends KernelTestCase
         }
 
         for ($i = 0; $i < 4; ++$i) {
+            // L'impôt du mois renfloue la caisse (`Impots`) : pour que la
+            // ville reste ruinée, on la vide à chaque quinzaine.
+            if ($ruiner) {
+                $ville->debiterRessources([Ressource::Deben->value => $ville->getDeben()]);
+            }
+
             $this->cycle()->passer($partie);
         }
 

@@ -39,12 +39,33 @@
             </p>
         {% endif %}
 
-        {% if direction.chefs is empty and not direction.offre %}
-            <p class="mt-2 text-sm text-encre-500">
-                Un bâtiment sans chef fonctionne, mais mal. Afficher une annonce
-                ne coûte rien et ne prend aucune quinzaine ; c'est le chef que
-                vous retenez qui se paiera — et il s'installe avec les siens.
+        {# **Ce qu'un chef change ici**, dit avant qu'on embauche : sans cela,
+           l'annonce paraît une dépense de plus. Sans chef, le bâtiment tourne
+           au plancher ; avec un chef, il ouvre ses postes et sa direction
+           pèse sur tout ce qu'il produit. #}
+        {% if direction.chefs is empty %}
+            <p class="mt-3 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-4 py-3 text-sm text-encre-700" data-chiffres>
+                <strong class="font-medium">Sans chef, ce bâtiment tourne à {{ constant('App\\Game\\Effectifs::RENDEMENT_PLANCHER') }} %.</strong>
+                Un chef le fait travailler à plein, et sa compétence se lit dans
+                tout ce qu'il produit. Afficher une annonce ne coûte rien et ne
+                prend aucune quinzaine : c'est le chef que vous retenez qui se
+                paiera — et il s'installe avec les siens.
             </p>
+        {% endif %}
+
+        {% if direction.specialitesPossibles is not empty %}
+            <details class="mt-3 text-sm text-encre-600">
+                <summary class="cursor-pointer text-encre-700">Spécialités possibles ici</summary>
+                <ul class="mt-2 list-none space-y-1 p-0">
+                    {% for specialite in direction.specialitesPossibles %}
+                        <li>
+                            <strong class="font-medium">{{ specialite.libelle }}</strong>
+                            — {{ specialite.description }}
+                            {% if not specialite.agitDeja %}<span class="text-encre-500">(sans effet pour l'instant)</span>{% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </details>
         {% endif %}
 
         {% for chef in direction.chefs %}
@@ -110,7 +131,19 @@
                             </span>
                         </div>
 
-                        <p class="mt-2 text-sm text-encre-500">{{ candidat.esperanceDeService }}</p>
+                        {% if loop.index0 == direction.rangDuPlusCompetent or loop.index0 == direction.rangDuMoinsCher %}
+                            <p class="mt-2 flex flex-wrap gap-2 text-xs uppercase tracking-wide">
+                                {% if loop.index0 == direction.rangDuPlusCompetent %}
+                                    <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-lapis-500">Le plus compétent</span>
+                                {% endif %}
+                                {% if loop.index0 == direction.rangDuMoinsCher %}
+                                    <span class="rounded-sm bg-ocre-500/10 px-2 py-0.5 text-encre-700">Le moins cher</span>
+                                {% endif %}
+                            </p>
+                        {% endif %}
+
+                        <p class="mt-2 text-sm text-encre-600">{{ candidat.appreciation }}</p>
+                        <p class="mt-1 text-sm text-encre-500">{{ candidat.esperanceDeService }}</p>
 
                         {% for trait in candidat.traits %}
                             <p class="mt-2 text-sm text-encre-600">

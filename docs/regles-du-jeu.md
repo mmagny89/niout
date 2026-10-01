@@ -743,6 +743,14 @@ d'employés** (décision de la joueuse) : embaucher est un investissement, pas
 une taxe. Un chef pas encore en poste ne réclame rien, et les chefs sortent du
 vivier de bras — ils ne s'encadrent pas eux-mêmes.
 
+**Le chef doit se voir avant d'être payé** : la compétence reste chiffrée en
+interne et qualitative à l'écran (doc 03), jamais un pourcentage. L'annonce dit
+donc ce qu'on perd sans chef (le plancher de 50 %), liste les spécialités
+possibles du bâtiment avec leur effet, juge chaque candidat en mots
+(`Candidat::appreciation()`) et signale le plus compétent comme le moins cher
+quand cela départage. La Résidence compte les bâtiments encore sans chef parmi
+ses signaux d'attention.
+
 **Un chef ne crée jamais un multiplicateur de plus** (`EffetDeChef`) : sa
 compétence module la **qualité de direction** d'un bâtiment, aux côtés de son
 effectif, et c'est cette qualité qui pèse sur les productions. Deux invariants
@@ -919,6 +927,23 @@ s'allonger en silence** : un test la verrouille, dieux et spécialités
 ensemble.
 
 ## Mécontentement, salaires et emploi
+
+**L'impôt mensuel est un filet, pas une source de richesse** (`Impots`).
+Sans lui, la monnaie ne venait que du Marché et des caravanes : une famille qui
+tardait à ouvrir une route voyait la paie dépasser la bourse, les équipes
+s'arrêter, puis le mécontentement s'installer — une impasse que rien ne
+signalait. Un deben par actif valide (les malades ne paient pas) tombe à la fin
+de chaque mois, soit une quinzaine sur deux ; les cinq jours épagomènes, hors
+mois, ne rapportent rien. **Valeur inventée** : un travailleur coûte deux deben
+par mois, l'impôt en couvre la moitié, de sorte que sans commerce la ville
+ralentit sans mourir — la vraie fortune reste celle des routes. Il se perçoit
+**après** la paie et le marché de la quinzaine : il renfloue la caisse pour la
+suivante, il ne rattrape pas une paie manquée. Les scribes le lèvent : leur
+**degré d'érudition** (`PalierDErudition`) le majore de 10, 20 ou 30 %, d'après
+les signes connus — clé de lecture et alphabet additionnés, seuils 14, 26 et 40
+(les huit signes d'emblée comptent). C'est le seul gain de l'apprentissage : la
+clé et l'alphabet restent des pistes d'enseignement, jamais des leviers de
+production.
 
 **Le prix fait aux habitants est un levier, pas un curseur à pousser**
 (`City::$margeDuMarche`, décision de la joueuse au playtest). La ville vendait

@@ -24,7 +24,8 @@ final readonly class DotationRoyale
      *   croître ni embaucher ;
      * - le **Grenier** rend l'agriculture utile — sans lui, un champ travaille
      *   pour rien ;
-     * - le **Marché** est la seule entrée de deben du jeu ;
+     * - le **Marché** est la principale entrée de deben du jeu — l'impôt mensuel
+     *   (`Impots`) n'est qu'un filet, qui ne couvre que la moitié d'un salaire ;
      * - l'**Entrepôt** ouvrira les routes commerciales (Phase 5).
      *
      * Champs et carrières, eux, ne coûtent rien à ouvrir : les matériaux

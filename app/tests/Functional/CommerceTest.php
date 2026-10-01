@@ -328,22 +328,24 @@ final class CommerceTest extends KernelTestCase
 
         $poterieAvant = $ville->quantite(Ressource::Poterie);
         $debenAvant = $ville->getDeben();
-        $this->cycle()->passer($partie);
+        // L'impôt du mois tombe aussi dans la caisse (`Impots`) : on le
+        // compte à part pour que la mesure ne porte que sur la caravane.
+        $impot = $this->passerEnCompteLImpot($partie);
 
         $convoi = $ville->routeVers('memphis')?->convoiPour(Ressource::Poterie);
         self::assertNotNull($convoi, 'Un convoi doit être parti.');
         self::assertSame($poterieAvant - $convoi->getQuantite(), $ville->quantite(Ressource::Poterie), 'La marchandise est partie avec lui.');
-        self::assertSame($debenAvant, $ville->getDeben(), 'Rien n\'est encaissé avant le retour.');
+        self::assertSame($debenAvant + $impot, $ville->getDeben(), 'Rien n\'est encaissé avant le retour.');
 
         $attendu = $convoi->valeur();
 
         // Exactement l'aller-retour : au-delà, la caravane repartirait et
         // encaisserait une seconde fois.
         for ($i = 0; $i < 2 * self::DISTANCE_DE_MEMPHIS; ++$i) {
-            $this->cycle()->passer($partie);
+            $impot += $this->passerEnCompteLImpot($partie);
         }
 
-        self::assertSame($debenAvant + $attendu, $ville->getDeben());
+        self::assertSame($debenAvant + $attendu + $impot, $ville->getDeben());
     }
 
     /**
@@ -627,6 +629,22 @@ final class CommerceTest extends KernelTestCase
     private function commerce(): Commerce
     {
         return static::getContainer()->get(Commerce::class);
+    }
+
+    /**
+     * Passe une quinzaine et rend ce que l'impôt du mois y a versé à la caisse.
+     */
+    private function passerEnCompteLImpot(GameSave $partie): int
+    {
+        $total = 0;
+
+        foreach ($this->cycle()->passer($partie) as $annonce) {
+            if (1 === preg_match('/impôt du mois.*?(\d+) deben/u', $annonce, $trouve)) {
+                $total += (int) $trouve[1];
+            }
+        }
+
+        return $total;
     }
 
     private function cycle(): PassageDeCycle

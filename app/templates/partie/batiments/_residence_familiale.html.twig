@@ -172,6 +172,15 @@
                 </td>
             </tr>
             <tr class="border-t border-ocre-500/20">
+                <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">
+                    Impôt du mois
+                    <span class="block text-xs text-encre-500">
+                        {% if quinzainesAvantImpot == 1 %}perçu à la fin de cette quinzaine{% else %}perçu dans {{ quinzainesAvantImpot }} quinzaines{% endif %}
+                    </span>
+                </th>
+                <td class="px-4 py-2 text-right text-encre-900">+ {{ impotPrevu }}</td>
+            </tr>
+            <tr class="border-t border-ocre-500/20">
                 <th scope="row" class="px-4 py-2 text-left font-normal text-encre-600">Renommée</th>
                 <td class="px-4 py-2 text-right text-encre-900">
                     {{ partie.famille.renommee }} / {{ renommeeMax }}
@@ -229,6 +238,8 @@
     </table>
     </div>
 </div>
+
+{{ include('partie/_erudition.html.twig') }}
 
 {# **Ce qui cloche est dit une fois, ici**, et non à côté de chaque chiffre :
    une remarque par ligne du tableau rendrait illisible ce qu'il est censé

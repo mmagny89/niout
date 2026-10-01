@@ -48,6 +48,7 @@ use App\Game\FabricationImpossible;
 use App\Game\FilRouge;
 use App\Game\GeographieDeLaPartie;
 use App\Game\GeographieDeRegion;
+use App\Game\Impots;
 use App\Game\Inscription;
 use App\Game\LanceurDePartie;
 use App\Game\LeconDeNiout;
@@ -65,6 +66,7 @@ use App\Game\ObjectifDeMission;
 use App\Game\ObjectifsDeMission;
 use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
+use App\Game\PalierDErudition;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
 use App\Game\Population;
@@ -205,6 +207,7 @@ final class PartieController extends AbstractController
         AppelDHabitants $appels,
         Recrutements $recrutements,
         Salaires $salaires,
+        Impots $impots,
         Mecontentement $mecontentement,
         Fabrication $fabrication,
         Commerce $commerce,
@@ -330,6 +333,18 @@ final class PartieController extends AbstractController
             // Les deux indicateurs de santé de la ville, côte à côte : les
             // bouches et les bras.
             'masseSalariale' => $salaires->masseSalariale($ville, $partie->getCycle()),
+            // L'impôt du mois : le filet qui renfloue la caisse, dit avec son
+            // chiffre et son échéance plutôt que découvert à la perception.
+            'impotPrevu' => $impots->montantPrevu($partie),
+            'quinzainesAvantImpot' => $impots->quinzainesAvantLaPerception($partie),
+            // Ce que la ville sait d'écriture, et ce que ça lui rapporte : un
+            // apprentissage qui ne se voit pas n'est pas poursuivi.
+            'erudition' => PalierDErudition::pour($ville, $partie->getCycle()),
+            'nombreDeSignesAppris' => PalierDErudition::signesConnus($ville, $partie->getCycle()),
+            // Le nom du jeu, en vrais signes : jamais un glyphe tapé à la main.
+            'motDeNiout' => LeconDeNiout::motEcrit(),
+            'totalDesSignes' => PalierDErudition::signesEnTout(),
+            'maisonDesScribesDressee' => $ville->possede(TypeDeBatiment::MaisonDesScribes),
             'mecontentement' => $partie->getQuinzainesDeMecontentement(),
             'villeMecontente' => $mecontentement->pese($partie),
             'rendementDeLHumeur' => $mecontentement->rendementEnCentiemes($partie),
@@ -2179,15 +2194,77 @@ final class PartieController extends AbstractController
                 continue;
             }
 
+            $offre = $ville->offrePour($batiment->getType());
+
             $directions[$batiment->getType()->value] = [
                 'batiment' => $batiment,
                 'chefs' => $ville->chefsDe($batiment->getType()),
                 'postesLibres' => $recrutements->postesLibres($batiment),
-                'offre' => $ville->offrePour($batiment->getType()),
+                'offre' => $offre,
+                // Ce que le bâtiment gagne à être dirigé, et les spécialités
+                // qu'on y trouve : le joueur doit voir l'enjeu avant de choisir.
+                'specialitesPossibles' => SpecialiteDeChef::pour($batiment->getType()),
+                'rangDuPlusCompetent' => null === $offre ? null : $this->rangDuPlusCompetent($offre->candidats()),
+                'rangDuMoinsCher' => null === $offre ? null : $this->rangDuMoinsCher($offre->candidats()),
             ];
         }
 
         return $directions;
+    }
+
+    /**
+     * Le rang du candidat le plus compétent — à égalité, le moins cher —, ou
+     * null si le meilleur est seul à l'être : un conseil n'a de sens que s'il
+     * départage.
+     *
+     * @param list<\App\Game\Candidat> $candidats
+     */
+    private function rangDuPlusCompetent(array $candidats): ?int
+    {
+        if (\count($candidats) < 2) {
+            return null;
+        }
+
+        $meilleur = 0;
+
+        foreach ($candidats as $rang => $candidat) {
+            $courant = $candidats[$meilleur];
+
+            if ($candidat->competence > $courant->competence
+                || ($candidat->competence === $courant->competence && $candidat->salaire < $courant->salaire)) {
+                $meilleur = $rang;
+            }
+        }
+
+        return $meilleur;
+    }
+
+    /**
+     * Le rang du candidat le moins cher, ou null s'il se confond avec le plus
+     * compétent (le conseil serait alors le même) ou s'ils coûtent autant.
+     *
+     * @param list<\App\Game\Candidat> $candidats
+     */
+    private function rangDuMoinsCher(array $candidats): ?int
+    {
+        if (\count($candidats) < 2) {
+            return null;
+        }
+
+        $moinsCher = 0;
+
+        foreach ($candidats as $rang => $candidat) {
+            if ($candidat->salaire < $candidats[$moinsCher]->salaire) {
+                $moinsCher = $rang;
+            }
+        }
+
+        if ($moinsCher === $this->rangDuPlusCompetent($candidats)
+            || $candidats[$moinsCher]->salaire === max(array_map(static fn ($c): int => $c->salaire, $candidats))) {
+            return null;
+        }
+
+        return $moinsCher;
     }
 
     /**

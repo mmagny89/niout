@@ -135,6 +135,27 @@ final readonly class EtatDeLaVille
             ];
         }
 
+        $sansChef = [];
+
+        foreach ($ville->getBatiments() as $batiment) {
+            if ([] !== SpecialiteDeChef::pour($batiment->getType()) && [] === $ville->chefsDe($batiment->getType())) {
+                $sansChef[] = $batiment->getType()->libelle();
+            }
+        }
+
+        if ([] !== $sansChef) {
+            sort($sansChef);
+            $signaux[] = [
+                'ton' => 'mauvais',
+                'titre' => \sprintf('%d bâtiment%s sans chef', \count($sansChef), \count($sansChef) > 1 ? 's' : ''),
+                'detail' => \sprintf(
+                    '%s : sans chef, un bâtiment ne tourne qu\'à %d %%, et c\'est le chef qui ouvre ses postes. Ouvrez l\'onglet du bâtiment et affichez une annonce — elle ne coûte rien.',
+                    implode(', ', $sansChef),
+                    Effectifs::RENDEMENT_PLANCHER,
+                ),
+            ];
+        }
+
         if ($ville->vivresPresqueSatures() || $ville->materiauxPresqueSatures()) {
             $signaux[] = [
                 'ton' => 'mauvais',
