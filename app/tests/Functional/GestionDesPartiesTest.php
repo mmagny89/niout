@@ -77,7 +77,7 @@ final class GestionDesPartiesTest extends WebTestCase
 
         $crawler = $client->request('GET', '/');
 
-        $captures = $crawler->filter('figure img');
+        $captures = $crawler->filter('main img');
         self::assertCount(3, $captures);
 
         $captures->each(function (Crawler $capture): void {

@@ -3,68 +3,67 @@
 {% block title %}Niout — bâtir une ville dans l'Égypte du Nouvel Empire{% endblock %}
 
 {% block body %}
-    <section class="mx-auto max-w-5xl px-5 pt-10 pb-10 md:pt-16 md:pb-14">
-        <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
-            Jeu de gestion · Égypte, ~1550-1070 av. J.-C.
-        </p>
-        <h1 class="mt-4 max-w-3xl text-3xl leading-tight text-encre-900 sm:text-4xl md:text-5xl">
-            Le pharaon vous confie une ville. À vous de la faire vivre.
-        </h1>
-        <p class="mt-4 max-w-2xl text-base text-encre-600 md:mt-5 md:text-lg">
-            Vous incarnez une famille chargée de fonder, restaurer ou sécuriser une cité réelle
-            de l'Égypte antique. Commerce, artisanat, exploration, enquêtes et faveur des dieux
-            s'entremêlent, dans un cadre historique tenu au plus près des sources.
-        </p>
-        {# Deux appels a l'action, selon qui lit. Proposer « Créer un compte »
-           a quelqu'un qui en a deja un, connecte de surcroit, l'oblige a
-           chercher son chemin dans l'en-tete pour retrouver ses parties. #}
-        <div class="mt-8 flex flex-wrap items-center gap-4">
-            {% if app.user %}
-                <a href="{{ path('app_parties') }}"
-                   class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
-                    Mes parties
-                </a>
-                <a href="{{ path('app_partie_nouvelle') }}" class="text-encre-700 hover:text-terre-600">
-                    Commencer une nouvelle partie
-                </a>
-            {% else %}
-                <a href="{{ path('app_register') }}"
-                   class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
-                    Créer un compte
-                </a>
-                <a href="{{ path('app_login') }}" class="text-encre-700 hover:text-terre-600">
-                    J'ai déjà un compte
-                </a>
-            {% endif %}
+    {# **La page se lit en largeur** : une accroche et la carte côte à côte, puis
+       des rangées de plusieurs colonnes, au lieu d'une pile de sections pleine
+       largeur qu'il fallait faire défiler cinq fois. Sur téléphone tout
+       retombe en une colonne, l'image en tête.
+
+       Les dimensions des captures sont écrites en dur pour réserver la place
+       avant chargement, sans quoi le texte saute à l'arrivée de chaque image. #}
+    <section class="mx-auto grid max-w-6xl items-center gap-x-10 gap-y-8 px-5 pt-10 pb-10 lg:grid-cols-5 lg:pt-14 lg:pb-14">
+        <div class="lg:col-span-2">
+            <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+                Jeu de gestion · Égypte, ~1550-1070 av. J.-C.
+            </p>
+            <h1 class="mt-4 text-3xl leading-tight text-encre-900 sm:text-4xl">
+                Le pharaon vous confie une ville. À vous de la faire vivre.
+            </h1>
+            <p class="mt-4 text-base text-encre-600">
+                Vous incarnez une famille chargée de fonder, restaurer ou sécuriser une cité réelle
+                de l'Égypte antique. Commerce, artisanat, exploration, enquêtes et faveur des dieux
+                s'entremêlent, dans un cadre historique tenu au plus près des sources.
+            </p>
+            {# Deux appels a l'action, selon qui lit. Proposer « Créer un compte »
+               a quelqu'un qui en a deja un, connecte de surcroit, l'oblige a
+               chercher son chemin dans l'en-tete pour retrouver ses parties. #}
+            <div class="mt-7 flex flex-wrap items-center gap-4">
+                {% if app.user %}
+                    <a href="{{ path('app_parties') }}"
+                       class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                        Mes parties
+                    </a>
+                    <a href="{{ path('app_partie_nouvelle') }}" class="text-encre-700 hover:text-terre-600">
+                        Commencer une nouvelle partie
+                    </a>
+                {% else %}
+                    <a href="{{ path('app_register') }}"
+                       class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                        Créer un compte
+                    </a>
+                    <a href="{{ path('app_login') }}" class="text-encre-700 hover:text-terre-600">
+                        J'ai déjà un compte
+                    </a>
+                {% endif %}
+            </div>
         </div>
+
+        <figure class="overflow-hidden rounded-sm border border-ocre-500/30 bg-sable-50 lg:col-span-3">
+            <img src="{{ asset('images/captures/carte.webp') }}" width="1520" height="800"
+                 decoding="async" class="block w-full"
+                 alt="Carte isométrique du territoire de Malkata : le Nil bordé de roseaux
+                      et de palmiers, un village de briques crues sur sa rive, des champs
+                      irrigués en damier, et le désert de dunes à l'est.">
+            <figcaption class="px-4 py-2 text-xs text-encre-500">
+                Un territoire engendré à chaque partie, sous le brouillard : un éclaireur
+                le lève case par case.
+            </figcaption>
+        </figure>
     </section>
 
-    {# Trois captures, pas davantage : elles portent les trois choses qu'un
-       texte ne montre pas — le territoire, la conduite de la ville, les
-       hiéroglyphes. Chacune fait face au paragraphe qui l'explique, le côté
-       alternant d'une rangée à l'autre : une capture qu'on n'a pas su lire ne
-       montre rien.
-
-       Les dimensions sont écrites en dur pour réserver la place avant
-       chargement, sans quoi le texte saute à l'arrivée de chaque image. Sur
-       mobile, la grille retombe en une colonne et `order` remet l'image en
-       tête : le texte annonce alors ce qui vient, au lieu de commenter ce
-       qu'on a déjà dépassé. #}
-    <section class="mx-auto max-w-5xl space-y-14 px-5 pb-16">
+    {# Ce qu'un texte ne montre pas : la conduite de la ville et les
+       hiéroglyphes. Deux captures côte à côte, chacune avec son paragraphe. #}
+    <section class="mx-auto grid max-w-6xl gap-6 px-5 pb-12 md:grid-cols-2">
         {% for capture in [
-            {
-                fichier: 'carte.webp', largeur: 1520, hauteur: 800,
-                titre: 'Un territoire qui se découvre',
-                texte: 'La carte est engendrée à la création de la partie — Nil, désert,
-                        terre broussailleuse, oasis selon la région — et reste sous le
-                        brouillard. Un éclaireur la lève case par case ; une case reconnue
-                        peut porter un gisement à exploiter, un champ à semer, une eau à
-                        pêcher une fois le Port dressé.',
-                alt: 'Carte isométrique du territoire de Malkata : le Nil bordé de roseaux
-                      et de palmiers, un village de briques crues sur sa rive, des champs
-                      irrigués en damier, et le désert de dunes à l\'est.',
-                imageAGauche: true,
-            },
             {
                 fichier: 'ville.webp', largeur: 1600, hauteur: 748,
                 titre: 'Une ville qui se conduit par ses chiffres',
@@ -73,103 +72,94 @@
                         quinzaines que vous déclenchez — plus vite pendant la crue d\'Akhèt.',
                 alt: 'Tableau de bord de la ville : habitants, travail, réserves et renom,
                       avec un onglet par bâtiment dressé.',
-                imageAGauche: false,
             },
             {
                 fichier: 'commande.webp', largeur: 1400, hauteur: 981,
-                titre: 'De vrais hiéroglyphes',
+                titre: 'De vrais hiéroglyphes, qu\'on apprend à lire',
                 texte: 'Chaque signe affiché porte un vrai code de Gardiner, un vrai caractère
-                        Unicode et un sens attesté ; une suite de tests confronte les deux pour
-                        tous les signes déclarés. Quand une lecture ne s\'établit pas, le jeu
-                        n\'affiche rien plutôt qu\'une approximation.',
+                        Unicode et un sens attesté. Vos scribes apprennent à lire et à écrire —
+                        et plus ils sont lettrés, mieux ils lèvent l\'impôt. Quand une lecture
+                        ne s\'établit pas, le jeu n\'affiche rien plutôt qu\'une approximation.',
                 alt: 'Commande royale d\'Amenhotep III, avec son cartouche en hiéroglyphes,
                       sa translittération nb-mȝꜥt-rꜥ et les codes de Gardiner des trois signes.',
-                imageAGauche: true,
             },
         ] %}
-            <div class="grid items-center gap-x-10 gap-y-5 md:grid-cols-5">
-                <figure class="overflow-hidden rounded-sm border border-ocre-500/30 bg-sable-50
-                               md:col-span-3 {{ capture.imageAGauche ? '' : 'md:order-last' }}">
-                    <img src="{{ asset('images/captures/' ~ capture.fichier) }}"
-                         width="{{ capture.largeur }}" height="{{ capture.hauteur }}"
-                         loading="lazy" decoding="async"
-                         class="block w-full"
-                         alt="{{ capture.alt }}">
-                </figure>
-                <div class="md:col-span-2">
-                    <h2 class="text-2xl text-encre-900">{{ capture.titre }}</h2>
-                    <p class="mt-3 text-encre-600">{{ capture.texte }}</p>
+            <article class="flex flex-col overflow-hidden rounded-sm border border-ocre-500/30 bg-sable-50">
+                <img src="{{ asset('images/captures/' ~ capture.fichier) }}"
+                     width="{{ capture.largeur }}" height="{{ capture.hauteur }}"
+                     loading="lazy" decoding="async" class="block w-full" alt="{{ capture.alt }}">
+                <div class="p-5">
+                    <h2 class="text-xl text-encre-900">{{ capture.titre }}</h2>
+                    <p class="mt-2 text-sm text-encre-600">{{ capture.texte }}</p>
                 </div>
-            </div>
+            </article>
         {% endfor %}
     </section>
 
+    {# Le parti pris du jeu et ses deux modes, dans la même bande : une seule
+       section, deux colonnes, là où il y en avait deux pleine largeur. #}
     <section class="border-y border-ocre-500/25 bg-sable-50">
-        <div class="mx-auto max-w-5xl px-5 py-12">
-            <h2 class="text-2xl text-encre-900">Aucune minuterie. Jamais.</h2>
-            <p class="mt-4 max-w-2xl text-encre-600">
-                Un chantier, une caravane ou une expédition prennent du temps — mais ce temps ne
-                s'écoule que lorsque vous déclenchez un cycle. Rien ne tourne pendant que vous
-                êtes ailleurs, rien ne vous rappelle à l'écran. Vous jouez quand vous voulez,
-                aussi longtemps que vous voulez.
-            </p>
-            <p class="mt-3 max-w-2xl text-sm text-encre-500">
-                Un cycle représente une quinzaine. Les saisons suivent le vrai calendrier
-                pharaonique : la crue d'Akhèt accélère les chantiers et noie les champs,
-                la moisson tombe en Chémou.
-            </p>
+        <div class="mx-auto grid max-w-6xl gap-x-12 gap-y-8 px-5 py-10 lg:grid-cols-2">
+            <div>
+                <h2 class="text-2xl text-encre-900">Aucune minuterie. Jamais.</h2>
+                <p class="mt-3 text-encre-600">
+                    Un chantier, une caravane ou une expédition prennent du temps — mais ce temps ne
+                    s'écoule que lorsque vous déclenchez un cycle. Rien ne tourne pendant que vous
+                    êtes ailleurs, rien ne vous rappelle à l'écran. Vous jouez quand vous voulez,
+                    aussi longtemps que vous voulez.
+                </p>
+                <p class="mt-3 text-sm text-encre-500">
+                    Un cycle représente une quinzaine. Les saisons suivent le vrai calendrier
+                    pharaonique : la crue d'Akhèt accélère les chantiers et noie les champs,
+                    la moisson tombe en Chémou.
+                </p>
+            </div>
+
+            <div>
+                <h2 class="text-2xl text-encre-900">Deux façons de jouer</h2>
+                <div class="mt-3 grid gap-4 sm:grid-cols-2">
+                    <article>
+                        <h3 class="text-lg text-terre-600">Campagne</h3>
+                        <p class="mt-1 text-sm text-encre-600">
+                            Dix missions, dix villes attestées — d'Avaris reprise aux Hyksôs jusqu'aux
+                            mines de turquoise du Sinaï. Chacune est commanditée par un pharaon réel,
+                            avec son mystère local à élucider. Difficulté croissante.
+                        </p>
+                    </article>
+                    <article>
+                        <h3 class="text-lg text-terre-600">Aventure</h3>
+                        <p class="mt-1 text-sm text-encre-600">
+                            Une seule ville, Memphis, développée à travers une succession de règnes.
+                            Pas d'objectif de fin imposé ; taille de carte et difficulté réglables
+                            avant de commencer.
+                        </p>
+                    </article>
+                </div>
+            </div>
         </div>
     </section>
 
-    <section class="mx-auto max-w-5xl px-5 py-14">
-        <h2 class="text-2xl text-encre-900">Deux façons de jouer</h2>
-        <div class="mt-6 grid gap-5 md:grid-cols-2">
-            <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
-                <h3 class="text-lg text-terre-600">Campagne</h3>
-                <p class="mt-2 text-sm text-encre-600">
-                    Dix missions, dix villes attestées — d'Avaris reprise aux Hyksôs jusqu'aux mines
-                    de turquoise du Sinaï. Chacune est commanditée par un pharaon réel, avec ses
-                    objectifs et son mystère local à élucider.
-                </p>
-                <p class="mt-3 text-sm text-encre-500">
-                    Difficulté croissante : ressources plus rares, routes plus dangereuses,
-                    commerce plus cher.
-                </p>
-            </article>
-            <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
-                <h3 class="text-lg text-terre-600">Aventure</h3>
-                <p class="mt-2 text-sm text-encre-600">
-                    Une seule ville, Memphis, développée sur la longue durée à travers une
-                    succession de règnes. Pas d'objectif de fin imposé : vous vous arrêtez
-                    quand vous le décidez.
-                </p>
-                <p class="mt-3 text-sm text-encre-500">
-                    Taille de carte et difficulté réglables avant de commencer.
-                </p>
-            </article>
-        </div>
-    </section>
-
-    <section class="mx-auto max-w-5xl px-5 pb-16">
+    <section class="mx-auto max-w-6xl px-5 py-12">
         <h2 class="text-2xl text-encre-900">Ce que vous y ferez</h2>
-        <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-5">
             {% set activites = [
                 { titre: 'Bâtir', texte: 'Douze bâtiments, du grenier au temple. Chacun ouvre une fonction et monte en niveau, avec des chantiers en brique crue qui prennent le temps de sécher.' },
                 { titre: 'Explorer', texte: 'Un éclaireur reconnaît chaque case, puis vous décidez : escorte de Medjaÿ, émissaire ou expédition lourde selon ce qu\'il a trouvé.' },
                 { titre: 'Commercer', texte: 'Marché local pour l\'immédiat, caravanes et navires pour le lointain — sur les routes historiques du Chemin d\'Horus au pays de Pount.' },
                 { titre: 'Enquêter', texte: 'Déchiffrez des inscriptions à la Maison des scribes, recoupez témoignages et indices pour lever l\'obstacle qui pèse sur votre ville.' },
+                { titre: 'Apprendre', texte: 'Lisez les hiéroglyphes, puis écrivez-les : les vingt-quatre signes qui notent un son, votre nom de famille, le cartouche du pharaon.' },
             ] %}
             {% for activite in activites %}
                 <article>
                     <h3 class="text-base text-lapis-500">{{ activite.titre }}</h3>
-                    <p class="mt-2 text-sm text-encre-600">{{ activite.texte }}</p>
+                    <p class="mt-1 text-sm text-encre-600">{{ activite.texte }}</p>
                 </article>
             {% endfor %}
         </div>
     </section>
 
     <section class="border-t border-ocre-500/25 bg-sable-50">
-        <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-5 px-5 py-10">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5 px-5 py-8">
             <p class="text-encre-600">
                 <span class="font-display text-xl text-encre-900">Niout</span> — « la ville », en égyptien ancien.
             </p>

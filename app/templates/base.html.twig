@@ -25,7 +25,7 @@
     <body class="{% block coque %}min-h-screen flex flex-col{% endblock %} bg-sable-100 text-encre-900 antialiased">
         {% block enTete %}
         <header class="border-b border-ocre-500/25 bg-sable-50">
-            <div class="mx-auto flex max-w-5xl items-baseline justify-between gap-4 px-5 py-4">
+            <div class="mx-auto flex max-w-6xl items-baseline justify-between gap-4 px-5 py-4">
                 <a href="{{ path('app_accueil') }}"
                    class="font-display text-2xl tracking-wide text-terre-600 no-underline">
                     Niout
@@ -63,7 +63,7 @@
             {% for type, style in typesDeFlash %}
                 {% for message in app.flashes(type) %}
                     <div role="{{ style == 'bad' ? 'alert' : 'status' }}" data-controller="flash"
-                         class="mx-auto mt-4 flex max-w-5xl items-start gap-3 rounded-sm border-l-4 px-4 py-3 text-sm
+                         class="mx-auto mt-4 flex max-w-6xl items-start gap-3 rounded-sm border-l-4 px-4 py-3 text-sm
                                 {{ style == 'bad'
                                     ? 'border-terre-500 bg-terre-500/10 text-terre-700'
                                     : 'border-lapis-500 bg-lapis-500/10 text-lapis-600' }}">
@@ -84,7 +84,7 @@
 
         {% block piedDePage %}
         <footer class="mt-16 border-t border-ocre-500/25 py-6">
-            <div class="mx-auto flex max-w-5xl flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-5 text-xs text-encre-500">
+            <div class="mx-auto flex max-w-6xl flex-wrap items-baseline justify-between gap-x-6 gap-y-2 px-5 text-xs text-encre-500">
                 <p>Niout — jeu de gestion situé dans l'Égypte du Nouvel Empire.</p>
                 {# Le code est public : le dire ici plutôt que nulle part. Ces
                    trois liens quittent le site, donc nouvel onglet — et

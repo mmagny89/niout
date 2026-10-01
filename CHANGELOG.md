@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **La page d'accueil se lit en largeur** : l'accroche et la carte côte à côte,
+  les deux captures en vis-à-vis, la minuterie et les deux modes de jeu dans une
+  même bande, cinq activités sur une rangée — dont une nouvelle, « Apprendre »,
+  pour les hiéroglyphes. La page tient en trois écrans au lieu de cinq.
 - **Les dernières pages rejoignent les sous-onglets** : le territoire (la case
   regardée, les expéditions en route, l'état de la ville), la commande du
   pharaon (le cartouche, la dotation, la partie), la reprise d'une partie (où
