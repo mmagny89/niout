@@ -332,14 +332,45 @@ final readonly class Marche
     }
 
     /**
+     * Le débouché de la quinzaine, rangé en cases pour l'écran : ce qui est
+     * déjà écoulé, et ce que la place absorbe encore. Une représentation, rien
+     * n'en est persisté.
+     *
+     * @return array{plafond: int, vendu: int, reste: int, pas: int, casesVendues: int, casesEnTout: int}
+     */
+    public function jauge(GameSave $partie): array
+    {
+        $plafond = self::plafondDeLaQuinzaine($partie);
+        $reste = $this->venteRestante($partie);
+        $vendu = max(0, $plafond - $reste);
+        $pas = VueDeLaReserve::pasPour($plafond);
+
+        return [
+            'plafond' => $plafond,
+            'vendu' => $vendu,
+            'reste' => $reste,
+            'pas' => $pas,
+            'casesVendues' => (int) ceil($vendu / $pas),
+            'casesEnTout' => max(1, (int) ceil($plafond / $pas)),
+        ];
+    }
+
+    /**
      * Ce que la ville peut mettre en vente : ses lignes de stock non vides qui
      * ont un cours. Le deben en est naturellement exclu : il est la monnaie.
      *
-     * @return list<array{ressource: Ressource, quantite: int, prix: int}>
+     * `maxVendable` est ce que la place absorbe encore de ce lot **au prix que
+     * le Marché en tirerait réellement** (compétence, renommée et marge
+     * comprises) : l'écran s'en sert comme quantité proposée, pour qu'un clic
+     * suffise sans buter sur le plafond de la quinzaine.
+     *
+     * @return list<array{ressource: Ressource, quantite: int, prix: int, maxVendable: int}>
      */
     public function etalPour(GameSave $partie): array
     {
         $etal = [];
+        $reste = $this->venteRestante($partie);
+        $coefficient = $this->coefficientDeVente($partie);
 
         foreach ($partie->getVille()->getStock() as $ligne) {
             $ressource = $ligne->getRessource();
@@ -353,11 +384,33 @@ final readonly class Marche
                 'ressource' => $ressource,
                 'quantite' => $ligne->getQuantite(),
                 'prix' => $prix,
+                'maxVendable' => self::quantiteQueLaPlaceAbsorbe($prix, $ligne->getQuantite(), $reste, $coefficient),
             ];
         }
 
         usort($etal, static fn (array $a, array $b): int => $b['prix'] <=> $a['prix']);
 
         return $etal;
+    }
+
+    /**
+     * La plus grande quantité dont la recette tient dans ce qui reste du
+     * débouché. La même formule que `vendre()` — `prix × quantité × coefficient`,
+     * une seule division — : une quantité calculée autrement serait refusée par
+     * le plafond que l'écran vient d'annoncer.
+     */
+    public static function quantiteQueLaPlaceAbsorbe(int $prix, int $enReserve, int $reste, int $coefficient): int
+    {
+        if ($prix < 1 || $reste < 1 || $coefficient < 1) {
+            return 0;
+        }
+
+        $quantite = min($enReserve, intdiv($reste * Effectifs::RENDEMENT_PLEIN, $prix * $coefficient) + 1);
+
+        while ($quantite > 0 && intdiv($prix * $quantite * $coefficient, Effectifs::RENDEMENT_PLEIN) > $reste) {
+            --$quantite;
+        }
+
+        return $quantite;
     }
 }

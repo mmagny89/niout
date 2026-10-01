@@ -113,6 +113,29 @@ final class ResidenceValorisationTest extends WebTestCase
         self::assertSelectorTextContains('body', 'Alité par la fièvre');
     }
 
+    /**
+     * Le Marché propose d'emblée la quantité que la place absorbe, et montre sa
+     * place du jour en cases.
+     */
+    public function testLeMarcheProposeLaQuantiteQueLaPlaceAbsorbe(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'marche-quantite@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Marche));
+        $ville->crediterRessources([\App\Game\Ressource::Poterie->value => 500]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=marche', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'La place du jour');
+        self::assertGreaterThan(0, $crawler->filter('[role="img"][aria-label^="Débouché de la quinzaine"]')->count());
+
+        $quantite = (int) $crawler->filter('#quantite-poterie')->attr('value');
+        self::assertGreaterThan(1, $quantite, 'Une place neuve absorbe plus d\'une poterie.');
+    }
+
     private function partie(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client, string $email): \App\Entity\GameSave
     {
         $user = new User();

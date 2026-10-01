@@ -130,6 +130,20 @@ lot minuscule garde sa case, et le total n'excède pas l'occupation. Le dessin
 est masqué aux lecteurs d'écran, la légende dit la même chose en lettres, et la
 couleur n'est jamais seule.
 
+**Simplifier un écran, c'est ranger sans rien retirer** (Marché, exploitations).
+Trois gestes, repris partout : **l'essentiel d'abord** — l'état et le geste
+courant en haut —, **les explications de fond dans un repli** (`<details>`), lues
+une fois et non relues à chaque visite, ouvert d'office quand le problème qu'elles
+expliquent se présente ; et **une valeur proposée par défaut** plutôt qu'un champ
+à remplir. Le Marché propose ainsi, pour chaque lot, la plus grande quantité que
+la place absorbe encore (`Marche::quantiteQueLaPlaceAbsorbe()`, la même formule
+que `vendre()` : une quantité calculée autrement serait refusée par le plafond
+qu'on vient d'annoncer). **Les exploitations** — champs au Grenier, carrières à
+l'Entrepôt, pêcheries au Port — se voient en tuiles : état en lettres, équipage
+en pastilles ; le tableau reste dessous, détail ouvert d'office s'il y a une
+ligne muette ou épuisée. Le contenu replié reste dans le document : les tests
+et les lecteurs d'écran le lisent.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

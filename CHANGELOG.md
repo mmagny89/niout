@@ -14,6 +14,15 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Le Marché est plus simple à pratiquer** : la place du jour se lit en cases
+  (écoulé en terre cuite, reste en pointillés), chaque lot propose d'emblée la
+  quantité que la place absorbe encore — un clic suffit —, et les explications
+  comme le réglage du prix passent dans des replis, ouverts d'office quand la
+  ville se plaint des prix.
+- **Champs, carrières et pêcheries se voient en tuiles** : chaque exploitation a
+  la sienne, avec son état en toutes lettres et son équipage en pastilles
+  (pleines pour les bras présents, creuses pour ceux qui manquent). Le tableau
+  détaillé reste en dessous, ouvert d'office dès que quelque chose cloche.
 - **Le Grenier et l'Entrepôt se voient** : la réserve est rangée en cases —
   chaque case vaut quelques unités —, pleines par ressource au Grenier, par
   famille à l'Entrepôt, vides en pointillés pour la place qui reste. Une

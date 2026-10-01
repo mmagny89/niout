@@ -279,6 +279,7 @@ final class PartieController extends AbstractController
             // garde et de ce qui part.
             'repartition' => $this->repartitionDesReserves($ville),
             'venteRestante' => $marche->venteRestante($partie),
+            'jaugeDuMarche' => $marche->jauge($partie),
             'niveauDuMarche' => $ville->batimentDeType(TypeDeBatiment::Marche)?->getNiveau() ?? 0,
             // La renommée était nulle part à l'écran : ce qu'elle change — le
             // prix d'un appel, la migration spontanée, l'arrivée d'un rival —
