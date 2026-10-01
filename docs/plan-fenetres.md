@@ -1,6 +1,6 @@
 # Niout — Plan : tout en fenêtres au-dessus de la carte
 
-**Statut : à valider.** Rien de ce document n'est livré. Il prépare le gros
+**Statut : décisions prises (2026-10-01), rien de livré.** Il prépare le gros
 chantier — ne plus avoir de pages dans le jeu, mais **la carte en permanence et
 tout le reste en fenêtre par-dessus** — et pose les décisions à prendre avant
 d'écrire une ligne.
@@ -40,7 +40,7 @@ marcher sans réécriture — leur redirection tombe simplement dans le cadre.
 | **Les anciens liens et les tests** (89 références à `/ville` dans 21 fichiers) | `GET /partie/{id}/ville` **continue de répondre** : sans en-tête `Turbo-Frame`, elle rend la carte avec la fenêtre ouverte ; avec l'en-tête, seulement le cadre. Les tests qui lisent la page voient toujours le contenu (il est dans le document). Il faudra seulement adapter les contrôles de structure globaux. |
 | **La barre de jeu est hors de la fenêtre** : le deben change, la barre ment | La barre devient un cadre à elle (`<turbo-frame id="barre">`, route dédiée). Un événement `turbo:submit-end` dans la fenêtre la recharge. À la fermeture, si quelque chose a changé, **un rafraîchissement unique de la carte** (cases, signaux, expéditions). |
 | **Les messages (flashes)** vivent dans la coque, pas dans le cadre | Le gabarit du cadre les affiche et les consomme lui-même ; la coque les affiche si la page n'est pas une réponse de cadre. |
-| **Avancer d'une quinzaine depuis un panneau** | Le bouton est **répété dans l'en-tête de la fenêtre** ; il fait un rechargement complet de la carte avec `ouvre=` conservé : la fenêtre se rouvre au même endroit, le monde a avancé. |
+| **Avancer d'une quinzaine depuis un panneau** | **Le bouton reste dans la barre seulement** (décision). Pour qu'il reste utilisable fenêtre ouverte, la fenêtre est **non modale** (`dialog.show()`, pas `showModal()`) et ne couvre que la zone de la carte, jamais la barre. Le cycle recharge la carte avec `ouvre=` conservé : la fenêtre se rouvre au même endroit, le monde a avancé. |
 
 ## 4. L'architecture de la fenêtre
 
@@ -71,11 +71,11 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
 1. **Fondations.** Extraire la barre de jeu en cadre (`barre`) ; poser le
    `<dialog>` + `<turbo-frame id="fenetre">` dans la carte ; paramètre
    `ouvre=` validé (chemin interne à la partie, rien d'autre) ; rendu serveur
-   cadre-seul / carte-ouverte ; `replaceState`. *Aucun écran ne change encore.*
+   cadre-seul / carte-ouverte ; `replaceState`. La fenêtre est **non modale** et
+   ne recouvre pas la barre. *Aucun écran ne change encore.*
 2. **La ville dans la fenêtre.** Le rail de carrés et le cadre ; les liens de la
    cité et de la carte ouvrent la fenêtre ; flashes dans le cadre ; barre
-   rechargée après chaque action ; bouton de quinzaine dans l'en-tête. Les
-   gabarits de bâtiment passent tels quels.
+   rechargée après chaque action. Les gabarits de bâtiment passent tels quels.
 3. **Fermer proprement.** Rafraîchissement de la carte à la fermeture si une
    action a eu lieu ; gestion d'Échap / clic sur le fond / retour arrière ;
    suppression de la page cité.
@@ -91,17 +91,26 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
    la tuile qui a ouvert la fenêtre, annonce du titre à l'ouverture, contrôle au
    lecteur d'écran.
 
-## 7. Décisions à prendre
+## 7. Décisions prises
 
-1. **Périmètre de « tout »** : seulement le jeu (ville, cité, commande, reprise),
-   ou aussi la carte elle-même (case, expéditions, signaux) ?
-2. **Le panneau de droite de la carte** (détail d'une case, signaux, expéditions) :
-   le garder, ou libérer toute la carte et passer ces éléments en fenêtre /
-   surimpression ?
-3. **La forme de la fenêtre** : une fenêtre unique avec rail de carrés (proposé),
-   ou des fenêtres distinctes par bâtiment ?
-4. **Quinzaine suivante** : seulement dans la barre, ou aussi dans la fenêtre
-   (proposé, car on la passe souvent plusieurs fois de suite depuis un panneau) ?
+1. **Périmètre : le jeu complet.** Ville, cité, commande, reprise **et la carte
+   elle-même** — le détail d'une case, les expéditions et les signaux quittent le
+   panneau de droite pour des fenêtres ou des surimpressions, et la carte occupe
+   tout l'écran. La phase 5 en découle : elle n'est plus optionnelle.
+2. **Forme : une fenêtre unique avec rail de carrés** (§ 4).
+3. **Quinzaine : dans la barre seulement.** D'où la fenêtre non modale (§ 3) : fermer
+   pour avancer le temps serait le contraire de ce qu'on veut.
+
+### Conséquences à traiter en phase 5
+
+- **Le détail d'une case** devient une **fenêtre légère ancrée à la case** (ou une
+  feuille basse sur mobile), ouverte par un clic sur la tuile : on ne perd plus
+  30 % de la largeur à un panneau qu'on ne lit qu'un instant.
+- **Les signaux** (fièvre, disette, fête) deviennent des **pastilles dans la
+  barre de jeu** qui ouvrent le détail à la demande — ils doivent rester visibles
+  en permanence, ce que le panneau garantissait.
+- **Les expéditions en route** : une pastille et une liste dans la barre, ou un
+  calque discret sur la carte (une flèche vers la case de destination).
 
 ## 8. Risques
 
