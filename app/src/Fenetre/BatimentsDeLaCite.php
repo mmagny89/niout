@@ -63,20 +63,4 @@ final readonly class BatimentsDeLaCite
 
         return $cite;
     }
-
-    /**
-     * Les chantiers de bâtiments qui n'existent pas encore : pas d'onglet, mais
-     * le joueur doit voir que quelque chose se dresse.
-     *
-     * @return list<Chantier>
-     */
-    public function enChantier(GameSave $partie): array
-    {
-        $ville = $partie->getVille();
-
-        return array_values(array_filter(
-            $ville->getChantiers()->toArray(),
-            static fn (Chantier $chantier): bool => null === $ville->batimentDeType($chantier->getType()),
-        ));
-    }
 }

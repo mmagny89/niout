@@ -76,7 +76,7 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
 2. **La ville dans la fenêtre.** *(livrée)* Le rail de carrés et le cadre ; les liens de la
    cité et de la carte ouvrent la fenêtre ; flashes dans le cadre ; barre
    rechargée après chaque action. Les gabarits de bâtiment passent tels quels.
-3. **Fermer proprement.** Rafraîchissement de la carte à la fermeture si une
+3. **Fermer proprement.** *(livrée)* Rafraîchissement de la carte à la fermeture si une
    action a eu lieu ; gestion d'Échap / clic sur le fond / retour arrière ;
    suppression de la page cité.
 4. **Commande et reprise.** Ouverture d'office en fenêtre ; la route « reprendre »
@@ -151,3 +151,15 @@ la fois). **Même réserve qu'en phase 1** : le comportement du JavaScript n'a p
 l'autre, agir dans un panneau (vendre, fabriquer, répondre à une énigme) et
 vérifier que la barre se met à jour, recharger, avancer d'une quinzaine fenêtre
 ouverte, fermer.
+
+**Phase 3 livrée.** Le retour du navigateur ferme la fenêtre (`pushState` à
+l'ouverture, `replaceState` ensuite, `history.back()` à la fermeture) et la carte
+se rafraîchit une fois si une action a eu lieu. La suppression de la page cité,
+avancée en phase 2, est achevée (`BatimentsDeLaCite::enChantier()` retiré, plus
+aucun consommateur). **Écart au plan** : « clic sur le fond » abandonné — sans
+fond, la fenêtre étant non modale. **Même réserve** : tout ce qui touche
+l'historique et la fermeture ne se vérifie qu'au navigateur. À essayer : ouvrir
+la ville, appuyer sur « retour » (elle se ferme), « suivant » (elle se rouvre),
+ouvrir puis fermer par la croix puis « retour » (on quitte la carte, pas la
+fenêtre), agir dans un panneau puis fermer (la carte se rafraîchit, la fenêtre ne
+se rouvre pas).

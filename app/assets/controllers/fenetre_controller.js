@@ -18,6 +18,19 @@ import { Controller } from '@hotwired/stimulus';
  * endroit. Les champs `ouvre` des formulaires de la page — le bouton de cycle —
  * suivent, pour que la quinzaine rouvre la fenêtre là où elle était.
  *
+ * **Le bouton retour du navigateur ferme la fenêtre**, comme on s'y attend d'une
+ * fenêtre : ouvrir depuis la carte ajoute une entrée à l'historique
+ * (`pushState`), naviguer d'un bâtiment à l'autre la remplace (`replaceState`),
+ * et revenir en arrière — ou en avant — referme ou rouvre la fenêtre. Fermer par
+ * la croix ou Échap défait l'entrée qu'on avait ajoutée, de sorte que la
+ * fermeture ne laisse aucune trace. Une page rechargée avec la fenêtre déjà
+ * ouverte n'a pas d'entrée à elle : le retour quitte alors la carte, ce qui est
+ * l'attendu d'un rechargement.
+ *
+ * **Il n'y a pas de « clic sur le fond »**, la fenêtre étant non modale : la
+ * carte reste vivante derrière, et cliquer une case charge sa page, ce qui
+ * referme la fenêtre de fait.
+ *
  * **La barre se recharge après chaque action** de la fenêtre : le deben et les
  * réserves peuvent avoir changé, et elle est hors du cadre. Et, à la fermeture,
  * si quelque chose a changé, la carte se rafraîchit en entier — cases, signaux,
@@ -30,6 +43,15 @@ export default class extends Controller {
     connect() {
         this.modifiee = false;
         this.origine = null;
+        // Vrai quand l'ouverture a ajouté une entrée d'historique, que la
+        // fermeture doit défaire.
+        this.empilee = false;
+        // Vrai quand un `history.back()` vient de nous, et que le `popstate`
+        // qu'il provoque n'est donc pas à traiter une seconde fois.
+        this.retourInterne = false;
+
+        this.surHistorique = () => this.historiqueChange();
+        window.addEventListener('popstate', this.surHistorique);
 
         this.surEchap = (evenement) => {
             if (evenement.key === 'Escape' && this.fenetreTarget.open) {
@@ -47,6 +69,7 @@ export default class extends Controller {
     }
 
     disconnect() {
+        window.removeEventListener('popstate', this.surHistorique);
         document.removeEventListener('keydown', this.surEchap);
         this.element.removeEventListener('turbo:frame-load', this.surChargement);
         this.element.removeEventListener('turbo:submit-end', this.surEnvoi);
@@ -73,18 +96,69 @@ export default class extends Controller {
     }
 
     fermer() {
-        this.fenetreTarget.close();
+        this.refermer();
+
+        if (this.empilee) {
+            // L'ouverture avait ajouté une entrée : on la défait, pour que
+            // « retour » ne rouvre pas une fenêtre qu'on vient de fermer. Le
+            // rafraîchissement attend que l'adresse ait fini de reculer : le
+            // lancer tout de suite visiterait encore l'adresse « ouverte », et
+            // rouvrirait la fenêtre qu'on vient de fermer.
+            this.empilee = false;
+            this.retourInterne = true;
+            window.history.back();
+
+            return;
+        }
+
         this.mettreAJourLUrl(null);
+        this.rafraichirSiBesoin();
+    }
+
+    /** Ferme la fenêtre elle-même, sans toucher à l'historique ni à la carte. */
+    refermer() {
+        if (this.fenetreTarget.open) {
+            this.fenetreTarget.close();
+        }
 
         // Le focus retourne à ce qui a ouvert la fenêtre : sans cela, il tombe
         // sur le haut du document, et le clavier doit refaire tout le chemin.
         this.origine?.focus?.();
         this.origine = null;
+    }
 
-        if (this.modifiee) {
-            this.modifiee = false;
-            // Une seule fois, à la fermeture : la carte rend ce que la fenêtre a changé.
-            window.Turbo?.visit(window.location.href, { action: 'replace' });
+    /** Une seule fois, à la fermeture : la carte rend ce que la fenêtre a changé. */
+    rafraichirSiBesoin() {
+        if (!this.modifiee) {
+            return;
+        }
+
+        this.modifiee = false;
+        window.Turbo?.visit(window.location.href, { action: 'replace' });
+    }
+
+    /**
+     * « Retour » ou « Suivant » dans le navigateur : l'adresse dit si la fenêtre
+     * doit être ouverte, et sur quoi.
+     */
+    historiqueChange() {
+        if (this.retourInterne) {
+            this.retourInterne = false;
+            this.rafraichirSiBesoin();
+
+            return;
+        }
+
+        const ouvre = this.ouvreCourant();
+
+        if (!ouvre && this.fenetreTarget.open) {
+            this.empilee = false;
+            this.refermer();
+            this.rafraichirSiBesoin();
+        } else if (ouvre && !this.fenetreTarget.open && this.hasCadreTarget) {
+            // Retour vers une fenêtre ouverte : on recharge son contenu.
+            this.empilee = true;
+            this.cadreTarget.src = ouvre;
         }
     }
 
@@ -140,6 +214,11 @@ export default class extends Controller {
         return new URL(window.location.href).searchParams.get('ouvre');
     }
 
+    /** L'adresse dit-elle déjà qu'une fenêtre est ouverte ? */
+    get estOuverteDansLUrl() {
+        return this.ouvreCourant() !== null;
+    }
+
     mettreAJourLUrl(chemin) {
         const url = new URL(window.location.href);
 
@@ -149,7 +228,14 @@ export default class extends Controller {
             url.searchParams.delete('ouvre');
         }
 
-        window.history.replaceState(window.history.state, '', url);
+        // Ouvrir ajoute une entrée d'historique, naviguer dans la fenêtre la
+        // remplace : « retour » referme la fenêtre, il ne remonte pas ses étapes.
+        if (chemin && !this.estOuverteDansLUrl && !this.empilee) {
+            window.history.pushState({ fenetre: true }, '', url);
+            this.empilee = true;
+        } else {
+            window.history.replaceState(window.history.state, '', url);
+        }
 
         // Le bouton de cycle reprend la fenêtre où elle est.
         document.querySelectorAll('input[name="ouvre"]').forEach((champ) => {

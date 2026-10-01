@@ -36,6 +36,26 @@ final class FenetreTest extends WebTestCase
         self::assertSelectorExists('turbo-frame#barre');
     }
 
+    /**
+     * Le JavaScript de la fenêtre ne se teste pas sans navigateur ; ce qu'on
+     * peut garantir, c'est ce dont il dépend : le contrôleur, ses cibles, le
+     * bouton de fermeture et l'adresse de la barre à recharger.
+     */
+    public function testLaFenetreFournitCeDontLeControleurDepend(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-structure@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        $racine = $crawler->filter('[data-controller="fenetre"]');
+        self::assertCount(1, $racine);
+        self::assertStringContainsString(\sprintf('/partie/%d/barre', $partie->getId()), (string) $racine->attr('data-fenetre-barre-value'));
+        self::assertCount(1, $crawler->filter('dialog[data-fenetre-target="fenetre"] button[data-action="fenetre#fermer"][aria-label]'));
+        self::assertCount(1, $crawler->filter('dialog[data-fenetre-target="fenetre"] turbo-frame#fenetre'));
+        self::assertSelectorExists('dialog[aria-labelledby="fenetre-titre"]');
+    }
+
     public function testLaVilleRepondEnCadreAvecSonRailEtSonPanneau(): void
     {
         $client = static::createClient();
@@ -119,7 +139,7 @@ final class FenetreTest extends WebTestCase
         yield 'la carte elle-même' => ['/partie/{id}/carte'];
         yield 'une route qui n\'est pas une fenêtre' => ['/partie/{id}/commande'];
         yield 'un jeton de requête forgé' => ['/partie/{id}/ville?onglet=<script>'];
-        yield 'une remontée' => ['/partie/{id}/../{id}/cite'];
+        yield 'une remontée' => ['/partie/{id}/../{id}/ville'];
         yield 'un caractère de contrôle' => ["/partie/{id}/ville?onglet=marche\r\nX: 1"];
         yield 'du vide' => [''];
     }

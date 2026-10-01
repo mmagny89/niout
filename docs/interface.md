@@ -211,7 +211,7 @@ peut jouer à gauche et le formulaire à droite. Les pages hors jeu (accueil,
 connexion, compte, administration) n'entrent pas dans cette règle.
 
 **La carte ouvre ses écrans dans une fenêtre** (chantier décrit dans
-[`plan-fenetres.md`](plan-fenetres.md), phases 1 et 2 livrées). Un `<dialog>` **non
+[`plan-fenetres.md`](plan-fenetres.md), phases 1 à 3 livrées). Un `<dialog>` **non
 modal** porte un `<turbo-frame id="fenetre">` ; un lien `data-turbo-frame="fenetre"`
 y charge sa cible sans quitter la carte. **Non modal parce que le bouton de cycle
 est dans la barre** : la fenêtre ne couvre que la zone de la carte, jamais la
@@ -228,6 +228,18 @@ vers la carte ouverte sans lui. **La barre de jeu est un cadre** (`barre`,
 `app_partie_barre`) : elle se recharge seule après chaque action de la fenêtre,
 et la carte se rafraîchit une fois à la fermeture si quelque chose a changé. Les
 routes de fenêtre vivent dans `FenetreController`, pas dans `PartieController`.
+
+**Fermer proprement** (phase 3). Le bouton retour du navigateur ferme la fenêtre :
+ouvrir depuis la carte ajoute une entrée d'historique (`pushState`), naviguer d'un
+bâtiment à l'autre la remplace (`replaceState`), et fermer par la croix ou Échap
+**défait** l'entrée ajoutée, de sorte que la fermeture ne laisse aucune trace. Un
+piège payé d'avance : le rafraîchissement de la carte, quand quelque chose a
+changé, **attend que l'adresse ait fini de reculer** — le lancer tout de suite
+visiterait encore l'adresse « ouverte » et rouvrirait la fenêtre qu'on vient de
+fermer. Une page rechargée avec la fenêtre déjà ouverte n'a pas d'entrée à elle :
+le retour quitte alors la carte, ce qui est l'attendu d'un rechargement. **Il n'y a
+pas de « clic sur le fond »** : la fenêtre est non modale, la carte reste vivante
+derrière, et cliquer une case charge sa page, ce qui referme la fenêtre de fait.
 
 **La ville est la première fenêtre** (`fenetre/ville.html.twig`) : **un rail de
 carrés à gauche — la cité —, le panneau du bâtiment choisi à droite**. Cliquer un
