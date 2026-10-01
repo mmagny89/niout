@@ -29,14 +29,14 @@ final class FenetreTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
 
-        $lien = $crawler->filter(\sprintf('a[href="/partie/%d/cite"][data-turbo-frame="fenetre"]', $partie->getId()));
+        $lien = $crawler->filter(\sprintf('a[href="/partie/%d/ville?onglet=residence_familiale"][data-turbo-frame="fenetre"]', $partie->getId()));
         self::assertGreaterThan(0, $lien->count(), 'La ville s\'ouvre dans le cadre, pas en page.');
         self::assertSelectorExists('dialog[data-fenetre-target="fenetre"]:not([open])');
         self::assertSelectorExists('turbo-frame#fenetre');
         self::assertSelectorExists('turbo-frame#barre');
     }
 
-    public function testLaCiteRepondEnCadreAvecSesCarres(): void
+    public function testLaVilleRepondEnCadreAvecSonRailEtSonPanneau(): void
     {
         $client = static::createClient();
         $partie = $this->partie($client, 'fenetre-cadre@example.com');
@@ -44,26 +44,32 @@ final class FenetreTest extends WebTestCase
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier));
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/cite', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=grenier', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
 
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('turbo-frame#fenetre');
-        self::assertCount(1, $crawler->filter(\sprintf('a[href="/partie/%d/ville?onglet=grenier"]', $partie->getId())));
-        self::assertCount(1, $crawler->filter(\sprintf('a[href="/partie/%d/ville?onglet=residence_familiale"]', $partie->getId())));
+        self::assertCount(1, $crawler->filter(\sprintf('nav a[href="/partie/%d/ville?onglet=grenier"][aria-current="page"]', $partie->getId())));
+        self::assertCount(1, $crawler->filter(\sprintf('nav a[href="/partie/%d/ville?onglet=residence_familiale"]', $partie->getId())));
+        self::assertSelectorExists('#panneau-grenier');
         self::assertSelectorNotExists('header', 'Un cadre de fenêtre ne rend pas la coque.');
+        self::assertSelectorNotExists('turbo-frame#barre', 'Ni la barre.');
     }
 
-    public function testSansEnTeteDeCadreLaCiteRenvoieVersLaCarteOuverte(): void
+    public function testSansEnTeteDeCadreLaVilleRendLaCarteOuverte(): void
     {
         $client = static::createClient();
         $partie = $this->partie($client, 'fenetre-renvoi@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Marche));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $client->request('GET', \sprintf('/partie/%d/cite', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=marche', $partie->getId()));
 
-        self::assertResponseRedirects();
-        $lieu = (string) $client->getResponse()->headers->get('Location');
-        self::assertStringContainsString(\sprintf('/partie/%d/carte', $partie->getId()), $lieu);
-        self::assertStringContainsString('ouvre=', $lieu);
+        // Une adresse tapée, un lien partagé : la carte, avec la fenêtre ouverte.
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('dialog[data-fenetre-target="fenetre"][open]');
+        self::assertCount(1, $crawler->filter('dialog #panneau-marche'));
+        self::assertGreaterThan(0, $crawler->filter('[data-carte-target="grille"]')->count(), 'La carte est toujours là, derrière.');
     }
 
     public function testLaCarteRendLaFenetreDejaOuvertePourQuiRecharge(): void
@@ -75,15 +81,15 @@ final class FenetreTest extends WebTestCase
         $ville->ajouterChantier(new Chantier($ville, TypeDeBatiment::Port, 1));
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/carte?ouvre=%s', $partie->getId(), rawurlencode(\sprintf('/partie/%d/cite', $partie->getId()))));
+        $ouvre = \sprintf('/partie/%d/ville?onglet=marche', $partie->getId());
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte?ouvre=%s', $partie->getId(), rawurlencode($ouvre)));
 
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('dialog[data-fenetre-target="fenetre"][open]');
-        self::assertCount(1, $crawler->filter(\sprintf('dialog a[href="/partie/%d/ville?onglet=marche"]', $partie->getId())));
-        self::assertSelectorTextContains('dialog', 'En chantier');
-        self::assertSelectorTextContains('dialog', 'Port');
-        // La carte est toujours là, derrière.
-        self::assertGreaterThan(0, $crawler->filter('a[data-turbo-frame="fenetre"]')->count());
+        self::assertCount(1, $crawler->filter('dialog #panneau-marche'));
+        self::assertCount(1, $crawler->filter('dialog nav a[aria-current="page"][href$="onglet=marche"]'));
+        // Un chantier de bâtiment qui n'existe pas encore ne fait pas un carré.
+        self::assertCount(0, $crawler->filter('dialog nav a[href$="onglet=port"]'));
     }
 
     /**
@@ -107,13 +113,14 @@ final class FenetreTest extends WebTestCase
      */
     public static function ouvertures(): iterable
     {
-        yield 'un autre site' => ['https://example.org/partie/{id}/cite'];
-        yield 'une URL relative au protocole' => ['//example.org/partie/{id}/cite'];
-        yield 'la partie d\'un autre' => ['/partie/999999/cite'];
+        yield 'un autre site' => ['https://example.org/partie/{id}/ville?onglet=marche'];
+        yield 'une URL relative au protocole' => ['//example.org/partie/{id}/ville?onglet=marche'];
+        yield 'la partie d\'un autre' => ['/partie/999999/ville?onglet=marche'];
         yield 'la carte elle-même' => ['/partie/{id}/carte'];
-        yield 'une route qui n\'est pas une fenêtre' => ['/partie/{id}/ville'];
+        yield 'une route qui n\'est pas une fenêtre' => ['/partie/{id}/commande'];
+        yield 'un jeton de requête forgé' => ['/partie/{id}/ville?onglet=<script>'];
         yield 'une remontée' => ['/partie/{id}/../{id}/cite'];
-        yield 'un caractère de contrôle' => ["/partie/{id}/cite\r\nX: 1"];
+        yield 'un caractère de contrôle' => ["/partie/{id}/ville?onglet=marche\r\nX: 1"];
         yield 'du vide' => [''];
     }
 
@@ -122,13 +129,13 @@ final class FenetreTest extends WebTestCase
         $client = static::createClient();
         $partie = $this->partie($client, 'fenetre-barre@example.com');
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/barre?retour=app_partie_carte&ouvre=%s', $partie->getId(), rawurlencode(\sprintf('/partie/%d/cite', $partie->getId()))));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/barre?retour=app_partie_carte&ouvre=%s', $partie->getId(), rawurlencode(\sprintf('/partie/%d/ville?onglet=marche', $partie->getId()))));
 
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('turbo-frame#barre[target="_top"]');
         self::assertSelectorTextContains('turbo-frame#barre', 'Deben');
         self::assertSame(
-            \sprintf('/partie/%d/cite', $partie->getId()),
+            \sprintf('/partie/%d/ville?onglet=marche', $partie->getId()),
             $crawler->filter('turbo-frame#barre input[name="ouvre"]')->attr('value'),
             'Le bouton de cycle reprend la fenêtre où elle est.',
         );
@@ -148,7 +155,7 @@ final class FenetreTest extends WebTestCase
     {
         $client = static::createClient();
         $partie = $this->partie($client, 'fenetre-cycle@example.com');
-        $cite = \sprintf('/partie/%d/cite', $partie->getId());
+        $cite = \sprintf('/partie/%d/ville?onglet=marche', $partie->getId());
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte?ouvre=%s', $partie->getId(), rawurlencode($cite)));
         $formulaire = $crawler->filter(\sprintf('form[action="/partie/%d/cycle"]', $partie->getId()));
@@ -178,7 +185,7 @@ final class FenetreTest extends WebTestCase
         $gestionnaire->flush();
         $client->loginUser($autre);
 
-        $client->request('GET', \sprintf('/partie/%d/cite', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
         self::assertResponseStatusCodeSame(403);
 
         $client->request('GET', \sprintf('/partie/%d/barre', $partie->getId()));

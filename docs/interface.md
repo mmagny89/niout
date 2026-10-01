@@ -211,13 +211,13 @@ peut jouer à gauche et le formulaire à droite. Les pages hors jeu (accueil,
 connexion, compte, administration) n'entrent pas dans cette règle.
 
 **La carte ouvre ses écrans dans une fenêtre** (chantier décrit dans
-[`plan-fenetres.md`](plan-fenetres.md), phase 1 livrée). Un `<dialog>` **non
+[`plan-fenetres.md`](plan-fenetres.md), phases 1 et 2 livrées). Un `<dialog>` **non
 modal** porte un `<turbo-frame id="fenetre">` ; un lien `data-turbo-frame="fenetre"`
 y charge sa cible sans quitter la carte. **Non modal parce que le bouton de cycle
 est dans la barre** : la fenêtre ne couvre que la zone de la carte, jamais la
 barre, et `fenetre_controller.js` rend à la main ce que `showModal()` donnait —
 Échap ferme, le focus entre dans la fenêtre et retourne à ce qui l'a ouverte.
-**L'état est dans l'URL** : `carte?ouvre=/partie/12/cite`. Le serveur rend la
+**L'état est dans l'URL** : `carte?ouvre=/partie/12/ville?onglet=grenier`. Le serveur rend la
 carte avec la fenêtre déjà remplie (`OuvertureDeFenetre`, par sous-requête avec
 l'en-tête `Turbo-Frame`), recharger la page la rouvre au même endroit, et
 `replaceState` tient l'adresse à jour. **Le paramètre vient du visiteur et ne se
@@ -229,12 +229,28 @@ vers la carte ouverte sans lui. **La barre de jeu est un cadre** (`barre`,
 et la carte se rafraîchit une fois à la fermeture si quelque chose a changé. Les
 routes de fenêtre vivent dans `FenetreController`, pas dans `PartieController`.
 
-**La cité** est le premier écran en fenêtre : un carré par bâtiment construit,
-chacun menant à son onglet. **Chaque carte a un emplacement pour son visuel** :
-déposer `app/assets/images/batiments/<type>.webp` (`grenier.webp`,
-`maison_des_scribes.webp`…) suffit, `BatimentsDeLaCite` teste l'existence du
-fichier et le gabarit n'a pas à changer ; sans image, un monogramme tient la place
-dans le même cadre, pour que la grille ne bouge pas à l'arrivée des images.
+**La ville est la première fenêtre** (`fenetre/ville.html.twig`) : **un rail de
+carrés à gauche — la cité —, le panneau du bâtiment choisi à droite**. Cliquer un
+carré change le contenu du cadre sans fermer la fenêtre ; cliquer la tuile de la
+ville sur la carte l'ouvre sur la Résidence. **On ne rend que le panneau ouvert**,
+plus tous les onglets de bâtiment qu'il fallait rendre puis masquer : la moitié du
+travail en moins, et une page qui se charge plus vite. Le panneau garde
+l'identifiant `panneau-<bâtiment>` qu'il avait du temps des onglets, et ses
+sous-onglets (`_sous_onglets.html.twig`) ne changent pas. **Sans l'en-tête
+`Turbo-Frame`, `GET /ville` ne redirige pas : elle rend la carte avec la fenêtre
+ouverte** (`forward` vers la carte, qui relance la sous-requête de cadre), de sorte
+qu'une adresse tapée, un lien partagé et une redirection après action retombent
+sur le bon écran — et que les tests lisent encore le contenu. Les liens qui
+quittent la ville vers une case de la carte portent `data-turbo-frame="_top"`.
+Le bouton de cycle, quand la ville est rendue en fenêtre, ramène à la **carte**
+(`ouvre` conservé), pas à `/ville` : la fenêtre se rouvre au même endroit.
+
+**Chaque carré a son emplacement de visuel** : déposer
+`app/assets/images/batiments/<type>.webp` (`grenier.webp`, `maison_des_scribes.webp`…)
+suffit, `BatimentsDeLaCite` teste l'existence du fichier et le gabarit n'a pas à
+changer ; sans image, un monogramme tient la place dans le même cadre, pour que
+la grille ne bouge pas à l'arrivée des images. Les chantiers de bâtiments qui
+n'existent pas encore ne font pas un carré : ils figurent dans la Résidence.
 
 ## Signaux, alertes et reprise d'onglet
 

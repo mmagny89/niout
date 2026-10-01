@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\GameSave;
-use App\Fenetre\BatimentsDeLaCite;
-use App\Fenetre\OuvertureDeFenetre;
 use App\Game\GeographieDeLaPartie;
 use App\Security\Voter\PartieVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,8 +25,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * Chaque route de fenêtre répond de deux façons. **Avec l'en-tête
  * `Turbo-Frame: fenetre`** — le clic d'un lien, la sous-requête d'un
  * rechargement — elle rend le contenu du cadre, seul. **Sans** — l'URL tapée,
- * un lien partagé —, elle renvoie vers la carte avec la fenêtre ouverte :
- * un écran de fenêtre n'existe pas hors de la carte.
+ * un lien partagé —, elle rend la carte avec la fenêtre ouverte : un écran de
+ * fenêtre n'existe pas hors de la carte. La ville (`app_partie_ville`), seule
+ * route de fenêtre aujourd'hui, reste dans `PartieController` jusqu'à ce que
+ * celui-ci soit allégé.
  */
 #[Route('/partie')]
 final class FenetreController extends AbstractController
@@ -37,7 +37,7 @@ final class FenetreController extends AbstractController
      * Les écrans à partir desquels le bouton de cycle peut ramener le joueur.
      * Même liste que `PartieController::routeDeRetour()`.
      */
-    private const array RETOURS = ['app_partie_carte', 'app_partie_ville', 'app_partie_cite'];
+    private const array RETOURS = ['app_partie_carte', 'app_partie_ville'];
 
     /**
      * La barre de jeu, rendue seule : c'est ce que la fenêtre recharge après une
@@ -64,28 +64,6 @@ final class FenetreController extends AbstractController
             'ongletDuCycle' => \is_string($onglet) && 1 === preg_match('/^[a-z_]{1,40}$/', $onglet) ? $onglet : null,
             'zoneDuCycle' => \is_string($zone) && 1 === preg_match('/^\d{1,3}-\d{1,3}$/', $zone) ? $zone : null,
             'ouvreDuCycle' => \is_string($ouvre) ? $ouvre : null,
-        ]);
-    }
-
-    /**
-     * La cité : un carré par bâtiment construit, chacun menant à son onglet.
-     */
-    #[Route('/{id}/cite', name: 'app_partie_cite', requirements: ['id' => '\d+'], methods: ['GET'])]
-    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function cite(Request $requete, GameSave $partie, BatimentsDeLaCite $cite): Response
-    {
-        if (!OuvertureDeFenetre::estUneRequeteDeCadre($requete)) {
-            return $this->redirectToRoute('app_partie_carte', [
-                'id' => $partie->getId(),
-                'ouvre' => $this->generateUrl('app_partie_cite', ['id' => $partie->getId()]),
-            ]);
-        }
-
-        return $this->render('fenetre/cite.html.twig', [
-            'partie' => $partie,
-            'ville' => $partie->getVille(),
-            'batiments' => $cite->pour($partie),
-            'enChantier' => $cite->enChantier($partie),
         ]);
     }
 }

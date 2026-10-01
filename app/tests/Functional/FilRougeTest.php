@@ -219,7 +219,7 @@ final class FilRougeTest extends WebTestCase
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::MaisonDesScribes, 1));
         $gestionnaire->flush();
 
-        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
 
         self::assertSelectorTextContains('#panneau-maison_des_scribes', 'Acte I');
         self::assertSelectorTextContains('#panneau-maison_des_scribes', 'Ahmôsis');

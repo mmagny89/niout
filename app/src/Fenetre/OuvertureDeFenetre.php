@@ -14,7 +14,7 @@ use Symfony\Component\Routing\RouterInterface;
 /**
  * La fenêtre ouverte au-dessus de la carte, telle que l'URL la dit.
  *
- * **L'état de la fenêtre est dans l'URL** : `carte?ouvre=/partie/12/cite`.
+ * **L'état de la fenêtre est dans l'URL** : `carte?ouvre=/partie/12/ville?onglet=grenier`.
  * Recharger la page, revenir en arrière ou partager le lien rouvre la fenêtre
  * au même endroit. Le serveur rend alors la carte **avec la fenêtre déjà
  * remplie** — pas de chargement différé, pas de scintillement, et les tests
@@ -37,7 +37,7 @@ final readonly class OuvertureDeFenetre
      * Les routes qui savent répondre en cadre. On l'allonge à mesure que les
      * écrans passent en fenêtre.
      */
-    public const array ROUTES_DE_CADRE = ['app_partie_cite'];
+    public const array ROUTES_DE_CADRE = ['app_partie_ville'];
 
     public const string CADRE = 'fenetre';
 

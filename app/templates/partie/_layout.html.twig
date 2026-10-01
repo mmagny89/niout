@@ -17,7 +17,9 @@
        l'écran, l'onglet, la case, la fenêtre ouverte. Calculé ici plutôt que dans
        la barre, qui se recharge seule (route `app_partie_barre`) avec les mêmes
        valeurs passées en paramètres. #}
-    {% set retourDuCycle = app.request.attributes.get('_route') %}
+    {# Une ville rendue en fenêtre (`ouvre`) est une carte : le cycle ramène à la
+       carte, la fenêtre rouverte au même endroit. #}
+    {% set retourDuCycle = ouvre is defined and ouvre ? 'app_partie_carte' : app.request.attributes.get('_route') %}
     {% set ongletDuCycle = ongletActif is defined ? ongletActif : null %}
     {% set zoneDuCycle = zoneDetaillee is defined and zoneDetaillee ? zoneDetaillee.x ~ '-' ~ zoneDetaillee.y : null %}
     {% set ouvreDuCycle = ouvre is defined and ouvre ? ouvre : null %}

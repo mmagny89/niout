@@ -218,13 +218,13 @@ final class CarteTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         $client->submit($crawler->selectButton('Quinzaine suivante')->form());
 
-        // Et sur l'onglet d'où l'on est parti : on passe souvent plusieurs
-        // quinzaines de suite depuis le même panneau.
-        self::assertResponseRedirects(\sprintf(
-            '/partie/%d/ville?onglet=%s',
-            $partie->getId(),
-            TypeDeBatiment::ResidenceFamiliale->value,
-        ));
+        // Et sur la fenêtre d'où l'on est parti : on passe souvent plusieurs
+        // quinzaines de suite depuis le même panneau. La ville est une fenêtre
+        // de la carte : le cycle ramène à la carte, fenêtre rouverte.
+        self::assertResponseRedirects();
+        $lieu = urldecode((string) $client->getResponse()->headers->get('Location'));
+        self::assertStringContainsString(\sprintf('/partie/%d/carte', $partie->getId()), $lieu);
+        self::assertStringContainsString(\sprintf('ouvre=/partie/%d/ville', $partie->getId()), $lieu);
     }
 
     /**

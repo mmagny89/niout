@@ -21,11 +21,11 @@
         <span aria-hidden="true">&times;</span>
     </button>
 
-    <div class="h-full overflow-y-auto">
+    <div class="h-full overflow-hidden">
         {% if fenetre %}
             {{ fenetre|raw }}
         {% else %}
-            <turbo-frame id="fenetre" data-fenetre-target="cadre"></turbo-frame>
+            <turbo-frame id="fenetre" class="block h-full" data-fenetre-target="cadre"></turbo-frame>
         {% endif %}
     </div>
 </dialog>

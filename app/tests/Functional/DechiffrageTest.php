@@ -143,7 +143,7 @@ final class DechiffrageTest extends WebTestCase
         $client = static::createClient();
         $partie = $this->villeAvecScribes('clavier@example.com', $client);
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
 
         $jetons = $crawler->filter('[data-dechiffrage-target="reserve"] button');
         self::assertGreaterThan(0, $jetons->count());
@@ -176,7 +176,7 @@ final class DechiffrageTest extends WebTestCase
         $ordres = [];
 
         for ($essai = 0; $essai < 30; ++$essai) {
-            $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+            $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
             $ordres[] = implode(',', $crawler->filter('[data-dechiffrage-target="reserve"] button')->each(
                 static fn ($n): string => (string) $n->attr('data-signe'),
             ));
@@ -196,7 +196,7 @@ final class DechiffrageTest extends WebTestCase
         $inscription = $this->dechiffrage()->proposition($partie);
         self::assertNotNull($inscription);
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
         $jeton = $crawler->filter(\sprintf('form[action="/partie/%d/scribes/dechiffrer"] input[name="_token"]', $partie->getId()))
             ->attr('value');
 

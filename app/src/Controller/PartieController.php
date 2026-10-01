@@ -11,6 +11,7 @@ use App\Entity\GameSave;
 use App\Entity\User;
 use App\Entity\Zone;
 use App\Enum\GameMode;
+use App\Fenetre\BatimentsDeLaCite;
 use App\Fenetre\OuvertureDeFenetre;
 use App\Form\NouvellePartieType;
 use App\Game\AlphabetDesScribes;
@@ -230,7 +231,18 @@ final class PartieController extends AbstractController
         ScoreDAventure $score,
         SuccessionFamiliale $successionFamiliale,
         TravauxEnCours $travaux,
+        BatimentsDeLaCite $cite,
     ): Response {
+        // **La ville est une fenêtre, pas une page** (`docs/plan-fenetres.md`).
+        // Sans l'en-tête `Turbo-Frame`, on rend la carte avec la fenêtre déjà
+        // ouverte sur cette adresse : une adresse tapée, un lien partagé ou une
+        // redirection après action retombent sur le bon écran. Le contenu de la
+        // fenêtre est alors calculé une seule fois, par la sous-requête que la
+        // carte lance vers cette même route.
+        if (!OuvertureDeFenetre::estUneRequeteDeCadre($request)) {
+            return $this->forward(self::class.'::carte', ['id' => $partie->getId()], ['ouvre' => $request->getRequestUri()]);
+        }
+
         $ville = $partie->getVille();
         $geographie = $geographies->pour($partie);
         $onglets = $this->ongletsDeLaVille($ville);
@@ -249,7 +261,10 @@ final class PartieController extends AbstractController
         $graineDeLecture = random_int(1, \PHP_INT_MAX >> 33);
         $maisonDesScribes = $ville->possede(TypeDeBatiment::MaisonDesScribes);
 
-        return $this->render('partie/ville.html.twig', [
+        return $this->render('fenetre/ville.html.twig', [
+            // Le rail des carrés : la cité, qui permet de passer d'un bâtiment à
+            // l'autre sans fermer la fenêtre.
+            'rail' => $cite->pour($partie),
             'partie' => $partie,
             'ville' => $ville,
             'onglets' => $onglets,
@@ -1824,7 +1839,7 @@ final class PartieController extends AbstractController
     {
         $demande = $request->request->get('retour');
 
-        return \in_array($demande, ['app_partie_carte', 'app_partie_ville', 'app_partie_cite'], true)
+        return \in_array($demande, ['app_partie_carte', 'app_partie_ville'], true)
             ? $demande
             : 'app_partie_carte';
     }

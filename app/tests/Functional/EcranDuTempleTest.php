@@ -34,7 +34,7 @@ final class EcranDuTempleTest extends WebTestCase
         $client = static::createClient();
         $partie = $this->partieAvecTemple($client, 'ecran-temple@example.com');
 
-        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=temple', $partie->getId()));
 
         self::assertResponseIsSuccessful();
 
@@ -78,7 +78,7 @@ final class EcranDuTempleTest extends WebTestCase
         $client = static::createClient();
         $partie = $this->partieAvecTemple($client, 'porter@example.com');
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=temple', $partie->getId()));
         $jeton = $crawler->filter(\sprintf('form[action="/partie/%d/temple/offrir"] input[name="_token"]', $partie->getId()))
             ->first()->attr('value');
 
@@ -122,14 +122,14 @@ final class EcranDuTempleTest extends WebTestCase
         $partie = $this->lancer($joueur);
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorNotExists('#onglet-temple');
+        self::assertSelectorNotExists('nav[aria-label^="Bâtiments"] a[href$="onglet=temple"]');
         self::assertSelectorNotExists('#panneau-temple');
 
         $partie->getVille()->ajouterBatiment(new Building($partie->getVille(), TypeDeBatiment::Temple, 1));
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorExists('#onglet-temple');
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=temple', $partie->getId()));
+        self::assertSelectorExists('nav[aria-label^="Bâtiments"] a[href$="onglet=temple"]');
         self::assertSelectorExists('#panneau-temple');
     }
 

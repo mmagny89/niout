@@ -1,0 +1,113 @@
+{# La ville, dans la fenêtre : un rail de carrés à gauche, le panneau du
+   bâtiment choisi à droite.
+
+   **Le rail est la cité** : un carré par bâtiment construit, et cliquer l'un
+   d'eux change le contenu du cadre sans fermer la fenêtre. Plus d'onglets de
+   bâtiment qu'il faudrait tous rendre et tous masquer — on ne rend que le
+   panneau ouvert, ce qui est la moitié du travail de moins pour le serveur et
+   pour le navigateur. Les sous-onglets d'un bâtiment, eux, restent
+   (`_sous_onglets.html.twig`).
+
+   Chaque carré a son emplacement de visuel : l'image s'il en existe une
+   (`assets/images/batiments/<type>.webp`), un monogramme sinon.
+
+   Les liens qui quittent la ville — vers une case de la carte — portent
+   `data-turbo-frame="_top"` : ils chargent la page entière, pas le cadre. #}
+{% set onglet = onglets|filter(o => o.cle == ongletActif)|first %}
+<turbo-frame id="fenetre" class="block h-full">
+    {{ include('_messages_de_jeu.html.twig') }}
+
+    <div class="flex h-full min-h-0 flex-col md:flex-row">
+        <nav class="shrink-0 border-b border-ocre-500/25 bg-sable-100/60 md:w-32 md:border-b-0 md:border-r md:overflow-y-auto"
+             aria-label="Bâtiments {{ ville.avecPreposition }}">
+            <p class="hidden px-3 pt-3 text-xs font-medium uppercase tracking-wide text-encre-500 md:block">La cité</p>
+
+            <ul class="flex list-none gap-2 overflow-x-auto p-2 md:grid md:grid-cols-2 md:overflow-visible md:p-3">
+                {% for entree in rail %}
+                    {% set type = entree.type %}
+                    {% set actif = type.value == ongletActif %}
+                    <li class="shrink-0">
+                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: type.value}) }}"
+                           {{ actif ? 'aria-current="page"' }}
+                           title="{{ type.libelle }}{{ entree.batiment ? ' — niveau ' ~ entree.batiment.niveau : '' }}"
+                           class="group relative flex size-16 flex-col items-center justify-center overflow-hidden rounded-sm border
+                                  text-center no-underline md:size-auto md:aspect-square
+                                  {{ actif
+                                      ? 'border-terre-500 bg-ocre-300/40'
+                                      : 'border-ocre-500/40 bg-sable-200 hover:border-terre-500/70 hover:bg-ocre-300/30' }}
+                                  focus-visible:outline-2 focus-visible:outline-lapis-500">
+                            {% if entree.visuel %}
+                                <img src="{{ asset(entree.visuel) }}" alt="" loading="lazy" decoding="async"
+                                     class="absolute inset-0 h-full w-full object-cover">
+                            {% else %}
+                                <span class="font-display text-2xl {{ actif ? 'text-terre-600' : 'text-ocre-600/70 group-hover:text-terre-500' }}" aria-hidden="true">
+                                    {{ type.libelle|first|upper }}
+                                </span>
+                            {% endif %}
+
+                            <span class="absolute inset-x-0 bottom-0 bg-sable-50/90 px-0.5 py-0.5 text-[10px] leading-tight text-encre-900">
+                                {{ type.libelle }}
+                            </span>
+
+                            {% if entree.chantier %}
+                                <span class="absolute right-0.5 top-0.5 rounded-sm bg-ocre-500 px-1 text-[10px] font-medium text-sable-50"
+                                      title="Travaux en cours">
+                                    <span aria-hidden="true">⚒</span>
+                                    <span class="sr-only">Travaux en cours</span>
+                                </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endfor %}
+
+                {# Le mode d'essai n'est pas un bâtiment : il ferme le rail, et
+                   n'existe que pour un compte qui porte le rôle. #}
+                {% if onglets|filter(o => o.cle == 'essai')|length > 0 %}
+                    <li class="shrink-0">
+                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'essai'}) }}"
+                           {{ ongletActif == 'essai' ? 'aria-current="page"' }}
+                           class="flex size-16 items-center justify-center rounded-sm border border-dashed border-lapis-500/50
+                                  text-xs text-lapis-600 no-underline hover:bg-lapis-500/10 md:size-auto md:aspect-square
+                                  {{ ongletActif == 'essai' ? 'bg-lapis-500/10' : '' }}">
+                            Essai
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <div class="min-h-0 min-w-0 flex-1 overflow-y-auto px-5 pb-10 pt-4 md:px-6">
+            {# Ce que la barre de jeu ne dit pas : ce que la saison change
+               concrètement. Une ligne, pas un encadré.
+
+               **Sans Nil, la saison ne dit rien de vrai** (doc 02) : « le Nil
+               déborde, les paysans libérés grossissent les chantiers » n'a aucun
+               sens au Levant ou au Sinaï. Le calendrier reste égyptien — c'est
+               celui de la cour —, mais on n'y lit plus une crue absente. #}
+            <p class="text-xs text-encre-500">
+                {% if not connaitLaCrue %}
+                    <strong class="text-encre-700">{{ partie.dateDeJeu.libelle }}</strong> —
+                    aucun fleuve ne monte ici : les saisons du Nil n'y règlent ni les
+                    champs ni les chantiers.
+                {% elseif partie.dateDeJeu.saison %}
+                    <strong class="text-encre-700">{{ partie.dateDeJeu.saison.libelle }}</strong>,
+                    {{ partie.dateDeJeu.saison.sens }} — {{ partie.dateDeJeu.saison.description }}
+                {% else %}
+                    <strong class="text-encre-700">Hériou-renpèt</strong> — les cinq jours
+                    « au-dessus de l'année », hors mois et hors saison.
+                {% endif %}
+            </p>
+
+            {# L'état de la ville, le bon comme le mauvais, sur une ligne. #}
+            {{ include('partie/_signaux.html.twig') }}
+
+            {# Le panneau du bâtiment ouvert. L'identifiant `panneau-<bâtiment>` est
+               celui qu'il avait quand les onglets de la ville se masquaient les
+               uns les autres : les tests, les ancres et les liens s'y repèrent
+               toujours. #}
+            <section id="panneau-{{ onglet.cle }}" aria-labelledby="fenetre-titre">
+                {{ include('partie/batiments/_' ~ onglet.cle ~ '.html.twig') }}
+            </section>
+        </div>
+    </div>
+</turbo-frame>

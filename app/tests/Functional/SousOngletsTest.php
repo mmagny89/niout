@@ -33,20 +33,29 @@ final class SousOngletsTest extends WebTestCase
         $partie = static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
         $ville = $partie->getVille();
 
-        foreach ([
+        $types = [
             TypeDeBatiment::Marche, TypeDeBatiment::Port, TypeDeBatiment::Grenier, TypeDeBatiment::Entrepot,
             TypeDeBatiment::Atelier, TypeDeBatiment::Forge, TypeDeBatiment::Caserne, TypeDeBatiment::Temple,
             TypeDeBatiment::QuartierDHabitation, TypeDeBatiment::MaisonDesScribes, TypeDeBatiment::Auberge,
-        ] as $type) {
+        ];
+
+        foreach ($types as $type) {
             $ville->ajouterBatiment(new Building($ville, $type));
         }
 
         $gestionnaire->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertResponseIsSuccessful();
+        // **Toutes les pages, construites de la même manière** : la ville est une
+        // fenêtre à un panneau à la fois, et chaque panneau — la Résidence, la
+        // Maison des scribes, le Marché, le Port, le Grenier, l'Entrepôt,
+        // l'Atelier, la Forge, la Caserne, le Temple, le Quartier, l'Auberge —
+        // range ses sections en sous-onglets.
+        foreach ([TypeDeBatiment::ResidenceFamiliale, ...$types] as $type) {
+            $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=%s', $partie->getId(), $type->value));
+            self::assertResponseIsSuccessful($type->value);
 
-        $this->verifierLesBarres($crawler, 12);
+            $this->verifierLesBarres($crawler, 1, $type->value, '//dialog//nav[@role="tablist"]');
+        }
     }
 
     /**
@@ -54,19 +63,19 @@ final class SousOngletsTest extends WebTestCase
      * se suivent onglet pour panneau, dans le même ordre, avec un seul panneau
      * ouvert et aucun identifiant en double.
      */
-    private function verifierLesBarres(\Symfony\Component\DomCrawler\Crawler $crawler, int $attendues): void
+    private function verifierLesBarres(\Symfony\Component\DomCrawler\Crawler $crawler, int $attendues, string $page = '', string $portee = '//nav[@role="tablist"]'): void
     {
         $document = $crawler->getNode(0)?->ownerDocument;
         self::assertInstanceOf(\DOMDocument::class, $document);
         $xpath = new \DOMXPath($document);
 
-        $barres = $xpath->query('//nav[@role="tablist"][not(@aria-label="Sections de la ville")]');
+        $barres = $xpath->query($portee);
         self::assertInstanceOf(\DOMNodeList::class, $barres);
 
         // **Toutes les pages, construites de la même manière** : la Résidence,
         // la Maison des scribes, le Marché, le Port, le Grenier, l'Entrepôt,
         // l'Atelier, la Forge, la Caserne, le Temple, le Quartier, l'Auberge.
-        self::assertSame($attendues, $barres->length);
+        self::assertSame($attendues, $barres->length, $page);
 
         $ids = $crawler->filter('[id]')->each(static fn ($n): string => (string) $n->attr('id'));
         self::assertSame($ids, array_values(array_unique($ids)), 'Deux éléments partagent un identifiant : un onglet ouvrirait le voisin.');
@@ -148,10 +157,9 @@ final class SousOngletsTest extends WebTestCase
 
         $partie = static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=essai', $partie->getId()));
 
         self::assertResponseIsSuccessful();
-        // La Résidence et l'Essai.
-        $this->verifierLesBarres($crawler, 2);
+        $this->verifierLesBarres($crawler, 1, 'essai', '//dialog//nav[@role="tablist"]');
     }
 }

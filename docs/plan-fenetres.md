@@ -73,7 +73,7 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
    `ouvre=` validé (chemin interne à la partie, rien d'autre) ; rendu serveur
    cadre-seul / carte-ouverte ; `replaceState`. La fenêtre est **non modale** et
    ne recouvre pas la barre. *Aucun écran ne change encore.*
-2. **La ville dans la fenêtre.** Le rail de carrés et le cadre ; les liens de la
+2. **La ville dans la fenêtre.** *(livrée)* Le rail de carrés et le cadre ; les liens de la
    cité et de la carte ouvrent la fenêtre ; flashes dans le cadre ; barre
    rechargée après chaque action. Les gabarits de bâtiment passent tels quels.
 3. **Fermer proprement.** Rafraîchissement de la carte à la fermeture si une
@@ -139,3 +139,15 @@ barre, rafraîchissement à la fermeture) ne se teste pas sans JavaScript — le
 navigateur intégré refusait `https://localhost` pendant cette phase. À éprouver à
 la main avant la phase 2 : ouvrir la cité par la tuile, recharger, avancer d'une
 quinzaine fenêtre ouverte, fermer.
+
+**Phase 2 livrée.** La ville est la première fenêtre : un rail de carrés et le
+panneau du bâtiment ouvert, rendu seul. `GET /ville` sans en-tête de cadre
+rend la carte avec la fenêtre ouverte (`forward`) au lieu de rediriger. La page
+« cité », sa route et son gabarit sont supprimés : le rail la remplace — ce qui
+**avance la phase 3** d'autant. Le contrôle de structure des tests passe de « tous
+les onglets de la ville » à « le panneau ouvert » (`SousOngletsTest`, un panneau à
+la fois). **Même réserve qu'en phase 1** : le comportement du JavaScript n'a pas
+été éprouvé au navigateur. À essayer : cliquer la tuile, passer d'un carré à
+l'autre, agir dans un panneau (vendre, fabriquer, répondre à une énigme) et
+vérifier que la barre se met à jour, recharger, avancer d'une quinzaine fenêtre
+ouverte, fermer.
