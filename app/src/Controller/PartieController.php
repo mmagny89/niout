@@ -39,6 +39,7 @@ use App\Game\Enquete;
 use App\Game\EnqueteImpossible;
 use App\Game\Enquetes;
 use App\Game\EtatDeLaVille;
+use App\Game\ExerciceDesSons;
 use App\Game\ExploitationImpossible;
 use App\Game\Exploitations;
 use App\Game\ExplorationImpossible;
@@ -52,6 +53,7 @@ use App\Game\Impots;
 use App\Game\Inscription;
 use App\Game\LanceurDePartie;
 use App\Game\LeconDeNiout;
+use App\Game\LectureDeCartouche;
 use App\Game\Legs;
 use App\Game\Maisonnees;
 use App\Game\Marche;
@@ -239,6 +241,13 @@ final class PartieController extends AbstractController
 
         $maisons = Maisonnees::repartir($ville);
 
+        // Les deux exercices d'écriture, tirés à l'affichage : la graine part
+        // avec le formulaire, et le serveur recompose la même série pour
+        // corriger. Rien n'est stocké entre les deux.
+        $graineDesSons = random_int(1, \PHP_INT_MAX >> 33);
+        $graineDeLecture = random_int(1, \PHP_INT_MAX >> 33);
+        $maisonDesScribes = $ville->possede(TypeDeBatiment::MaisonDesScribes);
+
         return $this->render('partie/ville.html.twig', [
             'partie' => $partie,
             'ville' => $ville,
@@ -344,6 +353,11 @@ final class PartieController extends AbstractController
             'reserveDesVivres' => VueDeLaReserve::pour($ville, vivres: true),
             'reserveDesMateriaux' => VueDeLaReserve::pour($ville, vivres: false),
             'maisons' => $maisons,
+            'graineDesSons' => $graineDesSons,
+            'serieDesSons' => $maisonDesScribes ? ExerciceDesSons::serie($ville, $graineDesSons) : [],
+            'graineDeLecture' => $graineDeLecture,
+            'lectureDeCartouche' => $maisonDesScribes ? LectureDeCartouche::exercice($graineDeLecture) : null,
+            'questionsDesSons' => ExerciceDesSons::QUESTIONS,
             'descriptions' => array_map(Maisonnees::decrire(...), $maisons),
             'libres' => $ville->foyersLibres(),
             'masseSalariale' => $salaires->masseSalariale($ville, $partie->getCycle()),
@@ -1154,6 +1168,68 @@ final class PartieController extends AbstractController
                 $reponse['explication'],
             ));
         }
+
+        return $this->retourALaVille($request, $partie);
+    }
+
+    /**
+     * Corrige une série d'exercices sur les sons. La série n'est pas stockée :
+     * la graine revient avec les réponses, et le serveur recompose les mêmes
+     * questions (`ExerciceDesSons`).
+     */
+    #[Route('/{id}/scribes/exercice-sons', name: 'app_partie_exercice_sons', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function exerciceDesSons(Request $request, GameSave $partie, ExerciceDesSons $exercice): Response
+    {
+        if (!$this->isCsrfTokenValid('exercice-sons', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        if (!$partie->getVille()->possede(TypeDeBatiment::MaisonDesScribes)) {
+            throw $this->createAccessDeniedException('Il faut une Maison des scribes.');
+        }
+
+        $reponses = $request->request->all('reponse');
+        $bilan = $exercice->repondre($partie, (int) $request->request->get('graine'), $reponses);
+
+        $this->addFlash($bilan['reussie'] ? 'succes' : 'erreur', \sprintf(
+            '%d bonne%s réponse%s sur %d.%s%s%s',
+            $bilan['bonnes'],
+            $bilan['bonnes'] > 1 ? 's' : '',
+            $bilan['bonnes'] > 1 ? 's' : '',
+            $bilan['total'],
+            $bilan['recompense'] > 0 ? \sprintf(' Vos scribes reçoivent %d deben pour la série.', $bilan['recompense']) : '',
+            $bilan['reussie'] ? '' : \sprintf(' Il en fallait %d pour être récompensé : on peut recommencer, la série change.', ExerciceDesSons::SEUIL_DE_REUSSITE),
+            [] === $bilan['corrections'] ? '' : ' À retenir : '.implode(' ', $bilan['corrections']),
+        ));
+
+        return $this->retourALaVille($request, $partie);
+    }
+
+    /**
+     * Corrige la lecture d'un cartouche (`LectureDeCartouche`).
+     */
+    #[Route('/{id}/scribes/lecture-cartouche', name: 'app_partie_lecture_cartouche', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function lectureDeCartouche(Request $request, GameSave $partie, LectureDeCartouche $lecture): Response
+    {
+        if (!$this->isCsrfTokenValid('lecture-cartouche', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        if (!$partie->getVille()->possede(TypeDeBatiment::MaisonDesScribes)) {
+            throw $this->createAccessDeniedException('Il faut une Maison des scribes.');
+        }
+
+        $bilan = $lecture->repondre($partie, (int) $request->request->get('graine'), $request->request->all('reponse'));
+
+        $this->addFlash($bilan['juste'] ? 'succes' : 'erreur', \sprintf(
+            '%s %s%s %s',
+            $bilan['juste'] ? 'Bien lu.' : \sprintf('%d signe%s lu%s juste sur %d.', $bilan['bonnes'], $bilan['bonnes'] > 1 ? 's' : '', $bilan['bonnes'] > 1 ? 's' : '', $bilan['total']),
+            $bilan['lecon'],
+            $bilan['recompense'] > 0 ? \sprintf(' Vos scribes reçoivent %d deben pour la lecture.', $bilan['recompense']) : '',
+            implode(' ', $bilan['details']),
+        ));
 
         return $this->retourALaVille($request, $partie);
     }

@@ -14,6 +14,16 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **On pratique maintenant les hiéroglyphes, pas seulement on les regarde** : un
+  nouvel onglet « Exercices » à la Maison des scribes propose une série de six
+  questions sur les sons (signe vers son, son vers signe, objet vers son) et la
+  lecture d'un vrai cartouche royal, signe par signe — ce qu'il note, un son ou
+  un mot entier — avant de rendre le nom entier, sa translittération et son
+  sens. Chaque exercice rapporte dix deben, une fois par quinzaine.
+- **L'alphabet s'ouvre dans l'ordre où l'on en a besoin** : le *a*, le *r*, le
+  *m*, le *s*, le *d*, le *h*, le *k* d'abord — de quoi écrire un nom dès les
+  premiers niveaux —, les consonnes rares à la fin. La table, elle, se lit
+  toujours dans l'ordre des grammaires.
 - **La page d'accueil se lit en largeur** : l'accroche et la carte côte à côte,
   les deux captures en vis-à-vis, la minuterie et les deux modes de jeu dans une
   même bande, cinq activités sur une rangée — dont une nouvelle, « Apprendre »,

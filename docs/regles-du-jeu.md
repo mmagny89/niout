@@ -1056,6 +1056,42 @@ enseignait donc un signe faux dans un jeu dont c'est l'objet d'enseigner les
 vrais. Conséquence de méthode : **un code de Gardiner peut porter un suffixe de
 variante** (`N35A`, `C10A`), et toute vérification de format doit l'accepter.
 
+**L'alphabet s'ouvre par utilité, et se lit par rang de grammaire**
+(`SigneAlphabetique::ordreDApprentissage()`). L'ordre des manuels met le roseau
+fleuri, les deux traits et l'avant-bras avant la bouche et la chouette : c'est
+celui d'un tableau, pas d'un apprentissage. Or ce que le joueur veut vite, c'est
+écrire son nom — d'où les sons les plus fréquents d'abord (a, r, m, s, d, h, k),
+les consonnes rares (*ayin*, *ḥ*, *ẖ*) à la fin. **Deux ordres, donc, et ils ne
+se mélangent pas** : `pour()` rend la table dans l'ordre des grammaires — celui
+qu'on retrouvera dans un manuel —, tandis que l'ouverture suit l'ordre
+d'apprentissage. Les quatre signes de Niout, connus d'emblée, ferment la liste :
+les ouvrir en premier gaspillerait les premiers niveaux. Trois par niveau
+tombent toujours juste sur vingt-quatre au niveau 8 — en pratique l'alphabet
+est complet dès le niveau 7, les vingt signes à apprendre tenant dans vingt et
+un.
+
+**Deux exercices pratiquent ce que la grille montre** (`ExerciceDesSons`,
+`LectureDeCartouche`). **La série se déduit d'une graine, elle ne se stocke
+pas** : l'écran la tire, la renvoie avec les réponses, et le serveur recompose les
+mêmes questions pour corriger — rien n'est conservé entre l'affichage et la
+réponse, et inventer sa graine n'ouvre rien. Les questions ne portent **que sur
+les signes que la ville connaît** (interroger sur un signe inconnu serait injuste
+et révélerait ce que la Maison doit ouvrir). **La récompense — dix deben — ne
+tombe qu'une fois par quinzaine et par exercice** (`City::$exerciceDesSonsAuCycle`,
+`$lectureDeCartoucheAuCycle` : la dernière quinzaine récompensée, rien d'autre),
+l'exercice se refaisant sans limite.
+
+**Lire un cartouche mêle sons et mots**, et c'est le meilleur enseignement du
+lot. `SigneDeCartouche` dit ce que chaque signe y fait (le filet d'eau note *n*,
+le disque solaire dit « Rê » à lui seul, les trois traits marquent le pluriel).
+**Seuls les cartouches dont chaque signe y figure sont proposés** — onze sur
+seize : on en offre moins plutôt que d'en approximer un. **La donnée est
+confrontée au nom entier** : la lecture de chaque signe doit figurer dans la
+translittération du cartouche (`ExercicesDesScribesTest`), et le dessin vient du
+cartouche lui-même, jamais d'un glyphe recopié que rien ne confronterait à son
+code. Le disque solaire s'écrit en tête et se lit à la fin : l'exercice demande
+ce que fait chaque signe, pas l'ordre où on le prononce.
+
 **L'alphabet ne se persiste pas** (`AlphabetDesScribes`) : il n'ouvre que par
 le niveau de la Maison des scribes, `3 × niveau`, ce qui tombe juste sur
 vingt-quatre au niveau 8. Une colonne dupliquerait l'état du bâtiment. Ni le

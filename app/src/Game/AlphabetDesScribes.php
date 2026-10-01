@@ -43,7 +43,9 @@ final readonly class AlphabetDesScribes
     }
 
     /**
-     * Les signes que cette ville sait écrire, dans l'ordre des grammaires.
+     * Les signes que cette ville sait écrire, **dans l'ordre des grammaires** :
+     * c'est celui d'un tableau, et celui qu'on retrouve dans un manuel. L'ordre
+     * dans lequel ils s'ouvrent, lui, est `SigneAlphabetique::ordreDApprentissage()`.
      *
      * @return list<SigneAlphabetique>
      */
@@ -51,11 +53,14 @@ final readonly class AlphabetDesScribes
     {
         $ouverts = self::ouvertsParLeBatiment($ville);
         $demblee = self::connusDEmblee();
+        $ordre = SigneAlphabetique::ordreDApprentissage();
 
         $alphabet = [];
 
-        foreach (SigneAlphabetique::cases() as $rang => $signe) {
-            if ($rang < $ouverts || \in_array($signe, $demblee, true)) {
+        foreach (SigneAlphabetique::cases() as $signe) {
+            $rang = array_search($signe, $ordre, true);
+
+            if (false !== $rang && $rang < $ouverts || \in_array($signe, $demblee, true)) {
                 $alphabet[] = $signe;
             }
         }
@@ -88,15 +93,16 @@ final readonly class AlphabetDesScribes
     }
 
     /**
-     * Le premier signe que monter la Maison des scribes ouvrirait — null quand
-     * la ville les a tous. Sert à dire au joueur ce qu'il gagnerait, plutôt que
+     * Le premier signe que monter la Maison des scribes ouvrirait, **dans
+     * l'ordre d'apprentissage** —
+     * null quand la ville les a tous. Sert à dire au joueur ce qu'il gagnerait, plutôt que
      * de le laisser deviner.
      */
     public static function prochainSigne(City $ville): ?SigneAlphabetique
     {
         $connus = self::pour($ville);
 
-        foreach (SigneAlphabetique::cases() as $signe) {
+        foreach (SigneAlphabetique::ordreDApprentissage() as $signe) {
             if (!\in_array($signe, $connus, true)) {
                 return $signe;
             }

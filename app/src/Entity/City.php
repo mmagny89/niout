@@ -1128,6 +1128,45 @@ class City
     }
 
     /**
+     * La quinzaine où la série d'exercices sur les sons a été récompensée, ou
+     * null si elle ne l'a jamais été. **Persistée pour une seule raison** : la
+     * récompense ne tombe qu'une fois par quinzaine, comme un impôt ne se lève
+     * qu'une fois par mois — l'exercice, lui, se refait sans limite.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $exerciceDesSonsAuCycle = null;
+
+    /**
+     * Idem pour la lecture de cartouche.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $lectureDeCartoucheAuCycle = null;
+
+    public function exerciceDesSonsRecompenseAuCycle(int $cycle): bool
+    {
+        return $this->exerciceDesSonsAuCycle === $cycle;
+    }
+
+    public function marquerExerciceDesSonsRecompense(int $cycle): static
+    {
+        $this->exerciceDesSonsAuCycle = $cycle;
+
+        return $this;
+    }
+
+    public function lectureDeCartoucheRecompenseAuCycle(int $cycle): bool
+    {
+        return $this->lectureDeCartoucheAuCycle === $cycle;
+    }
+
+    public function marquerLectureDeCartoucheRecompensee(int $cycle): static
+    {
+        $this->lectureDeCartoucheAuCycle = $cycle;
+
+        return $this;
+    }
+
+    /**
      * Les inscriptions déjà lues. Persistées : rien d'autre ne les
      * retrouverait, et une inscription relue à l'infini rendrait sa récompense
      * infinie avec elle.

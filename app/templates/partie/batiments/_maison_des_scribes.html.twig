@@ -8,6 +8,7 @@
     {cle: 'afaire', libelle: 'À lire et à résoudre'},
     {cle: 'cle', libelle: 'Clé de lecture'},
     {cle: 'alphabet', libelle: 'Alphabet'},
+    {cle: 'exercices', libelle: 'Exercices'},
 ] %}
 {% if direction %}
     {% set sections = sections|merge([{cle: 'direction', libelle: direction.chefs is empty ? 'Direction · vacante' : 'Direction'}]) %}
@@ -461,6 +462,111 @@
         </li>
     {% endfor %}
 </ul>
+    </div>
+
+{{ sous.panneau('scribes', 'exercices', false) }}
+{# **Pratiquer, pas seulement regarder** : la grille des signes montre, ces deux
+   exercices font retrouver. Les séries se tirent à l'affichage et la graine
+   revient avec les réponses ; le serveur recompose les mêmes questions pour
+   corriger. Une récompense par exercice et par quinzaine, jamais plus. #}
+<div class="mt-4 grid gap-6 lg:grid-cols-2">
+    <section aria-labelledby="exercice-sons-titre">
+        <h3 id="exercice-sons-titre" class="text-xl text-encre-900">Sons et signes</h3>
+        <p class="mt-2 text-sm text-encre-500" data-chiffres>
+            {{ questionsDesSons }} questions sur les signes que vos scribes connaissent.
+            Une récompense à partir de {{ constant('App\\Game\\ExerciceDesSons::SEUIL_DE_REUSSITE') }}
+            bonnes réponses, une fois par quinzaine ; on peut recommencer, la série change.
+        </p>
+
+        {% if partie.estEnCours %}
+            <form method="post" action="{{ path('app_partie_exercice_sons', {id: partie.id}) }}" class="mt-4">
+                <input type="hidden" name="_token" value="{{ csrf_token('exercice-sons') }}">
+                <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                <input type="hidden" name="graine" value="{{ graineDesSons }}">
+
+                <ol class="grid list-none gap-3 p-0 sm:grid-cols-2">
+                    {% for question in serieDesSons %}
+                        {% set rang = loop.index0 %}
+                        <li>
+                            <fieldset class="h-full rounded-sm border border-ocre-500/30 bg-sable-50 p-3">
+                                <legend class="px-1 text-sm text-encre-900">
+                                    <span class="text-encre-500" data-chiffres>{{ loop.index }}.</span>
+                                    {{ question.enonce }}
+                                </legend>
+                                {% if question.glyphe %}
+                                    <p class="text-center font-hieroglyphes text-4xl leading-none text-encre-900" aria-hidden="true">{{ question.glyphe }}</p>
+                                {% endif %}
+                                <div class="mt-2 grid gap-1">
+                                    {% for option in question.options %}
+                                        <label class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-sm text-encre-700 hover:bg-ocre-300/20">
+                                            <input type="radio" name="reponse[{{ rang }}]" value="{{ option.valeur }}" required>
+                                            <span class="{{ option.glyphe ? 'font-hieroglyphes text-2xl leading-none' : '' }}">{{ option.libelle }}</span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </fieldset>
+                        </li>
+                    {% endfor %}
+                </ol>
+
+                <button type="submit"
+                        class="mt-4 rounded-sm bg-lapis-500 px-5 py-2 text-sm font-medium text-sable-50 hover:bg-lapis-600">
+                    Corriger
+                </button>
+            </form>
+        {% endif %}
+    </section>
+
+    <section aria-labelledby="exercice-cartouche-titre">
+        <h3 id="exercice-cartouche-titre" class="text-xl text-encre-900">Lire un cartouche</h3>
+        <p class="mt-2 text-sm text-encre-500">
+            Un vrai nom de trône, signe par signe. Un cartouche mêle des
+            <strong class="text-encre-700">sons</strong> à des
+            <strong class="text-encre-700">mots entiers</strong> : dites ce que
+            chaque signe y fait. Une récompense si tout est juste, une fois par
+            quinzaine.
+        </p>
+
+        {% if lectureDeCartouche and partie.estEnCours %}
+            <form method="post" action="{{ path('app_partie_lecture_cartouche', {id: partie.id}) }}" class="mt-4">
+                <input type="hidden" name="_token" value="{{ csrf_token('lecture-cartouche') }}">
+                <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                <input type="hidden" name="graine" value="{{ graineDeLecture }}">
+
+                <p class="rounded-sm border border-or-300/60 bg-or-300/5 px-4 py-3 text-center font-hieroglyphes text-4xl leading-none text-encre-900"
+                   aria-label="Cartouche de {{ lectureDeCartouche.cartouche.lecture }}">
+                    <span aria-hidden="true">{{ lectureDeCartouche.cartouche.signes }}</span>
+                </p>
+                <p class="mt-1 text-center text-xs text-encre-500">
+                    Le nom de trône de {{ lectureDeCartouche.cartouche.lecture }} — que vous lirez après.
+                </p>
+
+                <ul class="mt-4 grid list-none gap-2 p-0">
+                    {% for signe in lectureDeCartouche.signes %}
+                        <li class="flex flex-wrap items-center gap-3 rounded-sm border border-ocre-500/30 bg-sable-50 px-3 py-2">
+                            <span class="font-hieroglyphes text-3xl leading-none text-encre-900" aria-hidden="true">{{ signe.glyphe }}</span>
+                            <label for="lecture-{{ signe.code }}" class="text-xs text-encre-500" data-chiffres>
+                                signe {{ signe.code }}
+                            </label>
+                            <select id="lecture-{{ signe.code }}" name="reponse[{{ signe.code }}]" required
+                                    class="ml-auto min-w-48 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1.5 text-sm text-encre-900">
+                                <option value="">— que fait-il ici ? —</option>
+                                {% for option in lectureDeCartouche.options %}
+                                    <option value="{{ option.valeur }}">{{ option.libelle }}</option>
+                                {% endfor %}
+                            </select>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <button type="submit"
+                        class="mt-4 rounded-sm bg-lapis-500 px-5 py-2 text-sm font-medium text-sable-50 hover:bg-lapis-600">
+                    Lire le cartouche
+                </button>
+            </form>
+        {% endif %}
+    </section>
+</div>
     </div>
 
 {% if direction %}

@@ -23,8 +23,10 @@ namespace App\Game;
  * avec deux lectures. **Ne pas dédupliquer.**
  *
  * L'ordre des cas est celui du document, qui est l'ordre conventionnel des
- * grammaires — jamais un ordre de difficulté inventé : c'est celui que le
- * joueur retrouvera dans n'importe quel manuel.
+ * grammaires : c'est celui que le joueur retrouvera dans n'importe quel manuel,
+ * et celui dans lequel la table **se lit**. Il ne dit **pas** dans quel ordre
+ * on apprend : voir `ordreDApprentissage()`, qui range les signes par
+ * utilité pour écrire un nom.
  */
 enum SigneAlphabetique: string
 {
@@ -57,6 +59,39 @@ enum SigneAlphabetique: string
      * Le vrai code de la liste de Gardiner, affiché tel quel : le joueur doit
      * pouvoir vérifier le signe dans une vraie grammaire.
      */
+    /**
+     * Dans quel ordre la Maison des scribes **ouvre** les signes.
+     *
+     * **Par utilité, pas par rang de grammaire.** L'ordre des manuels met le
+     * roseau fleuri, les deux traits et l'avant-bras avant la bouche et la
+     * chouette : c'est celui d'un tableau, pas celui d'un apprentissage. Or ce
+     * que le joueur veut très vite, c'est écrire son nom — et pour cela il lui
+     * faut d'abord les sons les plus fréquents (a, r, m, s, d, h, k), puis les
+     * labiales et les gutturales, et seulement à la fin les consonnes rares
+     * (le *ayin*, le *ḥ* emphatique, le *ẖ*).
+     *
+     * Les quatre signes de Niout, connus d'emblée, ferment la liste : les
+     * ouvrir en premier ferait gaspiller les trois premiers niveaux de la
+     * Maison des scribes sur ce que le joueur sait déjà. Trois par niveau
+     * tombent toujours juste sur vingt-quatre au niveau 8.
+     *
+     * @return list<self>
+     */
+    public static function ordreDApprentissage(): array
+    {
+        return [
+            self::VautourPercnoptere, self::Bouche, self::Chouette,
+            self::LingePlie, self::Main, self::AbriEnRoseaux,
+            self::CorbeilleAAnse, self::Jambe, self::Natte,
+            self::VipereACornes, self::SupportDeJarre, self::FlancDeColline,
+            self::BassinDEau, self::Cobra, self::Tamis,
+            self::DeuxTraits, self::AvantBras, self::MecheDeLin,
+            self::VentreDAnimal, self::CordeDAttache,
+            // Ceux de Niout, que la ville connaît déjà.
+            self::FiletDEau, self::RoseauFleuri, self::PoussinDeCaille, self::Pain,
+        ];
+    }
+
     /**
      * Le symbole de la clé de lecture qui porte **le même dessin**, s'il
      * existe. Le pendant de `SymboleHieroglyphique::sonDeLAlphabet()`, et pour
