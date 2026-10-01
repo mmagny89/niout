@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Le Quartier d'habitation se voit** : les habitants sont rangés en
+  maisonnées dessinées — adultes qui travaillent, enfants, anciens à la canne,
+  alités par la fièvre —, avec les maisons encore libres en pointillés. Les
+  âges se lisent par la forme et l'activité par la couleur.
 - **La Résidence familiale se range en quatre sections** — Vue d'ensemble,
   Mission (ou Règne en Aventure), Gouvernement, Bâtiments — au lieu d'un seul
   long défilement. La section ouverte est retenue : régler un salaire ou

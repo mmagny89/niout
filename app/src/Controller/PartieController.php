@@ -53,6 +53,7 @@ use App\Game\Inscription;
 use App\Game\LanceurDePartie;
 use App\Game\LeconDeNiout;
 use App\Game\Legs;
+use App\Game\Maisonnees;
 use App\Game\Marche;
 use App\Game\Mecontentement;
 use App\Game\MedjayImpossible;
@@ -235,6 +236,8 @@ final class PartieController extends AbstractController
             ? $dechiffrage->proposition($partie)
             : null;
 
+        $maisons = Maisonnees::repartir($ville);
+
         return $this->render('partie/ville.html.twig', [
             'partie' => $partie,
             'ville' => $ville,
@@ -332,6 +335,11 @@ final class PartieController extends AbstractController
             'famillesParNiveauDeQuartier' => Population::FAMILLES_PAR_NIVEAU_DE_QUARTIER,
             // Les deux indicateurs de santé de la ville, côte à côte : les
             // bouches et les bras.
+            // Les habitants rangés en maisonnées, pour qu'on les voie : une
+            // représentation déterministe, rien n'en est persisté.
+            'maisons' => $maisons,
+            'descriptions' => array_map(Maisonnees::decrire(...), $maisons),
+            'libres' => $ville->foyersLibres(),
             'masseSalariale' => $salaires->masseSalariale($ville, $partie->getCycle()),
             // L'impôt du mois : le filet qui renfloue la caisse, dit avec son
             // chiffre et son échéance plutôt que découvert à la perception.

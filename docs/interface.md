@@ -105,6 +105,19 @@ engager un chantier recharge la page et ramenait sinon à la première section.
 Le découpage se fait **sur des frontières de blocs Twig**, jamais au milieu d'un
 commentaire : un `{#` non refermé avale le panneau suivant, sans erreur.
 
+**Le Quartier d'habitation dessine ses habitants** (`Maisonnees`,
+`_maisonnees.html.twig`). Le jeu ne tient que trois nombres — actifs, enfants,
+anciens — et nulle part qui habite avec qui : la répartition en maisons est donc
+une **représentation déterministe**, jamais persistée ni tirée au sort, pour
+qu'un rechargement ne recompose pas le quartier. Elle respecte les invariants :
+autant de maisons occupées que `Population::foyersPour()`, aucune au-delà de
+`PERSONNES_PAR_FOYER`, les âges distribués à tour de rôle pour se mêler. **Les
+âges se lisent par la forme** (grand, petit, canne) **et l'activité par la
+couleur** — jamais la couleur seule. Chaque maison porte une description écrite
+(`aria-label`), le dessin étant masqué aux lecteurs d'écran ; les symboles sont
+définis une fois (`<symbol>`/`<use>`), une ville pleine comptant plus de cent
+soixante maisons.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

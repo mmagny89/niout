@@ -1,0 +1,76 @@
+{# Les habitants, rangés en maisonnées : un coup d'œil dit combien on est, qui
+   travaille, qui est à charge, et combien de maisons restent vides.
+
+   **C'est une représentation, pas un état** (`Maisonnees`) : le jeu ne tient
+   que trois nombres, la répartition en maisons est déterministe. Les âges se
+   lisent par la **forme** — grand, petit, canne — et l'activité par la
+   **couleur** : jamais la couleur seule, pour qu'on lise aussi l'écran sans la
+   distinguer. Chaque maison porte sa description écrite ; le dessin lui-même
+   est masqué aux lecteurs d'écran.
+
+   Les symboles sont définis une fois et réutilisés par `<use>` : une ville de
+   cent soixante maisons ne répète pas cent soixante fois leurs tracés. #}
+<svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="gens-adulte" viewBox="0 0 12 22">
+            <circle cx="6" cy="4.5" r="2.6"/>
+            <rect x="2.5" y="8" width="7" height="13" rx="2.5"/>
+        </symbol>
+        <symbol id="gens-enfant" viewBox="0 0 12 22">
+            <circle cx="6" cy="12" r="2.2"/>
+            <rect x="3.5" y="15" width="5" height="6" rx="2"/>
+        </symbol>
+        <symbol id="gens-ancien" viewBox="0 0 14 22">
+            <circle cx="5.5" cy="5.5" r="2.5"/>
+            <rect x="2" y="9" width="7" height="12" rx="2.5"/>
+            <path d="M11.5 11.5 V21.5 M10 11.5 H11.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="gens-malade" viewBox="0 0 12 22">
+            <circle cx="6" cy="4.5" r="2.6"/>
+            <rect x="2.5" y="8" width="7" height="13" rx="2.5"/>
+            <path d="M4 14.5 H8 M6 12.5 V16.5" fill="none" stroke="#fbf6ec" stroke-width="1.4" stroke-linecap="round"/>
+        </symbol>
+    </defs>
+</svg>
+
+<ul class="mt-4 grid list-none grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))] gap-2 p-0" data-chiffres>
+    {% for habitants in maisons %}
+        <li class="flex flex-col items-center">
+            <svg viewBox="0 0 64 20" class="h-4 w-full fill-terre-400" aria-hidden="true" focusable="false">
+                <polygon points="2,20 32,2 62,20"/>
+            </svg>
+            <div class="flex min-h-12 w-full items-end justify-center gap-0.5 rounded-b-sm border border-t-0 border-ocre-500/40 bg-sable-100 px-1 pb-1 pt-2"
+                 role="img" aria-label="Maisonnée {{ loop.index }} : {{ descriptions[loop.index0] }}">
+                {% for habitant in habitants %}
+                    {% if habitant == 'actif' %}
+                        <svg viewBox="0 0 12 22" class="h-7 w-3 fill-lapis-500" aria-hidden="true" focusable="false"><use href="#gens-adulte"/></svg>
+                    {% elseif habitant == 'malade' %}
+                        <svg viewBox="0 0 12 22" class="h-7 w-3 fill-terre-500" aria-hidden="true" focusable="false"><use href="#gens-malade"/></svg>
+                    {% elseif habitant == 'enfant' %}
+                        <svg viewBox="0 0 12 22" class="h-7 w-3 fill-ocre-500" aria-hidden="true" focusable="false"><use href="#gens-enfant"/></svg>
+                    {% else %}
+                        <svg viewBox="0 0 14 22" class="h-7 w-3.5 fill-encre-500 text-encre-500" aria-hidden="true" focusable="false"><use href="#gens-ancien"/></svg>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </li>
+    {% endfor %}
+    {% if libres > 0 %}
+        {% for vide in 1..libres %}
+            <li class="flex flex-col items-center opacity-60">
+                <svg viewBox="0 0 64 20" class="h-4 w-full fill-none stroke-ocre-500/60" stroke-dasharray="3 2" aria-hidden="true" focusable="false">
+                    <polygon points="2,20 32,2 62,20"/>
+                </svg>
+                <div class="min-h-12 w-full rounded-b-sm border border-t-0 border-dashed border-ocre-500/40" role="img" aria-label="Maison libre"></div>
+            </li>
+        {% endfor %}
+    {% endif %}
+</ul>
+
+<ul class="mt-3 flex list-none flex-wrap gap-x-5 gap-y-1 p-0 text-xs text-encre-600" aria-label="Légende">
+    <li class="flex items-center gap-1.5"><svg viewBox="0 0 12 22" class="h-5 w-2.5 fill-lapis-500" aria-hidden="true"><use href="#gens-adulte"/></svg> Adulte qui travaille</li>
+    <li class="flex items-center gap-1.5"><svg viewBox="0 0 12 22" class="h-5 w-2.5 fill-ocre-500" aria-hidden="true"><use href="#gens-enfant"/></svg> Enfant, à charge</li>
+    <li class="flex items-center gap-1.5"><svg viewBox="0 0 14 22" class="h-5 w-3 fill-encre-500 text-encre-500" aria-hidden="true"><use href="#gens-ancien"/></svg> Ancien, à charge</li>
+    <li class="flex items-center gap-1.5"><svg viewBox="0 0 12 22" class="h-5 w-2.5 fill-terre-500" aria-hidden="true"><use href="#gens-malade"/></svg> Alité par la fièvre</li>
+    <li class="flex items-center gap-1.5"><span class="inline-block h-3 w-4 border border-dashed border-ocre-500/60"></span> Maison libre</li>
+</ul>

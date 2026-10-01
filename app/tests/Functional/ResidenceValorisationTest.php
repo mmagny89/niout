@@ -93,6 +93,26 @@ final class ResidenceValorisationTest extends WebTestCase
         self::assertStringNotContainsString('Améliorer', $aBatir);
     }
 
+    /**
+     * Le Quartier montre ses habitants rangés en maisons, chacune décrite en
+     * toutes lettres : le dessin seul ne se lit pas à l'oreille.
+     */
+    public function testLeQuartierDessineLesMaisonnees(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'quartier-maisons@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::QuartierDHabitation));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=quartier_habitation', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertGreaterThan(0, $crawler->filter('[role="img"][aria-label^="Maisonnée 1 :"]')->count());
+        self::assertSelectorTextContains('body', 'Maison libre');
+        self::assertSelectorTextContains('body', 'Alité par la fièvre');
+    }
+
     private function partie(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client, string $email): \App\Entity\GameSave
     {
         $user = new User();
