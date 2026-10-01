@@ -1,0 +1,37 @@
+{# Le coût et le geste d'une offre de construction : le même bloc pour
+   « Construire » (À bâtir) et « Améliorer » (Bâtiments dressés), pour que les
+   deux ne divergent pas. Attend `offre`, `partie`, `ville` et `onglet`. #}
+    {% if offre.cout %}
+        <dl class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm" data-chiffres>
+            {% for ressource, quantite in offre.cout.detail %}
+                <div class="flex gap-1.5">
+                    <dt class="text-encre-500">{{ ressource }}</dt>
+                    <dd class="text-encre-900">{{ quantite }}</dd>
+                </div>
+            {% endfor %}
+            <div class="flex gap-1.5">
+                <dt class="text-encre-500">chantier</dt>
+                <dd class="text-encre-900">
+                    {{ offre.type.dureeDeBase + (offre.existant ? offre.existant.niveau + 1 : 1) }} cycles
+                </dd>
+            </div>
+        </dl>
+    {% endif %}
+
+    {% if not partie.estEnCours %}
+        {# La partie a échoué : plus aucun chantier ne s'engage. #}
+    {% elseif offre.empechement %}
+        <p class="mt-3 text-sm text-terre-600">{{ offre.empechement }}</p>
+    {% elseif ville.aUnChantierPour(offre.type) %}
+        <p class="mt-3 text-sm text-encre-500">Travaux déjà en cours.</p>
+    {% else %}
+        <form method="post" action="{{ path('app_partie_batir', {id: partie.id}) }}" class="mt-4">
+            <input type="hidden" name="_token" value="{{ csrf_token('batir') }}">
+            <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+            <input type="hidden" name="type" value="{{ offre.type.value }}">
+            <button type="submit"
+                    class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                {{ offre.libelleDeLAction }}
+            </button>
+        </form>
+    {% endif %}

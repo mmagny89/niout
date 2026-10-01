@@ -677,6 +677,15 @@
                     {{ effectif.rendement }} % de rendement
                 {% endif %}
             </p>
+
+            {# Monter d'un niveau : le geste vit sur la carte du bâtiment, pas
+               dans « À bâtir », qui ne propose que ce qui n'existe pas encore. #}
+            {% set offre = offres|filter(o => o.type == batiment.type)|first %}
+            {% if offre %}
+                <div class="mt-4 border-t border-ocre-500/20 pt-3">
+                    {{ include('partie/batiments/_offre_de_construction.html.twig') }}
+                </div>
+            {% endif %}
         </li>
     {% endfor %}
 </ul>
@@ -694,8 +703,11 @@
     {% endif %}
 </p>
 
+{# Ce qui est déjà dressé n'est plus « à bâtir » : sa montée de niveau vit sur
+   sa propre carte, plus haut (« Bâtiments dressés »). #}
+{% set offresNeuves = offres|filter(offre => not offre.estDejaDressé) %}
 <ul class="mt-5 space-y-3 list-none p-0">
-    {% for offre in offres %}
+    {% for offre in offresNeuves %}
         <li class="rounded-sm border p-5
                    {{ offre.estRealisable
                        ? 'border-ocre-500/30 bg-sable-50'
@@ -703,11 +715,6 @@
             <div class="flex flex-wrap items-baseline justify-between gap-3">
                 <h3 class="font-display text-lg {{ offre.estRealisable ? 'text-encre-900' : 'text-encre-500' }}">
                     {{ offre.type.libelle }}
-                    {% if offre.estDejaDressé %}
-                        <span class="font-sans text-sm text-encre-500" data-chiffres>
-                            · niveau {{ offre.existant.niveau }}
-                        </span>
-                    {% endif %}
                 </h3>
                 <span class="text-xs uppercase tracking-wide text-encre-500">
                     {{ offre.libelleDeLAction }}
@@ -716,40 +723,7 @@
 
             <p class="mt-2 text-sm text-encre-600">{{ offre.type.fonction }}</p>
 
-            {% if offre.cout %}
-                <dl class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm" data-chiffres>
-                    {% for ressource, quantite in offre.cout.detail %}
-                        <div class="flex gap-1.5">
-                            <dt class="text-encre-500">{{ ressource }}</dt>
-                            <dd class="text-encre-900">{{ quantite }}</dd>
-                        </div>
-                    {% endfor %}
-                    <div class="flex gap-1.5">
-                        <dt class="text-encre-500">chantier</dt>
-                        <dd class="text-encre-900">
-                            {{ offre.type.dureeDeBase + (offre.existant ? offre.existant.niveau + 1 : 1) }} cycles
-                        </dd>
-                    </div>
-                </dl>
-            {% endif %}
-
-            {% if not partie.estEnCours %}
-                {# La partie a échoué : plus aucun chantier ne s'engage. #}
-            {% elseif offre.empechement %}
-                <p class="mt-3 text-sm text-terre-600">{{ offre.empechement }}</p>
-            {% elseif ville.aUnChantierPour(offre.type) %}
-                <p class="mt-3 text-sm text-encre-500">Travaux déjà en cours.</p>
-            {% else %}
-                <form method="post" action="{{ path('app_partie_batir', {id: partie.id}) }}" class="mt-4">
-                    <input type="hidden" name="_token" value="{{ csrf_token('batir') }}">
-                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
-                    <input type="hidden" name="type" value="{{ offre.type.value }}">
-                    <button type="submit"
-                            class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
-                        {{ offre.libelleDeLAction }}
-                    </button>
-                </form>
-            {% endif %}
+            {{ include('partie/batiments/_offre_de_construction.html.twig') }}
         </li>
     {% endfor %}
 </ul>

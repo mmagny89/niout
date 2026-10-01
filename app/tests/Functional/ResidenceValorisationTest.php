@@ -70,6 +70,29 @@ final class ResidenceValorisationTest extends WebTestCase
         self::assertSelectorTextContains('body', 'Spécialités possibles ici');
     }
 
+    /**
+     * Un bâtiment dressé n'est plus « à bâtir » : il porte son bouton
+     * « Améliorer » sur sa propre carte.
+     */
+    public function testUnBatimentDresseSeMonteSurSaCarteEtQuitteLaListeABatir(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'valorisation-ameliorer@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        $dresses = $crawler->filter('#residence-section-batiments ul')->eq(0)->text();
+        $aBatir = $crawler->filter('#residence-section-batiments ul')->eq(1)->text();
+
+        self::assertStringContainsString('Grenier', $dresses);
+        self::assertStringContainsString('Améliorer', $dresses);
+        self::assertStringNotContainsString('Grenier', $aBatir, 'Déjà dressé : il ne reste pas à bâtir.');
+        self::assertStringNotContainsString('Améliorer', $aBatir);
+    }
+
     private function partie(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client, string $email): \App\Entity\GameSave
     {
         $user = new User();
