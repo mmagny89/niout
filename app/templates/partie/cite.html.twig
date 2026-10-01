@@ -1,0 +1,111 @@
+{% extends 'partie/_layout.html.twig' %}
+
+{% block title %}La cité {{ ville.avecPreposition }} — Niout{% endblock %}
+
+{% block body %}
+    {# **L'écran intermédiaire** entre la carte et les onglets de la ville :
+       cliquer la ville sur le territoire montre d'abord ce qu'on a bâti, et c'est
+       un clic sur un bâtiment qui ouvre son onglet.
+
+       Chaque bâtiment a un emplacement pour son visuel. Tant qu'aucune image
+       n'existe (`assets/images/batiments/<type>.webp`), un monogramme tient la
+       place ; déposer le fichier suffit à le remplacer. #}
+    <section class="h-full overflow-y-auto mx-auto w-full max-w-6xl px-5 py-8">
+        <div class="flex flex-wrap items-baseline justify-between gap-3">
+            <div>
+                <h1 class="text-3xl text-encre-900">La cité {{ ville.avecPreposition }}</h1>
+                <p class="mt-1 text-sm text-encre-500" data-chiffres>
+                    {{ batiments|length }} bâtiment{{ batiments|length > 1 ? 's' : '' }} ·
+                    {{ ville.population }} habitants
+                </p>
+            </div>
+            <div class="flex flex-wrap items-baseline gap-5 text-sm">
+                <a href="{{ path('app_partie_ville', {id: partie.id}) }}" class="text-lapis-500">Gérer la ville</a>
+                <a href="{{ path('app_partie_carte', {id: partie.id}) }}" class="text-lapis-500">← Retour au territoire</a>
+            </div>
+        </div>
+
+        <ul class="mt-6 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {% for entree in batiments %}
+                {% set type = entree.type %}
+                {% set batiment = entree.batiment %}
+                <li>
+                    <a href="{{ path('app_partie_ville', {id: partie.id, onglet: type.value}) }}"
+                       class="group block h-full overflow-hidden rounded-sm border border-ocre-500/30 bg-sable-50 no-underline
+                              hover:border-terre-500/60 hover:bg-ocre-300/10 focus-visible:outline-2 focus-visible:outline-lapis-500">
+                        {# Le visuel : l'image du bâtiment si elle existe, un
+                           monogramme sinon. Le même cadre dans les deux cas,
+                           pour que la grille ne bouge pas quand les images
+                           arrivent. #}
+                        <div class="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-sable-200">
+                            {% if entree.visuel %}
+                                <img src="{{ asset(entree.visuel) }}" alt="" loading="lazy" decoding="async"
+                                     class="absolute inset-0 h-full w-full object-cover">
+                            {% else %}
+                                <span class="font-display text-6xl text-ocre-600/60 group-hover:text-terre-500/70" aria-hidden="true">
+                                    {{ type.libelle|first|upper }}
+                                </span>
+                            {% endif %}
+
+                            {% if entree.chantier %}
+                                <span class="absolute left-2 top-2 rounded-sm bg-ocre-500 px-2 py-0.5 text-xs font-medium text-sable-50">
+                                    {{ entree.chantier.estUneAmelioration ? 'Amélioration' : 'Chantier' }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="p-4">
+                            <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+                                <h2 class="font-display text-lg text-encre-900">{{ type.libelle }}</h2>
+                                {% if batiment %}
+                                    <span class="text-sm text-encre-500" data-chiffres>niveau {{ batiment.niveau }}</span>
+                                {% endif %}
+                            </div>
+
+                            <p class="mt-1 text-sm text-encre-500" data-chiffres>
+                                {% if entree.chantier %}
+                                    Travaux : encore {{ entree.chantier.cyclesRestants }}
+                                    quinzaine{{ entree.chantier.cyclesRestants > 1 ? 's' : '' }}.
+                                {% elseif entree.effectif and entree.effectif.requis > 0 %}
+                                    {{ entree.effectif.affectes }} / {{ entree.effectif.requis }} travailleurs ·
+                                    <span class="{{ entree.effectif.rendement < 100 ? 'text-terre-600' : '' }}">{{ entree.effectif.rendement }} %</span>
+                                {% elseif entree.effectif %}
+                                    Sans chef : {{ entree.effectif.rendement }} %.
+                                {% else %}
+                                    {{ type.fonction|slice(0, 70) }}…
+                                {% endif %}
+                            </p>
+                        </div>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        {% if enChantier is not empty %}
+            <h2 class="mt-8 text-xl text-encre-900">En chantier</h2>
+            <p class="mt-1 text-sm text-encre-500">
+                Pas encore d'onglet : le bâtiment s'ouvrira à l'achèvement des travaux.
+            </p>
+            <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-4">
+                {% for chantier in enChantier %}
+                    <li class="rounded-sm border border-dashed border-ocre-500/50 bg-sable-50/60 p-4" data-chiffres>
+                        <p class="font-display text-lg text-encre-900">{{ chantier.type.libelle }}</p>
+                        <p class="mt-1 text-sm text-encre-500">
+                            encore {{ chantier.cyclesRestants }} quinzaine{{ chantier.cyclesRestants > 1 ? 's' : '' }}
+                            · {{ chantier.pourcentageDAvancement }} %
+                        </p>
+                        <div class="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                            <div class="h-full bg-terre-500" style="width: {{ chantier.pourcentageDAvancement }}%"></div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <p class="mt-8 text-sm text-encre-500">
+            Pour bâtir un nouveau bâtiment, ouvrez
+            <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'}) }}" class="text-lapis-500">la Résidence familiale</a>,
+            section « Bâtiments ».
+        </p>
+    </section>
+{% endblock %}

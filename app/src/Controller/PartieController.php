@@ -196,6 +196,69 @@ final class PartieController extends AbstractController
     }
 
     /**
+     * **La cité vue d'en haut** : l'écran intermédiaire entre la carte et le
+     * détail d'un bâtiment. Cliquer la ville sur le territoire n'ouvre plus
+     * directement la Résidence : on voit d'abord ce qu'on a bâti, et c'est un
+     * clic sur un bâtiment qui ouvre son onglet.
+     *
+     * Chaque bâtiment porte son visuel s'il existe
+     * (`assets/images/batiments/<type>.webp`), un emplacement sinon : déposer
+     * l'image suffit, aucun gabarit n'est à toucher.
+     */
+    #[Route('/{id}/cite', name: 'app_partie_cite', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function cite(GameSave $partie): Response
+    {
+        $ville = $partie->getVille();
+        $cycle = $partie->getCycle();
+        $effectifs = Effectifs::repartir($ville, $cycle);
+        $dossier = $this->getParameter('kernel.project_dir').'/assets/images/batiments/';
+        $dresses = [];
+
+        // Dans l'ordre du jeu, la Résidence — le foyer de la lignée — en tête.
+        foreach (TypeDeBatiment::cases() as $type) {
+            $batiment = $ville->batimentDeType($type);
+
+            if (null === $batiment && !$type->estLeBatimentDeDepart()) {
+                continue;
+            }
+
+            $chantier = null;
+
+            foreach ($ville->getChantiers() as $candidat) {
+                if ($candidat->getType() === $type) {
+                    $chantier = $candidat;
+                }
+            }
+
+            $dresses[] = [
+                'type' => $type,
+                'batiment' => $batiment,
+                'effectif' => $effectifs[$type->value] ?? null,
+                'chantier' => $chantier,
+                'visuel' => is_file($dossier.$type->value.'.webp') ? 'images/batiments/'.$type->value.'.webp' : null,
+            ];
+        }
+
+        // Ce qui se construit pour la première fois : pas encore d'onglet, mais
+        // le joueur doit voir que quelque chose se dresse.
+        $enChantier = [];
+
+        foreach ($ville->getChantiers() as $chantier) {
+            if (null === $ville->batimentDeType($chantier->getType())) {
+                $enChantier[] = $chantier;
+            }
+        }
+
+        return $this->render('partie/cite.html.twig', [
+            'partie' => $partie,
+            'ville' => $ville,
+            'batiments' => $dresses,
+            'enChantier' => $enChantier,
+        ]);
+    }
+
+    /**
      * La vue de la ville : ce qui est dressé, ce qui peut l'être.
      *
      * Une liste, jamais un placement libre sur une grille (doc 15) — la ville
@@ -1813,7 +1876,7 @@ final class PartieController extends AbstractController
     {
         $demande = $request->request->get('retour');
 
-        return \in_array($demande, ['app_partie_carte', 'app_partie_ville'], true)
+        return \in_array($demande, ['app_partie_carte', 'app_partie_ville', 'app_partie_cite'], true)
             ? $demande
             : 'app_partie_carte';
     }

@@ -195,22 +195,57 @@ final class CarteTest extends WebTestCase
 
     /**
      * La carte est l'écran principal d'une partie : c'est la tuile de la ville
-     * qui mène à ses bâtiments, et non l'inverse.
+     * qui mène à ses bâtiments, et non l'inverse. **Elle passe par la cité** :
+     * un écran qui montre ce qu'on a bâti, d'où un clic sur un bâtiment ouvre
+     * son onglet.
      */
-    public function testCliquerLaVilleOuvreSesBatiments(): void
+    public function testCliquerLaVilleOuvreLaCiteQuiMeneAuBonOnglet(): void
     {
         $client = static::createClient();
         $joueur = $this->connecter($client, 'entrer@example.com');
         $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
-        $lien = $crawler->filter(\sprintf('a[href="/partie/%d/ville"]', $partie->getId()));
+        $lien = $crawler->filter(\sprintf('a[href="/partie/%d/cite"]', $partie->getId()));
 
-        self::assertGreaterThan(0, $lien->count());
+        self::assertGreaterThan(0, $lien->count(), 'La ville mène à la cité, pas directement aux onglets.');
 
-        $client->click($lien->first()->link());
+        $crawler = $client->click($lien->first()->link());
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'Bâtiments dressés');
+        self::assertSelectorTextContains('body', 'La cité');
+        self::assertSelectorTextContains('body', 'Résidence familiale');
+        self::assertSelectorTextContains('body', 'Grenier');
+
+        // Chaque bâtiment ouvre **son** onglet.
+        $grenier = $crawler->filter(\sprintf('a[href="/partie/%d/ville?onglet=grenier"]', $partie->getId()));
+        self::assertCount(1, $grenier);
+
+        $client->click($grenier->link());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-onglet-actif="true"]#onglet-grenier');
+    }
+
+    /**
+     * La cité montre ce qui se construit pour la première fois, sans lui donner
+     * un onglet qui n'existe pas encore.
+     */
+    public function testLaCiteMontreLesChantiersSansOnglet(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'cite-chantier@example.com');
+        $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+        $ville->ajouterChantier(new \App\Entity\Chantier($ville, TypeDeBatiment::Marche, 1));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $client->request('GET', \sprintf('/partie/%d/cite', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'En chantier');
+        self::assertSelectorTextContains('body', 'Marché');
     }
 
     public function testLaRepriseMeneAuTerritoire(): void

@@ -14,6 +14,11 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Cliquer la ville sur la carte ouvre d'abord la cité** : un écran qui montre
+  les bâtiments qu'on a construits — niveau, équipage, rendement, travaux en
+  cours —, chacun menant à son propre onglet. Les chantiers de bâtiments encore
+  inexistants apparaissent en dessous. Un monogramme tient la place des visuels,
+  à venir.
 - **On pratique maintenant les hiéroglyphes, pas seulement on les regarde** : un
   nouvel onglet « Exercices » à la Maison des scribes propose une série de six
   questions sur les sons (signe vers son, son vers signe, objet vers son) et la

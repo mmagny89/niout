@@ -210,6 +210,20 @@ de sous-onglets** — la création d'une partie se range sur deux colonnes, ce q
 peut jouer à gauche et le formulaire à droite. Les pages hors jeu (accueil,
 connexion, compte, administration) n'entrent pas dans cette règle.
 
+**La cité est l'écran intermédiaire entre la carte et les onglets**
+(`app_partie_cite`, `partie/cite.html.twig`). Cliquer la tuile de la ville — ou le
+lien « Bâtiments » du panneau de la carte — n'ouvre plus la Résidence : on voit
+d'abord ce qu'on a bâti, et un clic sur un bâtiment ouvre **son** onglet
+(`app_partie_ville?onglet=<type>`). La Résidence, foyer de la lignée, est
+toujours présente ; les chantiers de bâtiments qui n'existent pas encore se
+montrent à part, sans onglet. **Chaque carte a un emplacement pour son visuel** :
+déposer `app/assets/images/batiments/<type>.webp` (`grenier.webp`,
+`maison_des_scribes.webp`…) suffit, le contrôleur teste l'existence du fichier et
+le gabarit n'a pas à changer ; sans image, un monogramme tient la place dans le
+même cadre 4/3, pour que la grille ne bouge pas à l'arrivée des images. La cité
+est une route de retour valide pour l'action de cycle (`routeDeRetour()`), comme
+la carte et la ville.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

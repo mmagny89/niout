@@ -16,6 +16,9 @@
         <div class="flex flex-wrap items-baseline justify-between gap-4">
             <h1 class="font-display text-2xl text-encre-900">{{ ville.nom }}</h1>
             <div class="flex flex-wrap items-baseline gap-4">
+                <a href="{{ path('app_partie_cite', {id: partie.id}) }}" class="text-sm text-lapis-500">
+                    Vue de la cité
+                </a>
                 <a href="{{ path('app_partie_carte', {id: partie.id}) }}" class="text-sm text-lapis-500">
                     ← Retour au territoire
                 </a>

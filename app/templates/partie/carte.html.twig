@@ -82,7 +82,7 @@
                 {% for zone in zones %}
                     {% set estSelectionnee = zoneDetaillee and zoneDetaillee.x == zone.x and zoneDetaillee.y == zone.y %}
                     <a href="{{ zone.porteLaVille
-                           ? path('app_partie_ville', {id: partie.id})
+                           ? path('app_partie_cite', {id: partie.id})
                            : path('app_partie_carte', {id: partie.id, zone: zone.x ~ '-' ~ zone.y}) ~ '#case' }}"
                        class="absolute block transition-colors
                               {{ estSelectionnee ? 'bg-or-300/45' : 'hover:bg-sable-50/35' }}"
@@ -133,7 +133,7 @@
         <aside class="flex min-h-0 w-full flex-1 flex-col overflow-y-auto border-t border-ocre-500/25
                       bg-sable-50 p-4 md:w-96 md:flex-none lg:w-[30rem] md:border-l md:border-t-0 md:p-5">
             <div class="flex items-baseline justify-between gap-3">
-                <a href="{{ path('app_partie_ville', {id: partie.id}) }}" class="text-sm text-lapis-500">
+                <a href="{{ path('app_partie_cite', {id: partie.id}) }}" class="text-sm text-lapis-500">
                     Bâtiments {{ ville.avecPreposition }} →
                 </a>
             </div>
