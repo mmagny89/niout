@@ -34,7 +34,8 @@
        glissement pour faire défiler la page et le pincement pour zoomer le
        document entier. C'est ce que le contrôleur doit faire à sa place, sur
        la carte seule. #}
-    <section class="flex h-full min-h-0 flex-col overflow-hidden md:flex-row" data-controller="cite">
+    <section class="flex h-full min-h-0 flex-col overflow-hidden md:flex-row" data-controller="fenetre"
+             data-fenetre-barre-value="{{ path('app_partie_barre', {id: partie.id, retour: 'app_partie_carte', zone: zoneDetaillee ? zoneDetaillee.x ~ '-' ~ zoneDetaillee.y : null}) }}">
         <div class="relative min-w-0 shrink-0 basis-[45%] touch-none overflow-hidden bg-sable-100
                     md:h-auto md:min-h-0 md:flex-1 md:basis-auto"
              data-controller="carte"
@@ -82,7 +83,7 @@
                 {% for zone in zones %}
                     {% set estSelectionnee = zoneDetaillee and zoneDetaillee.x == zone.x and zoneDetaillee.y == zone.y %}
                     <a href="{{ zone.porteLaVille
-                           ? path('app_partie_cite', {id: partie.id})
+                           ? path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'})
                            : path('app_partie_carte', {id: partie.id, zone: zone.x ~ '-' ~ zone.y}) ~ '#case' }}"
                        class="absolute block transition-colors
                               {{ estSelectionnee ? 'bg-or-300/45' : 'hover:bg-sable-50/35' }}"
@@ -94,7 +95,7 @@
                                                   {{ centre.x + pas.x }}px {{ centre.y }}px,
                                                   {{ centre.x }}px {{ centre.y + pas.y }}px,
                                                   {{ centre.x - pas.x }}px {{ centre.y }}px);"
-                       {{ zone.porteLaVille ? 'title="Ouvrir la cité" data-action="click->cite#ouvrir"' : '' }}
+                       {{ zone.porteLaVille ? 'title="Ouvrir la cité" data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"' : '' }}
                        aria-label="{{ zone.porteLaVille
                            ? 'Ouvrir la cité de ' ~ ville.nom
                            : 'Case ' ~ zone.x ~ ', ' ~ zone.y ~ ' — ' ~ (zone.estDecouverte ? zone.terrain.libelle : 'inexplorée') }}"></a>
@@ -133,8 +134,8 @@
         <aside class="flex min-h-0 w-full flex-1 flex-col overflow-y-auto border-t border-ocre-500/25
                       bg-sable-50 p-4 md:w-96 md:flex-none lg:w-[30rem] md:border-l md:border-t-0 md:p-5">
             <div class="flex items-baseline justify-between gap-3">
-                <a href="{{ path('app_partie_cite', {id: partie.id}) }}" class="text-sm text-lapis-500"
-                   data-action="click->cite#ouvrir">
+                <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'}) }}" class="text-sm text-lapis-500"
+                   data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir">
                     Bâtiments {{ ville.avecPreposition }} →
                 </a>
             </div>
@@ -536,6 +537,6 @@
             </div>
         </aside>
 
-        {{ include('partie/_cite_fenetre.html.twig') }}
+        {{ include('partie/_fenetre.html.twig') }}
     </section>
 {% endblock %}

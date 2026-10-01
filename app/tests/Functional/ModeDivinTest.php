@@ -76,7 +76,7 @@ final class ModeDivinTest extends WebTestCase
         $joueur = $this->connecter($client, 'divinite@example.com', divinite: true);
         $partie = $this->lancer($joueur);
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=essai', $partie->getId()));
         $bascule = $crawler->filter(\sprintf('form[action="/partie/%d/divin"]', $partie->getId()));
         self::assertCount(1, $bascule);
 

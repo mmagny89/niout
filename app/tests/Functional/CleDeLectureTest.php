@@ -186,14 +186,14 @@ final class CleDeLectureTest extends WebTestCase
         $partie = static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorNotExists('#onglet-maison_des_scribes');
+        self::assertSelectorNotExists('nav[aria-label^="Bâtiments"] a[href$="onglet=maison_des_scribes"]');
 
         $ville = $partie->getVille();
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::MaisonDesScribes, 1));
         $gestionnaire->flush();
 
-        $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSelectorExists('#onglet-maison_des_scribes');
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
+        self::assertSelectorExists('nav[aria-label^="Bâtiments"] a[href$="onglet=maison_des_scribes"]');
         self::assertSelectorTextContains('#panneau-maison_des_scribes', 'Clé de lecture');
         self::assertSelectorTextContains('#panneau-maison_des_scribes', 'N35');
         self::assertSelectorTextContains('#panneau-maison_des_scribes', 'Gardiner');

@@ -155,7 +155,7 @@ final class EnigmesTest extends WebTestCase
         $ordres = [];
 
         for ($essai = 0; $essai < 30; ++$essai) {
-            $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+            $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=temple', $partie->getId()));
             $ordres[] = implode('|', $crawler->filter('form[action*="/scribes/enigme"] button')->each(
                 static fn (Crawler $n): string => (string) $n->attr('value'),
             ));
@@ -173,7 +173,7 @@ final class EnigmesTest extends WebTestCase
         $client = static::createClient();
         $partie = $this->villeAvecLieux('parcours-enigme@example.com', $client);
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
         $jeton = $crawler->filter('form[action*="/scribes/enigme"] input[name="_token"]')->first()->attr('value');
 
         $client->request('POST', \sprintf('/partie/%d/scribes/enigme', $partie->getId()), [
@@ -185,6 +185,8 @@ final class EnigmesTest extends WebTestCase
         self::assertResponseRedirects(\sprintf('/partie/%d/ville', $partie->getId()));
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'Anubis');
+
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
         self::assertSelectorTextNotContains('#panneau-maison_des_scribes', Enigme::ChacalDAnubis->enonce());
     }
 

@@ -84,11 +84,14 @@ final class VueDeLaReserveTest extends WebTestCase
         static::getContainer()->get(EntityManagerInterface::class)->flush();
         $client->loginUser($partie->getJoueur());
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        // Un panneau à la fois : le Grenier, puis l'Entrepôt.
+        foreach (['grenier', 'entrepot'] as $lieu) {
+            $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=%s', $partie->getId(), $lieu));
 
-        self::assertResponseIsSuccessful();
-        self::assertGreaterThanOrEqual(2, $crawler->filter('[role="img"][aria-label^="Réserve :"]')->count());
-        self::assertSelectorTextContains('body', 'Une case :');
+            self::assertResponseIsSuccessful();
+            self::assertCount(1, $crawler->filter('[role="img"][aria-label^="Réserve :"]'), $lieu);
+            self::assertSelectorTextContains('body', 'Une case :');
+        }
     }
 
     private function partie(string $email): \App\Entity\GameSave

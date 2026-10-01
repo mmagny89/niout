@@ -148,7 +148,7 @@ final class ResidenceValorisationTest extends WebTestCase
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::MaisonDesScribes));
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
 
         $onglets = $crawler->filter('nav[aria-label="Sections de la Maison des scribes"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
         $panneaux = $crawler->filter('[role="tabpanel"][id^="scribes-section-"]')->each(static fn ($n): string => (string) $n->attr('id'));
@@ -174,11 +174,12 @@ final class ResidenceValorisationTest extends WebTestCase
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Caserne));
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=atelier', $partie->getId()));
-
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=atelier', $partie->getId()));
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Consigne permanente');
-        self::assertGreaterThan(0, $crawler->filter('details')->count());
+
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=caserne', $partie->getId()));
+        self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Lever un homme');
     }
 

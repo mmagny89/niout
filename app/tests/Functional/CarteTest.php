@@ -193,82 +193,7 @@ final class CarteTest extends WebTestCase
         }
     }
 
-    /**
-     * La carte est l'écran principal d'une partie : c'est la tuile de la ville
-     * qui mène à ses bâtiments, et non l'inverse. **Elle passe par la cité** :
-     * un écran qui montre ce qu'on a bâti, d'où un clic sur un bâtiment ouvre
-     * son onglet.
-     */
-    public function testCliquerLaVilleOuvreLaCiteQuiMeneAuBonOnglet(): void
-    {
-        $client = static::createClient();
-        $joueur = $this->connecter($client, 'entrer@example.com');
-        $partie = $this->lancer($joueur);
-        $ville = $partie->getVille();
-        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier));
-        static::getContainer()->get(EntityManagerInterface::class)->flush();
-
-        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
-        $lien = $crawler->filter(\sprintf('a[href="/partie/%d/cite"]', $partie->getId()));
-
-        self::assertGreaterThan(0, $lien->count(), 'La ville mène à la cité, pas directement aux onglets.');
-
-        $crawler = $client->click($lien->first()->link());
-        self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'La cité');
-        self::assertSelectorTextContains('body', 'Résidence familiale');
-        self::assertSelectorTextContains('body', 'Grenier');
-
-        // Chaque bâtiment ouvre **son** onglet.
-        $grenier = $crawler->filter(\sprintf('a[href="/partie/%d/ville?onglet=grenier"]', $partie->getId()));
-        self::assertCount(1, $grenier);
-
-        $client->click($grenier->link());
-        self::assertResponseIsSuccessful();
-        self::assertSelectorExists('[data-onglet-actif="true"]#onglet-grenier');
-    }
-
-    /**
-     * Sur la carte, la ville s'ouvre en fenêtre : un carré par bâtiment, chacun
-     * menant à son onglet. Sans JavaScript la tuile reste un lien vers la page.
-     */
-    public function testLaCarteContientLaFenetreDeLaCite(): void
-    {
-        $client = static::createClient();
-        $joueur = $this->connecter($client, 'fenetre-cite@example.com');
-        $partie = $this->lancer($joueur);
-        $ville = $partie->getVille();
-        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier));
-        static::getContainer()->get(EntityManagerInterface::class)->flush();
-
-        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
-
-        $fenetre = $crawler->filter('dialog[data-cite-target="fenetre"]');
-        self::assertCount(1, $fenetre);
-        self::assertCount(1, $fenetre->filter(\sprintf('a[href="/partie/%d/ville?onglet=grenier"]', $partie->getId())));
-        self::assertCount(1, $fenetre->filter(\sprintf('a[href="/partie/%d/ville?onglet=residence_familiale"]', $partie->getId())));
-        self::assertGreaterThan(0, $crawler->filter('a[data-action="click->cite#ouvrir"]')->count(), 'La tuile de la ville ouvre la fenêtre.');
-    }
-
-    /**
-     * La cité montre ce qui se construit pour la première fois, sans lui donner
-     * un onglet qui n'existe pas encore.
-     */
-    public function testLaCiteMontreLesChantiersSansOnglet(): void
-    {
-        $client = static::createClient();
-        $joueur = $this->connecter($client, 'cite-chantier@example.com');
-        $partie = $this->lancer($joueur);
-        $ville = $partie->getVille();
-        $ville->ajouterChantier(new \App\Entity\Chantier($ville, TypeDeBatiment::Marche, 1));
-        static::getContainer()->get(EntityManagerInterface::class)->flush();
-
-        $client->request('GET', \sprintf('/partie/%d/cite', $partie->getId()));
-
-        self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'En chantier');
-        self::assertSelectorTextContains('body', 'Marché');
-    }
+    // Les tests de la cité en fenêtre vivent dans FenetreTest.
 
     public function testLaRepriseMeneAuTerritoire(): void
     {
@@ -293,13 +218,13 @@ final class CarteTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         $client->submit($crawler->selectButton('Quinzaine suivante')->form());
 
-        // Et sur l'onglet d'où l'on est parti : on passe souvent plusieurs
-        // quinzaines de suite depuis le même panneau.
-        self::assertResponseRedirects(\sprintf(
-            '/partie/%d/ville?onglet=%s',
-            $partie->getId(),
-            TypeDeBatiment::ResidenceFamiliale->value,
-        ));
+        // Et sur la fenêtre d'où l'on est parti : on passe souvent plusieurs
+        // quinzaines de suite depuis le même panneau. La ville est une fenêtre
+        // de la carte : le cycle ramène à la carte, fenêtre rouverte.
+        self::assertResponseRedirects();
+        $lieu = urldecode((string) $client->getResponse()->headers->get('Location'));
+        self::assertStringContainsString(\sprintf('/partie/%d/carte', $partie->getId()), $lieu);
+        self::assertStringContainsString(\sprintf('ouvre=/partie/%d/ville', $partie->getId()), $lieu);
     }
 
     /**

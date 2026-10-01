@@ -1,0 +1,50 @@
+{# Le bouton qui avance le temps — ou ce qui en tient lieu quand le temps ne
+   s'avance plus. Attend `partie`, `retourDuCycle`, `ongletDuCycle`,
+   `zoneDuCycle` et `ouvreDuCycle`. #}
+{% if partie.estEnCours %}
+        <form method="post" action="{{ path('app_partie_cycle', {id: partie.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('cycle') }}">
+            {# Le joueur revient où il était : avancer le temps
+               depuis la ville ne doit pas l'éjecter sur la carte. #}
+            <input type="hidden" name="retour" value="{{ retourDuCycle }}">
+            {# L'onglet ouvert voyage avec la quinzaine : on la
+               passe souvent plusieurs fois de suite depuis le
+               même panneau, et repartir de la Résidence
+               familiale à chaque fois serait une reprise à
+               refaire. #}
+            {% if ongletDuCycle %}
+                <input type="hidden" name="onglet" value="{{ ongletDuCycle }}">
+            {% endif %}
+            {# Et la case sélectionnée voyage de même : on
+               avance souvent le temps en surveillant une
+               expédition ou une carrière, et repartir d'une
+               carte sans sélection obligeait à retrouver sa
+               case à chaque cycle. #}
+            {% if zoneDuCycle %}
+                <input type="hidden" name="zone" value="{{ zoneDuCycle }}">
+            {% endif %}
+            {# La fenêtre ouverte voyage de même : le cycle recharge
+               la carte, et la fenêtre doit se rouvrir au même
+               endroit. `fenetre_controller.js` tient ce champ à
+               jour quand on navigue dans la fenêtre. #}
+            <input type="hidden" name="ouvre" value="{{ ouvreDuCycle }}">
+            <button type="submit"
+                    class="whitespace-nowrap rounded-sm bg-lapis-500 px-3 py-2 text-sm font-medium
+                           text-sable-50 hover:bg-lapis-600 md:px-4 md:py-1.5">
+                Quinzaine suivante
+            </button>
+        </form>
+    {% elseif partie.estAchevee %}
+        {# La volonté du roi est accomplie : le temps ne s'avance
+           plus, et la partie reste consultable avec son score. #}
+        <span class="rounded-sm bg-lapis-500/15 px-4 py-1.5 text-sm font-medium text-lapis-600">
+            Mission accomplie — <span data-chiffres>{{ partie.scoreDeMission }} %</span>
+        </span>
+    {% else %}
+        {# La famine a eu raison de la ville : le temps ne
+           s'avance plus, mais la partie reste consultable
+           (doc 00 — chaque partie est une run complète). #}
+        <span class="rounded-sm bg-terre-100 px-4 py-1.5 text-sm font-medium text-terre-700">
+            Partie échouée — famine
+        </span>
+    {% endif %}

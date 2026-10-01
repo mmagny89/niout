@@ -185,7 +185,7 @@ final class DeductionTest extends WebTestCase
         $ordres = [];
 
         for ($essai = 0; $essai < 30; ++$essai) {
-            $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+            $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
             $ordres[] = implode('|', $crawler->filter('form[action*="/scribes/conclure"] button')->each(
                 static fn ($n): string => substr((string) $n->attr('value'), 0, 20),
             ));

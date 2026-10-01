@@ -185,29 +185,31 @@ final class ErgonomieTest extends WebTestCase
     }
 
     /**
-     * Chaque onglet a son panneau, et **un seul est ouvert**. Le contrôle est
-     * structurel : sans JavaScript, le test ne peut pas cliquer, mais un
-     * onglet sans panneau est un bouton mort et se verrait ici.
+     * **Le rail de la ville est la cité** : un carré par bâtiment, un seul actif,
+     * et le panneau du bâtiment ouvert porte l'identifiant `panneau-<bâtiment>`.
+     * Le contrôle est structurel — sans JavaScript on ne peut pas cliquer, mais
+     * un carré qui ne mène nulle part se verrait ici.
      */
-    public function testChaqueOngletDeLaVilleAUnPanneau(): void
+    public function testLeRailDeLaVilleMeneChaqueBatimentASonPanneau(): void
     {
         $client = static::createClient();
-        $partie = $this->lancer($client, 'onglets@example.com');
+        $partie = $this->lancer($client, 'rail@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier, 1));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=grenier', $partie->getId()));
 
-        // Les onglets de la ville seulement : la Résidence porte ses propres
-        // sections, contrôlées plus bas.
-        $onglets = $crawler->filter('nav[aria-label="Sections de la ville"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
-        $panneaux = $crawler->filter('[role="tabpanel"][id^="panneau-"]')->each(static fn ($n): string => (string) $n->attr('id'));
+        $liens = $crawler->filter('nav[aria-label^="Bâtiments"] a')->each(static fn ($n): string => (string) $n->attr('href'));
+        self::assertSame([
+            \sprintf('/partie/%d/ville?onglet=residence_familiale', $partie->getId()),
+            \sprintf('/partie/%d/ville?onglet=grenier', $partie->getId()),
+        ], $liens);
 
-        self::assertNotSame([], $onglets);
-        self::assertSame($onglets, $panneaux, 'Un onglet sans panneau est un bouton mort.');
-        self::assertCount(
-            \count($onglets) - 1,
-            $crawler->filter('[role="tabpanel"][id^="panneau-"][hidden]'),
-            'Un seul panneau est ouvert à la fois.',
-        );
+        self::assertCount(1, $crawler->filter('nav[aria-label^="Bâtiments"] a[aria-current="page"]'), 'Un seul carré est actif.');
+        self::assertCount(1, $crawler->filter('nav[aria-label^="Bâtiments"] a[aria-current="page"][href$="onglet=grenier"]'));
+        self::assertCount(1, $crawler->filter('#panneau-grenier'));
+        self::assertCount(0, $crawler->filter('#panneau-residence_familiale'), 'Seul le panneau ouvert est rendu.');
     }
 
     /**
@@ -293,16 +295,14 @@ final class ErgonomieTest extends WebTestCase
         $client = static::createClient();
         $partie = $this->lancer($client, 'essai-onglet@example.com', divin: true);
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=essai', $partie->getId()));
 
-        self::assertCount(1, $crawler->filter('#panneau-essai'), 'Le mode d\'essai est un onglet.');
-        self::assertCount(1, $crawler->filter('#onglet-essai'));
-        self::assertCount(1, $crawler->filter('#panneau-essai[hidden]'), 'Et il est fermé par défaut.');
+        self::assertCount(1, $crawler->filter('#panneau-essai'), 'Le mode d\'essai est un panneau à lui.');
+        self::assertCount(1, $crawler->filter('nav[aria-label^="Bâtiments"] a[href$="onglet=essai"][aria-current="page"]'));
 
-        // L'en-tête fixe ne porte plus le formulaire du mode d'essai.
-        $fixe = $crawler->filter('section > div')->first()->html();
-        self::assertStringNotContainsString('app_partie_divin', $fixe);
-        self::assertStringNotContainsString('Passer en partie d\'essai', $fixe);
+        // Et il n'est pas dans le panneau de la Résidence.
+        $residence = $client->request('GET', \sprintf('/partie/%d/ville?onglet=residence_familiale', $partie->getId()));
+        self::assertCount(0, $residence->filter('#panneau-essai'));
     }
 
     /**
@@ -322,7 +322,7 @@ final class ErgonomieTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         foreach (['temple', 'auberge', 'maison_des_scribes'] as $lieu) {
-            self::assertCount(0, $crawler->filter('#onglet-'.$lieu), 'Sans le bâtiment, pas d\'onglet.');
+            self::assertCount(0, $crawler->filter('nav[aria-label^="Bâtiments"] a[href$="onglet='.$lieu.'"]'), 'Sans le bâtiment, pas de carré.');
         }
 
         foreach ([TypeDeBatiment::Temple, TypeDeBatiment::Auberge, TypeDeBatiment::MaisonDesScribes] as $type) {
@@ -330,25 +330,20 @@ final class ErgonomieTest extends WebTestCase
         }
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $panneaux = [];
         foreach (['temple', 'auberge', 'maison_des_scribes'] as $lieu) {
-            self::assertCount(1, $crawler->filter('#onglet-'.$lieu));
+            $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=%s', $partie->getId(), $lieu));
+            self::assertCount(1, $crawler->filter('nav[aria-label^="Bâtiments"] a[href$="onglet='.$lieu.'"]'));
             self::assertCount(1, $crawler->filter('#panneau-'.$lieu));
+            $panneaux[$lieu] = $crawler->filter('#panneau-'.$lieu)->html();
         }
 
         // Les devinettes de l'Auberge se lisent dans l'Auberge, pas ailleurs.
-        $auberge = $crawler->filter('#panneau-auberge')->html();
-        self::assertStringContainsString(Enigme::DevinetteDuFleuve->enonce(), $auberge);
-        self::assertStringNotContainsString(
-            Enigme::DevinetteDuFleuve->enonce(),
-            $crawler->filter('#panneau-maison_des_scribes')->html(),
-        );
+        self::assertStringContainsString(Enigme::DevinetteDuFleuve->enonce(), $panneaux['auberge']);
+        self::assertStringNotContainsString(Enigme::DevinetteDuFleuve->enonce(), $panneaux['maison_des_scribes']);
 
         // Et l'oracle se pose au Temple.
-        self::assertStringContainsString(
-            Enigme::OracleDeKarnak->enonce(),
-            $crawler->filter('#panneau-temple')->html(),
-        );
+        self::assertStringContainsString(Enigme::OracleDeKarnak->enonce(), $panneaux['temple']);
     }
 
     /**
@@ -363,12 +358,11 @@ final class ErgonomieTest extends WebTestCase
         $partie = $this->lancer($client, 'onglet-par-batiment@example.com');
         $ville = $partie->getVille();
 
+        $carres = static fn (\Symfony\Component\DomCrawler\Crawler $c): array => $c->filter('nav[aria-label^="Bâtiments"] a')
+            ->each(static fn ($n): string => (string) preg_replace('/^.*onglet=/', '', (string) $n->attr('href')));
+
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
-        self::assertSame(
-            ['panneau-residence_familiale'],
-            $crawler->filter('nav[aria-label="Sections de la ville"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls')),
-            'Une ville neuve n\'a que le foyer de sa lignée.',
-        );
+        self::assertSame(['residence_familiale'], $carres($crawler), 'Une ville neuve n\'a que le foyer de sa lignée.');
 
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier, 1));
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Port, 1));
@@ -376,8 +370,8 @@ final class ErgonomieTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         self::assertSame(
-            ['panneau-residence_familiale', 'panneau-grenier', 'panneau-port'],
-            $crawler->filter('nav[aria-label="Sections de la ville"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls')),
+            ['residence_familiale', 'grenier', 'port'],
+            $carres($crawler),
             'L\'ordre suit celui de TypeDeBatiment, stable d\'un rendu à l\'autre.',
         );
     }
@@ -401,7 +395,7 @@ final class ErgonomieTest extends WebTestCase
         $ville->crediterRessources([Ressource::Calcaire->value => 5]);
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=marche', $partie->getId()));
         $client->submit($crawler->filter(\sprintf('form[action="/partie/%d/ville/vendre"]', $partie->getId()))->form());
 
         self::assertResponseRedirects(\sprintf(
@@ -412,11 +406,8 @@ final class ErgonomieTest extends WebTestCase
 
         // Et l'onglet est bien celui qui s'ouvre au rechargement.
         $crawler = $client->followRedirect();
-        self::assertSame(
-            'true',
-            $crawler->filter('#onglet-'.TypeDeBatiment::Marche->value)->attr('data-onglet-actif'),
-        );
-        self::assertCount(0, $crawler->filter('#panneau-'.TypeDeBatiment::Marche->value.'[hidden]'));
+        self::assertCount(1, $crawler->filter('nav[aria-label^="Bâtiments"] a[aria-current="page"][href$="onglet='.TypeDeBatiment::Marche->value.'"]'));
+        self::assertCount(1, $crawler->filter('#panneau-'.TypeDeBatiment::Marche->value));
     }
 
     /**
@@ -433,15 +424,12 @@ final class ErgonomieTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=nimporte-quoi', $partie->getId()));
 
         self::assertResponseIsSuccessful();
-        self::assertSame(
+        self::assertCount(
             1,
-            $crawler->filter('nav[aria-label="Sections de la ville"] [data-onglet-actif="true"]')->count(),
-            'Exactement un onglet est ouvert, quoi que dise l\'adresse.',
+            $crawler->filter('nav[aria-label^="Bâtiments"] a[aria-current="page"]'),
+            'Exactement un carré est actif, quoi que dise l\'adresse.',
         );
-        self::assertSame(
-            'true',
-            $crawler->filter('#onglet-'.TypeDeBatiment::ResidenceFamiliale->value)->attr('data-onglet-actif'),
-        );
+        self::assertCount(1, $crawler->filter('#panneau-'.TypeDeBatiment::ResidenceFamiliale->value));
     }
 
     /**

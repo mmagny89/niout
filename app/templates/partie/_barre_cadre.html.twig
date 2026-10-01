@@ -1,0 +1,5 @@
+{# La barre de jeu rendue seule, pour qu'elle se recharge sans que la page
+   bouge (`app_partie_barre`, `fenetre_controller.js`). Mêmes pièces que dans la
+   coque : la barre et le bouton de cycle. #}
+{% set actionHtml %}{{ include('partie/_action_de_cycle.html.twig') }}{% endset %}
+<turbo-frame id="barre" target="_top">{{ include('partie/_barre.html.twig', {actionHtml: actionHtml}) }}</turbo-frame>

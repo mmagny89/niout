@@ -241,7 +241,7 @@ final class VilleTest extends WebTestCase
 
         $population = $ville->population();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=quartier_habitation', $partie->getId()));
         $formulaire = $crawler->filter(\sprintf('form[action="/partie/%d/ville/appeler"]', $partie->getId()));
 
         self::assertCount(1, $formulaire, 'Une ville logée doit pouvoir appeler du monde.');
@@ -287,7 +287,7 @@ final class VilleTest extends WebTestCase
         ]);
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=atelier', $partie->getId()));
         self::assertSelectorTextContains('body', 'Atelier');
 
         $formulaire = $crawler->filter(\sprintf('form[action="/partie/%d/ville/fabriquer"]', $partie->getId()));
@@ -319,7 +319,7 @@ final class VilleTest extends WebTestCase
         $ville->crediterRessources([Ressource::Deben->value => 1000]);
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=entrepot', $partie->getId()));
         self::assertSelectorTextContains('body', 'Routes commerciales');
         self::assertSelectorTextContains('body', 'Canaan');
 
@@ -344,10 +344,15 @@ final class VilleTest extends WebTestCase
      */
     public function testLeGabaritDeLaVilleNImprimeJamaisLaCompetenceChiffree(): void
     {
-        $gabarit = file_get_contents(\dirname(__DIR__, 2).'/templates/partie/ville.html.twig');
+        // La fenêtre de la ville, et chacun des panneaux qu'elle embarque.
+        $gabarits = [\dirname(__DIR__, 2).'/templates/fenetre/ville.html.twig', ...(glob(\dirname(__DIR__, 2).'/templates/partie/batiments/*.twig') ?: [])];
 
-        self::assertIsString($gabarit);
-        self::assertStringNotContainsString('.competence', $gabarit);
+        foreach ($gabarits as $chemin) {
+            $gabarit = file_get_contents($chemin);
+
+            self::assertIsString($gabarit);
+            self::assertStringNotContainsString('.competence', $gabarit, $chemin);
+        }
     }
 
     /**
@@ -366,7 +371,7 @@ final class VilleTest extends WebTestCase
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::QuartierDHabitation));
         static::getContainer()->get(EntityManagerInterface::class)->flush();
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=grenier', $partie->getId()));
         $annonce = $crawler->filter(\sprintf('form[action="/partie/%d/ville/poster"]', $partie->getId()));
         self::assertGreaterThan(0, $annonce->count(), 'Un Grenier doit pouvoir recevoir une annonce.');
 
