@@ -1,0 +1,31 @@
+{# La fenêtre au-dessus de la carte : un cadre Turbo dans un `<dialog>`.
+
+   **Non modale, et c'est voulu** : `show()` et non `showModal()`. Le bouton de
+   cycle est dans la barre, et la barre doit rester utilisable fenêtre ouverte —
+   fermer pour avancer le temps serait le contraire de ce qu'on veut. La fenêtre
+   ne couvre donc que la zone de la carte, jamais la barre.
+
+   Ce qu'on perd à n'être pas modal — le piège à focus, l'inertie du fond —,
+   `fenetre_controller.js` le rend : Échap ferme, le focus entre dans la fenêtre à
+   l'ouverture et retourne à ce qui l'a ouverte à la fermeture.
+
+   `ouvre` est la page que l'URL demande d'ouvrir, déjà rendue côté serveur ;
+   sinon le cadre est vide et attend un clic. #}
+<dialog data-fenetre-target="fenetre" {{ fenetre ? 'open' }}
+        aria-labelledby="fenetre-titre"
+        class="absolute inset-2 z-30 m-0 h-auto w-auto max-h-none overflow-hidden rounded-sm border border-ocre-500/40
+               bg-sable-50 p-0 text-encre-900 shadow-xl md:inset-6 lg:inset-x-[10%] lg:inset-y-6">
+    <button type="button" data-action="fenetre#fermer"
+            class="absolute right-2 top-2 z-10 rounded-sm px-2 py-1 text-2xl leading-none text-encre-500 hover:text-terre-600"
+            aria-label="Fermer la fenêtre">
+        <span aria-hidden="true">&times;</span>
+    </button>
+
+    <div class="h-full overflow-y-auto">
+        {% if fenetre %}
+            {{ fenetre|raw }}
+        {% else %}
+            <turbo-frame id="fenetre" data-fenetre-target="cadre"></turbo-frame>
+        {% endif %}
+    </div>
+</dialog>

@@ -1,0 +1,81 @@
+{# La cité, dans la fenêtre : un carré par bâtiment construit.
+
+   **Des carrés, pas encore des images** : les visuels viennent plus tard.
+   Chaque carré a son emplacement — l'image s'il en existe une
+   (`assets/images/batiments/<type>.webp`), un monogramme sinon —, de sorte que
+   les déposer ne change rien d'autre.
+
+   Un clic sur un carré ouvre l'onglet du bâtiment. Ce gabarit est le contenu du
+   cadre : la route le rend seul pour un clic, et la carte l'embarque quand
+   l'URL dit `ouvre=…/cite` (voir `OuvertureDeFenetre`). #}
+<turbo-frame id="fenetre">
+    {{ include('_messages_de_jeu.html.twig') }}
+
+    <div class="border-b border-ocre-500/25 px-5 py-3">
+        <h2 id="fenetre-titre" class="font-display text-xl text-encre-900">La cité {{ ville.avecPreposition }}</h2>
+        <p class="text-xs text-encre-500" data-chiffres>
+            {{ batiments|length }} bâtiment{{ batiments|length > 1 ? 's' : '' }}
+            · {{ ville.population }} habitants
+        </p>
+    </div>
+
+    <ul class="grid list-none grid-cols-3 gap-3 p-5 sm:grid-cols-4 md:grid-cols-5">
+        {% for entree in batiments %}
+            {% set type = entree.type %}
+            <li>
+                {# Hors cadre pour l'instant : la ville n'est pas encore en
+                   fenêtre. `_top` la charge comme une page, ce qu'elle est. #}
+                <a href="{{ path('app_partie_ville', {id: partie.id, onglet: type.value}) }}" data-turbo-frame="_top"
+                   class="group relative flex aspect-square flex-col items-center justify-center overflow-hidden rounded-sm
+                          border border-ocre-500/40 bg-sable-200 text-center no-underline
+                          hover:border-terre-500/70 hover:bg-ocre-300/30 focus-visible:outline-2 focus-visible:outline-lapis-500"
+                   title="{{ type.libelle }}{{ entree.batiment ? ' — niveau ' ~ entree.batiment.niveau : '' }}">
+                    {% if entree.visuel %}
+                        <img src="{{ asset(entree.visuel) }}" alt="" loading="lazy" decoding="async"
+                             class="absolute inset-0 h-full w-full object-cover">
+                    {% else %}
+                        <span class="font-display text-4xl text-ocre-600/70 group-hover:text-terre-500" aria-hidden="true">
+                            {{ type.libelle|first|upper }}
+                        </span>
+                    {% endif %}
+
+                    <span class="absolute inset-x-0 bottom-0 bg-sable-50/90 px-1 py-1 text-xs leading-tight text-encre-900">
+                        {{ type.libelle }}
+                        {% if entree.batiment %}
+                            <span class="block text-encre-500" data-chiffres>niv. {{ entree.batiment.niveau }}</span>
+                        {% endif %}
+                    </span>
+
+                    {% if entree.chantier %}
+                        <span class="absolute right-1 top-1 rounded-sm bg-ocre-500 px-1.5 py-0.5 text-[10px] font-medium text-sable-50"
+                              title="Travaux en cours">
+                            <span aria-hidden="true">⚒</span>
+                            <span class="sr-only">Travaux en cours</span>
+                        </span>
+                    {% endif %}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if enChantier is not empty %}
+        <div class="border-t border-ocre-500/25 px-5 py-3">
+            <h3 class="text-sm font-medium uppercase tracking-wide text-encre-500">En chantier</h3>
+            <ul class="mt-2 grid list-none gap-2 p-0 sm:grid-cols-2 md:grid-cols-3" data-chiffres>
+                {% for chantier in enChantier %}
+                    <li class="rounded-sm border border-dashed border-ocre-500/50 bg-sable-50/60 px-3 py-2 text-sm">
+                        <span class="font-display text-encre-900">{{ chantier.type.libelle }}</span>
+                        <span class="block text-xs text-encre-500">
+                            encore {{ chantier.cyclesRestants }} quinzaine{{ chantier.cyclesRestants > 1 ? 's' : '' }}
+                            · {{ chantier.pourcentageDAvancement }} %
+                        </span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <div class="flex flex-wrap items-baseline justify-end gap-3 border-t border-ocre-500/25 px-5 py-3 text-sm">
+        <a href="{{ path('app_partie_ville', {id: partie.id}) }}" data-turbo-frame="_top" class="text-lapis-500">Gérer la ville →</a>
+    </div>
+</turbo-frame>

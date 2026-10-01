@@ -210,25 +210,31 @@ de sous-onglets** — la création d'une partie se range sur deux colonnes, ce q
 peut jouer à gauche et le formulaire à droite. Les pages hors jeu (accueil,
 connexion, compte, administration) n'entrent pas dans cette règle.
 
-**La cité est l'écran intermédiaire entre la carte et les onglets.** Sur la
-carte, cliquer la tuile de la ville — ou le lien « Bâtiments » du panneau —
-ouvre **une fenêtre au-dessus du territoire** (`_cite_fenetre.html.twig`,
-`cite_controller.js`) : un carré par bâtiment, sans quitter la carte. C'est un
-`<dialog>` natif ouvert par `showModal()` : Échap, piège à focus et inertie du
-fond viennent du navigateur. **Sans JavaScript, la tuile reste un lien** vers la
-page de la cité (`app_partie_cite`, `partie/cite.html.twig`, plus détaillée :
-équipage, rendement, chantiers), et le clic modifié (Ctrl, Cmd, milieu) passe, pour
-l'ouvrir dans un autre onglet. Dans les deux cas on voit d'abord ce qu'on a bâti,
-et un clic sur un bâtiment ouvre **son** onglet
-(`app_partie_ville?onglet=<type>`). La Résidence, foyer de la lignée, est
-toujours présente ; les chantiers de bâtiments qui n'existent pas encore se
-montrent à part, sans onglet. **Chaque carte a un emplacement pour son visuel** :
+**La carte ouvre ses écrans dans une fenêtre** (chantier décrit dans
+[`plan-fenetres.md`](plan-fenetres.md), phase 1 livrée). Un `<dialog>` **non
+modal** porte un `<turbo-frame id="fenetre">` ; un lien `data-turbo-frame="fenetre"`
+y charge sa cible sans quitter la carte. **Non modal parce que le bouton de cycle
+est dans la barre** : la fenêtre ne couvre que la zone de la carte, jamais la
+barre, et `fenetre_controller.js` rend à la main ce que `showModal()` donnait —
+Échap ferme, le focus entre dans la fenêtre et retourne à ce qui l'a ouverte.
+**L'état est dans l'URL** : `carte?ouvre=/partie/12/cite`. Le serveur rend la
+carte avec la fenêtre déjà remplie (`OuvertureDeFenetre`, par sous-requête avec
+l'en-tête `Turbo-Frame`), recharger la page la rouvre au même endroit, et
+`replaceState` tient l'adresse à jour. **Le paramètre vient du visiteur et ne se
+suit jamais sans validation** : un chemin interne à *cette* partie, d'une route
+qui sait répondre en cadre (`ROUTES_DE_CADRE`), ni un autre site, ni la carte
+elle-même. Chaque route de fenêtre répond en cadre avec l'en-tête, et renvoie
+vers la carte ouverte sans lui. **La barre de jeu est un cadre** (`barre`,
+`app_partie_barre`) : elle se recharge seule après chaque action de la fenêtre,
+et la carte se rafraîchit une fois à la fermeture si quelque chose a changé. Les
+routes de fenêtre vivent dans `FenetreController`, pas dans `PartieController`.
+
+**La cité** est le premier écran en fenêtre : un carré par bâtiment construit,
+chacun menant à son onglet. **Chaque carte a un emplacement pour son visuel** :
 déposer `app/assets/images/batiments/<type>.webp` (`grenier.webp`,
-`maison_des_scribes.webp`…) suffit, le contrôleur teste l'existence du fichier et
-le gabarit n'a pas à changer ; sans image, un monogramme tient la place dans le
-même cadre 4/3, pour que la grille ne bouge pas à l'arrivée des images. La cité
-(la page) est une route de retour valide pour l'action de cycle (`routeDeRetour()`), comme
-la carte et la ville.
+`maison_des_scribes.webp`…) suffit, `BatimentsDeLaCite` teste l'existence du
+fichier et le gabarit n'a pas à changer ; sans image, un monogramme tient la place
+dans le même cadre, pour que la grille ne bouge pas à l'arrivée des images.
 
 ## Signaux, alertes et reprise d'onglet
 

@@ -68,7 +68,7 @@ rangée défilante en haut.
 
 Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
 
-1. **Fondations.** Extraire la barre de jeu en cadre (`barre`) ; poser le
+1. **Fondations.** *(livrée)* Extraire la barre de jeu en cadre (`barre`) ; poser le
    `<dialog>` + `<turbo-frame id="fenetre">` dans la carte ; paramètre
    `ouvre=` validé (chemin interne à la partie, rien d'autre) ; rendu serveur
    cadre-seul / carte-ouverte ; `replaceState`. La fenêtre est **non modale** et
@@ -126,3 +126,16 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
 - **La taille du `PartieController`** : y ajouter des routes de cadre avant la
   phase 6 aggraverait ce qu'on veut réparer ; on les pose dans un contrôleur à
   part dès la phase 1.
+
+## 9. Journal
+
+**Phase 1 livrée.** La barre est un cadre (`barre`, `app_partie_barre`) ; la
+carte porte le `<dialog>` non modal et le cadre `fenetre` ; `ouvre=` est validé
+et rendu côté serveur par sous-requête ; la cité est la première route de
+fenêtre, dans un `FenetreController` à part. Le bouton de cycle ramène le joueur
+fenêtre ouverte. **Non vérifié au navigateur** : le comportement de
+`fenetre_controller.js` (ouverture au clic, `replaceState`, rechargement de la
+barre, rafraîchissement à la fermeture) ne se teste pas sans JavaScript — le
+navigateur intégré refusait `https://localhost` pendant cette phase. À éprouver à
+la main avant la phase 2 : ouvrir la cité par la tuile, recharger, avancer d'une
+quinzaine fenêtre ouverte, fermer.
