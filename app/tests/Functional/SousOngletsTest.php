@@ -36,7 +36,7 @@ final class SousOngletsTest extends WebTestCase
         foreach ([
             TypeDeBatiment::Marche, TypeDeBatiment::Port, TypeDeBatiment::Grenier, TypeDeBatiment::Entrepot,
             TypeDeBatiment::Atelier, TypeDeBatiment::Forge, TypeDeBatiment::Caserne, TypeDeBatiment::Temple,
-            TypeDeBatiment::QuartierDHabitation, TypeDeBatiment::MaisonDesScribes,
+            TypeDeBatiment::QuartierDHabitation, TypeDeBatiment::MaisonDesScribes, TypeDeBatiment::Auberge,
         ] as $type) {
             $ville->ajouterBatiment(new Building($ville, $type));
         }
@@ -53,9 +53,10 @@ final class SousOngletsTest extends WebTestCase
         $barres = $xpath->query('//nav[@role="tablist"][not(@aria-label="Sections de la ville")]');
         self::assertInstanceOf(\DOMNodeList::class, $barres);
 
-        // Résidence, Maison des scribes, Marché, Port, Grenier, Entrepôt,
-        // Atelier, Forge, Caserne, Temple, Quartier.
-        self::assertGreaterThanOrEqual(11, $barres->length);
+        // **Toutes les pages, construites de la même manière** : la Résidence,
+        // la Maison des scribes, le Marché, le Port, le Grenier, l'Entrepôt,
+        // l'Atelier, la Forge, la Caserne, le Temple, le Quartier, l'Auberge.
+        self::assertSame(12, $barres->length);
 
         $ids = $crawler->filter('[id]')->each(static fn ($n): string => (string) $n->attr('id'));
         self::assertSame($ids, array_values(array_unique($ids)), 'Deux éléments partagent un identifiant : un onglet ouvrirait le voisin.');

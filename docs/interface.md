@@ -187,6 +187,18 @@ d'un coup : onglets et panneaux dans le même ordre, un seul panneau ouvert,
 aucun identifiant en double. **L'Auberge n'en a pas** : une page courte n'a pas à
 payer un clic de plus.
 
+**Aucune page de bâtiment n'échappe aux sous-onglets**, la Résidence, la Maison
+des scribes et l'Auberge comprises : `SousOngletsTest` en compte douze et
+échoue si l'une revient à une construction maison. **Les sous-onglets se posent
+juste sous l'en-tête**, avant tout bloc de contenu — la Direction, l'encart des
+écritures, une explication qui les précéderaient repousseraient la barre en bas
+d'écran, là où personne ne la cherche (défaut réel, constaté à la Maison des
+scribes). **Le panneau occupe toute la largeur de la fenêtre** : seuls les
+paragraphes gardent une mesure de lecture (`max-w-4xl`), les blocs, tableaux et
+replis n'ont plus de plafond. Une carte lourde, comme une route commerciale, se
+coupe en deux colonnes dès `lg` : ce qu'est la cité à gauche, ce qu'on y fait à
+droite.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

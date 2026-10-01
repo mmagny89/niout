@@ -137,7 +137,7 @@ final class ResidenceValorisationTest extends WebTestCase
     }
 
     /**
-     * La Maison des scribes tient en trois sections, une seule ouverte : chaque
+     * La Maison des scribes tient en trois sections et sa Direction, une seule ouverte : chaque
      * section a son panneau, et l'ordre des deux listes est le même.
      */
     public function testLaMaisonDesScribesEstDecoupeeEnSections(): void
@@ -153,9 +153,11 @@ final class ResidenceValorisationTest extends WebTestCase
         $onglets = $crawler->filter('nav[aria-label="Sections de la Maison des scribes"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
         $panneaux = $crawler->filter('[role="tabpanel"][id^="scribes-section-"]')->each(static fn ($n): string => (string) $n->attr('id'));
 
-        self::assertCount(3, $onglets);
+        // Trois sections de contenu, plus la Direction, comme tout bâtiment.
+        self::assertCount(4, $onglets);
         self::assertSame($onglets, $panneaux);
-        self::assertCount(2, $crawler->filter('[role="tabpanel"][id^="scribes-section-"][hidden]'));
+        self::assertContains('scribes-section-direction', $panneaux);
+        self::assertCount(3, $crawler->filter('[role="tabpanel"][id^="scribes-section-"][hidden]'));
         self::assertSelectorTextContains('body', 'Écrire « Niout »');
     }
 

@@ -21,7 +21,7 @@
     <h3 class="mt-8 text-xl text-encre-900">À l'ouvrage</h3>
 
     {% if atelier.ordre %}
-        <div class="mt-3 max-w-xl rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-4 py-3">
+        <div class="mt-3 rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-4 py-3">
             <div class="flex flex-wrap items-baseline justify-between gap-3">
                 <h3 class="font-display text-lg text-encre-900">{{ atelier.ordre.recette.libelle }}</h3>
                 <span class="text-sm text-encre-500" data-chiffres>
@@ -40,7 +40,7 @@
             </p>
         </div>
     {% else %}
-        <p class="mt-2 max-w-3xl text-sm text-encre-500" data-chiffres>
+        <p class="mt-2 max-w-4xl text-sm text-encre-500" data-chiffres>
             Un lot consomme ses matières à l'engagement et rend plusieurs pièces
             à l'achèvement. Jusqu'à {{ atelier.lotsMaximum }} à la fois ; les bras
             qui tiennent le bâtiment en décident le rythme.
@@ -105,7 +105,7 @@
 
 {{ sous.panneau('fabrication-' ~ onglet.type.value, 'consigne', false) }}
     <h3 class="mt-4 text-xl text-encre-900">Consigne permanente</h3>
-    <p class="mt-2 max-w-2xl text-sm text-encre-500">
+    <p class="mt-2 max-w-4xl text-sm text-encre-500">
         Dites une fois ce que ce bâtiment doit refaire, et il s'y remettra
         <strong class="text-encre-700">dès qu'il se libère</strong>, sans que
         vous ayez à revenir. Il prend ses matières dans vos réserves à chaque

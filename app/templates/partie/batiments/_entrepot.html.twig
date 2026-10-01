@@ -19,7 +19,7 @@
 <h3 class="mt-8 text-xl text-encre-900">La réserve</h3>
 {{ include('partie/batiments/_reserve_visuelle.html.twig', {vue: reserveDesMateriaux}) }}
 
-<p class="mt-4 max-w-3xl text-sm {{ ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+<p class="mt-4 max-w-4xl text-sm {{ ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
     {{ ville.materiaux }} unités sur {{ ville.plafondDesMateriaux }}.
     Les ressources d'une même réserve se partagent ce plafond : dix roseaux
     rangés, c'est dix de moins pour l'argile.
@@ -35,7 +35,7 @@
    garde et de ce qui part. Le Marché ne garde que la vente à la main et le
    prix qu'on fait payer. #}
 <h3 class="mt-8 text-xl text-encre-900">Ce que vous gardez, ce qui part</h3>
-<p class="mt-2 max-w-3xl text-sm text-encre-500">
+<p class="mt-2 max-w-4xl text-sm text-encre-500">
     Pour chaque ressource, dites <strong class="text-encre-700">combien vous en
     gardez</strong> : le surplus part au Marché de lui-même, jour de marché
     après jour de marché, jusqu'à ce que vos réserves y retombent. Rien n'est

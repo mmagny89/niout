@@ -1,18 +1,43 @@
 {# L'Auberge : voyageurs de passage, rumeurs, devinettes. **Un onglet, un
    bâtiment** — les énigmes qu'on y entend s'y posent, et pas chez les
-   scribes. #}
+   scribes.
+
+   Même construction que tous les panneaux de bâtiment : des sous-onglets, dont
+   le premier est celui qu'on vient ouvrir. Une page courte n'en est pas
+   dispensée — **toutes se construisent de la même manière**, pour que le joueur
+   apprenne une fois où chercher. #}
 {{ include('partie/batiments/_entete.html.twig') }}
-{{ include('partie/batiments/_direction.html.twig') }}
 
-<p class="mt-6 max-w-3xl text-sm text-encre-500">
-    Bateliers, porteurs de nouvelles, marchands en chemin : on y boit, on y
-    parle, et l'on s'y pose des devinettes. Rien de ce qui s'y dit n'engage la
-    ville — mais on y apprend des choses.
-</p>
-
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+{% set direction = directions[onglet.type.value] ?? null %}
+{% set sections = [
+    {cle: 'table', libelle: 'À la table'},
+    {cle: 'salle', libelle: 'La salle'},
+] %}
+{% if direction %}
+    {% set sections = sections|merge([{cle: 'direction', libelle: direction.chefs is empty ? 'Direction · vacante' : 'Direction'}]) %}
+{% endif %}
+{{ sous.debut('auberge', partie.id, "Sections de l'Auberge", sections) }}
+{{ sous.panneau('auberge', 'table', true) }}
 {{ include('partie/_enigmes.html.twig', {enigmes: enigmesDeLAuberge, titre: 'Ce qu\'on se demande à la table'}) }}
 {% if enigmesDeLAuberge is empty %}
     <p class="mt-6 text-sm text-encre-500">
         La salle est calme ce soir : on a déjà répondu à tout ce qui s'y demandait.
     </p>
 {% endif %}
+    </div>
+
+{{ sous.panneau('auberge', 'salle', false) }}
+<p class="mt-6 max-w-4xl text-sm text-encre-500">
+    Bateliers, porteurs de nouvelles, marchands en chemin : on y boit, on y
+    parle, et l'on s'y pose des devinettes. Rien de ce qui s'y dit n'engage la
+    ville — mais on y apprend des choses.
+</p>
+    </div>
+
+{% if direction %}
+{{ sous.panneau('auberge', 'direction', false) }}
+{{ include('partie/batiments/_direction.html.twig') }}
+    </div>
+{% endif %}
+</div>

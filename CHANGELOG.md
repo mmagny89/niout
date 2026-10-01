@@ -14,6 +14,12 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Toutes les pages de bâtiment se construisent de la même manière** : la
+  Résidence, la Maison des scribes et l'Auberge rejoignent les autres avec des
+  sous-onglets posés juste sous l'en-tête — la Direction et l'encart des
+  écritures n'étirent plus la page avant eux. Les routes occupent toute la
+  largeur, sur deux colonnes (la cité à gauche, l'étal et les convois à
+  droite), et les blocs ne sont plus bridés à une colonne de lecture étroite.
 - **Chaque bâtiment range ses sections en sous-onglets**, pour que l'écran de
   ville ne dépasse plus la fenêtre : Entrepôt (Réserve, Répartition, Carrières,
   Routes), Grenier (Réserve, Champs), Port (Pêcheries, Routes), Marché (Étal,

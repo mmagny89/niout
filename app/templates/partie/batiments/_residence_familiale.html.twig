@@ -6,50 +6,19 @@
    qui n'a encore rien dressé. #}
 {{ include('partie/batiments/_entete.html.twig') }}
 
-{# **La Résidence recueille tout ce qui n'appartient à aucun bâtiment**, et
-   c'en est trop pour un seul défilement : quatre sections, comme les onglets
-   de la ville dont elles reprennent le contrôleur (`onglets_controller.js`).
-   Tous les panneaux restent dans le document, seulement masqués. La section
-   ouverte est retenue d'un chargement à l'autre : régler un salaire ou engager
-   un chantier recharge la page, et l'on ne doit pas retomber sur la vue
-   d'ensemble.
-
-   Les identifiants portent le préfixe `residence-` : le contrôle de structure
-   des onglets de la ville ne regarde que `panneau-*`. #}
-<div data-controller="onglets"
-     data-onglets-memoire-value="residence-{{ partie.id }}"
-     data-onglets-actif-class="border-terre-500 text-terre-600"
-     data-onglets-inactif-class="border-transparent text-encre-500">
-    <nav class="mt-4 flex flex-nowrap gap-1 overflow-x-auto border-b border-ocre-500/25 text-sm"
-         role="tablist" aria-label="Sections de la Résidence">
-        <button type="button" role="tab" id="residence-onglet-vue"
-                aria-controls="residence-section-vue"
-                aria-selected="true" tabindex="0"
-                data-onglets-target="onglet" data-onglet-actif="true"
-                data-action="onglets#choisir keydown->onglets#naviguer"
-                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">Vue d'ensemble</button>
-        <button type="button" role="tab" id="residence-onglet-mission"
-                aria-controls="residence-section-mission"
-                aria-selected="false" tabindex="-1"
-                data-onglets-target="onglet" data-onglet-actif="false"
-                data-action="onglets#choisir keydown->onglets#naviguer"
-                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">{{ mission ? 'Mission' : 'Règne' }}</button>
-        <button type="button" role="tab" id="residence-onglet-gouvernement"
-                aria-controls="residence-section-gouvernement"
-                aria-selected="false" tabindex="-1"
-                data-onglets-target="onglet" data-onglet-actif="false"
-                data-action="onglets#choisir keydown->onglets#naviguer"
-                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">Gouvernement</button>
-        <button type="button" role="tab" id="residence-onglet-batiments"
-                aria-controls="residence-section-batiments"
-                aria-selected="false" tabindex="-1"
-                data-onglets-target="onglet" data-onglet-actif="false"
-                data-action="onglets#choisir keydown->onglets#naviguer"
-                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">Bâtiments</button>
-    </nav>
-
-    <div role="tabpanel" id="residence-section-vue" aria-labelledby="residence-onglet-vue"
-         data-onglets-target="panneau" >
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+{% set direction = directions[onglet.type.value] ?? null %}
+{% set sections = [
+    {cle: 'vue', libelle: "Vue d'ensemble"},
+    {cle: 'mission', libelle: mission ? 'Mission' : 'Règne'},
+    {cle: 'gouvernement', libelle: 'Gouvernement'},
+    {cle: 'batiments', libelle: 'Bâtiments'},
+] %}
+{% if direction %}
+    {% set sections = sections|merge([{cle: 'direction', libelle: direction.chefs is empty ? 'Direction · vacante' : 'Direction'}]) %}
+{% endif %}
+{{ sous.debut('residence', partie.id, "Sections de la Résidence", sections) }}
+{{ sous.panneau('residence', 'vue', true) }}
 
 
 {# **Le tableau de bord : tout ce qui se gouverne, en un coup d'œil.**
@@ -306,7 +275,7 @@
         {% endfor %}
     </ul>
 {% else %}
-    <p class="mt-8 max-w-3xl text-sm text-encre-500">
+    <p class="mt-8 max-w-4xl text-sm text-encre-500">
         Rien ne presse : vos gens sont logés, employés, payés et nourris.
     </p>
 {% endif %}
@@ -329,7 +298,7 @@
 
 {# Ce qui reste à faire pour le palier suivant : un compteur nu se subit, un
    objectif se joue. #}
-<p class="mt-6 max-w-3xl text-sm text-encre-600">
+<p class="mt-6 max-w-4xl text-sm text-encre-600">
     {% if palierSuivant %}
         <span data-chiffres>
             {{ palier.attractivite }}
@@ -342,8 +311,7 @@
 </p>
     </div>
 
-    <div role="tabpanel" id="residence-section-mission" aria-labelledby="residence-onglet-mission"
-         data-onglets-target="panneau" hidden>
+{{ sous.panneau('residence', 'mission', false) }}
 {# En Aventure, il n'y a pas de mission mais un **règne** : la ville existe
    pour elle-même, et les pharaons se succèdent au-dessus d'elle (doc 14,
    lot 11.1). Le cartouche ne s'affiche que là où sa lecture est établie — on
@@ -353,11 +321,11 @@
         {{ regne.pharaon }}
         <span class="font-hieroglyphes text-encre-600">{{ regne.cartouche ? regne.cartouche.signes : '' }}</span>
     </h2>
-    <p class="mt-2 max-w-3xl text-sm text-encre-500">
+    <p class="mt-2 max-w-4xl text-sm text-encre-500">
         {{ regne.nomDeTrone }}{{ regne.nomDeTrone ? ' ·' : '' }} {{ regne.longueur.libelle }} ·
         <span data-chiffres>règne {{ rangDuRegne }} sur {{ nombreDeRegnes }}</span>
     </p>
-    <p class="mt-2 max-w-3xl text-sm text-encre-600">{{ regne.avenement }}</p>
+    <p class="mt-2 max-w-4xl text-sm text-encre-600">{{ regne.avenement }}</p>
 {% endif %}
 
 {# La génération a fait son temps : le joueur choisit qui prend la suite.
@@ -365,7 +333,7 @@
    n'est pas en jeu ; seul le chef change (doc 13, lot 11.5). #}
 {% if heritiers is not empty %}
     <h3 class="mt-8 text-xl text-encre-900">La maison change de mains</h3>
-    <p class="mt-2 max-w-3xl text-sm text-encre-600">
+    <p class="mt-2 max-w-4xl text-sm text-encre-600">
         La génération a fait son temps. Choisissez qui prend la suite : la
         ville, la renommée et vos contacts ne changent pas — c'est la personne
         qui change, pas la maison.
@@ -403,7 +371,7 @@
     {# Même parade que pour les exploitations : le tableau défile pour son
        compte, la page ne bouge pas. #}
     <div class="mt-3 overflow-x-auto">
-    <table class="w-full min-w-lg max-w-3xl border-collapse text-sm">
+    <table class="w-full min-w-lg border-collapse text-sm">
         <tbody>
             {% for ligne in detailDuScore %}
                 <tr class="border-t border-ocre-500/20">
@@ -415,7 +383,7 @@
         </tbody>
     </table>
     </div>
-    <p class="mt-2 max-w-3xl text-sm text-encre-500">
+    <p class="mt-2 max-w-4xl text-sm text-encre-500">
         Rien à atteindre : le mode dure autant que la succession, et vous
         arrêtez quand il vous plaît.
     </p>
@@ -425,7 +393,7 @@
         <h2 class="text-2xl text-encre-900">
             Mission <span data-chiffres>{{ mission.numero }}</span> sur 10 — {{ mission.ville }}
         </h2>
-        <p class="mt-2 max-w-3xl text-sm text-encre-500">
+        <p class="mt-2 max-w-4xl text-sm text-encre-500">
             Commandée par <strong class="text-encre-700">{{ mission.pharaon }}</strong>.
             {{ mission.contexte }}
         </p>
@@ -466,7 +434,7 @@
            coûte que deux points (doc 09). #}
         {% if quete %}
             <h4 class="mt-8 text-lg text-encre-900">Une requête du pharaon</h4>
-            <div class="mt-3 max-w-3xl rounded-sm border-l-4 border-or-300 bg-or-300/10 px-5 py-4">
+            <div class="mt-3 rounded-sm border-l-4 border-or-300 bg-or-300/10 px-5 py-4">
                 <p class="text-encre-900">
                     {{ mission.pharaon }} réclame
                     <span data-chiffres>{{ quete.quantite }}</span> {{ quete.ressource.libelle }}
@@ -495,20 +463,19 @@
             </div>
         {% endif %}
 
-        <p class="mt-4 max-w-3xl text-xs text-encre-500">
+        <p class="mt-4 max-w-4xl text-xs text-encre-500">
             Le fil rouge résolu suffit à clore la mission : les objectifs
             non atteints donnent une reconnaissance plus modeste, jamais un échec.
         </p>
 {% endif %}
     </div>
 
-    <div role="tabpanel" id="residence-section-gouvernement" aria-labelledby="residence-onglet-gouvernement"
-         data-onglets-target="panneau" hidden>
+{{ sous.panneau('residence', 'gouvernement', false) }}
 {# Le salaire des bras vit ici, avec la main-d'œuvre : c'est le seul salaire
    que le joueur fixe lui-même, celui d'un chef se négociant candidat par
    candidat à l'embauche. #}
 <h3 class="mt-8 text-xl text-encre-900">Ce que vous payez vos bras</h3>
-<p class="mt-2 max-w-2xl text-sm text-encre-500">
+<p class="mt-2 max-w-4xl text-sm text-encre-500">
     Le salaire d'un travailleur, par quinzaine. L'usage est de
     <span data-chiffres>{{ salaireJuste }}</span> deben :
     <strong class="text-encre-700">payer moins mécontente la ville</strong>, et
@@ -651,8 +618,7 @@
 {% endif %}
     </div>
 
-    <div role="tabpanel" id="residence-section-batiments" aria-labelledby="residence-onglet-batiments"
-         data-onglets-target="panneau" hidden>
+{{ sous.panneau('residence', 'batiments', false) }}
 <h3 class="mt-8 text-xl text-encre-900">Bâtiments dressés</h3>
 <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
     {% for batiment in batimentsDresses %}
@@ -729,4 +695,9 @@
 </ul>
     </div>
 
+{% if direction %}
+{{ sous.panneau('residence', 'direction', false) }}
+{{ include('partie/batiments/_direction.html.twig') }}
+    </div>
+{% endif %}
 </div>
