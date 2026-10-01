@@ -210,6 +210,40 @@ final class PartieController extends AbstractController
     public function cite(GameSave $partie): Response
     {
         $ville = $partie->getVille();
+        $dresses = $this->batimentsDeLaCite($partie);
+
+        // Ce qui se construit pour la première fois : pas encore d'onglet, mais
+        // le joueur doit voir que quelque chose se dresse.
+        $enChantier = [];
+
+        foreach ($ville->getChantiers() as $chantier) {
+            if (null === $ville->batimentDeType($chantier->getType())) {
+                $enChantier[] = $chantier;
+            }
+        }
+
+        return $this->render('partie/cite.html.twig', [
+            'partie' => $partie,
+            'ville' => $ville,
+            'batiments' => $dresses,
+            'enChantier' => $enChantier,
+        ]);
+    }
+
+    /**
+     * Les bâtiments de la cité, dans l'ordre du jeu — la Résidence, foyer de la
+     * lignée, en tête —, chacun avec son équipage, son éventuel chantier et son
+     * visuel s'il existe (`assets/images/batiments/<type>.webp`).
+     *
+     * Partagée par la cité (la page) et par la fenêtre qui s'ouvre sur la
+     * carte : les deux montrent la même chose, et deux listes écrites
+     * séparément finiraient par diverger.
+     *
+     * @return list<array{type: TypeDeBatiment, batiment: ?Building, effectif: mixed, chantier: mixed, visuel: ?string}>
+     */
+    private function batimentsDeLaCite(GameSave $partie): array
+    {
+        $ville = $partie->getVille();
         $cycle = $partie->getCycle();
         $effectifs = Effectifs::repartir($ville, $cycle);
         $dossier = $this->getParameter('kernel.project_dir').'/assets/images/batiments/';
@@ -240,22 +274,7 @@ final class PartieController extends AbstractController
             ];
         }
 
-        // Ce qui se construit pour la première fois : pas encore d'onglet, mais
-        // le joueur doit voir que quelque chose se dresse.
-        $enChantier = [];
-
-        foreach ($ville->getChantiers() as $chantier) {
-            if (null === $ville->batimentDeType($chantier->getType())) {
-                $enChantier[] = $chantier;
-            }
-        }
-
-        return $this->render('partie/cite.html.twig', [
-            'partie' => $partie,
-            'ville' => $ville,
-            'batiments' => $dresses,
-            'enChantier' => $enChantier,
-        ]);
+        return $dresses;
     }
 
     /**
@@ -1518,6 +1537,9 @@ final class PartieController extends AbstractController
         return $this->render('partie/carte.html.twig', [
             'partie' => $partie,
             'ville' => $ville,
+            // La fenêtre de la cité, qui s'ouvre au-dessus de la carte quand on
+            // clique la ville : les mêmes bâtiments que la page de la cité.
+            'batimentsDeLaCite' => $this->batimentsDeLaCite($partie),
             'zones' => $zones,
             'zoneDetaillee' => $detaillee,
             // Ce que la case oppose réellement, renforts de la région compris

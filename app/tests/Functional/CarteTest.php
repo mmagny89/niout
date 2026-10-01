@@ -229,6 +229,28 @@ final class CarteTest extends WebTestCase
     }
 
     /**
+     * Sur la carte, la ville s'ouvre en fenêtre : un carré par bâtiment, chacun
+     * menant à son onglet. Sans JavaScript la tuile reste un lien vers la page.
+     */
+    public function testLaCarteContientLaFenetreDeLaCite(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'fenetre-cite@example.com');
+        $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        $fenetre = $crawler->filter('dialog[data-cite-target="fenetre"]');
+        self::assertCount(1, $fenetre);
+        self::assertCount(1, $fenetre->filter(\sprintf('a[href="/partie/%d/ville?onglet=grenier"]', $partie->getId())));
+        self::assertCount(1, $fenetre->filter(\sprintf('a[href="/partie/%d/ville?onglet=residence_familiale"]', $partie->getId())));
+        self::assertGreaterThan(0, $crawler->filter('a[data-action="click->cite#ouvrir"]')->count(), 'La tuile de la ville ouvre la fenêtre.');
+    }
+
+    /**
      * La cité montre ce qui se construit pour la première fois, sans lui donner
      * un onglet qui n'existe pas encore.
      */

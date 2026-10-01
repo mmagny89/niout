@@ -34,7 +34,7 @@
        glissement pour faire défiler la page et le pincement pour zoomer le
        document entier. C'est ce que le contrôleur doit faire à sa place, sur
        la carte seule. #}
-    <section class="flex h-full min-h-0 flex-col overflow-hidden md:flex-row">
+    <section class="flex h-full min-h-0 flex-col overflow-hidden md:flex-row" data-controller="cite">
         <div class="relative min-w-0 shrink-0 basis-[45%] touch-none overflow-hidden bg-sable-100
                     md:h-auto md:min-h-0 md:flex-1 md:basis-auto"
              data-controller="carte"
@@ -94,9 +94,9 @@
                                                   {{ centre.x + pas.x }}px {{ centre.y }}px,
                                                   {{ centre.x }}px {{ centre.y + pas.y }}px,
                                                   {{ centre.x - pas.x }}px {{ centre.y }}px);"
-                       {{ zone.porteLaVille ? 'title="Entrer dans la ville"' : '' }}
+                       {{ zone.porteLaVille ? 'title="Ouvrir la cité" data-action="click->cite#ouvrir"' : '' }}
                        aria-label="{{ zone.porteLaVille
-                           ? 'Entrer dans ' ~ ville.nom
+                           ? 'Ouvrir la cité de ' ~ ville.nom
                            : 'Case ' ~ zone.x ~ ', ' ~ zone.y ~ ' — ' ~ (zone.estDecouverte ? zone.terrain.libelle : 'inexplorée') }}"></a>
                 {% endfor %}
                 </div>
@@ -133,7 +133,8 @@
         <aside class="flex min-h-0 w-full flex-1 flex-col overflow-y-auto border-t border-ocre-500/25
                       bg-sable-50 p-4 md:w-96 md:flex-none lg:w-[30rem] md:border-l md:border-t-0 md:p-5">
             <div class="flex items-baseline justify-between gap-3">
-                <a href="{{ path('app_partie_cite', {id: partie.id}) }}" class="text-sm text-lapis-500">
+                <a href="{{ path('app_partie_cite', {id: partie.id}) }}" class="text-sm text-lapis-500"
+                   data-action="click->cite#ouvrir">
                     Bâtiments {{ ville.avecPreposition }} →
                 </a>
             </div>
@@ -534,5 +535,7 @@
             </div>
             </div>
         </aside>
+
+        {{ include('partie/_cite_fenetre.html.twig') }}
     </section>
 {% endblock %}

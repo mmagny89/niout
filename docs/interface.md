@@ -210,10 +210,16 @@ de sous-onglets** — la création d'une partie se range sur deux colonnes, ce q
 peut jouer à gauche et le formulaire à droite. Les pages hors jeu (accueil,
 connexion, compte, administration) n'entrent pas dans cette règle.
 
-**La cité est l'écran intermédiaire entre la carte et les onglets**
-(`app_partie_cite`, `partie/cite.html.twig`). Cliquer la tuile de la ville — ou le
-lien « Bâtiments » du panneau de la carte — n'ouvre plus la Résidence : on voit
-d'abord ce qu'on a bâti, et un clic sur un bâtiment ouvre **son** onglet
+**La cité est l'écran intermédiaire entre la carte et les onglets.** Sur la
+carte, cliquer la tuile de la ville — ou le lien « Bâtiments » du panneau —
+ouvre **une fenêtre au-dessus du territoire** (`_cite_fenetre.html.twig`,
+`cite_controller.js`) : un carré par bâtiment, sans quitter la carte. C'est un
+`<dialog>` natif ouvert par `showModal()` : Échap, piège à focus et inertie du
+fond viennent du navigateur. **Sans JavaScript, la tuile reste un lien** vers la
+page de la cité (`app_partie_cite`, `partie/cite.html.twig`, plus détaillée :
+équipage, rendement, chantiers), et le clic modifié (Ctrl, Cmd, milieu) passe, pour
+l'ouvrir dans un autre onglet. Dans les deux cas on voit d'abord ce qu'on a bâti,
+et un clic sur un bâtiment ouvre **son** onglet
 (`app_partie_ville?onglet=<type>`). La Résidence, foyer de la lignée, est
 toujours présente ; les chantiers de bâtiments qui n'existent pas encore se
 montrent à part, sans onglet. **Chaque carte a un emplacement pour son visuel** :
@@ -221,7 +227,7 @@ déposer `app/assets/images/batiments/<type>.webp` (`grenier.webp`,
 `maison_des_scribes.webp`…) suffit, le contrôleur teste l'existence du fichier et
 le gabarit n'a pas à changer ; sans image, un monogramme tient la place dans le
 même cadre 4/3, pour que la grille ne bouge pas à l'arrivée des images. La cité
-est une route de retour valide pour l'action de cycle (`routeDeRetour()`), comme
+(la page) est une route de retour valide pour l'action de cycle (`routeDeRetour()`), comme
 la carte et la ville.
 
 ## Signaux, alertes et reprise d'onglet
