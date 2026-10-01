@@ -14,6 +14,14 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **La Maison des scribes se range en trois sections** — À lire et à résoudre,
+  Clé de lecture, Alphabet — au lieu de quatre cents lignes d'un seul tenant.
+  Les explications de fond passent dans des replis, les inscriptions déjà lues
+  aussi, et la section ouverte est retenue d'un rechargement à l'autre.
+- **Les routes commerciales se lisent d'un coup d'œil** : ouvertes d'abord, puis
+  convois en chemin, puis routes à ouvrir ; chaque caravane se suit sur une
+  piste d'une case par quinzaine de marche, et l'explication de l'ouverture
+  d'une route est dans un repli.
 - **Le Marché est plus simple à pratiquer** : la place du jour se lit en cases
   (écoulé en terre cuite, reste en pointillés), chaque lot propose d'emblée la
   quantité que la place absorbe encore — un clic suffit —, et les explications

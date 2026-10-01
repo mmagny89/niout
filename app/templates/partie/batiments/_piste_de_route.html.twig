@@ -1,0 +1,15 @@
+{# Une caravane sur sa piste : une case par quinzaine de marche, pleines
+   derrière elle, en pointillés devant. Une représentation (rien n'est
+   persisté) : le texte qui l'accompagne dit la même chose, le dessin est
+   masqué aux lecteurs d'écran. Attend `total` et `parcouru`. #}
+<span class="inline-flex flex-wrap items-center gap-0.5" aria-hidden="true">
+    {% for rang in 1..max(total, 1) %}
+        {% if rang < parcouru %}
+            <span class="h-2.5 w-2.5 rounded-xs bg-lapis-400"></span>
+        {% elseif rang == parcouru %}
+            <span class="h-2.5 w-2.5 rounded-full bg-terre-500"></span>
+        {% else %}
+            <span class="h-2.5 w-2.5 rounded-xs border border-dashed border-ocre-500/60"></span>
+        {% endif %}
+    {% endfor %}
+</span>

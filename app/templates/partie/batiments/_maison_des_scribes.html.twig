@@ -5,6 +5,44 @@
 
 {{ include('partie/_erudition.html.twig', {idSuffixe: 's'}) }}
 
+{# **La Maison des scribes tenait quatre cents lignes d'un seul tenant** : trois
+   sections, comme les onglets de la ville dont elles reprennent le contrôleur
+   (`onglets_controller.js`). « À lire et à résoudre » porte ce qui attend une
+   réponse — inscription, enquêtes, questions —, les deux autres sont de la
+   consultation et de l'exercice. Tous les panneaux restent dans le document,
+   seulement masqués, et la section ouverte est retenue d'un rechargement à
+   l'autre : répondre recharge l'écran. Identifiants préfixés `scribes-`, pour
+   le test de structure des onglets de la ville. #}
+<div data-controller="onglets"
+     data-onglets-memoire-value="scribes-{{ partie.id }}"
+     data-onglets-actif-class="border-terre-500 text-terre-600"
+     data-onglets-inactif-class="border-transparent text-encre-500">
+    <nav class="mt-4 flex flex-nowrap gap-1 overflow-x-auto border-b border-ocre-500/25 text-sm"
+         role="tablist" aria-label="Sections de la Maison des scribes">
+        <button type="button" role="tab" id="scribes-onglet-afaire"
+                aria-controls="scribes-section-afaire"
+                aria-selected="true" tabindex="0"
+                data-onglets-target="onglet" data-onglet-actif="true"
+                data-action="onglets#choisir keydown->onglets#naviguer"
+                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">À lire et à résoudre</button>
+        <button type="button" role="tab" id="scribes-onglet-cle"
+                aria-controls="scribes-section-cle"
+                aria-selected="false" tabindex="-1"
+                data-onglets-target="onglet" data-onglet-actif="false"
+                data-action="onglets#choisir keydown->onglets#naviguer"
+                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">Clé de lecture</button>
+        <button type="button" role="tab" id="scribes-onglet-alphabet"
+                aria-controls="scribes-section-alphabet"
+                aria-selected="false" tabindex="-1"
+                data-onglets-target="onglet" data-onglet-actif="false"
+                data-action="onglets#choisir keydown->onglets#naviguer"
+                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">Alphabet</button>
+    </nav>
+
+    <div role="tabpanel" id="scribes-section-afaire" aria-labelledby="scribes-onglet-afaire"
+         data-onglets-target="panneau" >
+
+
         {# Le fil rouge d'abord : c'est ce que le roi attend, et un fil
    dont on ne sait pas ce qu'il demande n'est qu'une décoration. #}
 {% if filRouge %}
@@ -86,7 +124,8 @@
 {% endif %}
 
 {% if inscriptionsLues > 0 %}
-    <h3 class="mt-8 text-xl text-encre-900">Déjà lues</h3>
+    <details class="mt-8 max-w-3xl">
+        <summary class="cursor-pointer text-xl text-encre-900">Déjà lues <span class="text-sm text-encre-500" data-chiffres>({{ inscriptionsLues }})</span></summary>
     <ul class="mt-3 space-y-2 list-none p-0">
         {% for lue in ville.inscriptionsDechiffrees %}
             <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3 text-sm">
@@ -97,6 +136,7 @@
             </li>
         {% endfor %}
     </ul>
+    </details>
 {% endif %}
 
 {% if dossiers is not empty %}
@@ -177,7 +217,10 @@
 {% endif %}
 
 {{ include('partie/_enigmes.html.twig', {enigmes: enigmesDesScribes, titre: 'Questions en suspens'}) }}
+    </div>
 
+    <div role="tabpanel" id="scribes-section-cle" aria-labelledby="scribes-onglet-cle"
+         data-onglets-target="panneau" hidden>
 <h3 class="mt-8 text-xl text-encre-900">Clé de lecture</h3>
 <p class="mt-2 max-w-2xl text-sm text-encre-500">
     Les signes que vos scribes savent lire, tirés de la liste de
@@ -250,7 +293,10 @@
         </p>
     </div>
 {% endif %}
+    </div>
 
+    <div role="tabpanel" id="scribes-section-alphabet" aria-labelledby="scribes-onglet-alphabet"
+         data-onglets-target="panneau" hidden>
 {# **L'alphabet des scribes** — la seconde piste du doc 10, celle des sons.
 
    Elle ne se mélange jamais à la clé de lecture, alors même que six dessins
@@ -266,13 +312,16 @@
     <span data-chiffres>{{ alphabet|length }}</span> sur
     <span data-chiffres>{{ signesDeLAlphabetEnTout }}</span>.
 </p>
-<p class="mt-2 max-w-2xl text-sm text-encre-500">
+<details class="mt-2 max-w-2xl text-sm text-encre-500">
+    <summary class="cursor-pointer text-encre-700">Pourquoi trois dessins se retrouvent-ils dans les deux tables ?</summary>
+    <p class="mt-2">
     <strong class="text-encre-700">Trois dessins se retrouvent dans les deux
     tables</strong>, et ce n'est pas une redite : l'écriture égyptienne est
     mixte, un même signe y servant tantôt à montrer une chose, tantôt à noter un
     son. La bouche en est le cas le plus net — elle dit « bouche », et elle note
     le <em>r</em>.
 </p>
+</details>
 
 {# La leçon fondatrice : écrire le nom du jeu. Elle se retente — remettre
    quatre signes dans l'ordre est un exercice, pas une devinette. #}
@@ -392,13 +441,16 @@
         {% endif %}
     {% endif %}
 
-    <p class="mt-3 text-sm text-encre-500">
+    <details class="mt-3 text-sm text-encre-500">
+        <summary class="cursor-pointer text-encre-700">Une convention de musée, pas de l'égyptologie</summary>
+    <p class="mt-2">
         C'est la convention des musées, pas de l'égyptologie : l'égyptien ne
         notait <strong class="text-encre-700">pas les voyelles</strong>, et un
         scribe du Nouvel Empire aurait cherché des signes valant deux ou trois
         sons à la fois. Ce que vous lisez là sert à reconnaître les signes, jamais
         à traduire un nom.
     </p>
+    </details>
 </div>
 
 {% if prochainSigneDeLAlphabet %}
@@ -437,3 +489,6 @@
         </li>
     {% endfor %}
 </ul>
+    </div>
+
+</div>

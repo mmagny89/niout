@@ -136,6 +136,29 @@ final class ResidenceValorisationTest extends WebTestCase
         self::assertGreaterThan(1, $quantite, 'Une place neuve absorbe plus d\'une poterie.');
     }
 
+    /**
+     * La Maison des scribes tient en trois sections, une seule ouverte : chaque
+     * section a son panneau, et l'ordre des deux listes est le même.
+     */
+    public function testLaMaisonDesScribesEstDecoupeeEnSections(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'scribes-sections@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::MaisonDesScribes));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        $onglets = $crawler->filter('nav[aria-label="Sections de la Maison des scribes"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
+        $panneaux = $crawler->filter('[role="tabpanel"][id^="scribes-section-"]')->each(static fn ($n): string => (string) $n->attr('id'));
+
+        self::assertCount(3, $onglets);
+        self::assertSame($onglets, $panneaux);
+        self::assertCount(2, $crawler->filter('[role="tabpanel"][id^="scribes-section-"][hidden]'));
+        self::assertSelectorTextContains('body', 'Écrire « Niout »');
+    }
+
     private function partie(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client, string $email): \App\Entity\GameSave
     {
         $user = new User();

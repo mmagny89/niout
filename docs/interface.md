@@ -144,6 +144,17 @@ en pastilles ; le tableau reste dessous, détail ouvert d'office s'il y a une
 ligne muette ou épuisée. Le contenu replié reste dans le document : les tests
 et les lecteurs d'écran le lisent.
 
+**La Maison des scribes et les routes appliquent les mêmes gestes.** La Maison
+se range en trois sections (`scribes-section-*`, même contrôleur d'onglets
+imbriqué que la Résidence, même mémoire de la section ouverte) : **À lire et à
+résoudre** (ce qui attend une réponse), **Clé de lecture**, **Alphabet**. Les
+explications — pourquoi trois dessins se retrouvent dans les deux tables, la
+convention des musées —, ainsi que les inscriptions déjà lues, vont dans des
+replis. **Les routes** se rangent par état : ouvertes (celles où l'on agit
+chaque quinzaine), convois en chemin, à ouvrir. Une caravane se suit sur sa
+**piste** (`_piste_de_route.html.twig`) : une case par quinzaine de marche, aller
+et retour compris pour un convoi, le texte disant la même chose que le dessin.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

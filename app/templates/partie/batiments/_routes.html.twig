@@ -3,150 +3,200 @@
    Ce ne sont pas des cases sur la carte mais des débouchés, hors grille : le
    **type de route décide du bâtiment** — l'Entrepôt pour les pistes, le Port
    pour tout ce qui flotte —, et son niveau décide de ce qu'un convoi porte.
-   Chaque panneau ne montre donc que les siennes. #}
+   Chaque panneau ne montre donc que les siennes.
+
+   **Ouvertes d'abord, à ouvrir ensuite** : c'est sur une route ouverte qu'on
+   agit chaque quinzaine — étals, convois en chemin —, tandis que celles qui
+   restent à ouvrir sont un choix qu'on fait de temps en temps. Les voir
+   mélangées noyait les premières sous les secondes. #}
 {% set routesDIci = routes|filter(o => o.partenaire.route.batiment.value == onglet.type.value) %}
 {% if routesDIci is not empty %}
+    {% set ouvertes = routesDIci|filter(o => o.route and o.route.estOuverte) %}
+    {% set enChemin = routesDIci|filter(o => o.route and not o.route.estOuverte) %}
+    {% set aOuvrir = routesDIci|filter(o => not o.route) %}
+
     <h3 class="mt-8 text-xl text-encre-900">Routes commerciales</h3>
-    <p class="mt-2 max-w-3xl text-sm text-encre-500">
-        Ouvrir une route, c'est y envoyer une première caravane : elle déclare
-        à la cité que vous êtes prêt à commercer, et la route n'existe qu'à son
-        arrivée.
+    <p class="mt-2 max-w-3xl text-sm text-encre-600" data-chiffres>
+        {{ ouvertes|length }} ouverte{{ ouvertes|length > 1 ? 's' : '' }} ·
+        {{ enChemin|length }} en chemin ·
+        {{ aOuvrir|length }} à ouvrir
     </p>
 
-    <ul class="mt-4 space-y-3 list-none p-0">
-        {% for offre in routesDIci %}
-            <li class="rounded-sm border p-5
-                       {{ offre.route or offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
-                <div class="flex flex-wrap items-baseline justify-between gap-3">
-                    <h3 class="font-display text-lg text-encre-900">{{ offre.partenaire.nom }}</h3>
-                    <span class="text-xs uppercase tracking-wide text-encre-500">
-                        {{ offre.partenaire.route.libelle }}
-                    </span>
-                </div>
+    <details class="mt-2 max-w-3xl text-sm text-encre-500">
+        <summary class="cursor-pointer text-encre-700">Comment ouvre-t-on une route ?</summary>
+        <p class="mt-2">
+            Ouvrir une route, c'est y envoyer une première caravane : elle
+            déclare à la cité que vous êtes prêt à commercer, et la route
+            n'existe qu'à son arrivée. Ensuite vous tenez un étal — « je vends
+            du lin à 5 deben, j'achète du cèdre jusqu'à 19 » — et les convois
+            partent d'eux-mêmes.
+        </p>
+    </details>
 
-                <p class="mt-2 text-sm text-encre-600">{{ offre.partenaire.description }}</p>
+    {% macro carte(offre, partie, onglet, etals) %}
+        {% set route = offre.route %}
+        <li class="rounded-sm border p-4
+                   {{ route or offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
+            <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <h4 class="font-display text-lg text-encre-900">{{ offre.partenaire.nom }}</h4>
+                <span class="text-xs uppercase tracking-wide text-encre-500">
+                    {{ offre.partenaire.route.libelle }}
+                    ·
+                    {% if route and route.estOuverte %}ouverte
+                    {% elseif route %}en chemin
+                    {% else %}à ouvrir{% endif %}
+                </span>
+            </div>
 
-                <p class="mt-2 text-sm text-encre-500" data-chiffres>
-                    {{ offre.partenaire.distanceEnQuinzaines }} quinzaines de trajet ·
-                    {{ offre.volume }} unités par convoi
-                </p>
+            <p class="mt-1 text-sm text-encre-600">{{ offre.partenaire.description }}</p>
 
-                <p class="mt-2 text-sm text-encre-600">
-                    Vend
-                    {%- for ressource in offre.partenaire.vend %}
-                        {{ ressource.libelle }}{{ not loop.last ? ',' : '' }}
-                    {%- endfor %} ·
-                    achète
-                    {%- for ressource in offre.partenaire.achete %}
-                        {{ ressource.libelle }}{{ not loop.last ? ',' : '' }}
-                    {%- endfor %}.
-                </p>
+            <p class="mt-2 text-sm text-encre-500" data-chiffres>
+                {{ offre.partenaire.distanceEnQuinzaines }} quinzaines de trajet ·
+                {{ offre.volume }} unités par convoi
+            </p>
 
-                {% if offre.route %}
-                    {% if offre.route.estOuverte %}
-                        <p class="mt-3 text-sm text-encre-900">Route ouverte.</p>
+            <p class="mt-1 text-sm text-encre-600">
+                Vend
+                {%- for ressource in offre.partenaire.vend %}
+                    {{ ressource.libelle }}{{ not loop.last ? ',' : '' }}
+                {%- endfor %} ·
+                achète
+                {%- for ressource in offre.partenaire.achete %}
+                    {{ ressource.libelle }}{{ not loop.last ? ',' : '' }}
+                {%- endfor %}.
+            </p>
 
-                        {# Ce qui est en chemin. Un convoi parti est un
-                           engagement pris : sa marchandise a déjà quitté
-                           les réserves, ou ses deben la caisse. #}
-                        {% set enChemin = offre.route.convois|filter(c => not c.estRentre) %}
-                        {% if enChemin|length > 0 %}
-                            <ul class="mt-3 space-y-1 list-none p-0">
-                                {% for convoi in enChemin %}
-                                    <li class="text-sm text-encre-600" data-chiffres>
-                                        {{ convoi.sens.value == 'vendre' ? 'Parti avec' : 'Ramène' }}
-                                        {{ convoi.quantite }} {{ convoi.ressource.libelle }}
-                                        à {{ convoi.prix }} deben —
-                                        retour dans {{ convoi.quinzainesAvantRetour }}
-                                        quinzaine{{ convoi.quinzainesAvantRetour > 1 ? 's' : '' }}.
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-
-                        {# L'étal : le joueur affiche ses conditions et
-                           attend. Le prix décide de l'empressement du
-                           partenaire, donc du volume qui bouge — et
-                           l'écran le montre **avant** qu'il ne s'engage. #}
+            {% if route %}
+                {% if route.estOuverte %}
+                    {# Ce qui est en chemin. Un convoi parti est un engagement
+                       pris : sa marchandise a déjà quitté les réserves, ou ses
+                       deben la caisse. #}
+                    {% set convoisEnChemin = route.convois|filter(c => not c.estRentre) %}
+                    {% if convoisEnChemin|length > 0 %}
                         <ul class="mt-3 space-y-2 list-none p-0">
-                            {% for ligne in etals[offre.partenaire.cle] ?? [] %}
-                                <li class="rounded-sm border border-ocre-500/20 bg-sable-50/60 p-3">
-                                    <form method="post" action="{{ path('app_partie_etal', {id: partie.id}) }}"
-                                          class="flex flex-wrap items-baseline gap-x-3 gap-y-2">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('etal') }}">
-                                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
-                                        <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
-                                        <input type="hidden" name="ressource" value="{{ ligne.ressource.value }}">
-                                        <input type="hidden" name="sens" value="{{ ligne.sens.value }}">
+                            {% for convoi in convoisEnChemin %}
+                                <li class="text-sm text-encre-600" data-chiffres>
+                                    {{ convoi.sens.value == 'vendre' ? 'Parti avec' : 'Ramène' }}
+                                    {{ convoi.quantite }} {{ convoi.ressource.libelle }}
+                                    à {{ convoi.prix }} deben —
+                                    retour dans {{ convoi.quinzainesAvantRetour }}
+                                    quinzaine{{ convoi.quinzainesAvantRetour > 1 ? 's' : '' }}.
+                                    <span class="ml-1 align-middle">
+                                        {{ include('partie/batiments/_piste_de_route.html.twig', {
+                                            total: 2 * offre.partenaire.distanceEnQuinzaines,
+                                            parcouru: 2 * offre.partenaire.distanceEnQuinzaines - convoi.quinzainesAvantRetour,
+                                        }) }}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
 
-                                        <span class="text-sm text-encre-900">
-                                            {{ ligne.sens.libelle }} {{ ligne.ressource.libelle }}
-                                        </span>
-                                        <span class="text-sm text-encre-500" data-chiffres>
-                                            entre {{ ligne.plancher }} et {{ ligne.plafond }} deben
-                                        </span>
+                    {# L'étal : le joueur affiche ses conditions et attend. Le
+                       prix décide de l'empressement du partenaire, donc du
+                       volume qui bouge — et l'écran le montre **avant** qu'il
+                       ne s'engage. #}
+                    <ul class="mt-3 space-y-2 list-none p-0">
+                        {% for ligne in etals[offre.partenaire.cle] ?? [] %}
+                            <li class="rounded-sm border border-ocre-500/20 bg-sable-50/60 p-3">
+                                <form method="post" action="{{ path('app_partie_etal', {id: partie.id}) }}"
+                                      class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('etal') }}">
+                                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                                    <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
+                                    <input type="hidden" name="ressource" value="{{ ligne.ressource.value }}">
+                                    <input type="hidden" name="sens" value="{{ ligne.sens.value }}">
 
-                                        {% if ligne.ordre %}
-                                            <span class="text-sm text-encre-900" data-chiffres>
-                                                posé à {{ ligne.ordre.prix }},
-                                                {{ ligne.ordre.quantiteParConvoi }} par convoi —
-                                                <span class="{{ ligne.empressement < 40 ? 'text-terre-600' : '' }}">
-                                                    {{ ligne.empressement }} % d'empressement
-                                                </span>
+                                    <span class="text-sm text-encre-900">
+                                        {{ ligne.sens.libelle }} {{ ligne.ressource.libelle }}
+                                    </span>
+                                    <span class="text-sm text-encre-500" data-chiffres>
+                                        entre {{ ligne.plancher }} et {{ ligne.plafond }} deben
+                                    </span>
+
+                                    {% if ligne.ordre %}
+                                        <span class="text-sm text-encre-900" data-chiffres>
+                                            posé à {{ ligne.ordre.prix }},
+                                            {{ ligne.ordre.quantiteParConvoi }} par convoi —
+                                            <span class="{{ ligne.empressement < 40 ? 'text-terre-600' : '' }}">
+                                                {{ ligne.empressement }} % d'empressement
                                             </span>
-                                            <button type="submit" name="retirer" value="1"
-                                                    class="ml-auto text-sm text-encre-500 underline hover:text-terre-600">
-                                                Retirer
-                                            </button>
-                                        {% elseif partie.estEnCours %}
-                                            <label class="sr-only" for="prix-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}">Prix</label>
+                                        </span>
+                                        <button type="submit" name="retirer" value="1"
+                                                class="ml-auto text-sm text-encre-500 underline hover:text-terre-600">
+                                            Retirer
+                                        </button>
+                                    {% elseif partie.estEnCours %}
+                                        <span class="ml-auto flex items-center gap-2">
+                                            <label class="text-xs text-encre-500" for="prix-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}">Prix</label>
                                             <input type="number" id="prix-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}"
                                                    name="prix" value="{{ ligne.plancher }}" min="1"
                                                    class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
                                                    data-chiffres>
-                                            <label class="sr-only" for="qte-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}">Quantité par convoi</label>
+                                            <label class="text-xs text-encre-500" for="qte-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}">Par convoi</label>
                                             <input type="number" id="qte-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}"
                                                    name="quantite" value="{{ offre.volume }}" min="1"
                                                    class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
                                                    data-chiffres>
                                             <button type="submit"
-                                                    class="ml-auto rounded-sm border border-ocre-500/40 px-3 py-1 text-sm text-encre-700 hover:bg-ocre-500/10">
+                                                    class="rounded-sm border border-ocre-500/40 px-3 py-1 text-sm text-encre-700 hover:bg-ocre-500/10">
                                                 Annoncer
                                             </button>
-                                        {% endif %}
-                                    </form>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p class="mt-3 text-sm text-encre-500" data-chiffres>
-                            Convoi en chemin : encore
-                            {{ offre.route.quinzainesAvantOuverture }}
-                            quinzaine{{ offre.route.quinzainesAvantOuverture > 1 ? 's' : '' }}.
-                        </p>
-                    {% endif %}
-                {% elseif offre.empechement %}
-                    <p class="mt-3 text-sm text-terre-600">{{ offre.empechement }}</p>
-                {% elseif partie.estEnCours %}
-                    <form method="post" action="{{ path('app_partie_commercer', {id: partie.id}) }}"
-                          class="mt-3 flex flex-wrap items-baseline gap-3">
-                        <input type="hidden" name="_token" value="{{ csrf_token('commercer') }}">
-                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
-                        <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
-                        <span class="text-sm text-encre-500" data-chiffres>{{ offre.cout }} deben</span>
-                        {# Le rabais du doc 12 : une route déjà armée dans une
-                           partie précédente s'ouvre moins cher. Dit ici, à
-                           l'engagement, plutôt que découvert au débit. #}
-                        {% if offre.heritee %}
-                            <span class="text-sm text-ocre-700">— vous connaissez déjà ce chemin</span>
-                        {% endif %}
-                        <button type="submit"
-                                class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
-                            Envoyer une première {{ offre.partenaire.route.convoi }}
-                        </button>
-                    </form>
+                                        </span>
+                                    {% endif %}
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="mt-3 text-sm text-encre-500" data-chiffres>
+                        Convoi en chemin : encore
+                        {{ route.quinzainesAvantOuverture }}
+                        quinzaine{{ route.quinzainesAvantOuverture > 1 ? 's' : '' }}.
+                        <span class="ml-1 align-middle">
+                            {{ include('partie/batiments/_piste_de_route.html.twig', {
+                                total: offre.partenaire.distanceEnQuinzaines,
+                                parcouru: offre.partenaire.distanceEnQuinzaines - route.quinzainesAvantOuverture,
+                            }) }}
+                        </span>
+                    </p>
                 {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
+            {% elseif offre.empechement %}
+                <p class="mt-3 text-sm text-terre-600">{{ offre.empechement }}</p>
+            {% elseif partie.estEnCours %}
+                <form method="post" action="{{ path('app_partie_commercer', {id: partie.id}) }}"
+                      class="mt-3 flex flex-wrap items-center gap-3">
+                    <input type="hidden" name="_token" value="{{ csrf_token('commercer') }}">
+                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                    <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
+                    <span class="text-sm text-encre-500" data-chiffres>{{ offre.cout }} deben</span>
+                    {# Le rabais du doc 12 : une route déjà armée dans une
+                       partie précédente s'ouvre moins cher. Dit ici, à
+                       l'engagement, plutôt que découvert au débit. #}
+                    {% if offre.heritee %}
+                        <span class="text-sm text-ocre-700">— vous connaissez déjà ce chemin</span>
+                    {% endif %}
+                    <button type="submit"
+                            class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        Envoyer une première {{ offre.partenaire.route.convoi }}
+                    </button>
+                </form>
+            {% endif %}
+        </li>
+    {% endmacro %}
+
+    {% for groupe in [
+        {titre: 'Routes ouvertes', liste: ouvertes},
+        {titre: 'Convois en chemin', liste: enChemin},
+        {titre: 'Routes à ouvrir', liste: aOuvrir},
+    ] %}
+        {% if groupe.liste is not empty %}
+            <h4 class="mt-6 text-sm font-medium uppercase tracking-wide text-encre-500">{{ groupe.titre }}</h4>
+            <ul class="mt-2 space-y-3 list-none p-0">
+                {% for offre in groupe.liste %}
+                    {{ _self.carte(offre, partie, onglet, etals) }}
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endfor %}
 {% endif %}
