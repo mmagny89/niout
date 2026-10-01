@@ -192,7 +192,7 @@
     ] %}
         {% if groupe.liste is not empty %}
             <h4 class="mt-6 text-sm font-medium uppercase tracking-wide text-encre-500">{{ groupe.titre }}</h4>
-            <ul class="mt-2 space-y-3 list-none p-0">
+            <ul class="mt-2 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
                 {% for offre in groupe.liste %}
                     {{ _self.carte(offre, partie, onglet, etals) }}
                 {% endfor %}

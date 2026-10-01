@@ -146,10 +146,10 @@
         c'est à vous de démêler ce qui tient de ce qui égare.
     </p>
 
-    <ul class="mt-4 space-y-4 list-none p-0">
+    <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
         {% for entree in dossiers %}
             {% set dossier = entree.dossier %}
-            <li class="max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
                 <div class="flex flex-wrap items-baseline justify-between gap-3">
                     <h3 class="font-display text-lg text-encre-900">
                         {{ dossier.enquete.libelle }}

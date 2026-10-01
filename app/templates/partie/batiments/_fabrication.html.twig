@@ -7,7 +7,22 @@
    chacun dans son propre onglet. #}
 {% set atelier = ateliers[onglet.type.value] ?? null %}
 {% if atelier %}
-    <h3 class="mt-8 text-xl text-encre-900">Consigne permanente</h3>
+    {# **La consigne est un réglage, pas l'écran** : on la pose une fois et on
+       n'y revient pas. Elle vit dans un repli, ouvert d'office quand elle
+       demande attention — à l'arrêt faute de matières. #}
+    <details class="mt-6 max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3"
+             {{ atelier.consigne and atelier.consigne.estEnAttenteDeMatieres ? 'open' : '' }}>
+        <summary class="cursor-pointer text-encre-900">
+            <span class="font-display text-lg">Consigne permanente</span>
+            <span class="ml-2 text-sm {{ atelier.consigne and atelier.consigne.estEnAttenteDeMatieres ? 'text-terre-600' : 'text-encre-500' }}">
+                {% if atelier.consigne %}
+                    — {{ atelier.consigne.recette.libelle }}, {{ atelier.consigne.lots }} lot{{ atelier.consigne.lots > 1 ? 's' : '' }}
+                    {%- if atelier.consigne.estEnAttenteDeMatieres %} (à l'arrêt, faute de matières){% endif %}
+                {% else %}
+                    — aucune
+                {% endif %}
+            </span>
+        </summary>
     <p class="mt-2 max-w-2xl text-sm text-encre-500">
         Dites une fois ce que ce bâtiment doit refaire, et il s'y remettra
         <strong class="text-encre-700">dès qu'il se libère</strong>, sans que
@@ -76,11 +91,12 @@
             </button>
         </form>
     {% endif %}
+    </details>
 
     <h3 class="mt-8 text-xl text-encre-900">À l'ouvrage</h3>
 
     {% if atelier.ordre %}
-        <div class="mt-4 rounded-sm border border-ocre-500/40 bg-ocre-300/10 p-5">
+        <div class="mt-3 max-w-xl rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-4 py-3">
             <div class="flex flex-wrap items-baseline justify-between gap-3">
                 <h3 class="font-display text-lg text-encre-900">{{ atelier.ordre.recette.libelle }}</h3>
                 <span class="text-sm text-encre-500" data-chiffres>
@@ -99,16 +115,15 @@
             </p>
         </div>
     {% else %}
-        <p class="mt-2 text-sm text-encre-500">
-            Un lot consomme ses matières à l'engagement et rend plusieurs
-            pièces à l'achèvement. Ce bâtiment en mène jusqu'à
-            <span data-chiffres>{{ atelier.lotsMaximum }}</span> à la fois, et les
-            bras qui le tiennent en décident le rythme.
+        <p class="mt-2 max-w-3xl text-sm text-encre-500" data-chiffres>
+            Un lot consomme ses matières à l'engagement et rend plusieurs pièces
+            à l'achèvement. Jusqu'à {{ atelier.lotsMaximum }} à la fois ; les bras
+            qui tiennent le bâtiment en décident le rythme.
         </p>
 
-        <ul class="mt-4 space-y-3 list-none p-0">
+        <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
             {% for offre in atelier.recettes %}
-                <li class="rounded-sm border p-5
+                <li class="flex flex-col rounded-sm border p-4
                            {{ offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
                     <div class="flex flex-wrap items-baseline justify-between gap-3">
                         <h3 class="font-display text-lg {{ offre.realisable ? 'text-encre-900' : 'text-encre-500' }}">
@@ -120,11 +135,11 @@
                         </span>
                     </div>
 
-                    <p class="mt-2 text-sm text-encre-600" data-chiffres>
-                        Un lot :
-                        {%- for libelle, quantite in offre.matieres %}
-                            {{ quantite }} {{ libelle }}{{ not loop.last ? ',' : '' }}
-                        {%- endfor %}
+                    <p class="mt-2 flex flex-wrap items-center gap-1 text-sm text-encre-600" data-chiffres>
+                        <span class="text-encre-500">Un lot :</span>
+                        {% for libelle, quantite in offre.matieres %}
+                            <span class="rounded-sm bg-ocre-500/10 px-1.5 py-0.5">{{ quantite }} {{ libelle }}</span>
+                        {% endfor %}
                     </p>
 
                     {# Promettre un usage qui n'existe nulle part
@@ -140,7 +155,7 @@
                         <p class="mt-2 text-sm text-terre-600">{{ offre.empechement }}</p>
                     {% elseif partie.estEnCours %}
                         <form method="post" action="{{ path('app_partie_fabriquer', {id: partie.id}) }}"
-                              class="mt-3 flex flex-wrap items-baseline gap-3">
+                              class="mt-auto flex flex-wrap items-center gap-2 pt-3">
                             <input type="hidden" name="_token" value="{{ csrf_token('fabriquer') }}">
                             <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                             <input type="hidden" name="recette" value="{{ offre.recette.value }}">

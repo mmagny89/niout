@@ -155,6 +155,23 @@ chaque quinzaine), convois en chemin, à ouvrir. Une caravane se suit sur sa
 **piste** (`_piste_de_route.html.twig`) : une case par quinzaine de marche, aller
 et retour compris pour un convoi, le texte disant la même chose que le dessin.
 
+**Des cartes, pas des bandeaux** : une liste de cartes occupant toute la
+largeur gaspille l'écran large et oblige à défiler. Les listes de cartes
+(bâtiments, candidats, routes, recettes, dossiers, questions, dieux, troupe)
+se rangent donc en **grille de deux ou trois colonnes** (`md:grid-cols-2`,
+`2xl:grid-cols-3`) avec des cartes serrées (`p-4`), et reviennent à une colonne
+sur téléphone. Quand une carte porte un formulaire, elle est une colonne
+(`flex flex-col`) dont le formulaire se range en bas (`mt-auto`), pour que les
+boutons s'alignent d'une carte à l'autre. **Ne pas replier une liste en grille
+quand l'ordre se lit de haut en bas** (un déroulé, un classement) : la grille
+s'adresse aux choses interchangeables.
+
+**L'Atelier et la Forge** mettent la **consigne permanente dans un repli**, un
+réglage qu'on pose une fois — ouvert d'office quand l'atelier est à l'arrêt
+faute de matières —, et les matières d'un lot en pastilles. **La Caserne** montre
+sa troupe en cases : un homme levé, une case pleine ; un blessé, terre cuite ;
+une place libre, des pointillés.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

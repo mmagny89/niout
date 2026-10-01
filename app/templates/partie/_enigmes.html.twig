@@ -11,9 +11,9 @@
         qu'une fois. Juste ou faux, vous saurez pourquoi.
     </p>
 
-    <ul class="mt-4 space-y-4 list-none p-0">
+    <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
         {% for question in enigmes %}
-            <li class="max-w-3xl rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
                 <div class="flex flex-wrap items-baseline justify-between gap-3">
                     <p class="text-encre-900">{{ question.enigme.enonce }}</p>
                     <span class="text-xs text-encre-500">

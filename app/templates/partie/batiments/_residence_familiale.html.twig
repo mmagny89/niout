@@ -297,7 +297,7 @@
    dépliées : la Résidence est l'écran où l'on s'arrête pour décider. #}
 {% if ennuis is not empty %}
     <h3 class="mt-8 text-xl text-encre-900">Ce qui demande votre attention</h3>
-    <ul class="mt-3 max-w-3xl space-y-3 list-none p-0">
+    <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
         {% for signal in ennuis %}
             <li class="rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-3">
                 <p class="text-encre-900">{{ signal.titre }}</p>
@@ -317,7 +317,7 @@
    acquis. #}
 {% if bonnesNouvelles is not empty %}
     <h3 class="mt-8 text-xl text-encre-900">Ce qui joue pour vous</h3>
-    <ul class="mt-3 max-w-3xl space-y-3 list-none p-0">
+    <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
         {% for signal in bonnesNouvelles %}
             <li class="rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-5 py-3">
                 <p class="text-encre-900">{{ signal.titre }}</p>
@@ -371,9 +371,9 @@
         qui change, pas la maison.
     </p>
 
-    <ul class="mt-4 space-y-3 list-none p-0">
+    <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
         {% for rang, heritier in heritiers %}
-            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
                 <h4 class="font-display text-lg text-encre-900">{{ heritier.prenom }}</h4>
                 <p class="mt-1 text-sm text-encre-600">{{ heritier.description }}</p>
 
@@ -434,7 +434,7 @@
            découvrir tardivement une condition qu'on n'a pas pu
            anticiper serait injuste. #}
         <h4 class="mt-6 text-lg text-encre-900">Ce que le pharaon attend</h4>
-        <ul class="mt-3 max-w-3xl space-y-3 list-none p-0">
+        <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
             <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-3">
                 <div class="flex flex-wrap items-baseline justify-between gap-3">
                     <span class="text-encre-900">Résoudre le fil rouge de la mission</span>
@@ -592,9 +592,9 @@
 
 {% if chantiers|length > 0 %}
     <h3 class="mt-8 text-xl text-encre-900">Chantiers en cours</h3>
-    <ul class="mt-4 space-y-3 list-none p-0">
+    <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
         {% for chantier in chantiers %}
-            <li class="rounded-sm border border-ocre-500/40 bg-ocre-300/10 p-5">
+            <li class="rounded-sm border border-ocre-500/40 bg-ocre-300/10 p-4">
                 <div class="flex flex-wrap items-baseline justify-between gap-3">
                     <h3 class="font-display text-lg text-encre-900">
                         {{ chantier.type.libelle }}
@@ -654,9 +654,9 @@
     <div role="tabpanel" id="residence-section-batiments" aria-labelledby="residence-onglet-batiments"
          data-onglets-target="panneau" hidden>
 <h3 class="mt-8 text-xl text-encre-900">Bâtiments dressés</h3>
-<ul class="mt-4 space-y-3 list-none p-0">
+<ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
     {% for batiment in batimentsDresses %}
-        <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+        <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
             <div class="flex flex-wrap items-baseline justify-between gap-3">
                 <h3 class="font-display text-lg text-encre-900">{{ batiment.type.libelle }}</h3>
                 <span class="text-sm text-encre-500" data-chiffres>
@@ -706,9 +706,9 @@
 {# Ce qui est déjà dressé n'est plus « à bâtir » : sa montée de niveau vit sur
    sa propre carte, plus haut (« Bâtiments dressés »). #}
 {% set offresNeuves = offres|filter(offre => not offre.estDejaDressé) %}
-<ul class="mt-5 space-y-3 list-none p-0">
+<ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
     {% for offre in offresNeuves %}
-        <li class="rounded-sm border p-5
+        <li class="flex flex-col rounded-sm border p-4
                    {{ offre.estRealisable
                        ? 'border-ocre-500/30 bg-sable-50'
                        : 'border-ocre-500/20 bg-sable-50/40' }}">

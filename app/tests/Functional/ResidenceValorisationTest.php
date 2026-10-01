@@ -159,6 +159,27 @@ final class ResidenceValorisationTest extends WebTestCase
         self::assertSelectorTextContains('body', 'Écrire « Niout »');
     }
 
+    /**
+     * L'Atelier et la Caserne se rendent, avec la consigne dans un repli et la
+     * troupe en cases : c'est le seul contrôle que ces deux gabarits subissent.
+     */
+    public function testLAtelierEtLaCaserneSeRendent(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'atelier-caserne@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Atelier));
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Caserne));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=atelier', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'Consigne permanente');
+        self::assertGreaterThan(0, $crawler->filter('details')->count());
+        self::assertSelectorTextContains('body', 'Lever un homme');
+    }
+
     private function partie(\Symfony\Bundle\FrameworkBundle\KernelBrowser $client, string $email): \App\Entity\GameSave
     {
         $user = new User();

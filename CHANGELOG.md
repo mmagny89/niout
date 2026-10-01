@@ -14,6 +14,15 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les écrans de bâtiment sont plus compacts et plus horizontaux** : les
+  listes de cartes — bâtiments dressés et à bâtir, candidats, routes, étal du
+  Marché, dossiers d'enquête, questions, dieux, recettes, troupe — se rangent
+  sur deux ou trois colonnes quand la fenêtre le permet, avec des cartes plus
+  serrées, au lieu d'occuper toute la largeur l'une sous l'autre.
+- **L'Atelier, la Forge et la Caserne se simplifient** : la consigne permanente
+  passe dans un repli (ouvert d'office si l'atelier est à l'arrêt), les
+  matières d'un lot s'affichent en pastilles, l'ordre en cours est un bloc
+  compact, et la troupe se voit en cases (hommes levés, blessés, places libres).
 - **La Maison des scribes se range en trois sections** — À lire et à résoudre,
   Clé de lecture, Alphabet — au lieu de quatre cents lignes d'un seul tenant.
   Les explications de fond passent dans des replis, les inscriptions déjà lues
