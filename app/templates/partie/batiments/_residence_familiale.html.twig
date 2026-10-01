@@ -6,6 +6,52 @@
    qui n'a encore rien dressé. #}
 {{ include('partie/batiments/_entete.html.twig') }}
 
+{# **La Résidence recueille tout ce qui n'appartient à aucun bâtiment**, et
+   c'en est trop pour un seul défilement : quatre sections, comme les onglets
+   de la ville dont elles reprennent le contrôleur (`onglets_controller.js`).
+   Tous les panneaux restent dans le document, seulement masqués. La section
+   ouverte est retenue d'un chargement à l'autre : régler un salaire ou engager
+   un chantier recharge la page, et l'on ne doit pas retomber sur la vue
+   d'ensemble.
+
+   Les identifiants portent le préfixe `residence-` : le contrôle de structure
+   des onglets de la ville ne regarde que `panneau-*`. #}
+<div data-controller="onglets"
+     data-onglets-memoire-value="residence-{{ partie.id }}"
+     data-onglets-actif-class="border-terre-500 text-terre-600"
+     data-onglets-inactif-class="border-transparent text-encre-500">
+    <nav class="mt-4 flex flex-nowrap gap-1 overflow-x-auto border-b border-ocre-500/25 text-sm"
+         role="tablist" aria-label="Sections de la Résidence">
+        <button type="button" role="tab" id="residence-onglet-vue"
+                aria-controls="residence-section-vue"
+                aria-selected="true" tabindex="0"
+                data-onglets-target="onglet" data-onglet-actif="true"
+                data-action="onglets#choisir keydown->onglets#naviguer"
+                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">Vue d'ensemble</button>
+        <button type="button" role="tab" id="residence-onglet-mission"
+                aria-controls="residence-section-mission"
+                aria-selected="false" tabindex="-1"
+                data-onglets-target="onglet" data-onglet-actif="false"
+                data-action="onglets#choisir keydown->onglets#naviguer"
+                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">{{ mission ? 'Mission' : 'Règne' }}</button>
+        <button type="button" role="tab" id="residence-onglet-gouvernement"
+                aria-controls="residence-section-gouvernement"
+                aria-selected="false" tabindex="-1"
+                data-onglets-target="onglet" data-onglet-actif="false"
+                data-action="onglets#choisir keydown->onglets#naviguer"
+                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">Gouvernement</button>
+        <button type="button" role="tab" id="residence-onglet-batiments"
+                aria-controls="residence-section-batiments"
+                aria-selected="false" tabindex="-1"
+                data-onglets-target="onglet" data-onglet-actif="false"
+                data-action="onglets#choisir keydown->onglets#naviguer"
+                class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2 hover:text-terre-600">Bâtiments</button>
+    </nav>
+
+    <div role="tabpanel" id="residence-section-vue" aria-labelledby="residence-onglet-vue"
+         data-onglets-target="panneau" >
+
+
 {# **Le tableau de bord : tout ce qui se gouverne, en un coup d'œil.**
 
    Ces chiffres vivaient en trois cartes de prose qui les noyaient — il fallait
@@ -294,7 +340,10 @@
         {{ palier.attractivite }} Votre nom porte aussi loin qu'il le peut.
     {% endif %}
 </p>
+    </div>
 
+    <div role="tabpanel" id="residence-section-mission" aria-labelledby="residence-onglet-mission"
+         data-onglets-target="panneau" hidden>
 {# En Aventure, il n'y a pas de mission mais un **règne** : la ville existe
    pour elle-même, et les pharaons se succèdent au-dessus d'elle (doc 14,
    lot 11.1). Le cartouche ne s'affiche que là où sa lecture est établie — on
@@ -451,7 +500,10 @@
             non atteints donnent une reconnaissance plus modeste, jamais un échec.
         </p>
 {% endif %}
+    </div>
 
+    <div role="tabpanel" id="residence-section-gouvernement" aria-labelledby="residence-onglet-gouvernement"
+         data-onglets-target="panneau" hidden>
 {# Le salaire des bras vit ici, avec la main-d'œuvre : c'est le seul salaire
    que le joueur fixe lui-même, celui d'un chef se négociant candidat par
    candidat à l'embauche. #}
@@ -597,7 +649,10 @@
         {% endfor %}
     </ul>
 {% endif %}
+    </div>
 
+    <div role="tabpanel" id="residence-section-batiments" aria-labelledby="residence-onglet-batiments"
+         data-onglets-target="panneau" hidden>
 <h3 class="mt-8 text-xl text-encre-900">Bâtiments dressés</h3>
 <ul class="mt-4 space-y-3 list-none p-0">
     {% for batiment in batimentsDresses %}
@@ -698,3 +753,6 @@
         </li>
     {% endfor %}
 </ul>
+    </div>
+
+</div>

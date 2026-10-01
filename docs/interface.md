@@ -90,6 +90,21 @@ illisible ce que le tableau existe pour rendre lisible. Chaque alerte nomme la
 cause **et** le geste — un diagnostic sans remède se subit —, et une ville sans
 souci le dit plutôt que d'afficher une liste vide.
 
+**La Résidence se range en quatre sections** (`_residence_familiale.html.twig`),
+parce qu'un seul défilement de sept cents lignes ne laissait plus rien trouver :
+**Vue d'ensemble** (tableau de bord, écritures, alertes, bonnes nouvelles),
+**Mission** — ou **Règne** en Aventure : objectifs, score, succession —,
+**Gouvernement** (salaire des bras, ce qu'on attend, chantiers en cours) et
+**Bâtiments** (dressés, à bâtir). Elles **réutilisent `onglets_controller.js`**,
+imbriqué dans l'onglet de la ville : mêmes panneaux masqués plutôt qu'absents,
+donc le contenu reste dans le document. Deux précautions : les identifiants
+portent le préfixe `residence-`, parce que le test de structure des onglets de
+la ville ne regarde que `panneau-*` ; et la section ouverte est **retenue**
+(`data-onglets-memoire-value`, `sessionStorage`), car régler un salaire ou
+engager un chantier recharge la page et ramenait sinon à la première section.
+Le découpage se fait **sur des frontières de blocs Twig**, jamais au milieu d'un
+commentaire : un `{#` non refermé avale le panneau suivant, sans erreur.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

@@ -21,9 +21,47 @@ import { Controller } from '@hotwired/stimulus';
 export default class extends Controller {
     static targets = ['onglet', 'panneau'];
     static classes = ['actif', 'inactif'];
+    /**
+     * Une clé de mémoire facultative : quand elle est posée, l'onglet ouvert
+     * survit au rechargement de la page. Les sections de la Résidence en
+     * dépendent — régler un salaire recharge l'écran, et l'on ne doit pas
+     * retomber sur la première section à chaque geste.
+     */
+    static values = { memoire: String };
 
     connect() {
-        this.montrer(this.ongletTargets.findIndex((o) => o.dataset.ongletActif === 'true') ?? 0);
+        const demande = this.ongletTargets.findIndex((o) => o.dataset.ongletActif === 'true');
+        const retenu = this.rangRetenu();
+
+        this.montrer(retenu ?? (demande < 0 ? 0 : demande));
+    }
+
+    rangRetenu() {
+        if (!this.hasMemoireValue || '' === this.memoireValue) {
+            return null;
+        }
+
+        try {
+            const rang = Number.parseInt(sessionStorage.getItem(`onglets:${this.memoireValue}`) ?? '', 10);
+
+            return Number.isInteger(rang) && rang >= 0 && rang < this.ongletTargets.length ? rang : null;
+        } catch {
+            // Stockage refusé (navigation privée, politique du navigateur) :
+            // l'écran marche sans, il oublie seulement la section ouverte.
+            return null;
+        }
+    }
+
+    retenir(rang) {
+        if (!this.hasMemoireValue || '' === this.memoireValue) {
+            return;
+        }
+
+        try {
+            sessionStorage.setItem(`onglets:${this.memoireValue}`, String(rang));
+        } catch {
+            // Voir `rangRetenu()`.
+        }
     }
 
     choisir(evenement) {
@@ -68,6 +106,7 @@ export default class extends Controller {
             panneau.hidden = index !== choisi;
         });
 
+        this.retenir(choisi);
         this.amenerDansLaBande(this.ongletTargets[choisi]);
     }
 

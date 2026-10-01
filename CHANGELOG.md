@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **La Résidence familiale se range en quatre sections** — Vue d'ensemble,
+  Mission (ou Règne en Aventure), Gouvernement, Bâtiments — au lieu d'un seul
+  long défilement. La section ouverte est retenue : régler un salaire ou
+  engager un chantier ne ramène plus à la première.
 - **Un impôt chaque mois** : les scribes du pharaon lèvent un deben par actif
   valide à la fin de chaque mois (une quinzaine sur deux, rien pendant les
   jours épagomènes). C'est un filet — il couvre la moitié d'un salaire — pour

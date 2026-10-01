@@ -196,16 +196,37 @@ final class ErgonomieTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
-        $onglets = $crawler->filter('[role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
-        $panneaux = $crawler->filter('[role="tabpanel"]')->each(static fn ($n): string => (string) $n->attr('id'));
+        // Les onglets de la ville seulement : la Résidence porte ses propres
+        // sections, contrôlées plus bas.
+        $onglets = $crawler->filter('nav[aria-label="Sections de la ville"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
+        $panneaux = $crawler->filter('[role="tabpanel"][id^="panneau-"]')->each(static fn ($n): string => (string) $n->attr('id'));
 
         self::assertNotSame([], $onglets);
         self::assertSame($onglets, $panneaux, 'Un onglet sans panneau est un bouton mort.');
         self::assertCount(
             \count($onglets) - 1,
-            $crawler->filter('[role="tabpanel"][hidden]'),
+            $crawler->filter('[role="tabpanel"][id^="panneau-"][hidden]'),
             'Un seul panneau est ouvert à la fois.',
         );
+    }
+
+    /**
+     * La Résidence tient en quatre sections, une seule ouverte : sa page était
+     * trop longue pour qu'on s'y retrouve.
+     */
+    public function testLaResidenceEstDecoupeeEnSections(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancer($client, 'residence-sections@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        $onglets = $crawler->filter('nav[aria-label="Sections de la Résidence"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
+        $panneaux = $crawler->filter('[role="tabpanel"][id^="residence-section-"]')->each(static fn ($n): string => (string) $n->attr('id'));
+
+        self::assertCount(4, $onglets);
+        self::assertSame($onglets, $panneaux, 'Une section sans panneau est un bouton mort.');
+        self::assertCount(3, $crawler->filter('[role="tabpanel"][id^="residence-section-"][hidden]'));
     }
 
     /**
@@ -345,7 +366,7 @@ final class ErgonomieTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         self::assertSame(
             ['panneau-residence_familiale'],
-            $crawler->filter('[role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls')),
+            $crawler->filter('nav[aria-label="Sections de la ville"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls')),
             'Une ville neuve n\'a que le foyer de sa lignée.',
         );
 
@@ -356,7 +377,7 @@ final class ErgonomieTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         self::assertSame(
             ['panneau-residence_familiale', 'panneau-grenier', 'panneau-port'],
-            $crawler->filter('[role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls')),
+            $crawler->filter('nav[aria-label="Sections de la ville"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls')),
             'L\'ordre suit celui de TypeDeBatiment, stable d\'un rendu à l\'autre.',
         );
     }
@@ -414,7 +435,7 @@ final class ErgonomieTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSame(
             1,
-            $crawler->filter('[data-onglet-actif="true"]')->count(),
+            $crawler->filter('nav[aria-label="Sections de la ville"] [data-onglet-actif="true"]')->count(),
             'Exactement un onglet est ouvert, quoi que dise l\'adresse.',
         );
         self::assertSame(
