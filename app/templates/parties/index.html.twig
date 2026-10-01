@@ -3,7 +3,7 @@
 {% block title %}Mes parties — Niout{% endblock %}
 
 {% block body %}
-    <section class="mx-auto w-full max-w-2xl px-5 py-14">
+    <section class="mx-auto w-full max-w-6xl px-5 py-10">
         <div class="flex flex-wrap items-baseline justify-between gap-3">
             <h1 class="text-3xl text-encre-900">Mes parties</h1>
             {# Le plafond ne compte que les parties **en cours** : une partie
@@ -17,57 +17,81 @@
             </p>
         </div>
 
-        {% if parties is empty %}
-            <p class="mt-3 text-sm text-encre-600">
-                Aucune partie en cours. Le pharaon attend.
-            </p>
-        {% else %}
-            <ul class="mt-6 space-y-3 list-none p-0">
-                {% for partie in parties %}
-                    <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
-                        <div class="flex flex-wrap items-baseline justify-between gap-3">
-                            <h2 class="font-display text-xl text-encre-900">
-                                {{ partie.ville.nom }}
-                            </h2>
-                            <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-xs text-lapis-600">
-                                {{ partie.mode.libelle }}
-                            </span>
+        {% import 'partie/_sous_onglets.html.twig' as sous %}
+        {% set enCours = parties|filter(p => p.estEnCours) %}
+        {% set closes = parties|filter(p => not p.estEnCours) %}
+        {% macro carte(partie, missionsParPartie) %}
+            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+                    <div class="flex flex-wrap items-baseline justify-between gap-3">
+                        <h2 class="font-display text-xl text-encre-900">
+                            {{ partie.ville.nom }}
+                        </h2>
+                        <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-xs text-lapis-600">
+                            {{ partie.mode.libelle }}
+                        </span>
+                    </div>
+
+                    <p class="mt-1 text-sm text-encre-500">
+                        {{ missionsParPartie[partie.id] ?? 'Succession des règnes' }}
+                        · famille {{ partie.famille.nom }}
+                    </p>
+
+                    <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-encre-600" data-chiffres>
+                        <div class="flex gap-1.5">
+                            <dt class="text-encre-500">Cycle</dt>
+                            <dd>{{ partie.cycle }}</dd>
                         </div>
-
-                        <p class="mt-1 text-sm text-encre-500">
-                            {{ missionsParPartie[partie.id] ?? 'Succession des règnes' }}
-                            · famille {{ partie.famille.nom }}
-                        </p>
-
-                        <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-encre-600" data-chiffres>
-                            <div class="flex gap-1.5">
-                                <dt class="text-encre-500">Cycle</dt>
-                                <dd>{{ partie.cycle }}</dd>
-                            </div>
-                            <div class="flex gap-1.5">
-                                <dt class="text-encre-500">Deben</dt>
-                                <dd>{{ partie.ville.deben }}</dd>
-                            </div>
-                            <div class="flex gap-1.5">
-                                <dt class="text-encre-500">Renommée</dt>
-                                <dd>{{ partie.famille.palierDeRenommee }}</dd>
-                            </div>
-                        </dl>
-
-                        <div class="mt-4 flex flex-wrap items-center gap-4">
-                            <a href="{{ path('app_partie_reprendre', {id: partie.id}) }}"
-                               class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 no-underline hover:bg-terre-600">
-                                Reprendre
-                            </a>
-                            <a href="{{ path('app_partie_abandonner', {id: partie.id}) }}"
-                               class="text-sm text-encre-500 hover:text-terre-600">
-                                Abandonner
-                            </a>
+                        <div class="flex gap-1.5">
+                            <dt class="text-encre-500">Deben</dt>
+                            <dd>{{ partie.ville.deben }}</dd>
                         </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+                        <div class="flex gap-1.5">
+                            <dt class="text-encre-500">Renommée</dt>
+                            <dd>{{ partie.famille.palierDeRenommee }}</dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-4 flex flex-wrap items-center gap-4">
+                        <a href="{{ path('app_partie_reprendre', {id: partie.id}) }}"
+                           class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 no-underline hover:bg-terre-600">
+                            Reprendre
+                        </a>
+                        <a href="{{ path('app_partie_abandonner', {id: partie.id}) }}"
+                           class="text-sm text-encre-500 hover:text-terre-600">
+                            Abandonner
+                        </a>
+                    </div>
+                </li>
+        {% endmacro %}
+
+        {{ sous.debut('parties', 0, 'Mes parties', [
+            {cle: 'encours', libelle: 'En cours (' ~ enCours|length ~ ')'},
+            {cle: 'closes', libelle: 'Closes (' ~ closes|length ~ ')'},
+        ]) }}
+        {{ sous.panneau('parties', 'encours', true) }}
+            {% if enCours is empty %}
+                <p class="mt-4 text-sm text-encre-600">Aucune partie en cours. Le pharaon attend.</p>
+            {% else %}
+                <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 xl:grid-cols-3">
+                    {% for partie in enCours %}
+                        {{ _self.carte(partie, missionsParPartie) }}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        {{ sous.panneau('parties', 'closes', false) }}
+            {% if closes is empty %}
+                <p class="mt-4 text-sm text-encre-600">Aucune partie close.</p>
+            {% else %}
+                <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 xl:grid-cols-3">
+                    {% for partie in closes %}
+                        {{ _self.carte(partie, missionsParPartie) }}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        </div>
 
         {% if plafondAtteint %}
             <p class="mt-4 rounded-sm border border-ocre-500/40 bg-ocre-300/15 px-4 py-3 text-sm text-encre-700">

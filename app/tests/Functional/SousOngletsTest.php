@@ -46,6 +46,16 @@ final class SousOngletsTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         self::assertResponseIsSuccessful();
 
+        $this->verifierLesBarres($crawler, 12);
+    }
+
+    /**
+     * Toutes les barres de sous-onglets d'une page — hors celle de la ville —
+     * se suivent onglet pour panneau, dans le même ordre, avec un seul panneau
+     * ouvert et aucun identifiant en double.
+     */
+    private function verifierLesBarres(\Symfony\Component\DomCrawler\Crawler $crawler, int $attendues): void
+    {
         $document = $crawler->getNode(0)?->ownerDocument;
         self::assertInstanceOf(\DOMDocument::class, $document);
         $xpath = new \DOMXPath($document);
@@ -56,7 +66,7 @@ final class SousOngletsTest extends WebTestCase
         // **Toutes les pages, construites de la même manière** : la Résidence,
         // la Maison des scribes, le Marché, le Port, le Grenier, l'Entrepôt,
         // l'Atelier, la Forge, la Caserne, le Temple, le Quartier, l'Auberge.
-        self::assertSame(12, $barres->length);
+        self::assertSame($attendues, $barres->length);
 
         $ids = $crawler->filter('[id]')->each(static fn ($n): string => (string) $n->attr('id'));
         self::assertSame($ids, array_values(array_unique($ids)), 'Deux éléments partagent un identifiant : un onglet ouvrirait le voisin.');
@@ -84,5 +94,64 @@ final class SousOngletsTest extends WebTestCase
             self::assertSame($controles, $panneaux, 'Onglets et panneaux se suivent dans le même ordre : '.$libelle);
             self::assertSame(\count($controles) - 1, $caches, 'Une seule section est ouverte : '.$libelle);
         }
+    }
+
+    /**
+     * Les pages qui ne sont pas des bâtiments suivent la même règle : le
+     * territoire, la commande, la reprise et la liste des parties.
+     */
+    public function testLesAutresPagesDeJeuRangentAussiLeursSections(): void
+    {
+        $client = static::createClient();
+        $user = new User();
+        $user->setEmail('autres-pages@example.com');
+        $user->setPassword('peu-importe-ici');
+        $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
+        $gestionnaire->persist($user);
+        $gestionnaire->flush();
+        $client->loginUser($user);
+
+        $partie = static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
+        $id = $partie->getId();
+
+        foreach ([
+            \sprintf('/partie/%d/carte', $id) => 1,
+            \sprintf('/partie/%d/commande', $id) => 1,
+            \sprintf('/partie/%d', $id) => 1,
+            '/parties' => 1,
+        ] as $adresse => $attendues) {
+            $crawler = $client->request('GET', $adresse);
+
+            if (!$client->getResponse()->isSuccessful()) {
+                self::fail($adresse.' : '.$client->getResponse()->getStatusCode());
+            }
+
+            $this->verifierLesBarres($crawler, $attendues);
+        }
+    }
+
+    /**
+     * L'onglet d'essai, réservé aux comptes privilégiés, range lui aussi ses
+     * sections : une exception à la règle ferait douter qu'elle en soit une.
+     */
+    public function testLEssaiRangeSesSectionsLuiAussi(): void
+    {
+        $client = static::createClient();
+        $user = new User();
+        $user->setEmail('essai-sections@example.com');
+        $user->setPassword('peu-importe-ici');
+        $user->setRoles([User::ROLE_ADMIN]);
+        $gestionnaire = static::getContainer()->get(EntityManagerInterface::class);
+        $gestionnaire->persist($user);
+        $gestionnaire->flush();
+        $client->loginUser($user);
+
+        $partie = static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        // La Résidence et l'Essai.
+        $this->verifierLesBarres($crawler, 2);
     }
 }

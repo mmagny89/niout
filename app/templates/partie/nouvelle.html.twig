@@ -3,10 +3,14 @@
 {% block title %}Nouvelle partie — Niout{% endblock %}
 
 {% block body %}
-    <section class="mx-auto w-full max-w-2xl px-5 py-14">
+    <section class="mx-auto w-full max-w-5xl px-5 py-10">
         <h1 class="text-3xl text-encre-900">Commencer une partie</h1>
 
-        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+        {# Deux colonnes dès que la place le permet : ce qu'on peut jouer à gauche,
+           le formulaire à droite. Un formulaire n'a pas de sous-onglets — ses
+           champs se remplissent d'un seul tenant. #}
+        <div class="mt-6 grid gap-6 lg:grid-cols-2">
+        <div class="grid content-start gap-4">
             <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
                 <h2 class="text-base text-terre-600">Campagne</h2>
                 <p class="mt-2 text-sm text-encre-600">
@@ -32,7 +36,9 @@
             </article>
         </div>
 
-        <div class="mt-9" {{ stimulus_controller('nouvelle-partie') }}>
+        </div>
+
+        <div {{ stimulus_controller('nouvelle-partie') }}>
             {{ form_start(form) }}
                 {{ form_errors(form) }}
 
@@ -56,6 +62,7 @@
                     Lancer la partie
                 </button>
             {{ form_end(form) }}
+        </div>
         </div>
 
         <p class="mt-6 text-sm text-encre-500">

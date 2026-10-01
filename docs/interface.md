@@ -199,6 +199,17 @@ replis n'ont plus de plafond. Une carte lourde, comme une route commerciale, se
 coupe en deux colonnes dès `lg` : ce qu'est la cité à gauche, ce qu'on y fait à
 droite.
 
+**Le territoire, la commande, la reprise et la liste des parties suivent la
+même règle** (`SousOngletsTest` les contrôle avec les bâtiments). Trois
+particularités : **la mémoire de la section ouverte est coupée sur la carte**
+(`retenir = false`) — cliquer une case recharge la page et doit rouvrir le
+détail de cette case, pas le dernier onglet regardé ; **l'action principale d'une
+page reste hors des sous-onglets** (« Prendre mes fonctions », « Reprendre la
+partie ») pour qu'aucun clic ne la sépare du joueur ; et **un formulaire n'a pas
+de sous-onglets** — la création d'une partie se range sur deux colonnes, ce qu'on
+peut jouer à gauche et le formulaire à droite. Les pages hors jeu (accueil,
+connexion, compte, administration) n'entrent pas dans cette règle.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

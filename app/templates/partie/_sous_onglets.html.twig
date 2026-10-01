@@ -17,12 +17,16 @@
    retomber sur la première section. Tout le contenu reste dans le document,
    seulement masqué.
 
+   Le cinquième argument de `debut` (`retenir`, vrai par défaut) coupe la mémoire :
+   la carte l'éteint, car cliquer une case recharge la page et doit rouvrir le
+   détail de cette case, pas le dernier onglet regardé.
+
    Les identifiants portent le préfixe du bâtiment (`port-section-peche`) : le
    test de structure des onglets de la ville ne regarde que `panneau-*`. #}
 
-{% macro debut(prefixe, partieId, libelle, sections) %}
+{% macro debut(prefixe, partieId, libelle, sections, retenir = true) %}
 <div data-controller="onglets"
-     data-onglets-memoire-value="{{ prefixe }}-{{ partieId }}"
+     {% if retenir %}data-onglets-memoire-value="{{ prefixe }}-{{ partieId }}"{% endif %}
      data-onglets-actif-class="border-terre-500 text-terre-600"
      data-onglets-inactif-class="border-transparent text-encre-500">
     <nav class="mt-4 flex flex-nowrap gap-1 overflow-x-auto border-b border-ocre-500/25 text-sm"

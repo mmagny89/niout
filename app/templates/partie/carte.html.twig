@@ -131,65 +131,25 @@
         {# Le panneau de droite : tout ce qui se lit, et le seul endroit qui
            défile. #}
         <aside class="flex min-h-0 w-full flex-1 flex-col overflow-y-auto border-t border-ocre-500/25
-                      bg-sable-50 p-4 md:w-96 md:flex-none md:border-l md:border-t-0 md:p-5">
+                      bg-sable-50 p-4 md:w-96 md:flex-none lg:w-[30rem] md:border-l md:border-t-0 md:p-5">
             <div class="flex items-baseline justify-between gap-3">
                 <a href="{{ path('app_partie_ville', {id: partie.id}) }}" class="text-sm text-lapis-500">
                     Bâtiments {{ ville.avecPreposition }} →
                 </a>
             </div>
 
-            <p class="mt-2 text-xs text-encre-500">
-                Cliquez votre ville pour en gérer les bâtiments ; les dalles
-                gravées de hiéroglyphes attendent un éclaireur.
-            </p>
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+            {# **Trois sous-onglets, comme tous les panneaux** : la case regardée
+               d'abord — c'est ce qu'on vient faire ici —, puis les expéditions en
+               route, puis l'état de la ville. La mémoire est coupée : cliquer
+               une case recharge la page, et doit rouvrir cette case. #}
+            {{ sous.debut('carte', partie.id, 'Sections du territoire', [
+                {cle: 'case', libelle: zoneDetaillee ? 'Case ' ~ zoneDetaillee.x ~ ', ' ~ zoneDetaillee.y : 'Case'},
+                {cle: 'expeditions', libelle: ville.expeditions|length > 0 ? 'Expéditions (' ~ ville.expeditions|length ~ ')' : 'Expéditions'},
+                {cle: 'ville', libelle: 'Ville'},
+            ], false) }}
 
-            {# **L'état de la ville se lit aussi d'ici.** On passe des
-               quinzaines entières sur la carte à explorer et à exploiter : la
-               fièvre, la disette ou une fête se découvraient en rentrant,
-               plusieurs quinzaines trop tard. Le panneau défile pour son
-               compte, donc ces pastilles ne coûtent la hauteur de personne. #}
-            {{ include('partie/_signaux.html.twig') }}
-
-        {# Reconnaître une grille du Sinaï case par case demande des dizaines de
-           quinzaines : c'est ce temps de jeu que le mode d'essai permet de
-           sauter. Le bouton n'existe que pour un compte qui porte le rôle, et
-           la route le vérifie de son côté. #}
-        {% if is_granted('ROLE_ADMIN') and partie.estEnModeDivin %}
-            <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}" class="mt-4">
-                <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
-                <input type="hidden" name="retour" value="app_partie_carte">
-                <button type="submit" name="brouillard" value="1"
-                        class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
-                    Lever le brouillard sur toute la carte
-                </button>
-            </form>
-        {% endif %}
-
-
-        {% if ville.expeditions|length > 0 %}
-            <section class="mt-6">
-                <h2 class="text-lg text-encre-900">Expéditions en route</h2>
-                <ul class="mt-3 space-y-2 list-none p-0">
-                    {% for expedition in ville.expeditions %}
-                        <li class="rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-5 py-3">
-                            <div class="flex flex-wrap items-baseline justify-between gap-3 text-sm">
-                                <span class="text-encre-900">
-                                    {{ expedition.role.libelle }} vers la case
-                                    <span data-chiffres>{{ expedition.destination.x }}, {{ expedition.destination.y }}</span>
-                                </span>
-                                <span class="text-encre-500" data-chiffres>
-                                    encore {{ expedition.cyclesRestants }} cycle{{ expedition.cyclesRestants > 1 ? 's' : '' }}
-                                </span>
-                            </div>
-                            <div class="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
-                                <div class="h-full bg-lapis-500" style="width: {{ expedition.pourcentageDAvancement }}%"></div>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </section>
-        {% endif %}
-
+            {{ sous.panneau('carte', 'case', true) }}
         <div id="case" class="mt-6">
             {% if zoneDetaillee %}
                 <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
@@ -511,6 +471,68 @@
                 </p>
             {% endif %}
         </div>
+            </div>
+
+            {{ sous.panneau('carte', 'expeditions', false) }}
+        {% if ville.expeditions|length > 0 %}
+            <section class="mt-6">
+                <h2 class="text-lg text-encre-900">Expéditions en route</h2>
+                <ul class="mt-3 space-y-2 list-none p-0">
+                    {% for expedition in ville.expeditions %}
+                        <li class="rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-5 py-3">
+                            <div class="flex flex-wrap items-baseline justify-between gap-3 text-sm">
+                                <span class="text-encre-900">
+                                    {{ expedition.role.libelle }} vers la case
+                                    <span data-chiffres>{{ expedition.destination.x }}, {{ expedition.destination.y }}</span>
+                                </span>
+                                <span class="text-encre-500" data-chiffres>
+                                    encore {{ expedition.cyclesRestants }} cycle{{ expedition.cyclesRestants > 1 ? 's' : '' }}
+                                </span>
+                            </div>
+                            <div class="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                                <div class="h-full bg-lapis-500" style="width: {{ expedition.pourcentageDAvancement }}%"></div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+        {% if ville.expeditions|length == 0 %}
+            <p class="mt-4 text-sm text-encre-500">
+                Aucune expédition en route. Envoyez un éclaireur depuis une case inexplorée.
+            </p>
+        {% endif %}
+            </div>
+
+            {{ sous.panneau('carte', 'ville', false) }}
+            <p class="mt-2 text-xs text-encre-500">
+                Cliquez votre ville pour en gérer les bâtiments ; les dalles
+                gravées de hiéroglyphes attendent un éclaireur.
+            </p>
+
+            {# **L'état de la ville se lit aussi d'ici.** On passe des
+               quinzaines entières sur la carte à explorer et à exploiter : la
+               fièvre, la disette ou une fête se découvraient en rentrant,
+               plusieurs quinzaines trop tard. Le panneau défile pour son
+               compte, donc ces pastilles ne coûtent la hauteur de personne. #}
+            {{ include('partie/_signaux.html.twig') }}
+
+        {# Reconnaître une grille du Sinaï case par case demande des dizaines de
+           quinzaines : c'est ce temps de jeu que le mode d'essai permet de
+           sauter. Le bouton n'existe que pour un compte qui porte le rôle, et
+           la route le vérifie de son côté. #}
+        {% if is_granted('ROLE_ADMIN') and partie.estEnModeDivin %}
+            <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}" class="mt-4">
+                <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
+                <input type="hidden" name="retour" value="app_partie_carte">
+                <button type="submit" name="brouillard" value="1"
+                        class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                    Lever le brouillard sur toute la carte
+                </button>
+            </form>
+        {% endif %}
+            </div>
+            </div>
         </aside>
     </section>
 {% endblock %}

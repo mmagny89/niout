@@ -3,7 +3,8 @@
 {% block title %}{{ partie.ville.nom }} — Niout{% endblock %}
 
 {% block body %}
-    <section class="h-full overflow-y-auto mx-auto w-full max-w-2xl px-5 py-14">
+    <section class="h-full overflow-y-auto mx-auto w-full max-w-5xl px-5 py-10">
+{% import 'partie/_sous_onglets.html.twig' as sous %}
         {% if mission %}
             <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
                 Mission {{ mission.numero }} sur 10 · {{ mission.region }}
@@ -25,7 +26,37 @@
                Rien ne s'affiche pour un pharaon dont le cartouche n'est pas
                établi : un cartouche approximatif donné pour réel trahirait la
                règle qui veut que les hiéroglyphes du jeu soient vrais. #}
-            {% if cartouche %}
+        {% else %}
+            <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+                Mode Aventure
+            </p>
+            <h1 class="mt-4 text-4xl leading-tight text-encre-900">
+                {{ partie.ville.nom }}
+            </h1>
+            <p class="mt-5 text-lg text-encre-600">
+                La capitale vous est ouverte, {{ partie.famille.nom }}. Aucun souverain ne
+                vous fixe de terme : les règnes se succéderont, la ville restera.
+            </p>
+        {% endif %}
+
+        {# L'action principale reste sous les yeux : elle ne dépend d'aucun
+           sous-onglet. #}
+        <div class="mt-6 flex flex-wrap items-center gap-5">
+            <a href="{{ path('app_partie_carte', {id: partie.id}) }}"
+               class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                Prendre mes fonctions
+            </a>
+            <a href="{{ path('app_parties') }}" class="text-lapis-500">Retour à mes parties</a>
+        </div>
+
+        {% set sections = [{cle: 'dotation', libelle: 'Dotation royale'}, {cle: 'partie', libelle: 'La partie'}] %}
+        {% if mission and cartouche %}
+            {% set sections = [{cle: 'cartouche', libelle: 'Le cartouche'}]|merge(sections) %}
+        {% endif %}
+        {{ sous.debut('commande', partie.id, 'Sections de la commande', sections, false) }}
+        {% if mission and cartouche %}
+        {{ sous.panneau('commande', 'cartouche', true) }}
+
                 <figure class="mt-8 rounded-sm border border-or-300/60 bg-or-300/5 px-6 py-5 text-center">
                     <div class="flex items-center justify-center gap-3">
                         <span aria-hidden="true" class="text-3xl text-or-300">❨</span>
@@ -50,21 +81,11 @@
                     disque solaire vaut « Rê » à lui seul, et s'écrit en tête du nom
                     par déférence, alors qu'il se prononce à la fin.
                 </p>
-            {% endif %}
-        {% else %}
-            <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
-                Mode Aventure
-            </p>
-            <h1 class="mt-4 text-4xl leading-tight text-encre-900">
-                {{ partie.ville.nom }}
-            </h1>
-            <p class="mt-5 text-lg text-encre-600">
-                La capitale vous est ouverte, {{ partie.famille.nom }}. Aucun souverain ne
-                vous fixe de terme : les règnes se succéderont, la ville restera.
-            </p>
+        </div>
         {% endif %}
 
-        <div class="mt-10 rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
+        {{ sous.panneau('commande', 'dotation', not (mission and cartouche)) }}
+        <div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-6">
             <h2 class="text-lg text-encre-900">Dotation royale</h2>
             <p class="mt-2 text-sm text-encre-600">
                 De quoi engager les premiers travaux. Elle vous est accordée quel que soit
@@ -82,8 +103,10 @@
                 {% endfor %}
             </dl>
         </div>
+        </div>
 
-        <dl class="mt-8 divide-y divide-ocre-500/25 border-y border-ocre-500/25">
+        {{ sous.panneau('commande', 'partie', false) }}
+        <dl class="mt-4 divide-y divide-ocre-500/25 border-y border-ocre-500/25">
             <div class="flex justify-between gap-4 py-3">
                 <dt class="text-sm text-encre-500">Difficulté</dt>
                 <dd class="text-sm text-encre-900" data-chiffres>{{ partie.ville.difficulte }} sur 9</dd>
@@ -99,13 +122,7 @@
                 <dd class="text-sm text-encre-900" data-chiffres>{{ partie.cycle }}</dd>
             </div>
         </dl>
-
-        <div class="mt-10 flex flex-wrap items-center gap-5">
-            <a href="{{ path('app_partie_carte', {id: partie.id}) }}"
-               class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
-                Prendre mes fonctions
-            </a>
-            <a href="{{ path('app_parties') }}" class="text-lapis-500">Retour à mes parties</a>
+        </div>
         </div>
     </section>
 {% endblock %}

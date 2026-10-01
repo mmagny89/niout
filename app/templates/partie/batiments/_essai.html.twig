@@ -7,11 +7,16 @@
    une barrière. #}
 <h2 class="text-2xl text-encre-900">Mode d'essai</h2>
 
-{# Une partie d'essai le dit en toutes lettres : elle ne doit jamais se
-   confondre avec une vraie. Le bouton n'existe que pour un compte qui
-   porte le rôle — la route le vérifie de son côté, l'absence
-   d'affichage n'étant pas une barrière. #}
+{# Même construction que tous les panneaux : des sous-onglets. Le mode d'un
+   côté, les outils de l'autre — ils ne servent pas au même moment. Chaque
+   formulaire porte son jeton et sa destination de retour. #}
 {% if is_granted('ROLE_ADMIN') %}
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+{{ sous.debut('essai', partie.id, "Sections du mode d'essai", [
+    {cle: 'mode', libelle: partie.estEnModeDivin ? 'Mode · essai' : 'Mode'},
+    {cle: 'outils', libelle: 'Outils'},
+]) }}
+{{ sous.panneau('essai', 'mode', true) }}
     <div class="mt-4 rounded-sm border border-lapis-500/40 bg-lapis-500/5 px-4 py-3 text-sm text-encre-700">
         {% if partie.estEnModeDivin %}
             <strong class="text-encre-900">Partie d'essai.</strong>
@@ -32,16 +37,31 @@
                     class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
                 {{ partie.estEnModeDivin ? 'Revenir aux règles ordinaires' : 'Passer en partie d\'essai' }}
             </button>
-            {% if partie.estEnModeDivin %}
-                <button type="submit" name="combler" value="1"
-                        class="text-sm text-encre-500 underline hover:text-lapis-500">
-                    Recombler les réserves
-                </button>
-                <button type="submit" name="brouillard" value="1"
-                        class="text-sm text-encre-500 underline hover:text-lapis-500">
-                    Lever le brouillard
-                </button>
-            {% endif %}
         </form>
     </div>
+    </div>
+
+{{ sous.panneau('essai', 'outils', false) }}
+    {% if partie.estEnModeDivin %}
+        <form method="post" action="{{ path('app_partie_divin', {id: partie.id}) }}"
+              class="mt-4 flex flex-wrap items-center gap-3">
+            <input type="hidden" name="_token" value="{{ csrf_token('divin') }}">
+            <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+            <input type="hidden" name="retour" value="app_partie_ville">
+            <button type="submit" name="combler" value="1"
+                    class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                Recombler les réserves
+            </button>
+            <button type="submit" name="brouillard" value="1"
+                    class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                Lever le brouillard
+            </button>
+        </form>
+    {% else %}
+        <p class="mt-4 text-sm text-encre-500">
+            Ces outils n'existent qu'en partie d'essai : passez-y d'abord.
+        </p>
+    {% endif %}
+    </div>
+</div>
 {% endif %}

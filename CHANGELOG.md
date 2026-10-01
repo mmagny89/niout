@@ -14,6 +14,12 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les dernières pages rejoignent les sous-onglets** : le territoire (la case
+  regardée, les expéditions en route, l'état de la ville), la commande du
+  pharaon (le cartouche, la dotation, la partie), la reprise d'une partie (où
+  l'on en est, la famille, les options), la liste des parties (en cours,
+  closes) et l'onglet d'essai. Le panneau du territoire s'élargit sur grand
+  écran, et la page de création d'une partie passe sur deux colonnes.
 - **Toutes les pages de bâtiment se construisent de la même manière** : la
   Résidence, la Maison des scribes et l'Auberge rejoignent les autres avec des
   sous-onglets posés juste sous l'en-tête — la Direction et l'encart des
