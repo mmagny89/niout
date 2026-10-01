@@ -5,7 +5,9 @@
 {{ include('partie/batiments/_direction.html.twig') }}
 
 <h3 class="mt-8 text-xl text-encre-900">La réserve</h3>
-<p class="mt-2 max-w-3xl text-sm {{ ville.vivresPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+{{ include('partie/batiments/_reserve_visuelle.html.twig', {vue: reserveDesVivres}) }}
+
+<p class="mt-4 max-w-3xl text-sm {{ ville.vivresPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
     {{ ville.nourriture }} vivres sur {{ ville.plafondDesVivres }}.
     La ville en mange {{ ville.consommationDeNourriture }} par quinzaine —
     deux demi-rations par actif, une par bouche à charge.

@@ -98,6 +98,7 @@ use App\Game\TranscriptionDuNom;
 use App\Game\TravauxEnCours;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
+use App\Game\VueDeLaReserve;
 use App\Repository\GameSaveRepository;
 use App\Security\Voter\PartieVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -337,6 +338,10 @@ final class PartieController extends AbstractController
             // bouches et les bras.
             // Les habitants rangés en maisonnées, pour qu'on les voie : une
             // représentation déterministe, rien n'en est persisté.
+            // Les deux réserves rangées en cases : ce qu'elles gardent, et la
+            // place qu'il leur reste.
+            'reserveDesVivres' => VueDeLaReserve::pour($ville, vivres: true),
+            'reserveDesMateriaux' => VueDeLaReserve::pour($ville, vivres: false),
             'maisons' => $maisons,
             'descriptions' => array_map(Maisonnees::decrire(...), $maisons),
             'libres' => $ville->foyersLibres(),

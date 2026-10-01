@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Le Grenier et l'Entrepôt se voient** : la réserve est rangée en cases —
+  chaque case vaut quelques unités —, pleines par ressource au Grenier, par
+  famille à l'Entrepôt, vides en pointillés pour la place qui reste. Une
+  légende dit chaque quantité en toutes lettres.
 - **Le Quartier d'habitation se voit** : les habitants sont rangés en
   maisonnées dessinées — adultes qui travaillent, enfants, anciens à la canne,
   alités par la fièvre —, avec les maisons encore libres en pointillés. Les

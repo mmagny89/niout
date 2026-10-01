@@ -1,0 +1,63 @@
+{# Une réserve en cases : ce qu'elle contient, et ce qui lui reste de place.
+
+   **Une représentation, pas un état** (`VueDeLaReserve`) : chaque case vaut un
+   pas de ressource, et les cases pleines se rangent par ressource (Grenier) ou
+   par famille (Entrepôt). Les cases vides, en pointillés, sont la place
+   libre — c'est ce qu'on veut voir avant de lancer une récolte ou une
+   caravane.
+
+   Le dessin est masqué aux lecteurs d'écran : la légende dessous dit la même
+   chose en toutes lettres, et le cadre porte un résumé. La couleur n'est
+   jamais seule — chaque teinte a son nom et son nombre dans la légende. #}
+{% set couleurs = {
+    ble: 'bg-or-400', orge: 'bg-ocre-500', dattes: 'bg-terre-400',
+    poisson: 'bg-lapis-400', pain: 'bg-sable-400', biere: 'bg-terre-700',
+    materiaux: 'bg-ocre-600', precieux: 'bg-lapis-500', ouvrages: 'bg-or-400',
+    autres: 'bg-encre-500'
+} %}
+<div class="mt-4 max-w-3xl">
+    <div class="flex flex-wrap items-baseline justify-between gap-2 text-sm" data-chiffres>
+        <span class="{{ vue.saturee ? 'text-terre-600' : 'text-encre-600' }}">
+            <strong class="font-medium">{{ vue.occupation }}</strong> sur {{ vue.plafond }}
+            {% if vue.saturee %}— presque plein{% else %}— {{ vue.libre }} de libre{% endif %}
+        </span>
+        <span class="text-xs text-encre-500">Une case : {{ vue.pas }} unité{{ vue.pas > 1 ? 's' : '' }}</span>
+    </div>
+
+    <div class="mt-2 flex flex-wrap gap-1 rounded-sm border {{ vue.saturee ? 'border-terre-500/50' : 'border-ocre-500/30' }} bg-sable-50 p-2"
+         role="img"
+         aria-label="Réserve : {{ vue.occupation }} sur {{ vue.plafond }}, {{ vue.libre }} de libre">
+        {% for groupe in vue.groupes %}
+            {% for _ in 1..groupe.cases %}
+                <span class="h-4 w-4 rounded-xs {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}" aria-hidden="true"></span>
+            {% endfor %}
+        {% endfor %}
+        {% set vides = vue.casesEnTout - vue.casesPleines %}
+        {% if vides > 0 %}
+            {% for _ in 1..vides %}
+                <span class="h-4 w-4 rounded-xs border border-dashed border-ocre-500/50" aria-hidden="true"></span>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    {% if vue.groupes is empty %}
+        <p class="mt-2 text-sm text-encre-500">La réserve est vide.</p>
+    {% else %}
+        <ul class="mt-3 list-none space-y-1 p-0 text-sm" data-chiffres>
+            {% for groupe in vue.groupes %}
+                <li>
+                    <span class="flex items-center gap-2">
+                        <span class="inline-block h-3 w-3 rounded-xs {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}" aria-hidden="true"></span>
+                        <span class="text-encre-900">{{ groupe.libelle }}</span>
+                        <span class="text-encre-600">{{ groupe.quantite }}</span>
+                    </span>
+                    {% if groupe.lignes|length > 1 %}
+                        <span class="ml-5 block text-xs text-encre-500">
+                            {% for ligne in groupe.lignes %}{{ ligne.ressource.libelle }} {{ ligne.quantite }}{{ not loop.last ? ' · ' : '' }}{% endfor %}
+                        </span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>

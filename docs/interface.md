@@ -118,6 +118,18 @@ couleur** — jamais la couleur seule. Chaque maison porte une description écri
 définis une fois (`<symbol>`/`<use>`), une ville pleine comptant plus de cent
 soixante maisons.
 
+**Le Grenier et l'Entrepôt montrent leur réserve en cases** (`VueDeLaReserve`,
+`_reserve_visuelle.html.twig`) : ce qu'elle contient, et la place qu'il reste
+avant que le surplus ne se perde. Une **représentation**, rien n'en est
+persisté. Chaque case vaut un `pas` — le plus petit pas rond qui tienne la
+réserve en soixante cases au plus. **Les vivres se rangent ressource par
+ressource** (six au plus), **les matériaux par famille** (`FamilleDeRessource`),
+parce qu'une trentaine de teintes ne se distinguent plus ; le détail reste dans
+la légende. Les cases se comptent par arrondi au supérieur **sur le cumul** : un
+lot minuscule garde sa case, et le total n'excède pas l'occupation. Le dessin
+est masqué aux lecteurs d'écran, la légende dit la même chose en lettres, et la
+couleur n'est jamais seule.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

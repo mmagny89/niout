@@ -5,7 +5,9 @@
 {{ include('partie/batiments/_direction.html.twig') }}
 
 <h3 class="mt-8 text-xl text-encre-900">La réserve</h3>
-<p class="mt-2 max-w-3xl text-sm {{ ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
+{{ include('partie/batiments/_reserve_visuelle.html.twig', {vue: reserveDesMateriaux}) }}
+
+<p class="mt-4 max-w-3xl text-sm {{ ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
     {{ ville.materiaux }} unités sur {{ ville.plafondDesMateriaux }}.
     Les ressources d'une même réserve se partagent ce plafond : dix roseaux
     rangés, c'est dix de moins pour l'argile.
