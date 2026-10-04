@@ -14,6 +14,7 @@ use App\Fenetre\BatimentsDeLaCite;
 use App\Fenetre\DetailDeCase;
 use App\Fenetre\OuvertureDeFenetre;
 use App\Fenetre\Panneau\PanneauxDeLaVille;
+use App\Fenetre\VueDeLaVille;
 use App\Form\NouvellePartieType;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
@@ -1222,9 +1223,12 @@ final class PartieController extends AbstractController
         EtatDeLaVille $etat,
         GeographieDeLaPartie $geographies,
         OuvertureDeFenetre $fenetres,
+        VueDeLaVille $vueDeLaVille,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
+        // La ville vue d'en haut remplace le territoire (`?vue=ville`).
+        $enVille = 'ville' === $request->query->get('vue');
 
         $ancienne = $this->zoneDemandee($zones, $request->query->get('zone'));
         if (null !== $ancienne && !$request->query->has('ouvre')) {
@@ -1245,6 +1249,8 @@ final class PartieController extends AbstractController
             'ouvre' => $chemin,
             'fenetre' => null === $chemin ? null : $fenetres->rendre($request, $chemin),
             'zones' => $zones,
+            'vue' => $enVille,
+            'vueDeLaVille' => $enVille ? $vueDeLaVille->pour($partie) : null,
             // La case dont la fenêtre est ouverte, pour la surligner.
             'zoneDetaillee' => $this->zoneDeLOuverture($zones, $chemin),
             // Les signaux et les expéditions en route se lisent dans la barre
@@ -1565,6 +1571,8 @@ final class PartieController extends AbstractController
             // La fenêtre ouverte survit à la quinzaine : la carte la valide de
             // nouveau, rien n'est suivi sur parole.
             'ouvre' => 'app_partie_carte' === $route && '' !== (string) $request->request->get('ouvre') ? (string) $request->request->get('ouvre') : null,
+            // La ville vue d'en haut aussi : on avance le temps en la regardant.
+            'vue' => 'app_partie_carte' === $route && 'ville' === $request->request->get('vue') ? 'ville' : null,
         ], static fn (mixed $valeur): bool => null !== $valeur));
     }
 

@@ -14,6 +14,14 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **La ville se voit d'en haut** : un clic sur la ville remplace la carte par son
+  plan — quinze enclos, dont douze reçoivent un bâtiment. Chaque bâtiment dressé
+  apparaît sur son enclos, son aspect suivant son niveau (quatre paliers), et un
+  clic l'ouvre directement. Un enclos pas encore bâti reste vide et mène à ce qu'il
+  reste à bâtir. Une ville au bord de l'eau s'affiche avec son fleuve et son
+  ponton. Un bouton ramène au territoire ; avancer d'une quinzaine reste sur la
+  ville.
+
 - **Les fenêtres se jouent au téléphone et au clavier** : sur un écran étroit, la
   fenêtre est une feuille plein écran, sa croix et ses boutons font 44 px, et le
   rail des bâtiments défile en ramenant le bâtiment ouvert dans la vue. À

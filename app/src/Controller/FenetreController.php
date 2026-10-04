@@ -68,6 +68,7 @@ final class FenetreController extends AbstractController
             'ongletDuCycle' => \is_string($onglet) && 1 === preg_match('/^[a-z_]{1,40}$/', $onglet) ? $onglet : null,
             'zoneDuCycle' => \is_string($zone) && 1 === preg_match('/^\d{1,3}-\d{1,3}$/', $zone) ? $zone : null,
             'ouvreDuCycle' => \is_string($ouvre) ? $ouvre : null,
+            'vueDuCycle' => 'ville' === $requete->query->get('vue') ? 'ville' : null,
         ]);
     }
 

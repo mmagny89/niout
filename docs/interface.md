@@ -270,6 +270,24 @@ d'expéditions ouvre `app_partie_expeditions`. Les anciennes adresses `carte?zon
 ouvrent la fenêtre de la case : les liens d'avant restent valables. Les données de la
 case vivent dans `Fenetre\DetailDeCase`, plus dans le contrôleur de la carte.
 
+**La ville vue d'en haut** (`carte?vue=ville`, en cliquant la tuile de la ville) remplace
+le territoire par un visuel — `ville`, ou `ville_port` quand `City::jouxteUnPointDEau()` —
+sur lequel chaque bâtiment dressé est posé à son enclos. Les emplacements sont des
+données de présentation (`Game\EmplacementsDeLaVille`) : quinze enclos en pixels du
+visuel (1408 × 768), douze bâtiments, **un enclos fixe par bâtiment** — on ne choisit
+pas où bâtir, on choisit quoi. `Fenetre\VueDeLaVille` les convertit en pourcentages, si
+bien que le gabarit (`partie/_vue_de_la_ville.html.twig`) n'a ni pixel ni échelle à
+connaître. Un bâtiment dressé est un lien — son sprite — vers sa fenêtre ; un enclos
+vide est un losange cliquable qui mène à la Résidence (ce qu'il reste à bâtir) ; les
+trois enclos libres sont du décor. Le sprite est choisi par palier, `min(niveau, 4)` :
+les planches en livrent quatre et les bâtiments montent au niveau cinq. Les sprites
+sont découpés depuis les planches du Drive par `outils/decouper-batiments.py`
+(`sources-sprites/`, ignoré par git) : fond beige retiré par remplissage depuis les
+bords, WebP à fond transparent dans `app/assets/images/ville/batiments/<type>_<palier>.webp`.
+**Pour déplacer un bâtiment**, changer ses coordonnées dans `EmplacementsDeLaVille` — le
+pied du sprite se cale sous le centre de l'enclos (`DECALAGE_DU_PIED`) et sa largeur suit
+celle de l'enclos (`FACTEUR_DE_LARGEUR`).
+
 **Chaque carré a son emplacement de visuel** : déposer
 `app/assets/images/batiments/<type>.webp` (`grenier.webp`, `maison_des_scribes.webp`…)
 suffit, `BatimentsDeLaCite` teste l'existence du fichier et le gabarit n'a pas à

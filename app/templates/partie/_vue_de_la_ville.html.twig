@@ -1,0 +1,57 @@
+{# La ville vue d'en haut, à la place du territoire : un visuel, les bâtiments
+   posés sur leurs enclos, et un clic qui ouvre la fenêtre du bon bâtiment.
+
+   **Tout est en pourcentages du visuel** (`App\Fenetre\VueDeLaVille`) : le
+   conteneur garde le rapport 1408 / 768 et se cale dans la place disponible,
+   les sprites et les zones cliquables le suivent sans rien savoir de l'écran.
+
+   Un bâtiment dressé est un lien — son sprite — vers sa fenêtre. Un enclos pas
+   encore bâti reste vide, et mène à la Résidence familiale, où se lit ce qu'il
+   reste à bâtir. Les trois enclos que le jeu n'emploie pas sont du décor.
+
+   Les sprites se peignent du fond vers le devant (`z-index` = profondeur de
+   l'enclos), pour qu'un bâtiment de devant recouvre celui de derrière. #}
+<div class="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden bg-sable-100 p-2 md:p-4">
+    <div class="relative aspect-[1408/768] max-h-full w-full max-w-full" style="max-width: min(100%, calc((100dvh) * 1408 / 768));">
+        <img src="{{ asset(vueDeLaVille.visuel) }}" alt=""
+             width="1408" height="768"
+             class="pointer-events-none absolute inset-0 size-full select-none object-contain">
+
+        {% for e in vueDeLaVille.emplacements %}
+            {% if e.libre %}
+                {# Décor : rien à cliquer. #}
+            {% elseif e.dresse %}
+                <a href="{{ path('app_partie_ville', {id: partie.id, onglet: e.onglet}) }}"
+                   data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"
+                   title="{{ e.libelle }} — niveau {{ e.niveau }}"
+                   aria-label="{{ e.libelle }}, niveau {{ e.niveau }} : ouvrir"
+                   class="absolute block -translate-x-1/2 -translate-y-full transition hover:brightness-110
+                          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500"
+                   style="left: {{ e.spriteX }}%; top: {{ e.spriteY }}%; width: {{ e.spriteLargeur }}%; z-index: {{ e.profondeur }};">
+                    <img src="{{ asset(e.sprite) }}" alt="" loading="lazy" decoding="async"
+                         class="block w-full select-none drop-shadow-md">
+                </a>
+            {% else %}
+                {# Un enclos vide : un losange, qui s'éclaire au survol. #}
+                <a href="{{ path('app_partie_ville', {id: partie.id, onglet: e.onglet}) }}"
+                   data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"
+                   title="{{ e.libelle }} — à bâtir"
+                   aria-label="{{ e.libelle }}, pas encore bâti : voir ce qu'il reste à bâtir"
+                   class="absolute block transition-colors hover:bg-or-300/45 focus-visible:bg-lapis-500/40 focus-visible:outline-none"
+                   style="left: {{ e.gauche }}%; top: {{ e.haut }}%; width: {{ e.largeur }}%; height: {{ e.hauteur }}%;
+                          clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); z-index: {{ e.profondeur }};"></a>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="pointer-events-none absolute left-2 top-2 flex items-center gap-2 rounded-sm border border-ocre-500/30
+                bg-sable-50/90 px-2.5 py-1.5 text-sm shadow-sm md:left-4 md:top-4 md:px-3 md:py-2">
+        <h1 class="font-display text-sm text-encre-900 md:text-base">{{ ville.nom }}</h1>
+    </div>
+
+    <a href="{{ path('app_partie_carte', {id: partie.id}) }}" data-turbo-frame="_top"
+       class="absolute right-2 top-2 z-[1000] rounded-sm border border-ocre-500/30 bg-sable-50/90 px-3 py-2 text-sm
+              text-lapis-500 shadow-sm md:right-4 md:top-4">
+        Retour au territoire
+    </a>
+</div>

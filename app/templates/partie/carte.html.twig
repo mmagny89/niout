@@ -32,7 +32,13 @@
     {# `relative` : la fenêtre est en `absolute`, et sans ancêtre positionné elle se
        calait sur la page entière — son haut passait sous la barre de jeu. #}
     <section class="relative flex h-full min-h-0 flex-col overflow-hidden md:flex-row" data-controller="fenetre"
-             data-fenetre-barre-value="{{ path('app_partie_barre', {id: partie.id, retour: 'app_partie_carte'}) }}">
+             data-fenetre-barre-value="{{ path('app_partie_barre', {id: partie.id, retour: 'app_partie_carte', vue: vue ? 'ville' : null}) }}">
+        {# **Deux vues, une seule page** : le territoire, ou la ville vue d'en haut
+           (`?vue=ville`, en cliquant la ville). La fenêtre est la même dans les
+           deux — c'est elle qui porte tout le reste. #}
+        {% if vue %}
+            {{ include('partie/_vue_de_la_ville.html.twig') }}
+        {% else %}
         <div class="relative min-h-0 min-w-0 flex-1 touch-none overflow-hidden bg-sable-100"
              data-controller="carte"
              data-carte-min-value="0.25"
@@ -79,7 +85,7 @@
                 {% for zone in zones %}
                     {% set estSelectionnee = zoneDetaillee and zoneDetaillee.x == zone.x and zoneDetaillee.y == zone.y %}
                     <a href="{{ zone.porteLaVille
-                           ? path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'})
+                           ? path('app_partie_carte', {id: partie.id, vue: 'ville'})
                            : path('app_partie_case', {id: partie.id, coordonnees: zone.x ~ '-' ~ zone.y}) }}"
                        class="absolute block transition-colors
                               {{ estSelectionnee ? 'bg-or-300/45' : 'hover:bg-sable-50/35' }}
@@ -92,10 +98,9 @@
                                                   {{ centre.x + pas.x }}px {{ centre.y }}px,
                                                   {{ centre.x }}px {{ centre.y + pas.y }}px,
                                                   {{ centre.x - pas.x }}px {{ centre.y }}px);"
-                       {{ zone.porteLaVille ? 'title="Ouvrir la cité"' : '' }}
-                       data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"
+                       {{ zone.porteLaVille ? 'title="Voir la ville" data-turbo-frame="_top"' : 'data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"' }}
                        aria-label="{{ zone.porteLaVille
-                           ? 'Ouvrir la cité de ' ~ ville.nom
+                           ? 'Voir la ville ' ~ ville.avecPreposition
                            : 'Case ' ~ zone.x ~ ', ' ~ zone.y ~ ' — ' ~ (zone.estDecouverte ? zone.terrain.libelle : 'inexplorée') }}"></a>
                 {% endfor %}
                 </div>
@@ -149,6 +154,8 @@
                 </form>
             {% endif %}
         </div>
+
+        {% endif %}
 
         {{ include('partie/_fenetre.html.twig') }}
     </section>

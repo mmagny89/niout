@@ -28,6 +28,10 @@
                endroit. `fenetre_controller.js` tient ce champ à
                jour quand on navigue dans la fenêtre. #}
             <input type="hidden" name="ouvre" value="{{ ouvreDuCycle }}">
+            {# La ville vue d'en haut survit à la quinzaine, comme la fenêtre. #}
+            {% if vueDuCycle|default(null) %}
+                <input type="hidden" name="vue" value="{{ vueDuCycle }}">
+            {% endif %}
             <button type="submit"
                     class="whitespace-nowrap rounded-sm bg-lapis-500 px-3 py-2 text-sm font-medium
                            text-sable-50 hover:bg-lapis-600 md:px-4 md:py-1.5">
