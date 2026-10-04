@@ -9,10 +9,16 @@
    encore bâti montre un lot vide, et mène à la Résidence familiale, où se lit ce
    qu'il reste à bâtir. Les trois lots que le jeu n'emploie pas sont du décor.
 
-   Les sprites se peignent du fond vers le devant (`z-index` = profondeur de
-   l'enclos), pour qu'un bâtiment de devant recouvre celui de derrière. #}
+   Les sprites se peignent du fond vers le devant (`z-index` = profondeur du
+   lot), pour qu'un bâtiment de devant recouvre celui de derrière.
+
+   **`isolation: isolate` sur ce conteneur, et c'est indispensable** : ces
+   `z-index` montent jusqu'à plusieurs centaines. Sans contexte d'empilement à
+   eux, ils passaient au-dessus de la fenêtre (`z-30`) — le Temple s'ouvrait
+   *sous* les sprites de la ville. En ligne, comme le rapport du visuel : pas
+   de dépendance à la compilation de la CSS. #}
 <div class="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden bg-sable-100 p-2 md:p-4"
-     style="container-type: size;">
+     style="container-type: size; isolation: isolate;">
     {# Le rapport du visuel est posé **en ligne** et non par une classe Tailwind :
        c'est lui qui donne sa hauteur au conteneur, dont tous les enfants sont
        en `absolute`. Une classe oubliée par la compilation de la CSS le ferait
