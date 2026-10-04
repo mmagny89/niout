@@ -82,7 +82,7 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
 4. **Commande et reprise.** *(livrée)* Ouverture d'office en fenêtre ; la route « reprendre »
    atterrit sur la carte.
 5. **Case, expéditions, signaux.** *(livrée)* Selon la décision du § 7.
-6. **Assainissement.** `PartieController` fait 2 532 lignes et `ville()` en prend
+6. **Assainissement.** *(livrée)* `PartieController` fait 2 532 lignes et `ville()` en prend
    250 : elle calcule les données de **tous** les panneaux alors qu'on n'en ouvre
    qu'un. Une fois dans des cadres, chaque panneau ne doit calculer que le sien
    (un fournisseur de données par bâtiment) — c'est ce qui rend la fenêtre
@@ -190,3 +190,18 @@ navigateur. À essayer : cliquer une case (la feuille s'ouvre, la carte reste
 cliquable), passer d'une case à l'autre, envoyer un éclaireur (la feuille se met
 à jour), cliquer une pastille de signal puis « Expéditions en route », avancer
 d'une quinzaine feuille ouverte (elle se rouvre).
+
+**Phase 6 livrée.** `ville()` passe de 250 lignes à une quarantaine, et le contrôleur de
+2 457 à 1 779. **Chaque panneau calcule ses propres données**, et seulement quand
+on l'ouvre : `App\Fenetre\Panneau` porte un `FournisseurDePanneau` par bâtiment
+(`PanneauDuGrenier`, `PanneauDuMarche`…), repéré par sa clé — la valeur de
+`TypeDeBatiment` — et servi par `PanneauxDeLaVille`. Ajouter un panneau : créer la
+classe, l'autoconfiguration (tag `app.panneau_de_ville`) fait le reste. Ce que
+plusieurs panneaux partagent — la direction, les étals, les exploitations, les
+énigmes d'un lieu, le panthéon — vit dans des services à part, plus dans le
+contrôleur. **Le filet** : `FenetreTest::testChaquePanneauDeBatimentSeRendAvecSesSeulesDonnees`
+rend tous les bâtiments un à un ; le mode strict de Twig lève une exception si un
+gabarit lit une variable que son fournisseur ne donne plus. **Piège à connaître** :
+un gabarit de panneau qui gagne une variable doit la demander à *son* fournisseur,
+pas au contrôleur — sans quoi il s'affiche en dev... et plante dès qu'on ouvre ce
+panneau-là. Aucune mesure de temps n'a été prise : le gain est structurel.

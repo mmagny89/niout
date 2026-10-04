@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\Entity\Building;
 use App\Entity\City;
-use App\Entity\Family;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Entity\Zone;
@@ -14,17 +13,13 @@ use App\Enum\GameMode;
 use App\Fenetre\BatimentsDeLaCite;
 use App\Fenetre\DetailDeCase;
 use App\Fenetre\OuvertureDeFenetre;
+use App\Fenetre\Panneau\PanneauxDeLaVille;
 use App\Form\NouvellePartieType;
-use App\Game\AlphabetDesScribes;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
-use App\Game\AvantageDeNegoce;
-use App\Game\CarnetDeContacts;
 use App\Game\CartoucheRoyal;
-use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
-use App\Game\CleDeLecture;
 use App\Game\Commerce;
 use App\Game\CommerceImpossible;
 use App\Game\Culture;
@@ -32,7 +27,6 @@ use App\Game\DateDeJeu;
 use App\Game\Dechiffrage;
 use App\Game\DechiffrageImpossible;
 use App\Game\Divinite;
-use App\Game\Effectifs;
 use App\Game\Enigme;
 use App\Game\EnigmeImpossible;
 use App\Game\Enigmes;
@@ -47,16 +41,12 @@ use App\Game\ExplorationImpossible;
 use App\Game\Explorations;
 use App\Game\Fabrication;
 use App\Game\FabricationImpossible;
-use App\Game\FilRouge;
 use App\Game\GeographieDeLaPartie;
-use App\Game\GeographieDeRegion;
-use App\Game\Impots;
 use App\Game\Inscription;
 use App\Game\LanceurDePartie;
 use App\Game\LeconDeNiout;
 use App\Game\LectureDeCartouche;
 use App\Game\Legs;
-use App\Game\Maisonnees;
 use App\Game\Marche;
 use App\Game\Mecontentement;
 use App\Game\MedjayImpossible;
@@ -65,18 +55,12 @@ use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\MissionFermee;
 use App\Game\ModeDivin;
-use App\Game\Negligence;
-use App\Game\ObjectifDeMission;
-use App\Game\ObjectifsDeMission;
 use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
-use App\Game\PalierDErudition;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
-use App\Game\Population;
 use App\Game\PrixDuMarche;
 use App\Game\Progression;
-use App\Game\Prospection;
 use App\Game\QueteImpossible;
 use App\Game\QuetesDeChantier;
 use App\Game\Recette;
@@ -85,23 +69,13 @@ use App\Game\Recrutements;
 use App\Game\Ressource;
 use App\Game\Rivaux;
 use App\Game\RoleDExploration;
-use App\Game\Salaires;
-use App\Game\ScoreDAventure;
 use App\Game\SensDEchange;
-use App\Game\SigneAlphabetique;
 use App\Game\SpecialisationMedjay;
-use App\Game\SpecialiteDeChef;
-use App\Game\SteleHistorique;
 use App\Game\SuccessionFamiliale;
 use App\Game\SuccessionImpossible;
-use App\Game\Successions;
-use App\Game\SymboleHieroglyphique;
 use App\Game\Temple;
-use App\Game\TranscriptionDuNom;
-use App\Game\TravauxEnCours;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
-use App\Game\VueDeLaReserve;
 use App\Repository\GameSaveRepository;
 use App\Security\Voter\PartieVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -213,29 +187,9 @@ final class PartieController extends AbstractController
     public function ville(
         Request $request,
         GameSave $partie,
-        CatalogueDeLaVille $catalogue,
-        Marche $marche,
-        AppelDHabitants $appels,
-        Recrutements $recrutements,
-        Salaires $salaires,
-        Impots $impots,
-        Mecontentement $mecontentement,
-        Fabrication $fabrication,
-        Commerce $commerce,
-        Dechiffrage $dechiffrage,
-        Enigmes $enigmes,
-        Enquetes $enquetes,
-        Rivaux $rivaux,
-        MissionCatalogue $missions,
-        Offrandes $offrandes,
+        PanneauxDeLaVille $panneaux,
         EtatDeLaVille $etat,
         GeographieDeLaPartie $geographies,
-        CarnetDeContacts $carnet,
-        Medjays $medjaysService,
-        Successions $successions,
-        ScoreDAventure $score,
-        SuccessionFamiliale $successionFamiliale,
-        TravauxEnCours $travaux,
         BatimentsDeLaCite $cite,
     ): Response {
         // **La ville est une fenêtre, pas une page** (`docs/plan-fenetres.md`).
@@ -249,22 +203,12 @@ final class PartieController extends AbstractController
         }
 
         $ville = $partie->getVille();
-        $geographie = $geographies->pour($partie);
         $onglets = $this->ongletsDeLaVille($ville);
+        // L'onglet ouvert au chargement. Une action de la ville se solde par une
+        // redirection, donc par un rechargement complet : sans cette reprise,
+        // vendre au Marché renvoyait sur la Résidence familiale, et il fallait
+        // rouvrir son onglet à chaque geste.
         $ongletActif = $this->ongletDemande($onglets, $request->query->get('onglet'));
-        $mission = $this->missionDe($partie, $missions);
-        $inscription = $ville->possede(TypeDeBatiment::MaisonDesScribes)
-            ? $dechiffrage->proposition($partie)
-            : null;
-
-        $maisons = Maisonnees::repartir($ville);
-
-        // Les deux exercices d'écriture, tirés à l'affichage : la graine part
-        // avec le formulaire, et le serveur recompose la même série pour
-        // corriger. Rien n'est stocké entre les deux.
-        $graineDesSons = random_int(1, \PHP_INT_MAX >> 33);
-        $graineDeLecture = random_int(1, \PHP_INT_MAX >> 33);
-        $maisonDesScribes = $ville->possede(TypeDeBatiment::MaisonDesScribes);
 
         return $this->render('fenetre/ville.html.twig', [
             // Le rail des carrés : la cité, qui permet de passer d'un bâtiment à
@@ -273,205 +217,17 @@ final class PartieController extends AbstractController
             'partie' => $partie,
             'ville' => $ville,
             'onglets' => $onglets,
+            'ongletActif' => $ongletActif,
             // Le bon comme le mauvais, sur les deux écrans : un joueur ne doit
             // pas changer de page pour savoir où en est sa ville.
             'signaux' => $etat->signaux($partie),
-            'ennuis' => $etat->ennuis($partie),
-            'bonnesNouvelles' => $etat->bonnesNouvelles($partie),
-            'autonomie' => $etat->autonomieEnVivres($partie),
-            'quinzainesDeVivresInquietantes' => EtatDeLaVille::QUINZAINES_DE_VIVRES_INQUIETANTES,
-            // L'onglet ouvert au chargement. Une action de la ville se solde
-            // par une redirection, donc par un rechargement complet : sans
-            // cette reprise, vendre au Marché renvoyait sur la Résidence
-            // familiale, et il fallait rouvrir son onglet à chaque geste.
-            'ongletActif' => $ongletActif,
-            'chantiers' => $ville->getChantiers(),
-            'travauxEnCours' => $travaux->pour($partie),
-            'batimentsDresses' => $this->batimentsTriesParLibelle($ville),
-            'offres' => $catalogue->pour($ville),
-            'aUnMarche' => $ville->possede(TypeDeBatiment::Marche),
-            'etal' => $ville->possede(TypeDeBatiment::Marche) ? $marche->etalPour($partie) : [],
-            // Le débouché de la quinzaine se lit **avant** la vente : découvrir
-            // la borne par un refus serait la subir au lieu de la jouer.
-            'plafondDuMarche' => Marche::plafondDeLaQuinzaine($partie),
-            // Le prix qu'on fait payer au peuple, et ce qu'il en coûte.
-            'margeQuiFache' => Mecontentement::MARGE_QUI_FACHE,
-            'margeMinimale' => City::MARGE_MINIMALE,
-            'margeMaximale' => City::MARGE_MAXIMALE,
-            'prixAbusif' => Mecontentement::prixAbusif($ville),
-            'salaireMinimal' => City::SALAIRE_MINIMAL,
-            'salaireMaximal' => City::SALAIRE_MAXIMAL,
-            'salaireJuste' => City::SALAIRE_JUSTE,
-            'salaireGenereux' => Mecontentement::SALAIRE_GENEREUX,
-            'griefsDeLaVille' => Mecontentement::griefs($ville),
-            // La répartition des réserves, à l'Entrepôt : c'est lui qui tient
-            // les stocks, et c'est d'un seul tableau qu'on décide de ce qu'on
-            // garde et de ce qui part.
-            'repartition' => $this->repartitionDesReserves($ville),
-            'venteRestante' => $marche->venteRestante($partie),
-            'jaugeDuMarche' => $marche->jauge($partie),
-            'niveauDuMarche' => $ville->batimentDeType(TypeDeBatiment::Marche)?->getNiveau() ?? 0,
-            // La renommée était nulle part à l'écran : ce qu'elle change — le
-            // prix d'un appel, la migration spontanée, l'arrivée d'un rival —
-            // se subissait sans se comprendre.
-            'palier' => $partie->getFamille()->palier(),
-            'palierSuivant' => $partie->getFamille()->palier()->suivant(),
-            'seuilDuPalierSuivant' => $partie->getFamille()->palier()->suivant()?->seuilDEntree() ?? Family::RENOMMEE_MAX,
-            'renommeeMax' => Family::RENOMMEE_MAX,
-            // Ce que la renommée vaut concrètement sur les prix (lot 9.3) :
-            // une jauge qui ne dit pas ce qu'elle change se subit.
-            'avantageDeRenommee' => AvantageDeNegoce::deLaRenommee($partie->getFamille()->getRenommee()),
-            'avantageDeNegoce' => $commerce->avantageDeNegoce($partie),
-            // Les villes où la famille a déjà servi (lot 9.4) : elles font un
-            // prix sur ce que leur région porte.
-            'carnet' => $carnet->lisible($partie),
-            // Le règne en cours du mode Aventure (lot 11.1) : la ville n'y a
-            // pas de commanditaire, elle traverse des souverains.
-            'regne' => $successions->regneEnCours($partie),
-            'rangDuRegne' => $successions->rangEnCours($partie),
-            'nombreDeRegnes' => $successions->nombreDeRegnes(),
-            // Le score cumulatif du mode Aventure (lot 11.4) : pas d'objectif
-            // fermé, seulement quelque chose à regarder monter — et le détail,
-            // car un total nu ne dit pas quoi faire pour le faire monter.
-            'scoreDAventure' => $partie->estCampagne() ? null : $score->total($partie),
-            'detailDuScore' => $partie->estCampagne() ? [] : $score->detail($partie),
-            // La succession familiale (lot 11.5) : elle ne s'ouvre qu'une fois
-            // la génération faite, et le jeu attend alors un choix.
-            'heritiers' => $successionFamiliale->heritiers($partie),
-            'chefDeFamille' => $partie->getFamille()->getChefDeFamille(),
-            'generation' => $partie->getFamille()->getGeneration(),
-            'traitDeLignee' => $partie->getFamille()->getTraitDeLignee(),
-            'coutDUnAppel' => $appels->cout($partie),
-            // La Caserne (lot 10.2) : la troupe, ce qu'elle coûte, et ce qui
-            // empêche d'en lever un de plus — dit avant la tentative.
-            'medjays' => $ville->getMedjays(),
-            'effectifMaximum' => $medjaysService->effectifMaximum($ville),
-            'entretienDesMedjays' => $medjaysService->entretienParQuinzaine($ville),
-            'offreDeLaCaserne' => $medjaysService->offreDeLaCaserne($partie),
-            'directions' => $this->directionsDesBatiments($partie, $recrutements),
-            'ateliers' => $this->ateliersDeLaVille($partie, $fabrication),
-            'routes' => $commerce->offrePour($partie),
-            'etals' => $this->etalsDesRoutesOuvertes($partie, $commerce),
-            'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
-            // Le récapitulatif du territoire, rangé sous le bâtiment qui
-            // gouverne chaque exploitation : le joueur ne savait pas s'il
-            // produisait, et devait cliquer case par case pour le savoir.
-            'exploitations' => $this->exploitationsParGouvernant($partie),
-            'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
-            // Embaucher un chef ouvre des postes : sans ce bilan, le joueur
-            // voyait son rendement baisser ailleurs sans comprendre que ses
-            // bras étaient partis tenir le nouveau bâtiment.
-            'mainDoeuvre' => Effectifs::bilan($ville, $partie->getCycle()),
-            // Ce qu'un niveau de Quartier ajoute, pour que l'écran dise le
-            // remède avec un chiffre plutôt qu'en général.
-            'famillesParNiveauDeQuartier' => Population::FAMILLES_PAR_NIVEAU_DE_QUARTIER,
-            // Les deux indicateurs de santé de la ville, côte à côte : les
-            // bouches et les bras.
-            // Les habitants rangés en maisonnées, pour qu'on les voie : une
-            // représentation déterministe, rien n'en est persisté.
-            // Les deux réserves rangées en cases : ce qu'elles gardent, et la
-            // place qu'il leur reste.
-            'reserveDesVivres' => VueDeLaReserve::pour($ville, vivres: true),
-            'reserveDesMateriaux' => VueDeLaReserve::pour($ville, vivres: false),
-            'maisons' => $maisons,
-            'graineDesSons' => $graineDesSons,
-            'serieDesSons' => $maisonDesScribes ? ExerciceDesSons::serie($ville, $graineDesSons) : [],
-            'graineDeLecture' => $graineDeLecture,
-            'lectureDeCartouche' => $maisonDesScribes ? LectureDeCartouche::exercice($graineDeLecture) : null,
-            'questionsDesSons' => ExerciceDesSons::QUESTIONS,
-            'descriptions' => array_map(Maisonnees::decrire(...), $maisons),
-            'libres' => $ville->foyersLibres(),
-            'masseSalariale' => $salaires->masseSalariale($ville, $partie->getCycle()),
-            // L'impôt du mois : le filet qui renfloue la caisse, dit avec son
-            // chiffre et son échéance plutôt que découvert à la perception.
-            'impotPrevu' => $impots->montantPrevu($partie),
-            'quinzainesAvantImpot' => $impots->quinzainesAvantLaPerception($partie),
-            // Ce que la ville sait d'écriture, et ce que ça lui rapporte : un
-            // apprentissage qui ne se voit pas n'est pas poursuivi.
-            'erudition' => PalierDErudition::pour($ville, $partie->getCycle()),
-            'nombreDeSignesAppris' => PalierDErudition::signesConnus($ville, $partie->getCycle()),
-            // Le nom du jeu, en vrais signes : jamais un glyphe tapé à la main.
-            'motDeNiout' => LeconDeNiout::motEcrit(),
-            'totalDesSignes' => PalierDErudition::signesEnTout(),
-            'maisonDesScribesDressee' => $ville->possede(TypeDeBatiment::MaisonDesScribes),
-            'mecontentement' => $partie->getQuinzainesDeMecontentement(),
-            'villeMecontente' => $mecontentement->pese($partie),
-            'rendementDeLHumeur' => $mecontentement->rendementEnCentiemes($partie),
-            // La clé de lecture : elle ne s'affiche qu'une fois la Maison des
-            // scribes dressée — proposer l'écran d'un bâtiment qu'on n'a pas
-            // ferait une porte sur du vide.
-            'aUneMaisonDesScribes' => $ville->possede(TypeDeBatiment::MaisonDesScribes),
-            'cleDeLecture' => CleDeLecture::pour($ville, $partie->getCycle()),
-            // L'alphabet des scribes : la seconde piste du doc 10, celle des
-            // sons. Elle ne se mélange jamais à la clé de lecture, alors même
-            // que six dessins leur sont communs.
-            'alphabet' => AlphabetDesScribes::pour($ville),
-            'prochainSigneDeLAlphabet' => AlphabetDesScribes::prochainSigne($ville),
-            'signesDeLAlphabetEnTout' => \count(SigneAlphabetique::cases()),
-            'signesParNiveauDAlphabet' => AlphabetDesScribes::SIGNES_PAR_NIVEAU,
-            // La leçon fondatrice, mêlée au rendu comme les jetons du
-            // déchiffrage : dans l'ordre, elle se lirait dans la source.
-            'leconDeNiout' => self::melangerLesSignesDeNiout(),
-            'nioutDejaEcrite' => $ville->aEcritNiout(),
-            // Le nom de la famille écrit à la manière des musées. La
-            // transcription est **entière** dès la Maison des scribes dressée
-            // — ce sont les scribes qui écrivent —, et l'écran montre en
-            // retrait les signes que la ville n'a pas encore appris : les
-            // cacher la rendrait invisible jusqu'au niveau 6 ou 7.
-            'nomTranscrit' => TranscriptionDuNom::pour($partie->getFamille()->getNom()),
-            'signesConnus' => AlphabetDesScribes::pour($ville),
-            'prochainSigne' => CleDeLecture::prochainSigne($ville, $partie->getCycle()),
-            'signesEnTout' => \count(SymboleHieroglyphique::cases()),
-            'inscription' => $inscription,
-            // La stèle réelle du pharaon commanditaire (doc 09). Elle n'est
-            // **pas** l'inscription qu'on déchiffre : celle-ci reste un rébus,
-            // la stèle est ce à quoi elle fait écho.
-            'stele' => null !== $mission ? SteleHistorique::pourLePharaon($mission->pharaon) : null,
-            'filRouge' => FilRouge::court($partie) ? FilRouge::acte($partie) : null,
-            // Les objectifs sont affichés dès le premier jour (doc 09) : la
-            // transparence évite de découvrir tardivement des conditions
-            // qu'on n'a pas pu anticiper.
-            'mission' => $mission,
-            'quete' => $ville->getQueteDeChantier(),
-            'objectifs' => array_map(
-                static fn (ObjectifDeMission $objectif): array => [
-                    'objectif' => $objectif,
-                    'avancement' => $objectif->avancement($partie),
-                    'atteint' => $objectif->estAtteint($partie),
-                ],
-                null !== $mission ? ObjectifsDeMission::pour($mission) : [],
-            ),
-            // Les jetons sont mélangés **au rendu** : les laisser dans l'ordre
-            // gravé donnerait la réponse par la seule lecture du HTML.
-            'melange' => $inscription instanceof Inscription ? $this->melangerLesSignes($inscription) : [],
-            'inscriptionsLues' => \count($ville->inscriptionsDechiffrees()),
-            'rival' => $ville->getRival(),
-            'prixDeLAccord' => $rivaux->prixDeLAccord($partie),
-            'dossiers' => array_map(
-                static fn ($dossier): array => [
-                    'dossier' => $dossier,
-                    'peutConclure' => $dossier->peutConclure($partie->getCycle()),
-                    // Mélangées au rendu : la bonne conclusion est la première
-                    // du catalogue, et se lirait sinon dans la source.
-                    'conclusions' => self::melangerLesConclusions($dossier->getEnquete()),
-                ],
-                $enquetes->dossiers($partie),
-            ),
-            // Les propositions sont mélangées au rendu, comme les jetons du
-            // déchiffrage : la bonne réponse est toujours la première dans le
-            // catalogue, et se lirait sinon dans la source de la page.
-            // **Un onglet, un bâtiment** : les énigmes se rangent là où on les
-            // entend, plutôt que toutes dans le panneau des scribes. C'est
-            // `Enigme::lieu()` qui décide, pas l'écran.
-            'enigmesDesScribes' => $this->enigmesDe($partie, $enigmes, TypeDeBatiment::MaisonDesScribes),
-            'enigmesDuTemple' => $this->enigmesDe($partie, $enigmes, TypeDeBatiment::Temple),
-            'enigmesDeLAuberge' => $this->enigmesDe($partie, $enigmes, TypeDeBatiment::Auberge),
-            'aUneAuberge' => $ville->possede(TypeDeBatiment::Auberge),
-            ...$this->donneesDuTemple($partie, $offrandes, $geographie),
             // Sans Nil, il n'y a ni crue ni saison d'inondation (doc 02) : la
             // barre de jeu n'annonce pas une crue dans un désert.
-            'connaitLaCrue' => $geographie->connaitLaCrue(),
-        ]);
+            'connaitLaCrue' => $geographies->connaitLaCrue($partie),
+            // **Le panneau ouvert, et lui seul** : chaque bâtiment calcule ce
+            // qu'il affiche (`App\Fenetre\Panneau`), plutôt que la fenêtre de
+            // tous les préparer pour n'en rendre qu'un.
+        ] + $panneaux->pour($ongletActif, $partie));
     }
 
     /**
@@ -1923,173 +1679,6 @@ final class PartieController extends AbstractController
     }
 
     /**
-     * @return list<string>
-     */
-    private static function melangerLesConclusions(Enquete $enquete): array
-    {
-        return self::melanger($enquete->conclusions());
-    }
-
-    /**
-     * Mélange une liste de propositions pour le rendu : la bonne est toujours
-     * la première du catalogue, et se lirait sinon dans la source de la page.
-     *
-     * @param list<string> $propositions
-     *
-     * @return list<string>
-     */
-    private static function melanger(array $propositions): array
-    {
-        shuffle($propositions);
-
-        return $propositions;
-    }
-
-    /**
-     * Les signes d'une inscription, mélangés pour le rendu. Le tirage n'a
-     * aucune conséquence de jeu : il empêche seulement de lire la réponse dans
-     * l'ordre du HTML.
-     *
-     * @return list<SymboleHieroglyphique>
-     */
-    /**
-     * Les quatre signes de la leçon fondatrice, mêlés **au rendu** — dans
-     * l'ordre, la réponse se lirait dans la source de la page. Même parade que
-     * pour les jetons du déchiffrage et les propositions d'une énigme.
-     *
-     * @return list<SigneAlphabetique>
-     */
-    private static function melangerLesSignesDeNiout(): array
-    {
-        $signes = LeconDeNiout::SIGNES;
-        shuffle($signes);
-
-        return $signes;
-    }
-
-    /**
-     * Les jetons d'une inscription, mêlés **au rendu** : dans l'ordre gravé,
-     * la réponse se lirait dans la source de la page.
-     *
-     * @return list<SymboleHieroglyphique>
-     */
-    private function melangerLesSignes(Inscription $inscription): array
-    {
-        $signes = $inscription->signes();
-        shuffle($signes);
-
-        return $signes;
-    }
-
-    /**
-     * Bâtiments dressés, dans un ordre stable et lisible plutôt que celui,
-     * arbitraire, de leur insertion en base.
-     *
-     * @return list<Building>
-     */
-    private function batimentsTriesParLibelle(City $ville): array
-    {
-        $batiments = array_values($ville->getBatiments()->toArray());
-        usort(
-            $batiments,
-            static fn (Building $a, Building $b): int => $a->getType()->libelle() <=> $b->getType()->libelle(),
-        );
-
-        return $batiments;
-    }
-
-    /**
-     * L'étal de chaque route ouverte : ce qui peut s'y annoncer, dans quelle
-     * fourchette, et l'empressement que le prix posé produit.
-     *
-     * @return array<string, list<array{ressource: Ressource, sens: SensDEchange, ordre: ?\App\Entity\OrdreCommercial, plancher: int, plafond: int, empressement: int}>>
-     */
-    private function etalsDesRoutesOuvertes(GameSave $partie, Commerce $commerce): array
-    {
-        $etals = [];
-
-        foreach ($partie->getVille()->getRoutesCommerciales() as $route) {
-            if ($route->estOuverte()) {
-                $etals[$route->getPartenaire()] = $commerce->etalDe($partie, $route);
-            }
-        }
-
-        return $etals;
-    }
-
-    /**
-     * Ce que la ville a en réserve, ce qu'elle en garde, ce qui part — une
-     * ligne par ressource négociable et non vide.
-     *
-     * Le seuil est `null` tant qu'aucune consigne n'est posée : le silence se
-     * lit « je garde tout », et l'écran doit le dire ainsi plutôt que d'
-     * afficher un zéro qui voudrait dire l'inverse.
-     *
-     * @return list<array{ressource: Ressource, enReserve: int, prix: int, seuil: ?int, surplus: int}>
-     */
-    private function repartitionDesReserves(City $ville): array
-    {
-        $lignes = [];
-
-        foreach ($ville->getStock() as $ligne) {
-            $ressource = $ligne->getRessource();
-            $prix = PrixDuMarche::pour($ressource);
-
-            if (null === $prix || $ligne->getQuantite() < 1) {
-                continue;
-            }
-
-            $reserve = $ville->reserveGardeeDe($ressource);
-
-            $lignes[] = [
-                'ressource' => $ressource,
-                'enReserve' => $ligne->getQuantite(),
-                'prix' => $prix,
-                'seuil' => $reserve?->getQuantiteGardee(),
-                'surplus' => $reserve?->surplusDans($ville) ?? 0,
-            ];
-        }
-
-        usort($lignes, static fn (array $a, array $b): int => $a['ressource']->libelle() <=> $b['ressource']->libelle());
-
-        return $lignes;
-    }
-
-    /**
-     * Ce que chaque bâtiment qui fabrique sait faire, ce qu'il fait déjà, et
-     * ce qu'il refera de lui-même.
-     *
-     * L'Atelier et la Forge partagent tout : un seul gabarit les rend, une
-     * seule boucle les prépare.
-     *
-     * @return array<string, array{type: TypeDeBatiment, niveau: int, lotsMaximum: int, recettes: list<array{recette: Recette, matieres: array<string, int>, realisable: bool, empechement: ?string}>, ordre: ?\App\Entity\OrdreDeFabrication, consigne: ?\App\Entity\ConsigneDeFabrication}>
-     */
-    private function ateliersDeLaVille(GameSave $partie, Fabrication $fabrication): array
-    {
-        $ville = $partie->getVille();
-        $ateliers = [];
-
-        foreach (Recette::batimentsQuiFabriquent() as $type) {
-            $batiment = $ville->batimentDeType($type);
-
-            if (null === $batiment) {
-                continue;
-            }
-
-            $ateliers[$type->value] = [
-                'type' => $type,
-                'niveau' => $batiment->getNiveau(),
-                'lotsMaximum' => Fabrication::lotsMaximum($batiment->getNiveau()),
-                'recettes' => $fabrication->offrePour($partie, $type),
-                'ordre' => $ville->ordreDeFabricationDe($type),
-                'consigne' => $ville->consigneDeFabricationDe($type),
-            ];
-        }
-
-        return $ateliers;
-    }
-
-    /**
      * L'onglet demandé par l'adresse, s'il existe encore — le premier sinon.
      *
      * **Une clé venue de la requête ne s'affiche jamais telle quelle** : elle
@@ -2129,99 +1718,6 @@ final class PartieController extends AbstractController
             'id' => $partie->getId(),
             'onglet' => '' !== $onglet ? $onglet : null,
         ], static fn (mixed $valeur): bool => null !== $valeur));
-    }
-
-    /**
-     * Le récapitulatif des exploitations du territoire, **rangé par bâtiment
-     * gouvernant** : les champs au Grenier, les carrières à l'Entrepôt, les
-     * pêcheries au Port.
-     *
-     * Le joueur ne savait pas s'il produisait. Une carrière ouverte, une
-     * carrière jamais ouverte et une carrière épuisée se ressemblaient sur la
-     * carte, case par case, et rien ne les réunissait — il fallait cliquer
-     * chaque case pour faire le compte. Chaque ligne dit donc son état, ce
-     * qu'il reste dans le filon, et si elle produit **cette quinzaine**.
-     *
-     * Les filons dormants et taris y figurent au même titre que ceux en
-     * activité : c'est justement ce qu'on cherche à voir.
-     *
-     * @return array<string, list<array{zone: Zone, ressource: ?Ressource, libelle: ?string, etat: string, restant: ?int, affectes: int, requis: int, rendement: int, produit: bool}>>
-     */
-    private function exploitationsParGouvernant(GameSave $partie): array
-    {
-        $ville = $partie->getVille();
-        $equipages = Effectifs::repartirLeTerritoire($ville, $partie->getCycle());
-        $recap = [];
-
-        foreach ($ville->getZones() as $zone) {
-            if (!$zone->estDecouverte()) {
-                continue;
-            }
-
-            foreach ($this->exploitationsDe($zone) as $ligne) {
-                $ressource = $ligne['ressource'];
-                $equipage = $equipages[$ligne['cle']] ?? null;
-
-                $recap[Effectifs::batimentGouvernant($ressource)->value][] = [
-                    'zone' => $zone,
-                    'ressource' => $ressource,
-                    'libelle' => $ligne['libelle'],
-                    'etat' => $ligne['etat'],
-                    'restant' => $ligne['restant'],
-                    'affectes' => $equipage['affectes'] ?? 0,
-                    'requis' => $equipage['requis'] ?? 0,
-                    'rendement' => $equipage['rendement'] ?? 0,
-                    // Ce qui compte pour le joueur : est-ce que ça rend quelque
-                    // chose cette quinzaine ? Une exploitation ouverte sans un
-                    // seul bras ne produit rien.
-                    'produit' => 'en_activite' === $ligne['etat'] && ($equipage['affectes'] ?? 0) > 0,
-                ];
-            }
-        }
-
-        return $recap;
-    }
-
-    /**
-     * Ce qu'une case porte d'exploitable — un champ, des filons, ou rien.
-     *
-     * @return list<array{ressource: ?Ressource, cle: string, libelle: ?string, etat: string, restant: ?int}>
-     */
-    private function exploitationsDe(Zone $zone): array
-    {
-        $lignes = [];
-
-        // **Une ligne par parcelle** : chacune a sa culture, son cycle et son
-        // homme, et c'est parcelle par parcelle que le joueur veut savoir s'il
-        // produit.
-        foreach ($zone->getParcelles() as $parcelle) {
-            $lignes[] = [
-                'ressource' => null,
-                'cle' => Effectifs::cleDeParcelle($parcelle),
-                'libelle' => $parcelle->getCulture()->libelle(),
-                'etat' => 'en_activite',
-                'restant' => null,
-            ];
-        }
-
-        foreach ($zone->getGisements() as $gisement) {
-            $lignes[] = [
-                'ressource' => $gisement->getRessource(),
-                'cle' => Effectifs::cleDe($zone, $gisement->getRessource()),
-                'libelle' => null,
-                'etat' => match (true) {
-                    // L'épuisement passe avant tout : un filon tari est fermé
-                    // par `Recoltes`, mais il reste sur la carte et se rouvre
-                    // par une prospection.
-                    $gisement->estEpuise() => 'epuise',
-                    $gisement->estExploitee() => 'en_activite',
-                    default => 'dormant',
-                },
-                'restant' => $gisement->getRessource()->estRenouvelable() ? null : $gisement->getQuantiteRestante(),
-            ];
-        }
-
-        return $lignes;
     }
 
     /**
@@ -2274,184 +1770,10 @@ final class PartieController extends AbstractController
     }
 
     /**
-     * L'état du recrutement, **indexé par type de bâtiment** : chaque panneau
-     * de bâtiment y lit sa propre direction. Une liste obligerait le gabarit à
-     * la parcourir pour retrouver la sienne.
-     *
-     * Les trois bâtiments sans spécialité en sont écartés — Résidence
-     * familiale, Quartier d'habitation, Auberge : la famille les tient
-     * elle-même, leur proposer une annonce n'aurait aucun sens.
-     *
-     * @return array<string, array{batiment: Building, chefs: list<\App\Entity\Employee>, postesLibres: int, offre: ?\App\Entity\JobOffer}>
-     */
-    private function directionsDesBatiments(GameSave $partie, Recrutements $recrutements): array
-    {
-        $ville = $partie->getVille();
-        $directions = [];
-
-        foreach ($this->batimentsTriesParLibelle($ville) as $batiment) {
-            if ([] === SpecialiteDeChef::pour($batiment->getType())) {
-                continue;
-            }
-
-            $offre = $ville->offrePour($batiment->getType());
-
-            $directions[$batiment->getType()->value] = [
-                'batiment' => $batiment,
-                'chefs' => $ville->chefsDe($batiment->getType()),
-                'postesLibres' => $recrutements->postesLibres($batiment),
-                'offre' => $offre,
-                // Ce que le bâtiment gagne à être dirigé, et les spécialités
-                // qu'on y trouve : le joueur doit voir l'enjeu avant de choisir.
-                'specialitesPossibles' => SpecialiteDeChef::pour($batiment->getType()),
-                'rangDuPlusCompetent' => null === $offre ? null : $this->rangDuPlusCompetent($offre->candidats()),
-                'rangDuMoinsCher' => null === $offre ? null : $this->rangDuMoinsCher($offre->candidats()),
-            ];
-        }
-
-        return $directions;
-    }
-
-    /**
-     * Le rang du candidat le plus compétent — à égalité, le moins cher —, ou
-     * null si le meilleur est seul à l'être : un conseil n'a de sens que s'il
-     * départage.
-     *
-     * @param list<\App\Game\Candidat> $candidats
-     */
-    private function rangDuPlusCompetent(array $candidats): ?int
-    {
-        if (\count($candidats) < 2) {
-            return null;
-        }
-
-        $meilleur = 0;
-
-        foreach ($candidats as $rang => $candidat) {
-            $courant = $candidats[$meilleur];
-
-            if ($candidat->competence > $courant->competence
-                || ($candidat->competence === $courant->competence && $candidat->salaire < $courant->salaire)) {
-                $meilleur = $rang;
-            }
-        }
-
-        return $meilleur;
-    }
-
-    /**
-     * Le rang du candidat le moins cher, ou null s'il se confond avec le plus
-     * compétent (le conseil serait alors le même) ou s'ils coûtent autant.
-     *
-     * @param list<\App\Game\Candidat> $candidats
-     */
-    private function rangDuMoinsCher(array $candidats): ?int
-    {
-        if (\count($candidats) < 2) {
-            return null;
-        }
-
-        $moinsCher = 0;
-
-        foreach ($candidats as $rang => $candidat) {
-            if ($candidat->salaire < $candidats[$moinsCher]->salaire) {
-                $moinsCher = $rang;
-            }
-        }
-
-        if ($moinsCher === $this->rangDuPlusCompetent($candidats)
-            || $candidats[$moinsCher]->salaire === max(array_map(static fn ($c): int => $c->salaire, $candidats))) {
-            return null;
-        }
-
-        return $moinsCher;
-    }
-
-    /**
      * La mission en cours, ou null en mode Aventure — qui suit des règnes.
      */
-    /**
-     * Les énigmes qu'on entend dans ce bâtiment-là, prêtes à l'affichage.
-     *
-     * Les propositions sont mélangées **au rendu**, comme les jetons du
-     * déchiffrage : la bonne réponse est toujours la première du catalogue, et
-     * se lirait sinon dans la source de la page.
-     *
-     * @return list<array{enigme: Enigme, propositions: list<string>}>
-     */
-    private function enigmesDe(GameSave $partie, Enigmes $enigmes, TypeDeBatiment $lieu): array
-    {
-        return array_values(array_map(
-            fn (Enigme $enigme): array => [
-                'enigme' => $enigme,
-                'propositions' => self::melanger($enigmes->propositionsMontrees($partie, $enigme)),
-            ],
-            array_filter(
-                $enigmes->disponibles($partie),
-                static fn (Enigme $enigme): bool => $enigme->lieu() === $lieu,
-            ),
-        ));
-    }
-
-    /**
-     * Ce que l'onglet du Temple affiche : le panthéon, ses paliers, et ce qu'il
-     * est possible d'offrir.
-     *
-     * @return array<string, mixed>
-     */
-    private function donneesDuTemple(GameSave $partie, Offrandes $offrandes, GeographieDeRegion $geographie): array
-    {
-        $ville = $partie->getVille();
-        $temple = $ville->batimentDeType(TypeDeBatiment::Temple);
-
-        $pantheon = [];
-
-        foreach (Divinite::pantheon() as $divinite) {
-            $suivie = $ville->faveurDe($divinite);
-            $pantheon[] = [
-                'divinite' => $divinite,
-                'faveur' => $ville->faveurEnvers($divinite),
-                'palier' => $ville->palierDe($divinite),
-                // Un dieu qui commence à se détourner doit le dire avant que
-                // son effet ne cesse, sinon le joueur ne l'apprend qu'une fois
-                // le palier perdu.
-                'seDetourne' => null !== $suivie
-                    && $suivie->getQuinzainesSansOffrande() > Negligence::QUINZAINES_DE_GRACE
-                    && $suivie->getFaveur() > Negligence::PLANCHER,
-                'quinzainesSansOffrande' => $suivie?->getQuinzainesSansOffrande() ?? 0,
-                // Le supplément de fête se lit **avant** de donner, comme le
-                // prix d'un ordre commercial montre son effet avant
-                // l'engagement.
-                'supplementDeFete' => Offrandes::supplementDeFete($partie->dateDeJeu(), $divinite),
-                // Deux manques distincts : un système à venir, et un domaine
-                // qui n'existe pas dans cette région. Le second refuse
-                // l'offrande, le premier l'accepte.
-                'sansDomaineIci' => $divinite->estSansDomaineIci($geographie),
-                'attente' => $divinite->attenteDans($geographie),
-            ];
-        }
-
-        return [
-            'pantheon' => $pantheon,
-            'aUnTemple' => null !== $temple,
-            'niveauDuTemple' => $temple?->getNiveau() ?? 0,
-            'divinitesPortables' => Temple::divinitesPortables($ville),
-            'plafond' => Temple::plafondDeFaveur($ville),
-            'honorees' => $ville->divinitesHonorees(),
-            'corbeille' => null !== $temple ? $offrandes->corbeillePour($partie) : [],
-            'pointsParOffrande' => Offrandes::POINTS_PAR_OFFRANDE,
-            'debenParOffrande' => Offrandes::DEBEN_PAR_OFFRANDE,
-            'fete' => $partie->feteEnCours(),
-            'pointsDeFete' => Offrandes::POINTS_DE_FETE,
-        ];
-    }
-
     private function missionDe(GameSave $partie, MissionCatalogue $missions): ?Mission
     {
-        if (!$partie->estCampagne() || null === $partie->getMission()) {
-            return null;
-        }
-
-        return $missions->get($partie->getMission());
+        return $missions->de($partie);
     }
 }

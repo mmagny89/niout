@@ -112,6 +112,33 @@ final class FenetreTest extends WebTestCase
         self::assertCount(0, $crawler->filter('dialog nav a[href$="onglet=port"]'));
     }
 
+    /**
+     * **Chaque panneau prépare ses propres données** (phase 6) : un gabarit qui
+     * lirait une variable que son fournisseur ne donne plus lèverait une
+     * exception, le mode strict de Twig étant actif. Tous les bâtiments dressés,
+     * chaque panneau rendu à son tour — c'est le filet de la refonte.
+     */
+    public function testChaquePanneauDeBatimentSeRendAvecSesSeulesDonnees(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-panneaux@example.com');
+        $ville = $partie->getVille();
+
+        foreach (TypeDeBatiment::cases() as $type) {
+            if (!$type->estLeBatimentDeDepart() && null === $ville->batimentDeType($type)) {
+                $ville->ajouterBatiment(new Building($ville, $type));
+            }
+        }
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        foreach (TypeDeBatiment::cases() as $type) {
+            $client->request('GET', \sprintf('/partie/%d/ville?onglet=%s', $partie->getId(), $type->value), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+            self::assertResponseIsSuccessful(\sprintf('Le panneau « %s » ne se rend pas.', $type->value));
+            self::assertSelectorExists('#panneau-'.$type->value);
+        }
+    }
+
     public function testLaCommandeRepondEnCadreSansLaCoque(): void
     {
         $client = static::createClient();

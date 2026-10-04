@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Game;
 
+use App\Entity\GameSave;
+
 /**
  * Les dix missions de la campagne, dans leur ordre imposé (doc 09, doc 11).
  *
@@ -17,6 +19,19 @@ final class MissionCatalogue
      * @var array<int, Mission>|null
      */
     private static ?array $missions = null;
+
+    /**
+     * La mission en cours d'une partie, ou null en mode Aventure — qui suit des
+     * règnes.
+     */
+    public function de(GameSave $partie): ?Mission
+    {
+        if (!$partie->estCampagne() || null === $partie->getMission()) {
+            return null;
+        }
+
+        return $this->get($partie->getMission());
+    }
 
     public function get(int $numero): Mission
     {
