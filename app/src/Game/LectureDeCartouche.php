@@ -112,10 +112,10 @@ final readonly class LectureDeCartouche
         return [
             'cartouche' => $cartouche,
             'signes' => array_values($signes),
-            'options' => array_values(array_map(
+            'options' => array_map(
                 static fn (SigneDeCartouche $s): array => ['valeur' => $s->value, 'libelle' => $s->libelle()],
                 $hasard->shuffleArray(array_values($propositions)),
-            )),
+            ),
         ];
     }
 

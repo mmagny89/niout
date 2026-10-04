@@ -48,8 +48,8 @@ final class EquipementDesMedjaysTest extends KernelTestCase
         // Sans Forge : l'arme vient d'ailleurs et vaut la référence.
         self::assertSame(Equipement::QUALITE_DE_REFERENCE, Equipement::qualiteForgeePar($ville));
 
-        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Forge));
-        self::assertSame(Equipement::QUALITE_DE_REFERENCE, Equipement::qualiteForgeePar($ville));
+        // Une Forge qui n'a pas encore le niveau qui compte ne change rien.
+        self::assertSame(Equipement::QUALITE_DE_REFERENCE, Equipement::qualiteForgeePar($this->villeAvecForgeDeNiveau(1)));
 
         self::assertSame(105, Equipement::qualiteForgeePar($this->villeAvecForgeDeNiveau(3)));
         self::assertSame(120, Equipement::qualiteForgeePar($this->villeAvecForgeDeNiveau(6)));
