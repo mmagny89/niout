@@ -41,7 +41,8 @@ final class ErgonomieTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
         $corpsDuJeu = $client->getCrawler()->filter('body')->attr('class') ?? '';
 
-        self::assertStringContainsString('h-screen', $corpsDuJeu);
+        // `h-dvh` : la hauteur visible, barre d'adresse mobile comprise.
+        self::assertStringContainsString('h-dvh', $corpsDuJeu);
         self::assertStringContainsString('overflow-hidden', $corpsDuJeu);
         self::assertCount(0, $client->getCrawler()->filter('footer'), 'Le pied de page appartient à la présentation.');
 

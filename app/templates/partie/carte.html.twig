@@ -82,7 +82,8 @@
                            ? path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'})
                            : path('app_partie_case', {id: partie.id, coordonnees: zone.x ~ '-' ~ zone.y}) }}"
                        class="absolute block transition-colors
-                              {{ estSelectionnee ? 'bg-or-300/45' : 'hover:bg-sable-50/35' }}"
+                              {{ estSelectionnee ? 'bg-or-300/45' : 'hover:bg-sable-50/35' }}
+                              focus-visible:bg-lapis-500/40 focus-visible:outline-none"
                        style="left: {{ origineX + (zone.x - zone.y) * pas.x }}px;
                               top: {{ (zone.x + zone.y) * pas.y }}px;
                               width: {{ cellule.largeur }}px;

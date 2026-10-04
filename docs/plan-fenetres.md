@@ -1,6 +1,6 @@
 # Niout — Plan : tout en fenêtres au-dessus de la carte
 
-**Statut : décisions prises (2026-10-01), rien de livré.** Il prépare le gros
+**Statut : les sept phases sont livrées ; reste à éprouver au navigateur.** Il prépare le gros
 chantier — ne plus avoir de pages dans le jeu, mais **la carte en permanence et
 tout le reste en fenêtre par-dessus** — et pose les décisions à prendre avant
 d'écrire une ligne.
@@ -87,7 +87,7 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
    qu'un. Une fois dans des cadres, chaque panneau ne doit calculer que le sien
    (un fournisseur de données par bâtiment) — c'est ce qui rend la fenêtre
    rapide, et le contrôleur lisible.
-7. **Mobile et accessibilité.** Feuille plein écran, rail défilant, focus rendu à
+7. **Mobile et accessibilité.** *(livrée)* Feuille plein écran, rail défilant, focus rendu à
    la tuile qui a ouvert la fenêtre, annonce du titre à l'ouverture, contrôle au
    lecteur d'écran.
 
@@ -205,3 +205,21 @@ gabarit lit une variable que son fournisseur ne donne plus. **Piège à connaît
 un gabarit de panneau qui gagne une variable doit la demander à *son* fournisseur,
 pas au contrôleur — sans quoi il s'affiche en dev... et plante dès qu'on ouvre ce
 panneau-là. Aucune mesure de temps n'a été prise : le gain est structurel.
+
+**Phase 7 livrée.** Sous `md`, le `<dialog>` est une feuille plein écran (`inset-0`, sans
+bordure) ; la croix et les cibles font 44 px. La coque du jeu passe de `h-screen` à
+`h-dvh` : `100vh` compte la barre d'adresse mobile et masquait le bas de la fenêtre.
+Le focus : à chaque chargement du cadre il entre sur `#fenetre-titre` (annoncé par le
+lecteur d'écran) ; à la fermeture il retourne à l'origine — une tuile ou une pastille
+de la barre, retenue par un clic capté en amont, **retrouvée par son adresse** si la
+barre ou la carte ont été rechargées entre-temps. Le rail défile jusqu'au bâtiment
+ouvert. Les tuiles, découpées en losange par `clip-path`, **rognaient leur propre
+contour de focus** : elles se teintent désormais au focus clavier.
+`FenetreTest` garde le contrat (un titre par fenêtre, `aria-labelledby`, plein écran
+sous `md`, croix de 44 px). **Non vérifié** : aucun rendu mobile ni lecteur d'écran réel
+— le navigateur intégré refuse le certificat auto-signé. À essayer : émulation mobile
+(ouvrir la ville, la case, les expéditions ; le rail défile ; Échap et croix ; le bas
+n'est pas coupé) puis, au clavier, Tab jusqu'à une case (elle se teinte), Entrée (le
+focus entre sur le titre), Échap (il revient sur la case) ; au lecteur d'écran
+(VoiceOver), vérifier que le titre est annoncé à l'ouverture. Ces essais clôturent le
+chantier.

@@ -31,6 +31,15 @@ import { Controller } from '@hotwired/stimulus';
  * carte reste vivante derrière, et cliquer une case charge sa page, ce qui
  * referme la fenêtre de fait.
  *
+ * **Au clavier et au lecteur d'écran** : à chaque chargement du cadre, le focus
+ * entre sur le titre de la fenêtre (`#fenetre-titre`), que le lecteur d'écran
+ * annonce — c'est l'« ouverture » d'une fenêtre non modale. À la fermeture, le
+ * focus retourne à ce qui l'a ouverte : une tuile de la carte, ou une pastille
+ * de la barre. La barre étant hors de ce contrôleur et rechargée après chaque
+ * action, l'élément d'origine peut avoir été remplacé : on le retrouve alors par
+ * son adresse. Sur un téléphone, le rail de la ville défile : le bâtiment ouvert
+ * est ramené dans la vue.
+ *
  * **La barre se recharge après chaque action** de la fenêtre : le deben et les
  * réserves peuvent avoir changé, et elle est hors du cadre. Et, à la fermeture,
  * si quelque chose a changé, la carte se rafraîchit en entier — cases, signaux,
@@ -62,6 +71,12 @@ export default class extends Controller {
 
         // Le cadre vit dans la fenêtre : on l'écoute là où il est, qu'il ait été
         // rendu par le serveur ou qu'il le soit à l'arrivée.
+        // Un lien de la barre — une pastille de signal — ouvre la fenêtre sans
+        // être dans ce contrôleur : on retient d'où l'on vient pour y rendre le
+        // focus, comme pour une tuile.
+        this.surClic = (evenement) => this.retenirLOrigine(evenement);
+        document.addEventListener('click', this.surClic, true);
+
         this.surChargement = (evenement) => this.cadreCharge(evenement);
         this.surEnvoi = (evenement) => this.actionFaite(evenement);
         this.element.addEventListener('turbo:frame-load', this.surChargement);
@@ -71,6 +86,7 @@ export default class extends Controller {
     disconnect() {
         window.removeEventListener('popstate', this.surHistorique);
         document.removeEventListener('keydown', this.surEchap);
+        document.removeEventListener('click', this.surClic, true);
         this.element.removeEventListener('turbo:frame-load', this.surChargement);
         this.element.removeEventListener('turbo:submit-end', this.surEnvoi);
     }
@@ -83,6 +99,16 @@ export default class extends Controller {
 
         this.origine = evenement?.currentTarget ?? document.activeElement;
         this.montrer();
+    }
+
+    /** Un lien qui cible la fenêtre, hors d'elle : c'est lui qui la rouvrira. */
+    retenirLOrigine(evenement) {
+        const lien = evenement.target?.closest?.('a[data-turbo-frame="fenetre"]');
+
+        if (lien && !this.fenetreTarget.contains(lien)) {
+            this.origine = lien;
+            this.adresseDeLOrigine = lien.getAttribute('href');
+        }
     }
 
     montrer() {
@@ -123,8 +149,24 @@ export default class extends Controller {
 
         // Le focus retourne à ce qui a ouvert la fenêtre : sans cela, il tombe
         // sur le haut du document, et le clavier doit refaire tout le chemin.
-        this.origine?.focus?.();
+        this.rendreLeFocus();
+    }
+
+    /**
+     * L'origine a pu être remplacée — la barre se recharge, la carte se
+     * rafraîchit — : on la retrouve par son adresse plutôt que de perdre le
+     * focus en haut du document.
+     */
+    rendreLeFocus() {
+        let cible = this.origine;
+
+        if (cible && !cible.isConnected && this.adresseDeLOrigine) {
+            cible = document.querySelector(`a[href="${CSS.escape(this.adresseDeLOrigine)}"]`);
+        }
+
+        cible?.focus?.();
         this.origine = null;
+        this.adresseDeLOrigine = null;
     }
 
     /** Une seule fois, à la fermeture : la carte rend ce que la fenêtre a changé. */
@@ -174,6 +216,10 @@ export default class extends Controller {
             const lien = new URL(source, window.location.origin);
             this.mettreAJourLUrl(lien.pathname + lien.search);
         }
+
+        // Sur un téléphone le rail défile : le bâtiment ouvert doit être visible.
+        this.fenetreTarget.querySelector('nav [aria-current="page"]')
+            ?.scrollIntoView({ block: 'nearest', inline: 'center' });
 
         // Le contenu rendu ne s'ouvre pas en tête de page : on y met le focus.
         const titre = this.fenetreTarget.querySelector('#fenetre-titre');

@@ -139,6 +139,54 @@ final class FenetreTest extends WebTestCase
         }
     }
 
+    /**
+     * Le contrat d'accessibilité de la fenêtre : le `<dialog>` se nomme par son
+     * titre (`aria-labelledby`), et **chaque contenu** en porte un — c'est sur lui
+     * que le focus entre à l'ouverture, et ce que le lecteur d'écran annonce. Un
+     * contenu sans titre ouvrirait une fenêtre muette.
+     */
+    public function testChaqueFenetreSeNommeParSonTitre(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-titres@example.com');
+        $id = $partie->getId();
+        $zone = $partie->getVille()->getZones()->last();
+        self::assertNotFalse($zone);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $id));
+        self::assertSame('fenetre-titre', $crawler->filter('dialog')->attr('aria-labelledby'));
+
+        foreach ([
+            \sprintf('/partie/%d/ville?onglet=residence_familiale', $id),
+            \sprintf('/partie/%d/commande', $id),
+            \sprintf('/partie/%d/case/%d-%d', $id, $zone->getX(), $zone->getY()),
+            \sprintf('/partie/%d/expeditions', $id),
+        ] as $adresse) {
+            $client->request('GET', $adresse, [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+            self::assertResponseIsSuccessful($adresse);
+            self::assertSelectorCount(1, '#fenetre-titre', $adresse.' : un seul titre, celui que la fenêtre annonce.');
+        }
+    }
+
+    /**
+     * Sur un téléphone, la fenêtre est une feuille plein écran et ses cibles font
+     * 44 px (WCAG 2.2). Le rendu réel ne se vérifie qu'au navigateur ; on garde
+     * ici ce dont il dépend.
+     */
+    public function testLaFenetreEstUneFeuillePleinEcranSurTelephone(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-mobile@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        $classes = (string) $crawler->filter('dialog[data-fenetre-target="fenetre"]')->attr('class');
+        self::assertStringContainsString('inset-0', $classes, 'Plein écran sous `md`.');
+        self::assertStringContainsString('md:inset-6', $classes, 'Une vraie fenêtre au-dessus.');
+        self::assertStringContainsString('size-11', (string) $crawler->filter('dialog button[data-action="fenetre#fermer"]')->attr('class'));
+    }
+
     public function testLaCommandeRepondEnCadreSansLaCoque(): void
     {
         $client = static::createClient();

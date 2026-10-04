@@ -14,6 +14,14 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les fenêtres se jouent au téléphone et au clavier** : sur un écran étroit, la
+  fenêtre est une feuille plein écran, sa croix et ses boutons font 44 px, et le
+  rail des bâtiments défile en ramenant le bâtiment ouvert dans la vue. À
+  l'ouverture le lecteur d'écran annonce le titre de la fenêtre ; à la fermeture
+  le focus retourne à la tuile ou à la pastille qui l'avait ouverte. Les cases de
+  la carte montrent leur focus au clavier, et le bas de l'écran n'est plus masqué
+  par la barre d'adresse des navigateurs mobiles.
+
 - **La carte prend tout l'écran** : le panneau de droite disparaît. Le détail d'une
   case s'ouvre en feuille à droite, la carte restant visible — on peut regarder
   la case voisine sans rien fermer. Les signaux de la ville (fièvre, disette, fête…)
