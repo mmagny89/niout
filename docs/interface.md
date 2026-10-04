@@ -315,6 +315,31 @@ teste l'existence du fichier : sans image, un monogramme tient la place dans le 
 cadre, pour que la grille ne bouge pas. Les chantiers de bâtiments qui n'existent pas
 encore ne font pas un carré : ils figurent dans la Résidence.
 
+## Illustrations de ressources, d'objets et de dieux
+
+Trois planches du Drive sont intégrées (`outils/decouper-icones.py`, sources dans
+`sources-sprites/`, ignoré par git) : **32 ressources et objets fabriqués**
+(`app/assets/images/ressources/<valeur>.webp`) et **8 portraits de dieux**
+(`app/assets/images/dieux/<valeur>.webp`). Le **nom du fichier est la valeur de
+l'énumération** (`Ressource`, `Divinite`) : renommer un cas sans renommer l'image la
+fait disparaître sans erreur — `IllustrationsTest` garde la correspondance.
+
+- Les ressources sont des objets posés sur une plaque, fond retiré par remplissage ; **toute
+  une planche partage la même boîte de découpe**, si bien que la plaque a la même taille
+  d'une icône à l'autre.
+- `Twig\IllustrationsExtension` : `image_de_ressource(r)` accepte une `Ressource`, une
+  `Recette` (leurs valeurs coïncident : `poterie`, `pain`…) ou une chaîne ;
+  `image_de_divinite(d)`. **Une image manquante rend `null` et le gabarit s'en passe** :
+  le deben, le poisson, les dattes, la grauwacke, les outils et les armes n'ont pas encore
+  leur planche. La valeur est contrainte (`[a-z_]`) — elle finit dans un chemin de fichier.
+- `partie/_icone_ressource.html.twig` rend l'icône, décorative (le nom est toujours écrit à
+  côté), à la largeur demandée. Elle figure : dans les volets de la barre de jeu, au tableau
+  de l'Entrepôt, aux lots du Marché, dans la dotation royale, aux gisements d'une case,
+  aux recettes de l'Atelier et de la Forge, aux exploitations. **Les portraits** ouvrent la
+  carte de chaque dieu au Temple.
+- Pour l'amulette, la planche donne deux variantes : on a gardé celle « incrustée de turquoise »
+  (`bijoux`) ; les autres objets viennent de la deuxième rangée.
+
 ## Signaux, alertes et reprise d'onglet
 
 **L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,

@@ -1,0 +1,10 @@
+{# L'illustration d'une ressource ou d'un objet fabriqué, si on en a une.
+
+   `ressource` : une `Ressource`, une `Recette` ou la valeur en chaîne ; `taille` :
+   largeur en pixels (28 par défaut). Rien n'est rendu sans image — le deben, le
+   poisson, les outils et les armes n'ont pas encore la leur, et la ligne doit
+   rester juste sans elle. Décorative : le nom est toujours écrit à côté. #}
+{% set image = image_de_ressource(ressource) %}
+{% if image %}<img src="{{ asset(image) }}" alt="" loading="lazy" decoding="async"
+                   class="inline-block shrink-0 select-none align-middle"
+                   style="width: {{ taille|default(28) }}px; height: auto;">{% endif %}

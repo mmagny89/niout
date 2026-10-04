@@ -231,6 +231,7 @@
                         {% set estPoisson = gisement.ressource.value == 'poisson' %}
                         <li class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
                             <span class="text-sm text-encre-900">
+                                {{ include('partie/_icone_ressource.html.twig', {ressource: gisement.ressource, taille: 44}) }}
                                 <strong>{{ gisement.ressource.libelle }}</strong>
                                 <span class="text-encre-500" data-chiffres>
                                     {# Un banc de poisson se reconstitue :

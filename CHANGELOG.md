@@ -14,6 +14,11 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les ressources et les dieux ont leur illustration** : trente-deux ressources et
+  objets fabriqués s'affichent dans les volets de la barre de jeu, à l'Entrepôt, au
+  Marché, dans la dotation royale, aux gisements, aux ateliers et aux exploitations ;
+  les huit dieux ont leur portrait au Temple.
+
 - **Les fenêtres se ferment d'un clic à côté**, sur le fond de la carte ou de la
   ville ; les liens, boutons et champs gardent leur rôle, et la barre de jeu reste
   utilisable fenêtre ouverte. Un contenu long a son bouton **« Retour en haut »**,
