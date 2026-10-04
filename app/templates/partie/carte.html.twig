@@ -34,7 +34,9 @@
        glissement pour faire défiler la page et le pincement pour zoomer le
        document entier. C'est ce que le contrôleur doit faire à sa place, sur
        la carte seule. #}
-    <section class="flex h-full min-h-0 flex-col overflow-hidden md:flex-row" data-controller="fenetre"
+    {# `relative` : la fenêtre est en `absolute`, et sans ancêtre positionné elle se
+       calait sur la page entière — son haut passait sous la barre de jeu. #}
+    <section class="relative flex h-full min-h-0 flex-col overflow-hidden md:flex-row" data-controller="fenetre"
              data-fenetre-barre-value="{{ path('app_partie_barre', {id: partie.id, retour: 'app_partie_carte', zone: zoneDetaillee ? zoneDetaillee.x ~ '-' ~ zoneDetaillee.y : null}) }}">
         <div class="relative min-w-0 shrink-0 basis-[45%] touch-none overflow-hidden bg-sable-100
                     md:h-auto md:min-h-0 md:flex-1 md:basis-auto"

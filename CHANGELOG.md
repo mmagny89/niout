@@ -130,6 +130,9 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **La fenêtre ne passe plus sous la barre de jeu** : son haut, titre et messages
+  compris, était masqué par la barre.
+
 - **La carte était invisible sur un téléphone.** Les deux panneaux étaient en
   rangée : le détail prenait toute la largeur, le territoire était comprimé à
   zéro. Ils s'empilent désormais en dessous de 768 px.
