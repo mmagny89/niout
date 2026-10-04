@@ -161,7 +161,12 @@ final class PartieController extends AbstractController
                         $donnees['tailleGrille'],
                     );
 
-                return $this->redirectToRoute('app_partie_commande', ['id' => $partie->getId()]);
+                // La commande du pharaon s'ouvre d'office, en fenêtre, au-dessus
+                // de la carte : on n'arrive plus sur une page à part.
+                return $this->redirectToRoute('app_partie_carte', [
+                    'id' => $partie->getId(),
+                    'ouvre' => $this->generateUrl('app_partie_commande', ['id' => $partie->getId()]),
+                ]);
             } catch (MissionFermee $fermee) {
                 $this->addFlash('erreur', $fermee->getMessage());
             }
@@ -177,24 +182,25 @@ final class PartieController extends AbstractController
     }
 
     /**
-     * Reprise d'une partie : un récapitulatif de l'état où elle a été laissée.
+     * Reprendre une partie, c'est se retrouver **sur la carte**.
      *
-     * Ce n'est volontairement pas un journal d'événements. Le jeu n'a aucun
-     * temps réel : rien ne se produit pendant l'absence du joueur, un « depuis
-     * votre dernière visite » serait toujours vide. Ce qu'il faut lui rendre,
-     * c'est le contexte : où en est le cycle, ce qu'il reste en stock.
+     * Il n'y a plus d'écran de reprise : la carte est la seule page de jeu
+     * (`docs/plan-fenetres.md`), et ce que le récapitulatif disait — le cycle,
+     * les deben, les vivres, la renommée — la barre de jeu le dit en
+     * permanence. Rien ne se produit en l'absence du joueur : un « depuis votre
+     * dernière visite » serait toujours vide.
+     *
+     * La route reste, et garde son rôle : dater l'ouverture, qui ordonne
+     * « Mes parties » de la plus récemment jouée à la plus ancienne.
      */
     #[Route('/{id}', name: 'app_partie_reprendre', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function reprendre(GameSave $partie, MissionCatalogue $missions, EntityManagerInterface $entityManager): Response
+    public function reprendre(GameSave $partie, EntityManagerInterface $entityManager): Response
     {
         $partie->marquerOuverte();
         $entityManager->flush();
 
-        return $this->render('partie/reprendre.html.twig', [
-            'partie' => $partie,
-            'mission' => $this->missionDe($partie, $missions),
-        ]);
+        return $this->redirectToRoute('app_partie_carte', ['id' => $partie->getId()]);
     }
 
     /**
@@ -1876,16 +1882,23 @@ final class PartieController extends AbstractController
     }
 
     /**
-     * La commande du pharaon : mise en scène du lancement, affichée une fois la
-     * partie créée (doc 09). Texte simple, pas de cinématique.
+     * La commande du pharaon : mise en scène du lancement, ouverte d'office en
+     * fenêtre une fois la partie créée (doc 09). Texte simple, pas de
+     * cinématique.
      */
     #[Route('/{id}/commande', name: 'app_partie_commande', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function commande(GameSave $partie, MissionCatalogue $missions): Response
+    public function commande(Request $request, GameSave $partie, MissionCatalogue $missions): Response
     {
+        // Une fenêtre, pas une page : sans l'en-tête `Turbo-Frame`, on rend la
+        // carte avec la commande déjà ouverte (voir `ville()`).
+        if (!OuvertureDeFenetre::estUneRequeteDeCadre($request)) {
+            return $this->forward(self::class.'::carte', ['id' => $partie->getId()], ['ouvre' => $request->getRequestUri()]);
+        }
+
         $mission = $this->missionDe($partie, $missions);
 
-        return $this->render('partie/commande.html.twig', [
+        return $this->render('fenetre/commande.html.twig', [
             'partie' => $partie,
             'mission' => $mission,
             // Le cartouche du pharaon qui commandite — null quand il n'est pas

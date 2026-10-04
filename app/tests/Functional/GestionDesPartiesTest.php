@@ -111,7 +111,7 @@ final class GestionDesPartiesTest extends WebTestCase
         self::assertSelectorTextNotContains('body', 'Saï');
     }
 
-    public function testReprendreUnePartieAfficheSonEtat(): void
+    public function testReprendreUnePartieMeneALaCarte(): void
     {
         $client = static::createClient();
         $joueur = $this->connecter($client, 'reprise@example.com');
@@ -119,10 +119,12 @@ final class GestionDesPartiesTest extends WebTestCase
 
         $client->request('GET', \sprintf('/partie/%d', $partie->getId()));
 
+        // Plus d'écran de reprise : la carte est la seule page de jeu, et la
+        // barre y dit où en est la partie.
+        self::assertResponseRedirects(\sprintf('/partie/%d/carte', $partie->getId()));
+        $client->followRedirect();
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Avaris');
-        // Le récapitulatif rend le contexte, pas un journal d'événements.
-        self::assertSelectorTextContains('body', 'Où vous en êtes');
+        self::assertSelectorTextContains('body', 'Avaris');
     }
 
     public function testLaRepriseEnregistreLaDateDOuverture(): void

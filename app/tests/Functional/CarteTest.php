@@ -201,12 +201,9 @@ final class CarteTest extends WebTestCase
         $joueur = $this->connecter($client, 'reprise-carte@example.com');
         $partie = $this->lancer($joueur);
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d', $partie->getId()));
+        $client->request('GET', \sprintf('/partie/%d', $partie->getId()));
 
-        self::assertGreaterThan(
-            0,
-            $crawler->filter(\sprintf('a[href="/partie/%d/carte"]', $partie->getId()))->count(),
-        );
+        self::assertResponseRedirects(\sprintf('/partie/%d/carte', $partie->getId()));
     }
 
     public function testAvancerLeTempsDepuisLaVilleYRamene(): void

@@ -14,6 +14,13 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **La commande du pharaon s'ouvre d'office dans une fenêtre** posée sur la carte,
+  dès la partie créée ; « Prendre mes fonctions » la ferme. Reprendre une partie
+  ramène directement sur la carte : il n'y a plus d'écran de reprise, la barre de
+  jeu dit où en est la partie.
+
+- **Une pastille « Bêta »** à côté du nom Niout, dans l'en-tête.
+
 - **La ville s'ouvre dans une fenêtre posée sur la carte**, qui ne la quitte plus :
   un rail de carrés à gauche — un par bâtiment construit, avec son niveau et ses
   travaux —, le panneau du bâtiment à droite. Passer d'un bâtiment à l'autre ne

@@ -112,6 +112,33 @@ final class FenetreTest extends WebTestCase
         self::assertCount(0, $crawler->filter('dialog nav a[href$="onglet=port"]'));
     }
 
+    public function testLaCommandeRepondEnCadreSansLaCoque(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-commande-cadre@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/commande', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('turbo-frame#fenetre');
+        self::assertSelectorExists('#fenetre-titre');
+        self::assertSelectorExists('turbo-frame#fenetre button[data-action="fenetre#fermer"]', 'Prendre ses fonctions ferme la fenêtre.');
+        self::assertSelectorNotExists('turbo-frame#barre', 'Un cadre de fenêtre ne rend pas la barre.');
+    }
+
+    public function testSansEnTeteDeCadreLaCommandeRendLaCarteOuverte(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-commande-renvoi@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/commande', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('dialog[data-fenetre-target="fenetre"][open]');
+        self::assertCount(1, $crawler->filter('dialog #fenetre-titre'));
+        self::assertGreaterThan(0, $crawler->filter('[data-carte-target="grille"]')->count(), 'La carte est toujours là, derrière.');
+    }
+
     /**
      * Le paramètre vient du visiteur : on ne le suit jamais sans le valider.
      */
@@ -137,7 +164,7 @@ final class FenetreTest extends WebTestCase
         yield 'une URL relative au protocole' => ['//example.org/partie/{id}/ville?onglet=marche'];
         yield 'la partie d\'un autre' => ['/partie/999999/ville?onglet=marche'];
         yield 'la carte elle-même' => ['/partie/{id}/carte'];
-        yield 'une route qui n\'est pas une fenêtre' => ['/partie/{id}/commande'];
+        yield 'une route qui n\'est pas une fenêtre' => ['/partie/{id}/abandonner'];
         yield 'un jeton de requête forgé' => ['/partie/{id}/ville?onglet=<script>'];
         yield 'une remontée' => ['/partie/{id}/../{id}/ville'];
         yield 'un caractère de contrôle' => ["/partie/{id}/ville?onglet=marche\r\nX: 1"];

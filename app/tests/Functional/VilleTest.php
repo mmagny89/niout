@@ -88,7 +88,7 @@ final class VilleTest extends WebTestCase
         $partie = $this->lancer($joueur);
         $id = $partie->getId();
 
-        foreach ([\sprintf('/partie/%d', $id), \sprintf('/partie/%d/ville', $id), \sprintf('/partie/%d/commande', $id)] as $url) {
+        foreach ([\sprintf('/partie/%d/carte', $id), \sprintf('/partie/%d/ville', $id), \sprintf('/partie/%d/commande', $id)] as $url) {
             $crawler = $client->request('GET', $url);
 
             self::assertResponseIsSuccessful();

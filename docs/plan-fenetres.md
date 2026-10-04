@@ -79,7 +79,7 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
 3. **Fermer proprement.** *(livrée)* Rafraîchissement de la carte à la fermeture si une
    action a eu lieu ; gestion d'Échap / clic sur le fond / retour arrière ;
    suppression de la page cité.
-4. **Commande et reprise.** Ouverture d'office en fenêtre ; la route « reprendre »
+4. **Commande et reprise.** *(livrée)* Ouverture d'office en fenêtre ; la route « reprendre »
    atterrit sur la carte.
 5. **Case, expéditions, signaux** — selon la décision du § 7.
 6. **Assainissement.** `PartieController` fait 2 532 lignes et `ville()` en prend
@@ -163,3 +163,13 @@ la ville, appuyer sur « retour » (elle se ferme), « suivant » (elle se rouvr
 ouvrir puis fermer par la croix puis « retour » (on quitte la carte, pas la
 fenêtre), agir dans un panneau puis fermer (la carte se rafraîchit, la fenêtre ne
 se rouvre pas).
+
+**Phase 4 livrée.** La commande du pharaon est une fenêtre (`app_partie_commande`
+rejoint `ROUTES_DE_CADRE`) : la création de partie redirige vers
+`carte?ouvre=/partie/<id>/commande`, et « Prendre mes fonctions » ferme la
+fenêtre. L'écran de reprise est supprimé : `app_partie_reprendre` date l'ouverture
+(elle ordonne « Mes parties ») puis redirige vers la carte — le récapitulatif
+« Où vous en êtes » disait ce que la barre dit déjà ; l'abandon reste accessible
+depuis « Mes parties ». **Même réserve** : l'ouverture d'office et la fermeture ne
+se vérifient qu'au navigateur. À essayer : créer une partie (la commande s'ouvre
+sur la carte), la fermer, recharger (elle ne revient pas), « retour » du navigateur.
