@@ -27,8 +27,10 @@
         <header class="border-b border-ocre-500/25 bg-sable-50">
             <div class="mx-auto flex max-w-6xl items-baseline justify-between gap-4 px-5 py-4">
                 <a href="{{ path('app_accueil') }}"
-                   class="font-display text-2xl tracking-wide text-terre-600 no-underline">
+                   class="flex items-baseline gap-2 font-display text-2xl tracking-wide text-terre-600 no-underline">
                     Niout
+                    {# Le jeu est en bêta : il évolue, et les parties peuvent en pâtir. #}
+                    <span class="rounded-sm border border-terre-500/50 px-1.5 py-0.5 font-sans text-[0.65rem] font-medium uppercase tracking-wider text-terre-600">Bêta</span>
                 </a>
                 <nav class="flex items-baseline gap-5 text-sm">
                     {% if app.user %}
