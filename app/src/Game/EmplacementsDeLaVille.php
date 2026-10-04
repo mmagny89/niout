@@ -36,10 +36,11 @@ final class EmplacementsDeLaVille
     public const array LARGEUR_DES_LOTS = ['l' => 305, 'm' => 222, 's' => 148];
 
     /**
-     * Le sprite est un peu plus large que la clairière : son muret en recouvre le
-     * bord. Un sprite plus grand mordrait sur les chemins voisins.
+     * Part de la clairière que le lot du sprite occupe. **Moins que 1** : la clairière
+     * du plan est mesurée au bord de ses chemins, et un lot à sa pleine largeur
+     * collait ses voisins et mangeait les chemins — la ville ne respirait plus.
      */
-    public const float FACTEUR_DE_LARGEUR = 0.99;
+    public const float FACTEUR_DE_LARGEUR = 0.86;
 
     /**
      * Les planches livrent quatre paliers de sprite ; les bâtiments montent au
