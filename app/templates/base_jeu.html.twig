@@ -11,7 +11,10 @@
    L'en-tête public et le pied de page disparaissent : ils appartiennent à la
    présentation. On revient au compte par la barre de jeu. #}
 
-{% block coque %}h-screen flex flex-col overflow-hidden{% endblock %}
+{# `h-dvh` et non `h-screen` : sur un téléphone, `100vh` compte la barre d'adresse
+   même quand elle est visible, et le bas de la page — le bas de la fenêtre,
+   ses boutons — passait sous l'écran. #}
+{% block coque %}h-dvh flex flex-col overflow-hidden{% endblock %}
 
 {% block enTete %}{% endblock %}
 {% block piedDePage %}{% endblock %}

@@ -1,15 +1,19 @@
-{% extends 'partie/_layout.html.twig' %}
+{# La commande du pharaon, dans la fenêtre : ce que la partie vient de lancer,
+   ouvert d'office au-dessus de la carte (`ouvre=` posé par la création).
 
-{% block title %}{{ partie.ville.nom }} — Niout{% endblock %}
-
-{% block body %}
-    <section class="h-full overflow-y-auto mx-auto w-full max-w-5xl px-5 py-10">
+   « Prendre mes fonctions » **ferme** la fenêtre : la carte est déjà derrière,
+   il n'y a plus de page où aller. #}
 {% import 'partie/_sous_onglets.html.twig' as sous %}
+<turbo-frame id="fenetre" class="block h-full">
+    {{ include('_messages_de_jeu.html.twig') }}
+
+    <section class="h-full overflow-y-auto px-5 py-10 md:px-8"
+             data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
         {% if mission %}
             <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
                 Mission {{ mission.numero }} sur 10 · {{ mission.region }}
             </p>
-            <h1 class="mt-4 text-4xl leading-tight text-encre-900">
+            <h1 id="fenetre-titre" class="mt-4 text-4xl leading-tight text-encre-900">
                 {{ mission.type.libelle }} {{ mission.ville }}
             </h1>
             <p class="mt-5 text-lg text-encre-600">
@@ -30,7 +34,7 @@
             <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
                 Mode Aventure
             </p>
-            <h1 class="mt-4 text-4xl leading-tight text-encre-900">
+            <h1 id="fenetre-titre" class="mt-4 text-4xl leading-tight text-encre-900">
                 {{ partie.ville.nom }}
             </h1>
             <p class="mt-5 text-lg text-encre-600">
@@ -42,11 +46,11 @@
         {# L'action principale reste sous les yeux : elle ne dépend d'aucun
            sous-onglet. #}
         <div class="mt-6 flex flex-wrap items-center gap-5">
-            <a href="{{ path('app_partie_carte', {id: partie.id}) }}"
-               class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
+            <button type="button" data-action="fenetre#fermer"
+                    class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
                 Prendre mes fonctions
-            </a>
-            <a href="{{ path('app_parties') }}" class="text-lapis-500">Retour à mes parties</a>
+            </button>
+            <a href="{{ path('app_parties') }}" data-turbo-frame="_top" class="text-lapis-500">Retour à mes parties</a>
         </div>
 
         {% set sections = [{cle: 'dotation', libelle: 'Dotation royale'}, {cle: 'partie', libelle: 'La partie'}] %}
@@ -97,7 +101,10 @@
             <dl class="mt-4 grid grid-cols-2 gap-4 text-center sm:grid-cols-4" data-chiffres>
                 {% for ligne in partie.ville.stockAffichable %}
                     <div>
-                        <dt class="text-xs uppercase tracking-wide text-encre-500">{{ ligne.ressource.libelle|capitalize }}</dt>
+                        <dt class="text-xs uppercase tracking-wide text-encre-500">
+                            <span class="mb-1 block">{{ include('partie/_icone_ressource.html.twig', {ressource: ligne.ressource, taille: 64}) }}</span>
+                            {{ ligne.ressource.libelle|capitalize }}
+                        </dt>
                         <dd class="font-display text-2xl text-terre-600">{{ ligne.quantite }}</dd>
                     </div>
                 {% endfor %}
@@ -124,5 +131,7 @@
         </dl>
         </div>
         </div>
+
+        {{ include('fenetre/_retour_en_haut.html.twig') }}
     </section>
-{% endblock %}
+</turbo-frame>

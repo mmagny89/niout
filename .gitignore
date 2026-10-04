@@ -22,3 +22,7 @@ app/vendor/
 
 # Fichiers de projet des IDE JetBrains (PhpStorm).
 .idea/
+
+# Planches de sprites sources (JPEG de plusieurs Mo, depuis le Drive) : jamais
+# committees. Les sprites decoupes vivent dans app/assets/images/.
+sources-sprites/

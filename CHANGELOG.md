@@ -12,7 +12,54 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+## [0.14.0] - 2026-10-04
+
+**La carte devient la seule page de jeu.** La ville, la commande du pharaon, le détail
+d'une case et les expéditions s'ouvrent en fenêtre par-dessus ; un clic sur la ville la
+montre d'en haut, chaque bâtiment posé sur son lot ; ressources, objets et dieux
+ont leurs illustrations. Le jeu est désormais en **bêta**.
+
 ### Ajouté
+
+- **Les ressources et les dieux ont leur illustration** : trente-deux ressources et
+  objets fabriqués s'affichent dans les volets de la barre de jeu, à l'Entrepôt, au
+  Marché, dans la dotation royale, aux gisements, aux ateliers et aux exploitations ;
+  les huit dieux ont leur portrait au Temple.
+
+- **Les fenêtres se ferment d'un clic à côté**, sur le fond de la carte ou de la
+  ville ; les liens, boutons et champs gardent leur rôle, et la barre de jeu reste
+  utilisable fenêtre ouverte. Un contenu long a son bouton **« Retour en haut »**,
+  collé en bas de la fenêtre. Le rail des bâtiments montre maintenant **leur
+  illustration**, qui suit leur niveau, à la place des lettres.
+
+- **La ville se voit d'en haut** : un clic sur la ville remplace la carte par son
+  plan — quinze lots, dont douze reçoivent un bâtiment. Chaque bâtiment dressé
+  apparaît sur son lot, son aspect suivant son niveau (quatre paliers), et un
+  clic l'ouvre directement. Un lot pas encore bâti reste vide et mène à ce qu'il
+  reste à bâtir. Une ville au bord de l'eau s'affiche avec son fleuve et son
+  ponton. Un bouton ramène au territoire ; avancer d'une quinzaine reste sur la
+  ville.
+
+- **Les fenêtres se jouent au téléphone et au clavier** : sur un écran étroit, la
+  fenêtre est une feuille plein écran, sa croix et ses boutons font 44 px, et le
+  rail des bâtiments défile en ramenant le bâtiment ouvert dans la vue. À
+  l'ouverture le lecteur d'écran annonce le titre de la fenêtre ; à la fermeture
+  le focus retourne à la tuile ou à la pastille qui l'avait ouverte. Les cases de
+  la carte montrent leur focus au clavier, et le bas de l'écran n'est plus masqué
+  par la barre d'adresse des navigateurs mobiles.
+
+- **La carte prend tout l'écran** : le panneau de droite disparaît. Le détail d'une
+  case s'ouvre en feuille à droite, la carte restant visible — on peut regarder
+  la case voisine sans rien fermer. Les signaux de la ville (fièvre, disette, fête…)
+  et les expéditions en route sont des pastilles dans la barre de jeu, toujours
+  sous les yeux ; un clic en ouvre le détail.
+
+- **La commande du pharaon s'ouvre d'office dans une fenêtre** posée sur la carte,
+  dès la partie créée ; « Prendre mes fonctions » la ferme. Reprendre une partie
+  ramène directement sur la carte : il n'y a plus d'écran de reprise, la barre de
+  jeu dit où en est la partie.
+
+- **Une pastille « Bêta »** à côté du nom Niout, dans l'en-tête.
 
 - **La ville s'ouvre dans une fenêtre posée sur la carte**, qui ne la quitte plus :
   un rail de carrés à gauche — un par bâtiment construit, avec son niveau et ses
@@ -121,7 +168,16 @@ la lecture de référence pour comprendre le code.
   autour du point tenu, la molette aussi. Un glissement n'ouvre plus la case
   qu'il traverse.
 
+### Modifié
+
+- **Dépendances mises à jour** : Symfony 8.1, Doctrine ORM, Twig 3.30 et les outils de
+  qualité (PHPUnit, PHPStan, PHP-CS-Fixer). PHPStan, plus strict, a fait corriger
+  trois lignes de code sans effet sur le jeu.
+
 ### Corrigé
+
+- **La fenêtre ne passe plus sous la barre de jeu** : son haut, titre et messages
+  compris, était masqué par la barre.
 
 - **La carte était invisible sur un téléphone.** Les deux panneaux étaient en
   rangée : le détail prenait toute la largeur, le territoire était comprimé à
@@ -202,6 +258,7 @@ au journal des phases.
 - Déploiement par clé SSH restreinte à un script unique (*forced command*),
   empreinte d'hôte épinglée.
 
-[Non publié]: https://github.com/mmagny89/niout/compare/v0.13.0...HEAD
+[Non publié]: https://github.com/mmagny89/niout/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/mmagny89/niout/releases/tag/v0.14.0
 [0.13.0]: https://github.com/mmagny89/niout/releases/tag/v0.13.0
 [0.12.0]: https://github.com/mmagny89/niout/releases/tag/v0.12.0

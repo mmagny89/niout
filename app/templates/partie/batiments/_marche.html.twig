@@ -80,7 +80,10 @@
                         <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                         <input type="hidden" name="ressource" value="{{ lot.ressource.value }}">
 
-                        <span class="min-w-24 font-display text-lg text-encre-900">{{ lot.ressource.libelle }}</span>
+                        <span class="flex min-w-24 items-center gap-2 font-display text-lg text-encre-900">
+                            {{ include('partie/_icone_ressource.html.twig', {ressource: lot.ressource, taille: 44}) }}
+                            {{ lot.ressource.libelle }}
+                        </span>
                         <span class="text-sm text-encre-500" data-chiffres>
                             {{ lot.quantite }} en réserve · {{ lot.prix }} deben l'unité
                         </span>
@@ -105,7 +108,10 @@
                         {% endif %}
                     </form>
                 {% else %}
-                    <span class="text-lg text-encre-900">{{ lot.ressource.libelle }}</span>
+                    <span class="flex items-center gap-2 text-lg text-encre-900">
+                        {{ include('partie/_icone_ressource.html.twig', {ressource: lot.ressource, taille: 44}) }}
+                        {{ lot.ressource.libelle }}
+                    </span>
                     <span class="text-sm text-encre-500" data-chiffres>{{ lot.quantite }} en réserve</span>
                 {% endif %}
             </li>

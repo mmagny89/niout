@@ -68,7 +68,10 @@
                 {% for ligne in repartition %}
                     <tr class="border-b border-ocre-500/15">
                         <th scope="row" class="py-2 pr-4 text-left font-normal text-encre-900">
-                            {{ ligne.ressource.libelle }}
+                            <span class="flex items-center gap-2">
+                                {{ include('partie/_icone_ressource.html.twig', {ressource: ligne.ressource, taille: 40}) }}
+                                {{ ligne.ressource.libelle }}
+                            </span>
                         </th>
                         <td class="py-2 pr-4 text-encre-600" data-chiffres>{{ ligne.enReserve }}</td>
                         <td class="py-2 pr-4 text-encre-600" data-chiffres>{{ ligne.prix }} deben</td>

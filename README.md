@@ -41,11 +41,14 @@ déchiffrer, enquêter et clore une mission.
 | **Faveur divine** | Huit divinités cultivées au Temple par des offrandes. Un dieu délaissé cesse de favoriser, il ne punit pas ; la fièvre passe parfois, sans jamais tuer. |
 | **Écriture et énigmes** | Clé de lecture (vingt hiéroglyphes de Gardiner vérifiés contre Unicode) et apprentissage des vingt-quatre unilitères. Les signes sont vrais, les combinaisons sont des rébus, jamais de l'égyptien. Chaque mission s'ancre dans une pierre réelle (stèle d'Ahmôsis, Tombos, Pount…) et affiche le cartouche du pharaon quand sa lecture est établie. |
 | **Enquêtes, fil rouge, rivaux** | Cases à fouiller, indices contradictoires, dossier à trancher ; chaque mission raconte quelque chose ; un marchand rival peut s'installer sur vos routes. |
-| **Écran de ville** | Un onglet par bâtiment dressé ; la Résidence familiale recueille le tableau de bord. L'état de la ville se lit aussi depuis la carte. |
+| **Une seule page de jeu : la carte** | La carte occupe tout l'écran ; la ville, la commande du pharaon, le détail d'une case et les expéditions s'ouvrent en **fenêtre** par-dessus. Un rail de carrés par bâtiment (avec son illustration), la Résidence familiale qui recueille le tableau de bord, des pastilles de signaux dans la barre de jeu. Au téléphone, la fenêtre est une feuille plein écran. |
+| **La ville vue d'en haut** | Un clic sur la ville remplace la carte par son plan : chaque bâtiment dressé est posé sur son lot, son aspect suivant son niveau, et un clic ouvre sa fenêtre. Une ville au bord de l'eau s'affiche avec son fleuve et son ponton. |
+| **Illustrations** | Trente-deux ressources et objets fabriqués, huit portraits de dieux, douze bâtiments en quatre paliers. |
 | **Missions** | Dix missions enchaînées : objectifs, quêtes du pharaon, reconnaissance, legs vers la suivante. La région compte : loin du Nil, ni crue ni offrandes à Hâpi. |
 
-Restent les Medjaÿ et le combat, l'héritage entre parties, le mode Aventure
-complet et le découpage des sprites — feuille de route détaillée dans
+Reste l'épreuve du jeu au navigateur — le calibrage se décide en jouant —, les
+icônes d'interface et les ressources encore sans image, le contenu des XIXᵉ et
+XXᵉ dynasties : feuille de route détaillée dans
 [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md), règles précises dans
 [`docs/regles-du-jeu.md`](docs/regles-du-jeu.md).
 
@@ -180,7 +183,9 @@ attendues, mais une issue qui signale un défaut est toujours la bienvenue.
 |---|---|
 | [`CLAUDE.md`](CLAUDE.md) | Stack, commandes, architecture — le point d'entrée |
 | [`docs/regles-du-jeu.md`](docs/regles-du-jeu.md) | Les invariants du jeu et leur raison d'être |
-| [`docs/interface.md`](docs/interface.md) | Les écrans : coques, barre de jeu, onglets, carte |
+| [`docs/interface.md`](docs/interface.md) | Les écrans : coques, barre de jeu, fenêtres, carte, ville vue d'en haut |
+| [`docs/plan-fenetres.md`](docs/plan-fenetres.md) | Le chantier « tout en fenêtres » : décisions, sept phases, journal |
+| [`docs/prompts-images-ville.md`](docs/prompts-images-ville.md) | Les prompts des images de la ville (plan, lots, bâtiments) |
 | [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md) | Feuille de route, ce qui vient, décisions actées |
 | [`docs/phases-livrees.md`](docs/phases-livrees.md) | Journal des phases : intention, lots, pièges payés |
 | [`README.docker.md`](README.docker.md) | Détail du stack Docker, environnements, observabilité |

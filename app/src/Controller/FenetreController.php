@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\GameSave;
+use App\Fenetre\OuvertureDeFenetre;
+use App\Game\EtatDeLaVille;
 use App\Game\GeographieDeLaPartie;
 use App\Security\Voter\PartieVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -50,7 +52,7 @@ final class FenetreController extends AbstractController
      */
     #[Route('/{id}/barre', name: 'app_partie_barre', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
-    public function barre(Request $requete, GameSave $partie, GeographieDeLaPartie $geographies): Response
+    public function barre(Request $requete, GameSave $partie, GeographieDeLaPartie $geographies, EtatDeLaVille $etat): Response
     {
         $retour = $requete->query->get('retour');
         $onglet = $requete->query->get('onglet');
@@ -60,10 +62,32 @@ final class FenetreController extends AbstractController
         return $this->render('partie/_barre_cadre.html.twig', [
             'partie' => $partie,
             'connaitLaCrue' => $geographies->connaitLaCrue($partie),
+            // Les pastilles de la barre : les signaux de la ville.
+            'signaux' => $etat->signaux($partie),
             'retourDuCycle' => \in_array($retour, self::RETOURS, true) ? $retour : 'app_partie_carte',
             'ongletDuCycle' => \is_string($onglet) && 1 === preg_match('/^[a-z_]{1,40}$/', $onglet) ? $onglet : null,
             'zoneDuCycle' => \is_string($zone) && 1 === preg_match('/^\d{1,3}-\d{1,3}$/', $zone) ? $zone : null,
             'ouvreDuCycle' => \is_string($ouvre) ? $ouvre : null,
+            'vueDuCycle' => 'ville' === $requete->query->get('vue') ? 'ville' : null,
+        ]);
+    }
+
+    /**
+     * Les expéditions en route, en fenêtre : l'ouvre la pastille de la barre.
+     */
+    #[Route('/{id}/expeditions', name: 'app_partie_expeditions', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function expeditions(Request $requete, GameSave $partie): Response
+    {
+        // Une fenêtre, pas une page : sans l'en-tête `Turbo-Frame`, la carte
+        // s'ouvre avec la fenêtre dessus.
+        if (!OuvertureDeFenetre::estUneRequeteDeCadre($requete)) {
+            return $this->forward(PartieController::class.'::carte', ['id' => $partie->getId()], ['ouvre' => $requete->getRequestUri()]);
+        }
+
+        return $this->render('fenetre/expeditions.html.twig', [
+            'partie' => $partie,
+            'ville' => $partie->getVille(),
         ]);
     }
 }

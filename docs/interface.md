@@ -237,9 +237,16 @@ piège payé d'avance : le rafraîchissement de la carte, quand quelque chose a
 changé, **attend que l'adresse ait fini de reculer** — le lancer tout de suite
 visiterait encore l'adresse « ouverte » et rouvrirait la fenêtre qu'on vient de
 fermer. Une page rechargée avec la fenêtre déjà ouverte n'a pas d'entrée à elle :
-le retour quitte alors la carte, ce qui est l'attendu d'un rechargement. **Il n'y a
-pas de « clic sur le fond »** : la fenêtre est non modale, la carte reste vivante
-derrière, et cliquer une case charge sa page, ce qui referme la fenêtre de fait.
+le retour quitte alors la carte, ce qui est l'attendu d'un rechargement. **Un clic
+en dehors de la fenêtre la ferme** (décision de la joueuse, qui revient sur
+l'abandon des phases précédentes) — mais seulement sur du *vide*, le fond de la
+carte ou de la ville : un lien (une autre case, un bâtiment), un bouton, un champ
+font leur travail, et la barre de jeu, hors du contrôleur, reste utilisable fenêtre
+ouverte. La fin d'un glissement de la carte n'en est pas un : on mesure le
+déplacement entre l'appui et le relâché (6 px). **Un contenu long porte son
+« Retour en haut »** (`retour-en-haut_controller.js`, `fenetre/_retour_en_haut.html.twig`) :
+posé sur le conteneur qui défile, le bouton reste collé en bas à droite, n'apparaît
+qu'au-delà de 320 px de défilement, et rend le focus au titre.
 
 **La ville est la première fenêtre** (`fenetre/ville.html.twig`) : **un rail de
 carrés à gauche — la cité —, le panneau du bâtiment choisi à droite**. Cliquer un
@@ -257,12 +264,81 @@ quittent la ville vers une case de la carte portent `data-turbo-frame="_top"`.
 Le bouton de cycle, quand la ville est rendue en fenêtre, ramène à la **carte**
 (`ouvre` conservé), pas à `/ville` : la fenêtre se rouvre au même endroit.
 
-**Chaque carré a son emplacement de visuel** : déposer
-`app/assets/images/batiments/<type>.webp` (`grenier.webp`, `maison_des_scribes.webp`…)
-suffit, `BatimentsDeLaCite` teste l'existence du fichier et le gabarit n'a pas à
-changer ; sans image, un monogramme tient la place dans le même cadre, pour que
-la grille ne bouge pas à l'arrivée des images. Les chantiers de bâtiments qui
-n'existent pas encore ne font pas un carré : ils figurent dans la Résidence.
+**La carte occupe tout l'écran, le reste est fenêtre** (phase 5). Plus de panneau de
+droite : le **détail d'une case** s'ouvre en *feuille* posée à droite
+(`app_partie_case`, `fenetre/case.html.twig`), qui laisse la carte visible — on
+regarde une case en cliquant ses voisines. Le contenu se déclare feuille par
+`data-forme="feuille"` et la fenêtre s'y adapte par CSS (`:has()`), sans JavaScript.
+Les actions d'une case (éclaireur, carrière, semis, fouille) redirigent vers cette
+même fenêtre, comme celles de la ville. **Les signaux** (fièvre, disette, fête…) et
+les **expéditions en route** sont des pastilles dans la barre de jeu (`_barre.html.twig`,
+seulement là où `signaux` est connu) ; un signal ouvre la Résidence, la pastille
+d'expéditions ouvre `app_partie_expeditions`. Les anciennes adresses `carte?zone=x-y`
+ouvrent la fenêtre de la case : les liens d'avant restent valables. Les données de la
+case vivent dans `Fenetre\DetailDeCase`, plus dans le contrôleur de la carte.
+
+**La ville vue d'en haut** (`carte?vue=ville`, en cliquant la tuile de la ville) remplace
+le territoire par un visuel — `ville`, ou `ville_port` quand `City::jouxteUnPointDEau()` —
+sur lequel chaque bâtiment dressé est posé sur son **lot**. Le visuel ne porte que de la
+terre, des chemins et de la végétation : quinze clairières nues, que les sprites recouvrent.
+
+**Le lot fait l'échelle.** Chaque sprite porte son propre lot — plate-forme de terre battue
+à muret bas — **identique à ses quatre paliers** ; on le pose pour que son lot ait la
+largeur de la clairière du plan et que les deux centres coïncident. Un petit bâtiment du
+palier un n'est donc jamais gonflé à la taille d'un temple : il occupe une partie d'un lot
+qui a toujours la bonne taille. (La première série, mise à la largeur de l'enclos sprite par
+sprite, rendait « bizarre » : échelles et perspectives incohérentes.)
+
+- `Game\EmplacementsDeLaVille` : les quinze lots — centre en pixels du visuel (1376 × 768),
+  classe `l`/`m`/`s` (4×4, 3×3, 2×2 unités du plan guide) et bâtiment. **Un lot fixe par
+  bâtiment** : on ne choisit pas où bâtir, on choisit quoi. Trois lots libres, rendus par un
+  lot vide, sont du décor.
+- `Game\AncragesDesSprites` — **généré**, ne pas éditer : centre et largeur du lot dans chaque
+  sprite, mesurés par `outils/decouper-batiments.py`.
+- `Fenetre\VueDeLaVille` convertit le tout en pourcentages du visuel : le gabarit
+  (`partie/_vue_de_la_ville.html.twig`) n'a ni pixel ni échelle à connaître.
+- Un bâtiment dressé est un lien — son sprite — vers sa fenêtre ; un lot pas encore bâti
+  montre un lot vide et mène à la Résidence (ce qu'il reste à bâtir). Palier de sprite :
+  `min(niveau, 4)` — les planches en livrent quatre, les bâtiments montent au niveau cinq.
+
+**Les sprites se régénèrent par prompts** (`docs/prompts-images-ville.md`) puis se découpent par
+`outils/decouper-batiments.py` à partir de `sources-sprites/v2/` (ignoré par git) : fond
+blanc retiré par remplissage depuis les bords, quatre paliers recadrés sur un cadre commun,
+WebP à fond transparent dans `app/assets/images/ville/{batiments,lots}/`. Le sprite du Port est
+privé de son eau (bleu clair) : le fleuve est celui du plan. **Pour déplacer un lot**, changer
+ses coordonnées dans `EmplacementsDeLaVille` ; **pour remplacer un sprite**, relancer l'outil.
+
+**Chaque carré du rail montre le sprite du palier de son bâtiment** — le même que sur la
+ville vue d'en haut (`app/assets/images/ville/batiments/<type>_<palier>.webp`, palier =
+`min(niveau, 4)`), entier et jamais rogné, au-dessus de l'étiquette. `BatimentsDeLaCite`
+teste l'existence du fichier : sans image, un monogramme tient la place dans le même
+cadre, pour que la grille ne bouge pas. Les chantiers de bâtiments qui n'existent pas
+encore ne font pas un carré : ils figurent dans la Résidence.
+
+## Illustrations de ressources, d'objets et de dieux
+
+Trois planches du Drive sont intégrées (`outils/decouper-icones.py`, sources dans
+`sources-sprites/`, ignoré par git) : **32 ressources et objets fabriqués**
+(`app/assets/images/ressources/<valeur>.webp`) et **8 portraits de dieux**
+(`app/assets/images/dieux/<valeur>.webp`). Le **nom du fichier est la valeur de
+l'énumération** (`Ressource`, `Divinite`) : renommer un cas sans renommer l'image la
+fait disparaître sans erreur — `IllustrationsTest` garde la correspondance.
+
+- Les ressources sont des objets posés sur une plaque, fond retiré par remplissage ; **toute
+  une planche partage la même boîte de découpe**, si bien que la plaque a la même taille
+  d'une icône à l'autre.
+- `Twig\IllustrationsExtension` : `image_de_ressource(r)` accepte une `Ressource`, une
+  `Recette` (leurs valeurs coïncident : `poterie`, `pain`…) ou une chaîne ;
+  `image_de_divinite(d)`. **Une image manquante rend `null` et le gabarit s'en passe** :
+  le deben, le poisson, les dattes, la grauwacke, les outils et les armes n'ont pas encore
+  leur planche. La valeur est contrainte (`[a-z_]`) — elle finit dans un chemin de fichier.
+- `partie/_icone_ressource.html.twig` rend l'icône, décorative (le nom est toujours écrit à
+  côté), à la largeur demandée. Elle figure : dans les volets de la barre de jeu, au tableau
+  de l'Entrepôt, aux lots du Marché, dans la dotation royale, aux gisements d'une case,
+  aux recettes de l'Atelier et de la Forge, aux exploitations. **Les portraits** ouvrent la
+  carte de chaque dieu au Temple.
+- Pour l'amulette, la planche donne deux variantes : on a gardé celle « incrustée de turquoise »
+  (`bijoux`) ; les autres objets viennent de la deuxième rangée.
 
 ## Signaux, alertes et reprise d'onglet
 

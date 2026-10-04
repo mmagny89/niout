@@ -2451,3 +2451,36 @@ que soit le règne ; et rien ne suppose que la succession s'arrête à un pharao
 nommé — allonger la liste ne doit toucher aucun code.
 
 ---
+
+### 5.15 Chantier des fenêtres et ville vue d'en haut  ✅  *(hors phase — 0.14.0)*
+
+Ni système de jeu ni phase numérotée : une refonte de l'ergonomie, menée en sept
+lots et journalisée **lot par lot** dans [`plan-fenetres.md`](plan-fenetres.md) — c'est
+là qu'il faut aller pour le détail. Ce qu'il faut retenir ici :
+
+**Intention.** Ne plus avoir de pages dans le jeu : la carte occupe l'écran, et tout le reste
+— ville, commande, case, expéditions — s'ouvre en fenêtre au-dessus. Turbo Frames, pas de
+JavaScript applicatif : un `<dialog>` non modal (pour que le bouton de quinzaine, dans la
+barre, reste utilisable), un cadre `fenetre`, l'état dans l'URL (`carte?ouvre=…`).
+
+**Pièges payés, à ne pas repayer**
+- **Une classe Tailwind nouvelle n'existe qu'après `tailwind:build`.** La vue de la ville
+  dépendait d'`aspect-[1376/768]` : sans recompilation, le conteneur tombait à zéro et tous
+  les sprites s'écrasaient sur une ligne. Ce dont la mise en page dépend essentiellement se
+  pose en ligne.
+- **Des `z-index` qui montent à plusieurs centaines passent au-dessus d'une fenêtre à `z-30`** :
+  la vue de la ville a son propre contexte d'empilement (`isolation: isolate`).
+- **Un détourage du fond blanc qui part de n'importe quel pixel du bord ronge l'eau** : il ne
+  part que de pixels blancs.
+- **L'échelle d'un sprite vient de son lot**, pas de sa boîte : mettre chaque sprite à la
+  largeur de son enclos gonflait un silo à la taille d'un temple. Les planches regénérées
+  portent toutes le même lot à chaque palier, et `AncragesDesSprites` — généré — dit où il est.
+- **`ville()` calculait les données de tous les panneaux pour n'en rendre qu'un** : un
+  fournisseur par bâtiment (`Fenetre/Panneau`), et un test qui rend chaque panneau (le mode
+  strict de Twig lève sur une variable absente).
+- **Un clic en dehors ferme la fenêtre** — sur du vide seulement, et pas à la fin d'un
+  glissement de carte — : décision de la joueuse, qui revient sur un abandon antérieur.
+
+**Laisse ouvert.** Aucune vérification au navigateur automatisé ; l'Auberge, plus orange que
+les autres planches ; les étiquettes du plan guide encore dans l'image (cachées par les lots) ;
+les ressources sans planche.

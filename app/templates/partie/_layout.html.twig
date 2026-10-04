@@ -22,6 +22,7 @@
     {% set retourDuCycle = ouvre is defined and ouvre ? 'app_partie_carte' : app.request.attributes.get('_route') %}
     {% set ongletDuCycle = ongletActif is defined ? ongletActif : null %}
     {% set zoneDuCycle = zoneDetaillee is defined and zoneDetaillee ? zoneDetaillee.x ~ '-' ~ zoneDetaillee.y : null %}
+    {% set vueDuCycle = vue is defined and vue ? 'ville' : null %}
     {% set ouvreDuCycle = ouvre is defined and ouvre ? ouvre : null %}
     {% set actionHtml %}{% block actionDeCycle %}{{ include('partie/_action_de_cycle.html.twig') }}{% endblock %}{% endset %}
     <turbo-frame id="barre" target="_top">{{ include('partie/_barre.html.twig', {actionHtml: actionHtml}) }}</turbo-frame>

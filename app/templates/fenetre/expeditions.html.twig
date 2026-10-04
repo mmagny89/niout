@@ -1,0 +1,39 @@
+{# Les expéditions en route, dans la fenêtre : ce qui se lisait dans le
+   deuxième onglet du panneau de droite de la carte. La pastille de la barre
+   de jeu l'ouvre. #}
+<turbo-frame id="fenetre" class="block h-full" data-forme="feuille">
+    {{ include('_messages_de_jeu.html.twig') }}
+
+    <div class="h-full overflow-y-auto p-5 pr-12 md:p-6 md:pr-12"
+         data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
+        <h2 id="fenetre-titre" class="font-display text-xl text-encre-900">Expéditions en route</h2>
+
+        {% if ville.expeditions|length > 0 %}
+            <ul class="mt-4 space-y-2 list-none p-0">
+                {% for expedition in ville.expeditions %}
+                    <li class="rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-5 py-3">
+                        <div class="flex flex-wrap items-baseline justify-between gap-3 text-sm">
+                            <span class="text-encre-900">
+                                {{ expedition.role.libelle }} vers la case
+                                <a href="{{ path('app_partie_case', {id: partie.id, coordonnees: expedition.destination.x ~ '-' ~ expedition.destination.y}) }}"
+                                   data-turbo-frame="fenetre" class="text-lapis-500" data-chiffres>{{ expedition.destination.x }}, {{ expedition.destination.y }}</a>
+                            </span>
+                            <span class="text-encre-500" data-chiffres>
+                                encore {{ expedition.cyclesRestants }} cycle{{ expedition.cyclesRestants > 1 ? 's' : '' }}
+                            </span>
+                        </div>
+                        <div class="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
+                            <div class="h-full bg-lapis-500" style="width: {{ expedition.pourcentageDAvancement }}%"></div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="mt-4 text-sm text-encre-500">
+                Aucune expédition en route. Envoyez un éclaireur depuis une case inexplorée.
+            </p>
+        {% endif %}
+
+        {{ include('fenetre/_retour_en_haut.html.twig') }}
+    </div>
+</turbo-frame>

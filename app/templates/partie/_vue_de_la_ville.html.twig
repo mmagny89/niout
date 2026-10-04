@@ -1,0 +1,71 @@
+{# La ville vue d'en haut, à la place du territoire : un visuel, les bâtiments
+   posés sur leurs enclos, et un clic qui ouvre la fenêtre du bon bâtiment.
+
+   **Tout est en pourcentages du visuel** (`App\Fenetre\VueDeLaVille`) : le
+   conteneur garde le rapport 1408 / 768 et se cale dans la place disponible,
+   les sprites et les zones cliquables le suivent sans rien savoir de l'écran.
+
+   Un bâtiment dressé est un lien — son sprite — vers sa fenêtre. Un lot pas
+   encore bâti montre un lot vide, et mène à la Résidence familiale, où se lit ce
+   qu'il reste à bâtir. Les trois lots que le jeu n'emploie pas sont du décor.
+
+   Les sprites se peignent du fond vers le devant (`z-index` = profondeur du
+   lot), pour qu'un bâtiment de devant recouvre celui de derrière.
+
+   **`isolation: isolate` sur ce conteneur, et c'est indispensable** : ces
+   `z-index` montent jusqu'à plusieurs centaines. Sans contexte d'empilement à
+   eux, ils passaient au-dessus de la fenêtre (`z-30`) — le Temple s'ouvrait
+   *sous* les sprites de la ville. En ligne, comme le rapport du visuel : pas
+   de dépendance à la compilation de la CSS. #}
+<div class="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden bg-sable-100 p-2 md:p-4"
+     style="container-type: size; isolation: isolate;">
+    {# Le rapport du visuel est posé **en ligne** et non par une classe Tailwind :
+       c'est lui qui donne sa hauteur au conteneur, dont tous les enfants sont
+       en `absolute`. Une classe oubliée par la compilation de la CSS le ferait
+       tomber à zéro, et les sprites s'écraseraient tous sur une même ligne. #}
+    {# `container-type: size` sur le parent, `cqw` / `cqh` ici : le visuel occupe la
+       plus grande place qui garde son rapport, sans jamais le déformer — les
+       sprites, en pourcentages de ce conteneur, restent calés sur lui. #}
+    <div class="relative" style="aspect-ratio: 1376 / 768; width: min(100cqw, 100cqh * 1376 / 768);">
+        <img src="{{ asset(vueDeLaVille.visuel) }}" alt=""
+             width="1376" height="768"
+             class="pointer-events-none absolute inset-0 size-full select-none object-contain">
+
+        {% for e in vueDeLaVille.emplacements %}
+            {% if e.decor %}
+                {# Un lot que le jeu n'emploie pas : du décor, rien à cliquer. #}
+                <img src="{{ asset(e.sprite) }}" alt="" loading="lazy" decoding="async"
+                     class="pointer-events-none absolute select-none"
+                     style="left: {{ e.gauche }}%; top: {{ e.haut }}%; width: {{ e.largeur }}%; z-index: {{ e.profondeur }};">
+            {% else %}
+                {# Un bâtiment dressé, ou son lot vide : le sprite est le lien. #}
+                <a href="{{ path('app_partie_ville', {id: partie.id, onglet: e.onglet}) }}"
+                   data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"
+                   {% if e.dresse %}
+                       title="{{ e.libelle }} — niveau {{ e.niveau }}"
+                       aria-label="{{ e.libelle }}, niveau {{ e.niveau }} : ouvrir"
+                   {% else %}
+                       title="{{ e.libelle }} — à bâtir"
+                       aria-label="{{ e.libelle }}, pas encore bâti : voir ce qu'il reste à bâtir"
+                   {% endif %}
+                   class="absolute block transition hover:brightness-110
+                          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500"
+                   style="left: {{ e.gauche }}%; top: {{ e.haut }}%; width: {{ e.largeur }}%; z-index: {{ e.profondeur }};">
+                    <img src="{{ asset(e.sprite) }}" alt="" loading="lazy" decoding="async"
+                         class="block w-full select-none">
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="pointer-events-none absolute left-2 top-2 flex items-center gap-2 rounded-sm border border-ocre-500/30
+                bg-sable-50/90 px-2.5 py-1.5 text-sm shadow-sm md:left-4 md:top-4 md:px-3 md:py-2">
+        <h1 class="font-display text-sm text-encre-900 md:text-base">{{ ville.nom }}</h1>
+    </div>
+
+    <a href="{{ path('app_partie_carte', {id: partie.id}) }}" data-turbo-frame="_top"
+       class="absolute right-2 top-2 z-[1000] rounded-sm border border-ocre-500/30 bg-sable-50/90 px-3 py-2 text-sm
+              text-lapis-500 shadow-sm md:right-4 md:top-4">
+        Retour au territoire
+    </a>
+</div>

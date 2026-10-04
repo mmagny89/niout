@@ -62,7 +62,7 @@ final class CarteTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/carte?zone=%d-%d', $partie->getId(), $zone->getX(), $zone->getY()));
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('#case', 'Semis');
+        self::assertSelectorTextContains('dialog', 'Semis');
     }
 
     /**
@@ -99,16 +99,16 @@ final class CarteTest extends WebTestCase
 
         $client->request('GET', $url);
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('#case', 'Il faudra un Port');
+        self::assertSelectorTextContains('dialog', 'Il faudra un Port');
 
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Port));
         $gestionnaire->flush();
 
         $client->request('GET', $url);
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('#case', 'Jeter les filets');
+        self::assertSelectorTextContains('dialog', 'Jeter les filets');
         // Un banc se reconstitue : afficher un compteur figé tromperait.
-        self::assertSelectorTextContains('#case', 'inépuisable');
+        self::assertSelectorTextContains('dialog', 'inépuisable');
     }
 
     public function testUneCarteNeuveNeMontreQueLaVilleEtDuBrouillard(): void
@@ -201,12 +201,9 @@ final class CarteTest extends WebTestCase
         $joueur = $this->connecter($client, 'reprise-carte@example.com');
         $partie = $this->lancer($joueur);
 
-        $crawler = $client->request('GET', \sprintf('/partie/%d', $partie->getId()));
+        $client->request('GET', \sprintf('/partie/%d', $partie->getId()));
 
-        self::assertGreaterThan(
-            0,
-            $crawler->filter(\sprintf('a[href="/partie/%d/carte"]', $partie->getId()))->count(),
-        );
+        self::assertResponseRedirects(\sprintf('/partie/%d/carte', $partie->getId()));
     }
 
     public function testAvancerLeTempsDepuisLaVilleYRamene(): void
@@ -245,12 +242,12 @@ final class CarteTest extends WebTestCase
         $crawler = $client->request('GET', $adresse);
         $client->submit($crawler->selectButton('Quinzaine suivante')->form());
 
-        self::assertResponseRedirects(\sprintf(
-            '/partie/%d/carte?zone=%d-%d',
-            $partie->getId(),
-            $zone->getX(),
-            $zone->getY(),
-        ));
+        // La case est une fenêtre : c'est `ouvre` qui la rouvre après la quinzaine.
+        self::assertResponseRedirects();
+        self::assertStringContainsString(
+            \sprintf('ouvre=/partie/%d/case/%d-%d', $partie->getId(), $zone->getX(), $zone->getY()),
+            urldecode((string) $client->getResponse()->headers->get('Location')),
+        );
     }
 
     public function testAvancerLeTempsDepuisLaCarteYRamene(): void

@@ -8,16 +8,19 @@ use App\Entity\Building;
 use App\Entity\Chantier;
 use App\Entity\GameSave;
 use App\Game\Effectifs;
+use App\Game\EmplacementsDeLaVille;
 use App\Game\TypeDeBatiment;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Les bâtiments de la cité, dans l'ordre du jeu — la Résidence, foyer de la
  * lignée, en tête —, chacun avec son équipage, son éventuel chantier et son
- * visuel s'il existe (`assets/images/batiments/<type>.webp`).
+ * visuel : **le sprite de son palier** (`assets/images/ville/batiments/<type>_<palier>.webp`),
+ * le même que celui posé sur la ville vue d'en haut — l'illustration suit le
+ * niveau du bâtiment.
  *
- * Déposer l'image suffit à remplacer le monogramme : le contrôleur teste
- * l'existence du fichier, et le gabarit n'a pas à changer.
+ * Le contrôleur teste l'existence du fichier : sans image, le gabarit retombe sur
+ * un monogramme.
  */
 final readonly class BatimentsDeLaCite
 {
@@ -34,7 +37,7 @@ final readonly class BatimentsDeLaCite
     {
         $ville = $partie->getVille();
         $effectifs = Effectifs::repartir($ville, $partie->getCycle());
-        $dossier = $this->racine.'/assets/images/batiments/';
+        $dossier = $this->racine.'/assets/images/ville/batiments/';
         $cite = [];
 
         foreach (TypeDeBatiment::cases() as $type) {
@@ -52,12 +55,15 @@ final readonly class BatimentsDeLaCite
                 }
             }
 
+            // Le foyer de la lignée n'a pas de ligne en base : il est au niveau un.
+            $palier = \sprintf('%s_%d.webp', $type->value, EmplacementsDeLaVille::palierDeSprite($batiment?->getNiveau() ?? 1));
+
             $cite[] = [
                 'type' => $type,
                 'batiment' => $batiment,
                 'effectif' => $effectifs[$type->value] ?? null,
                 'chantier' => $chantier,
-                'visuel' => is_file($dossier.$type->value.'.webp') ? 'images/batiments/'.$type->value.'.webp' : null,
+                'visuel' => is_file($dossier.$palier) ? 'images/ville/batiments/'.$palier : null,
             ];
         }
 

@@ -117,11 +117,19 @@ final class NouvellePartieTest extends WebTestCase
         $joueur = $this->connecter($client, 'commande@example.com');
         $this->soumettreFormulaire($client, GameMode::Campagne, 'Sennefer');
 
+        // La commande s'ouvre d'office, en fenêtre, au-dessus de la carte.
+        $partie = $this->depot()->findPourJoueur($joueur)[0];
+        self::assertResponseRedirects(\sprintf(
+            '/partie/%1$d/carte?ouvre=/partie/%1$d/commande',
+            $partie->getId(),
+        ));
+
         $client->followRedirect();
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'Ahmôsis Ier');
-        self::assertSelectorTextContains('body', 'Sennefer');
+        self::assertSelectorExists('dialog[data-fenetre-target="fenetre"][open] turbo-frame#fenetre');
+        self::assertSelectorTextContains('dialog', 'Ahmôsis Ier');
+        self::assertSelectorTextContains('dialog', 'Sennefer');
     }
 
     public function testUnJoueurNePeutPasVoirLaPartieDUnAutre(): void

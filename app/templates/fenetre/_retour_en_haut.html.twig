@@ -1,0 +1,13 @@
+{# Le bouton « Retour en haut », dernier enfant du conteneur qui défile
+   (`retour-en-haut_controller.js`). Collé en bas à droite (`sticky`), caché tant
+   que le contenu n'est pas descendu : le conteneur doit porter
+   `data-controller="retour-en-haut"` et `data-action="scroll->retour-en-haut#defiler"`. #}
+<button type="button" hidden
+        data-retour-en-haut-target="bouton" data-action="retour-en-haut#remonter"
+        class="sticky bottom-4 ml-auto mt-6 flex w-fit items-center gap-1.5 rounded-sm border border-ocre-500/40
+               bg-sable-50/95 px-3 py-2 text-sm text-lapis-500 shadow-md hover:bg-sable-100
+               focus-visible:outline-2 focus-visible:outline-lapis-500"
+        style="position: sticky; bottom: 1rem; margin-left: auto;">
+    <span aria-hidden="true">↑</span>
+    Retour en haut
+</button>

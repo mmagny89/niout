@@ -113,6 +113,199 @@ final class FenetreTest extends WebTestCase
     }
 
     /**
+     * **Chaque panneau prépare ses propres données** (phase 6) : un gabarit qui
+     * lirait une variable que son fournisseur ne donne plus lèverait une
+     * exception, le mode strict de Twig étant actif. Tous les bâtiments dressés,
+     * chaque panneau rendu à son tour — c'est le filet de la refonte.
+     */
+    public function testChaquePanneauDeBatimentSeRendAvecSesSeulesDonnees(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-panneaux@example.com');
+        $ville = $partie->getVille();
+
+        foreach (TypeDeBatiment::cases() as $type) {
+            if (!$type->estLeBatimentDeDepart() && null === $ville->batimentDeType($type)) {
+                $ville->ajouterBatiment(new Building($ville, $type));
+            }
+        }
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        foreach (TypeDeBatiment::cases() as $type) {
+            $client->request('GET', \sprintf('/partie/%d/ville?onglet=%s', $partie->getId(), $type->value), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+            self::assertResponseIsSuccessful(\sprintf('Le panneau « %s » ne se rend pas.', $type->value));
+            self::assertSelectorExists('#panneau-'.$type->value);
+        }
+    }
+
+    /**
+     * Le contrat d'accessibilité de la fenêtre : le `<dialog>` se nomme par son
+     * titre (`aria-labelledby`), et **chaque contenu** en porte un — c'est sur lui
+     * que le focus entre à l'ouverture, et ce que le lecteur d'écran annonce. Un
+     * contenu sans titre ouvrirait une fenêtre muette.
+     */
+    public function testChaqueFenetreSeNommeParSonTitre(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-titres@example.com');
+        $id = $partie->getId();
+        $zone = $partie->getVille()->getZones()->last();
+        self::assertNotFalse($zone);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $id));
+        self::assertSame('fenetre-titre', $crawler->filter('dialog')->attr('aria-labelledby'));
+
+        foreach ([
+            \sprintf('/partie/%d/ville?onglet=residence_familiale', $id),
+            \sprintf('/partie/%d/commande', $id),
+            \sprintf('/partie/%d/case/%d-%d', $id, $zone->getX(), $zone->getY()),
+            \sprintf('/partie/%d/expeditions', $id),
+        ] as $adresse) {
+            $client->request('GET', $adresse, [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+            self::assertResponseIsSuccessful($adresse);
+            self::assertSelectorCount(1, '#fenetre-titre', $adresse.' : un seul titre, celui que la fenêtre annonce.');
+            // Un contenu long défile dans la fenêtre : il porte son « Retour en haut ».
+            self::assertSelectorCount(1, '[data-controller="retour-en-haut"] [data-retour-en-haut-target="bouton"]', $adresse);
+            self::assertSelectorExists('[data-controller="retour-en-haut"][data-action*="scroll->retour-en-haut#defiler"]', $adresse);
+        }
+    }
+
+    /**
+     * Le rail de la cité montre le sprite du palier de chaque bâtiment — le même
+     * que sur la ville vue d'en haut —, et plus un monogramme.
+     */
+    public function testLeRailMontreLeSpriteDuPalierDeChaqueBatiment(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-rail@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier, 3));
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Temple, 5));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=grenier', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        $image = static fn (string $type): string => (string) $crawler->filter(\sprintf('nav a[href$="onglet=%s"] img', $type))->attr('src');
+        self::assertStringContainsString('/batiments/grenier_3', $image('grenier'), 'Le palier suit le niveau.');
+        self::assertStringContainsString('/batiments/temple_4', $image('temple'), 'Le niveau cinq garde le dernier palier.');
+        self::assertStringContainsString('/batiments/residence_familiale_1', $image('residence_familiale'), 'Le foyer de la lignée est au niveau un.');
+    }
+
+    /**
+     * Sur un téléphone, la fenêtre est une feuille plein écran et ses cibles font
+     * 44 px (WCAG 2.2). Le rendu réel ne se vérifie qu'au navigateur ; on garde
+     * ici ce dont il dépend.
+     */
+    public function testLaFenetreEstUneFeuillePleinEcranSurTelephone(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-mobile@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        $classes = (string) $crawler->filter('dialog[data-fenetre-target="fenetre"]')->attr('class');
+        self::assertStringContainsString('inset-0', $classes, 'Plein écran sous `md`.');
+        self::assertStringContainsString('md:inset-6', $classes, 'Une vraie fenêtre au-dessus.');
+        self::assertStringContainsString('size-11', (string) $crawler->filter('dialog button[data-action="fenetre#fermer"]')->attr('class'));
+    }
+
+    public function testLaCommandeRepondEnCadreSansLaCoque(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-commande-cadre@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/commande', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('turbo-frame#fenetre');
+        self::assertSelectorExists('#fenetre-titre');
+        self::assertSelectorExists('turbo-frame#fenetre button[data-action="fenetre#fermer"]', 'Prendre ses fonctions ferme la fenêtre.');
+        self::assertSelectorNotExists('turbo-frame#barre', 'Un cadre de fenêtre ne rend pas la barre.');
+    }
+
+    public function testSansEnTeteDeCadreLaCommandeRendLaCarteOuverte(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-commande-renvoi@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/commande', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('dialog[data-fenetre-target="fenetre"][open]');
+        self::assertCount(1, $crawler->filter('dialog #fenetre-titre'));
+        self::assertGreaterThan(0, $crawler->filter('[data-carte-target="grille"]')->count(), 'La carte est toujours là, derrière.');
+    }
+
+    public function testLaCaseRepondEnCadreEnFeuille(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-case-cadre@example.com');
+        $zone = $partie->getVille()->getZones()->last();
+        self::assertNotFalse($zone);
+
+        $client->request('GET', \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $zone->getX(), $zone->getY()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('turbo-frame#fenetre[data-forme="feuille"]', 'Le détail d\'une case est une feuille, pas la grande fenêtre.');
+        self::assertSelectorExists('#fenetre-titre');
+        self::assertSelectorNotExists('turbo-frame#barre');
+    }
+
+    public function testSansEnTeteDeCadreLaCaseRendLaCarteOuverteEtSurlignee(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-case-renvoi@example.com');
+        $zone = $partie->getVille()->getZones()->last();
+        self::assertNotFalse($zone);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $zone->getX(), $zone->getY()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('dialog[data-fenetre-target="fenetre"][open] #fenetre-titre');
+        self::assertGreaterThan(0, $crawler->filter('[data-carte-target="grille"]')->count());
+        self::assertCount(1, $crawler->filter('a.bg-or-300\\/45'), 'La case ouverte est surlignée sur la carte.');
+    }
+
+    public function testUneCaseInconnueEstIntrouvable(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-case-inconnue@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/case/99-99', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testLesExpeditionsSeLisentEnFenetre(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-expeditions@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/expeditions', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('#fenetre-titre', 'Expéditions');
+        self::assertSelectorTextContains('turbo-frame#fenetre', 'Aucune expédition en route');
+    }
+
+    /**
+     * La carte n'a plus de panneau de signaux : ils vivent dans la barre.
+     */
+    public function testLaBarreDitLesSignauxEtLesExpeditions(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-pastilles@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/barre', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        // Une partie neuve a des bras sans ouvrage : au moins un signal.
+        self::assertGreaterThan(0, $crawler->filter('turbo-frame#barre a[data-turbo-frame="fenetre"]')->count());
+    }
+
+    /**
      * Le paramètre vient du visiteur : on ne le suit jamais sans le valider.
      */
     #[DataProvider('ouvertures')]
@@ -137,7 +330,7 @@ final class FenetreTest extends WebTestCase
         yield 'une URL relative au protocole' => ['//example.org/partie/{id}/ville?onglet=marche'];
         yield 'la partie d\'un autre' => ['/partie/999999/ville?onglet=marche'];
         yield 'la carte elle-même' => ['/partie/{id}/carte'];
-        yield 'une route qui n\'est pas une fenêtre' => ['/partie/{id}/commande'];
+        yield 'une route qui n\'est pas une fenêtre' => ['/partie/{id}/abandonner'];
         yield 'un jeton de requête forgé' => ['/partie/{id}/ville?onglet=<script>'];
         yield 'une remontée' => ['/partie/{id}/../{id}/ville'];
         yield 'un caractère de contrôle' => ["/partie/{id}/ville?onglet=marche\r\nX: 1"];

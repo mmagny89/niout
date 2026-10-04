@@ -51,7 +51,8 @@
                 <li class="flex flex-col rounded-sm border p-4
                            {{ offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
                     <div class="flex flex-wrap items-baseline justify-between gap-3">
-                        <h3 class="font-display text-lg {{ offre.realisable ? 'text-encre-900' : 'text-encre-500' }}">
+                        <h3 class="flex items-center gap-2 font-display text-lg {{ offre.realisable ? 'text-encre-900' : 'text-encre-500' }}">
+                            {{ include('partie/_icone_ressource.html.twig', {ressource: offre.recette, taille: 44}) }}
                             {{ offre.recette.libelle }}
                         </h3>
                         <span class="text-sm text-encre-500" data-chiffres>

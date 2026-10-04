@@ -1,6 +1,6 @@
 # Niout — Plan : tout en fenêtres au-dessus de la carte
 
-**Statut : décisions prises (2026-10-01), rien de livré.** Il prépare le gros
+**Statut : les sept phases sont livrées ; reste à éprouver au navigateur.** Il prépare le gros
 chantier — ne plus avoir de pages dans le jeu, mais **la carte en permanence et
 tout le reste en fenêtre par-dessus** — et pose les décisions à prendre avant
 d'écrire une ligne.
@@ -79,15 +79,15 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
 3. **Fermer proprement.** *(livrée)* Rafraîchissement de la carte à la fermeture si une
    action a eu lieu ; gestion d'Échap / clic sur le fond / retour arrière ;
    suppression de la page cité.
-4. **Commande et reprise.** Ouverture d'office en fenêtre ; la route « reprendre »
+4. **Commande et reprise.** *(livrée)* Ouverture d'office en fenêtre ; la route « reprendre »
    atterrit sur la carte.
-5. **Case, expéditions, signaux** — selon la décision du § 7.
-6. **Assainissement.** `PartieController` fait 2 532 lignes et `ville()` en prend
+5. **Case, expéditions, signaux.** *(livrée)* Selon la décision du § 7.
+6. **Assainissement.** *(livrée)* `PartieController` fait 2 532 lignes et `ville()` en prend
    250 : elle calcule les données de **tous** les panneaux alors qu'on n'en ouvre
    qu'un. Une fois dans des cadres, chaque panneau ne doit calculer que le sien
    (un fournisseur de données par bâtiment) — c'est ce qui rend la fenêtre
    rapide, et le contrôleur lisible.
-7. **Mobile et accessibilité.** Feuille plein écran, rail défilant, focus rendu à
+7. **Mobile et accessibilité.** *(livrée)* Feuille plein écran, rail défilant, focus rendu à
    la tuile qui a ouvert la fenêtre, annonce du titre à l'ouverture, contrôle au
    lecteur d'écran.
 
@@ -163,3 +163,63 @@ la ville, appuyer sur « retour » (elle se ferme), « suivant » (elle se rouvr
 ouvrir puis fermer par la croix puis « retour » (on quitte la carte, pas la
 fenêtre), agir dans un panneau puis fermer (la carte se rafraîchit, la fenêtre ne
 se rouvre pas).
+
+**Phase 4 livrée.** La commande du pharaon est une fenêtre (`app_partie_commande`
+rejoint `ROUTES_DE_CADRE`) : la création de partie redirige vers
+`carte?ouvre=/partie/<id>/commande`, et « Prendre mes fonctions » ferme la
+fenêtre. L'écran de reprise est supprimé : `app_partie_reprendre` date l'ouverture
+(elle ordonne « Mes parties ») puis redirige vers la carte — le récapitulatif
+« Où vous en êtes » disait ce que la barre dit déjà ; l'abandon reste accessible
+depuis « Mes parties ». **Même réserve** : l'ouverture d'office et la fermeture ne
+se vérifient qu'au navigateur. À essayer : créer une partie (la commande s'ouvre
+sur la carte), la fermer, recharger (elle ne revient pas), « retour » du navigateur.
+
+**Phase 5 livrée.** La carte est plein écran. **La case** est une fenêtre
+(`app_partie_case`, `/partie/{id}/case/{x}-{y}`) en **feuille** à droite — la forme est
+déclarée par le contenu (`data-forme="feuille"`) et lue par CSS (`:has()`), pas par
+JavaScript. **Écart au plan** : la fenêtre n'est pas *ancrée* à la case, c'est la
+fenêtre unique du § 4, en forme de feuille — l'ancrage demanderait de la
+géométrie à la volée que rien ne justifie encore. Les actions de case redirigent
+vers cette fenêtre (`retourALaCarte`). **Les signaux et les expéditions** sont des
+pastilles de la barre (`signaux` passé par la carte et par la route `barre`) ;
+`app_partie_expeditions` porte la liste. Les données de la case sortent du contrôleur
+vers `Fenetre\DetailDeCase`, et `?zone=x-y` reste un alias de l'ouverture. Le
+bouton « Lever le brouillard » du mode divin et un lien « Bâtiments » flottent sur la
+carte. **Même réserve** : tout ce qui est JavaScript et CSS réel ne se vérifie qu'au
+navigateur. À essayer : cliquer une case (la feuille s'ouvre, la carte reste
+cliquable), passer d'une case à l'autre, envoyer un éclaireur (la feuille se met
+à jour), cliquer une pastille de signal puis « Expéditions en route », avancer
+d'une quinzaine feuille ouverte (elle se rouvre).
+
+**Phase 6 livrée.** `ville()` passe de 250 lignes à une quarantaine, et le contrôleur de
+2 457 à 1 779. **Chaque panneau calcule ses propres données**, et seulement quand
+on l'ouvre : `App\Fenetre\Panneau` porte un `FournisseurDePanneau` par bâtiment
+(`PanneauDuGrenier`, `PanneauDuMarche`…), repéré par sa clé — la valeur de
+`TypeDeBatiment` — et servi par `PanneauxDeLaVille`. Ajouter un panneau : créer la
+classe, l'autoconfiguration (tag `app.panneau_de_ville`) fait le reste. Ce que
+plusieurs panneaux partagent — la direction, les étals, les exploitations, les
+énigmes d'un lieu, le panthéon — vit dans des services à part, plus dans le
+contrôleur. **Le filet** : `FenetreTest::testChaquePanneauDeBatimentSeRendAvecSesSeulesDonnees`
+rend tous les bâtiments un à un ; le mode strict de Twig lève une exception si un
+gabarit lit une variable que son fournisseur ne donne plus. **Piège à connaître** :
+un gabarit de panneau qui gagne une variable doit la demander à *son* fournisseur,
+pas au contrôleur — sans quoi il s'affiche en dev... et plante dès qu'on ouvre ce
+panneau-là. Aucune mesure de temps n'a été prise : le gain est structurel.
+
+**Phase 7 livrée.** Sous `md`, le `<dialog>` est une feuille plein écran (`inset-0`, sans
+bordure) ; la croix et les cibles font 44 px. La coque du jeu passe de `h-screen` à
+`h-dvh` : `100vh` compte la barre d'adresse mobile et masquait le bas de la fenêtre.
+Le focus : à chaque chargement du cadre il entre sur `#fenetre-titre` (annoncé par le
+lecteur d'écran) ; à la fermeture il retourne à l'origine — une tuile ou une pastille
+de la barre, retenue par un clic capté en amont, **retrouvée par son adresse** si la
+barre ou la carte ont été rechargées entre-temps. Le rail défile jusqu'au bâtiment
+ouvert. Les tuiles, découpées en losange par `clip-path`, **rognaient leur propre
+contour de focus** : elles se teintent désormais au focus clavier.
+`FenetreTest` garde le contrat (un titre par fenêtre, `aria-labelledby`, plein écran
+sous `md`, croix de 44 px). **Non vérifié** : aucun rendu mobile ni lecteur d'écran réel
+— le navigateur intégré refuse le certificat auto-signé. À essayer : émulation mobile
+(ouvrir la ville, la case, les expéditions ; le rail défile ; Échap et croix ; le bas
+n'est pas coupé) puis, au clavier, Tab jusqu'à une case (elle se teinte), Entrée (le
+focus entre sur le titre), Échap (il revient sur la case) ; au lecteur d'écran
+(VoiceOver), vérifier que le titre est annoncé à l'ouverture. Ces essais clôturent le
+chantier.
