@@ -237,9 +237,16 @@ piège payé d'avance : le rafraîchissement de la carte, quand quelque chose a
 changé, **attend que l'adresse ait fini de reculer** — le lancer tout de suite
 visiterait encore l'adresse « ouverte » et rouvrirait la fenêtre qu'on vient de
 fermer. Une page rechargée avec la fenêtre déjà ouverte n'a pas d'entrée à elle :
-le retour quitte alors la carte, ce qui est l'attendu d'un rechargement. **Il n'y a
-pas de « clic sur le fond »** : la fenêtre est non modale, la carte reste vivante
-derrière, et cliquer une case charge sa page, ce qui referme la fenêtre de fait.
+le retour quitte alors la carte, ce qui est l'attendu d'un rechargement. **Un clic
+en dehors de la fenêtre la ferme** (décision de la joueuse, qui revient sur
+l'abandon des phases précédentes) — mais seulement sur du *vide*, le fond de la
+carte ou de la ville : un lien (une autre case, un bâtiment), un bouton, un champ
+font leur travail, et la barre de jeu, hors du contrôleur, reste utilisable fenêtre
+ouverte. La fin d'un glissement de la carte n'en est pas un : on mesure le
+déplacement entre l'appui et le relâché (6 px). **Un contenu long porte son
+« Retour en haut »** (`retour-en-haut_controller.js`, `fenetre/_retour_en_haut.html.twig`) :
+posé sur le conteneur qui défile, le bouton reste collé en bas à droite, n'apparaît
+qu'au-delà de 320 px de défilement, et rend le focus au titre.
 
 **La ville est la première fenêtre** (`fenetre/ville.html.twig`) : **un rail de
 carrés à gauche — la cité —, le panneau du bâtiment choisi à droite**. Cliquer un
@@ -301,12 +308,12 @@ WebP à fond transparent dans `app/assets/images/ville/{batiments,lots}/`. Le sp
 privé de son eau (bleu clair) : le fleuve est celui du plan. **Pour déplacer un lot**, changer
 ses coordonnées dans `EmplacementsDeLaVille` ; **pour remplacer un sprite**, relancer l'outil.
 
-**Chaque carré a son emplacement de visuel** : déposer
-`app/assets/images/batiments/<type>.webp` (`grenier.webp`, `maison_des_scribes.webp`…)
-suffit, `BatimentsDeLaCite` teste l'existence du fichier et le gabarit n'a pas à
-changer ; sans image, un monogramme tient la place dans le même cadre, pour que
-la grille ne bouge pas à l'arrivée des images. Les chantiers de bâtiments qui
-n'existent pas encore ne font pas un carré : ils figurent dans la Résidence.
+**Chaque carré du rail montre le sprite du palier de son bâtiment** — le même que sur la
+ville vue d'en haut (`app/assets/images/ville/batiments/<type>_<palier>.webp`, palier =
+`min(niveau, 4)`), entier et jamais rogné, au-dessus de l'étiquette. `BatimentsDeLaCite`
+teste l'existence du fichier : sans image, un monogramme tient la place dans le même
+cadre, pour que la grille ne bouge pas. Les chantiers de bâtiments qui n'existent pas
+encore ne font pas un carré : ils figurent dans la Résidence.
 
 ## Signaux, alertes et reprise d'onglet
 

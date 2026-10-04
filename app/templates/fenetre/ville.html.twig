@@ -8,8 +8,8 @@
    pour le navigateur. Les sous-onglets d'un bâtiment, eux, restent
    (`_sous_onglets.html.twig`).
 
-   Chaque carré a son emplacement de visuel : l'image s'il en existe une
-   (`assets/images/batiments/<type>.webp`), un monogramme sinon.
+   Chaque carré porte le sprite du palier du bâtiment (le même que sur la ville
+   vue d'en haut), un monogramme à défaut.
 
    Les liens qui quittent la ville — vers une case de la carte — portent
    `data-turbo-frame="_top"` : ils chargent la page entière, pas le cadre. #}
@@ -37,8 +37,11 @@
                                       : 'border-ocre-500/40 bg-sable-200 hover:border-terre-500/70 hover:bg-ocre-300/30' }}
                                   focus-visible:outline-2 focus-visible:outline-lapis-500">
                             {% if entree.visuel %}
+                                {# Le sprite du palier, entier — jamais rogné — au-dessus de
+                                   l'étiquette. En ligne : pas de dépendance à la CSS compilée. #}
                                 <img src="{{ asset(entree.visuel) }}" alt="" loading="lazy" decoding="async"
-                                     class="absolute inset-0 h-full w-full object-cover">
+                                     class="absolute select-none"
+                                     style="inset: 3px 3px 20px 3px; width: calc(100% - 6px); height: calc(100% - 23px); object-fit: contain;">
                             {% else %}
                                 <span class="font-display text-2xl {{ actif ? 'text-terre-600' : 'text-ocre-600/70 group-hover:text-terre-500' }}" aria-hidden="true">
                                     {{ type.libelle|first|upper }}
@@ -76,7 +79,8 @@
             </ul>
         </nav>
 
-        <div class="min-h-0 min-w-0 flex-1 overflow-y-auto px-5 pb-10 pt-4 md:px-6">
+        <div class="min-h-0 min-w-0 flex-1 overflow-y-auto px-5 pb-10 pt-4 md:px-6"
+             data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
             {# Ce que la barre de jeu ne dit pas : ce que la saison change
                concrètement. Une ligne, pas un encadré.
 
@@ -108,6 +112,8 @@
             <section id="panneau-{{ onglet.cle }}" aria-labelledby="fenetre-titre">
                 {{ include('partie/batiments/_' ~ onglet.cle ~ '.html.twig') }}
             </section>
+
+            {{ include('fenetre/_retour_en_haut.html.twig') }}
         </div>
     </div>
 </turbo-frame>

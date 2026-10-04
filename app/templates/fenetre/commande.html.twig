@@ -7,7 +7,8 @@
 <turbo-frame id="fenetre" class="block h-full">
     {{ include('_messages_de_jeu.html.twig') }}
 
-    <section class="h-full overflow-y-auto px-5 py-10 md:px-8">
+    <section class="h-full overflow-y-auto px-5 py-10 md:px-8"
+             data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
         {% if mission %}
             <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
                 Mission {{ mission.numero }} sur 10 · {{ mission.region }}
@@ -127,5 +128,7 @@
         </dl>
         </div>
         </div>
+
+        {{ include('fenetre/_retour_en_haut.html.twig') }}
     </section>
 </turbo-frame>

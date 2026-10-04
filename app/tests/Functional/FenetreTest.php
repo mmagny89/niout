@@ -166,7 +166,31 @@ final class FenetreTest extends WebTestCase
 
             self::assertResponseIsSuccessful($adresse);
             self::assertSelectorCount(1, '#fenetre-titre', $adresse.' : un seul titre, celui que la fenêtre annonce.');
+            // Un contenu long défile dans la fenêtre : il porte son « Retour en haut ».
+            self::assertSelectorCount(1, '[data-controller="retour-en-haut"] [data-retour-en-haut-target="bouton"]', $adresse);
+            self::assertSelectorExists('[data-controller="retour-en-haut"][data-action*="scroll->retour-en-haut#defiler"]', $adresse);
         }
+    }
+
+    /**
+     * Le rail de la cité montre le sprite du palier de chaque bâtiment — le même
+     * que sur la ville vue d'en haut —, et plus un monogramme.
+     */
+    public function testLeRailMontreLeSpriteDuPalierDeChaqueBatiment(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-rail@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier, 3));
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Temple, 5));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=grenier', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        $image = static fn (string $type): string => (string) $crawler->filter(\sprintf('nav a[href$="onglet=%s"] img', $type))->attr('src');
+        self::assertStringContainsString('/batiments/grenier_3', $image('grenier'), 'Le palier suit le niveau.');
+        self::assertStringContainsString('/batiments/temple_4', $image('temple'), 'Le niveau cinq garde le dernier palier.');
+        self::assertStringContainsString('/batiments/residence_familiale_1', $image('residence_familiale'), 'Le foyer de la lignée est au niveau un.');
     }
 
     /**

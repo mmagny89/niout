@@ -7,7 +7,7 @@
 <turbo-frame id="fenetre" class="block h-full" data-forme="feuille">
     {{ include('_messages_de_jeu.html.twig') }}
 
-    <div class="h-full overflow-y-auto">
+    <div class="h-full overflow-y-auto" data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
     <article class="p-5 pr-12 md:p-6 md:pr-12">
         <div class="flex flex-wrap items-baseline justify-between gap-3">
             <h2 id="fenetre-titre" class="font-display text-xl text-encre-900">
@@ -321,5 +321,7 @@
             {% endif %}
         {% endif %}
     </article>
+
+    {{ include('fenetre/_retour_en_haut.html.twig') }}
     </div>
 </turbo-frame>

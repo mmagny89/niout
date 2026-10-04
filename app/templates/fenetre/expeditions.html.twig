@@ -4,7 +4,8 @@
 <turbo-frame id="fenetre" class="block h-full" data-forme="feuille">
     {{ include('_messages_de_jeu.html.twig') }}
 
-    <div class="h-full overflow-y-auto p-5 pr-12 md:p-6 md:pr-12">
+    <div class="h-full overflow-y-auto p-5 pr-12 md:p-6 md:pr-12"
+         data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
         <h2 id="fenetre-titre" class="font-display text-xl text-encre-900">Expéditions en route</h2>
 
         {% if ville.expeditions|length > 0 %}
@@ -32,5 +33,7 @@
                 Aucune expédition en route. Envoyez un éclaireur depuis une case inexplorée.
             </p>
         {% endif %}
+
+        {{ include('fenetre/_retour_en_haut.html.twig') }}
     </div>
 </turbo-frame>

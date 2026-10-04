@@ -14,6 +14,12 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les fenêtres se ferment d'un clic à côté**, sur le fond de la carte ou de la
+  ville ; les liens, boutons et champs gardent leur rôle, et la barre de jeu reste
+  utilisable fenêtre ouverte. Un contenu long a son bouton **« Retour en haut »**,
+  collé en bas de la fenêtre. Le rail des bâtiments montre maintenant **leur
+  illustration**, qui suit leur niveau, à la place des lettres.
+
 - **La ville se voit d'en haut** : un clic sur la ville remplace la carte par son
   plan — quinze lots, dont douze reçoivent un bâtiment. Chaque bâtiment dressé
   apparaît sur son lot, son aspect suivant son niveau (quatre paliers), et un

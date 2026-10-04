@@ -27,9 +27,11 @@ import { Controller } from '@hotwired/stimulus';
  * ouverte n'a pas d'entrée à elle : le retour quitte alors la carte, ce qui est
  * l'attendu d'un rechargement.
  *
- * **Il n'y a pas de « clic sur le fond »**, la fenêtre étant non modale : la
- * carte reste vivante derrière, et cliquer une case charge sa page, ce qui
- * referme la fenêtre de fait.
+ * **Un clic en dehors de la fenêtre la ferme** — sur le fond de la carte ou de la
+ * ville, pas sur ce qui agit déjà : un lien (une autre case, un bâtiment), un
+ * bouton, un champ font leur travail, et la barre de jeu, hors de ce contrôleur,
+ * reste utilisable fenêtre ouverte. Un clic qui termine un **glissement** de la
+ * carte n'en est pas un : on mesure le déplacement entre l'appui et le relâché.
  *
  * **Au clavier et au lecteur d'écran** : à chaque chargement du cadre, le focus
  * entre sur le titre de la fenêtre (`#fenetre-titre`), que le lecteur d'écran
@@ -71,6 +73,15 @@ export default class extends Controller {
 
         // Le cadre vit dans la fenêtre : on l'écoute là où il est, qu'il ait été
         // rendu par le serveur ou qu'il le soit à l'arrivée.
+        // Un appui puis un relâché au même endroit, hors de la fenêtre et hors de
+        // tout ce qui agit : on ferme.
+        this.surAppui = (evenement) => {
+            this.appui = { x: evenement.clientX, y: evenement.clientY };
+        };
+        this.surClicDehors = (evenement) => this.clicDehors(evenement);
+        this.element.addEventListener('pointerdown', this.surAppui, true);
+        this.element.addEventListener('click', this.surClicDehors);
+
         // Un lien de la barre — une pastille de signal — ouvre la fenêtre sans
         // être dans ce contrôleur : on retient d'où l'on vient pour y rendre le
         // focus, comme pour une tuile.
@@ -87,6 +98,8 @@ export default class extends Controller {
         window.removeEventListener('popstate', this.surHistorique);
         document.removeEventListener('keydown', this.surEchap);
         document.removeEventListener('click', this.surClic, true);
+        this.element.removeEventListener('pointerdown', this.surAppui, true);
+        this.element.removeEventListener('click', this.surClicDehors);
         this.element.removeEventListener('turbo:frame-load', this.surChargement);
         this.element.removeEventListener('turbo:submit-end', this.surEnvoi);
     }
@@ -99,6 +112,26 @@ export default class extends Controller {
 
         this.origine = evenement?.currentTarget ?? document.activeElement;
         this.montrer();
+    }
+
+    /** Un clic hors de la fenêtre, sur du vide : elle se ferme. */
+    clicDehors(evenement) {
+        if (!this.fenetreTarget.open) {
+            return;
+        }
+
+        const cible = evenement.target;
+
+        if (this.fenetreTarget.contains(cible) || cible.closest?.('a, button, input, select, textarea, label, summary')) {
+            return;
+        }
+
+        // La fin d'un glissement de la carte n'est pas un clic.
+        if (this.appui && Math.hypot(evenement.clientX - this.appui.x, evenement.clientY - this.appui.y) > 6) {
+            return;
+        }
+
+        this.fermer();
     }
 
     /** Un lien qui cible la fenêtre, hors d'elle : c'est lui qui la rouvrira. */
