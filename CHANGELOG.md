@@ -12,6 +12,13 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+## [0.14.0] - 2026-10-04
+
+**La carte devient la seule page de jeu.** La ville, la commande du pharaon, le détail
+d'une case et les expéditions s'ouvrent en fenêtre par-dessus ; un clic sur la ville la
+montre d'en haut, chaque bâtiment posé sur son lot ; ressources, objets et dieux
+ont leurs illustrations. Le jeu est désormais en **bêta**.
+
 ### Ajouté
 
 - **Les ressources et les dieux ont leur illustration** : trente-deux ressources et
@@ -161,6 +168,12 @@ la lecture de référence pour comprendre le code.
   autour du point tenu, la molette aussi. Un glissement n'ouvre plus la case
   qu'il traverse.
 
+### Modifié
+
+- **Dépendances mises à jour** : Symfony 8.1, Doctrine ORM, Twig 3.30 et les outils de
+  qualité (PHPUnit, PHPStan, PHP-CS-Fixer). PHPStan, plus strict, a fait corriger
+  trois lignes de code sans effet sur le jeu.
+
 ### Corrigé
 
 - **La fenêtre ne passe plus sous la barre de jeu** : son haut, titre et messages
@@ -245,6 +258,7 @@ au journal des phases.
 - Déploiement par clé SSH restreinte à un script unique (*forced command*),
   empreinte d'hôte épinglée.
 
-[Non publié]: https://github.com/mmagny89/niout/compare/v0.13.0...HEAD
+[Non publié]: https://github.com/mmagny89/niout/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/mmagny89/niout/releases/tag/v0.14.0
 [0.13.0]: https://github.com/mmagny89/niout/releases/tag/v0.13.0
 [0.12.0]: https://github.com/mmagny89/niout/releases/tag/v0.12.0

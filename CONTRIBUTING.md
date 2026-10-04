@@ -41,8 +41,10 @@ jamais Tailwind.
   `GameSave`), propriétés et méthodes en français (`$joueur`,
   `marquerOuverte()`). Le vocabulaire de l'univers ne se traduit jamais —
   Medjaÿ, Akhèt, quinzaine, Niout.
-- **Branches** : `feat/…` ou `fix/…`, fusionnées dans `main` par demande de
-  fusion. `main` est toujours déployable : ce qui y entre part en production.
+- **Branches** : `feat/…` ou `fix/…`, fusionnées dans **`develop`** par demande de
+  fusion — Dependabot y ouvre aussi ses propres demandes, et la porte qualité les
+  contrôle. `develop` est fusionnée dans `main` pour livrer. `main` est toujours
+  déployable : ce qui y entre part en production.
 - **Un changement de règle du jeu se documente** dans `docs/`, avec sa raison
   d'être. Une règle sans son pourquoi se fait supprimer par le suivant, qui
   repaiera le défaut qu'elle évitait.

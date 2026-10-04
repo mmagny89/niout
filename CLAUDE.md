@@ -11,7 +11,9 @@ agent qui démarre lise d'abord ce dont il a besoin :
 | Document | Ce qu'il porte | Quand l'ouvrir |
 |---|---|---|
 | [`docs/regles-du-jeu.md`](docs/regles-du-jeu.md) | Les invariants du jeu et leur raison d'être : ressources, carte, commerce, population, chefs, dieux, missions, énigmes | Avant de toucher à `src/Game/` ou `src/Entity/` |
-| [`docs/interface.md`](docs/interface.md) | Les écrans : les deux coques, la barre de jeu, les onglets, la carte isométrique | Avant de toucher à `templates/` ou `assets/controllers/` |
+| [`docs/interface.md`](docs/interface.md) | Les écrans : les deux coques, la barre de jeu, les fenêtres, la carte isométrique, la ville vue d'en haut | Avant de toucher à `templates/` ou `assets/controllers/` |
+| [`docs/plan-fenetres.md`](docs/plan-fenetres.md) | Le chantier « tout en fenêtres » : décisions, phases, journal et pièges | Avant de toucher à la fenêtre, à la carte ou à `src/Fenetre/` |
+| [`docs/prompts-images-ville.md`](docs/prompts-images-ville.md) | Les prompts des images de la ville et leur cahier des charges | Avant de regénérer ou d'ajouter une image de ville |
 | [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md) | La feuille de route et les décisions actées | Pour savoir ce qui est fait et ce qui vient |
 | [`docs/phases-livrees.md`](docs/phases-livrees.md) | Le journal des phases : intention, lots, pièges payés | Pour comprendre **pourquoi** une décision a été prise |
 | [`.claude/rules/stack-conventions.md`](.claude/rules/stack-conventions.md) | L'infrastructure Docker — **fait autorité** | Avant de toucher à `compose*.yml`, `docker/` ou aux `.env` |
@@ -84,6 +86,17 @@ git, se supprime sans risque (`rm -rf app/public/assets`) et se régénère au
 déploiement. Défaut réel, payé : une refonte d'ergonomie entière — coque plein
 écran, empilement de la barre, deux contrôleurs Stimulus neufs — est restée
 invisible, et les symptômes ressemblaient à s'y méprendre à des erreurs de CSS.
+
+**Un changement de géométrie qui s'écrase en silence** : une classe Tailwind nouvelle
+(`aspect-[…]`, une valeur arbitraire) n'existe qu'après `tailwind:build`. La vue de la ville
+dépendait d'`aspect-[1376/768]` : sans recompilation, le conteneur tombait à une hauteur
+nulle et tous les sprites s'écrasaient sur une ligne. Ce dont la mise en page dépend
+**essentiellement** — rapport d'un visuel, contexte d'empilement — se pose donc **en ligne**.
+
+Les images : `sources-sprites/` (ignoré par git, JPEG de plusieurs Mo) alimente
+`outils/decouper-batiments.py`, `outils/decouper-icones.py` et
+`outils/preparer-plans-de-ville.py` (Pillow seul), qui écrivent sous
+`app/assets/images/`. `Game/AncragesDesSprites.php` est **généré** : ne pas l'éditer.
 
 Deux prérequis faciles à oublier, tous deux dus à des artefacts vivant dans `app/var/`, ignoré par git :
 
@@ -218,6 +231,11 @@ fonctionnent sans JavaScript (par exemple `renvoyer-verification`).
 - `src/Game/` — **règles et contenu**, jamais persistés : `MissionCatalogue`,
   `DotationRoyale`, `LanceurDePartie`. Une valeur qui vient des documents de
   conception (coût, formule, seuil, texte de mission) va ici, pas en base.
+- `src/Fenetre/` — ce que la carte ouvre **au-dessus d'elle** : l'ouverture validée
+  d'une fenêtre (`OuvertureDeFenetre`), le détail d'une case, le rail, la vue de la
+  ville, et `Panneau/` — **un fournisseur de données par bâtiment**, qui ne calcule
+  que le panneau ouvert. Un gabarit de panneau qui gagne une variable la demande à
+  *son* fournisseur, pas au contrôleur.
 
 `Family` et `City` appartiennent à leur `GameSave` (cascade `remove`) ; toute
 entité rattachée à une partie suit ce principe. **`Lignee` est l'exception** :

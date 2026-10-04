@@ -145,6 +145,8 @@ vues, pas de la conception.
 | **10** | Medjaÿ et combat automatique | `03` | ✅ |
 | **11** | Mode Aventure : Memphis, succession des règnes, héritage familial | `14`, `13`, `01` | ✅ |
 
+| — | **Chantier « tout en fenêtres »** *(hors phase)* : la carte seule page de jeu, la ville vue d'en haut | `15` | ✅ — voir [`plan-fenetres.md`](plan-fenetres.md) |
+
 **La Phase 11 est la dernière.** L'intégration des sprites, un temps prévue en
 Phase 12, **n'est plus une phase** (décision de la joueuse) : le document 15 est
 transverse, chaque phase l'utilise au fur et à mesure, et le travail restant est
@@ -182,6 +184,13 @@ garde plus que **ce qui n'est pas fait** : ce qu'il faut corriger, ce qu'il faut
 | **La mission 9 demande une trésorerie là où le doc 09 veut de l'or** | `ObjectifsDeMission` | Le Ouadi Hammamat en porte : l'aligner est trivial. Reste à savoir si deux objectifs de ressource pure sur la même mission ne la rendent pas monotone — c'est pourquoi ce n'est pas encore fait |
 
 ### À éprouver — ce qu'aucun test ne peut trancher
+
+**Le chantier des fenêtres et la ville vue d'en haut n'ont pas été éprouvés par un navigateur
+automatisé** : tout ce que fait le JavaScript — ouverture et fermeture (Échap, croix, clic en
+dehors, retour du navigateur), focus rendu, rail qui défile, « Retour en haut » — ne se
+voit qu'en jouant. Les scénarios à passer sont dans [`plan-fenetres.md`](plan-fenetres.md).
+Au téléphone, vérifier que la ville vue d'en haut tient à l'écran et que les bâtiments de palier
+trois et quatre, plus hauts que leur lot, ne masquent pas leurs voisins.
 
 Le **calibrage** est le gros du reste, et il ne se décide qu'en jouant. Le § 6
 liste les valeurs inventées une à une. Trois méritent une attention
@@ -307,7 +316,16 @@ découpage et d'intégration.
    interface 16 items) — le doc 15 anticipe déjà un re-découpage en 2 si besoin
 
 La planche « tuiles » est **découpée dès la Phase 3** (lot 3.3) : la carte se
-dessine avec elle. Le reste peut attendre.
+dessine avec elle.
+
+**État (0.14.0).** Sont intégrés : les **douze planches de bâtiments**, regénérées
+pour la ville vue d'en haut (un lot identique à chaque palier — voir
+[`prompts-images-ville.md`](prompts-images-ville.md)), les **trois planches de
+ressources et d'objets** (trente-deux icônes) et les **portraits des huit dieux**.
+Restent : la planche d'**icônes d'interface** (16), et les ressources sans image — le
+deben, le poisson, les dattes, la grauwacke, les outils et les armes. Les outils de
+découpe vivent dans `outils/` ; leurs sources, dans `sources-sprites/`, ne sont pas
+versionnées — **à garder de côté**.
 
 **Attention au format.** La planche « tuiles » livrée contient des losanges
 **isométriques** sur fond sombre opaque, alors que son prompt du doc 15 demandait
