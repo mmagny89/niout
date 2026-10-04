@@ -11,8 +11,16 @@
 
    Les sprites se peignent du fond vers le devant (`z-index` = profondeur de
    l'enclos), pour qu'un bâtiment de devant recouvre celui de derrière. #}
-<div class="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden bg-sable-100 p-2 md:p-4">
-    <div class="relative aspect-[1376/768] max-h-full w-full max-w-full" style="max-width: min(100%, calc((100dvh) * 1376 / 768));">
+<div class="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden bg-sable-100 p-2 md:p-4"
+     style="container-type: size;">
+    {# Le rapport du visuel est posé **en ligne** et non par une classe Tailwind :
+       c'est lui qui donne sa hauteur au conteneur, dont tous les enfants sont
+       en `absolute`. Une classe oubliée par la compilation de la CSS le ferait
+       tomber à zéro, et les sprites s'écraseraient tous sur une même ligne. #}
+    {# `container-type: size` sur le parent, `cqw` / `cqh` ici : le visuel occupe la
+       plus grande place qui garde son rapport, sans jamais le déformer — les
+       sprites, en pourcentages de ce conteneur, restent calés sur lui. #}
+    <div class="relative" style="aspect-ratio: 1376 / 768; width: min(100cqw, 100cqh * 1376 / 768);">
         <img src="{{ asset(vueDeLaVille.visuel) }}" alt=""
              width="1376" height="768"
              class="pointer-events-none absolute inset-0 size-full select-none object-contain">
