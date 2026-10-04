@@ -15,9 +15,9 @@ la lecture de référence pour comprendre le code.
 ### Ajouté
 
 - **La ville se voit d'en haut** : un clic sur la ville remplace la carte par son
-  plan — quinze enclos, dont douze reçoivent un bâtiment. Chaque bâtiment dressé
-  apparaît sur son enclos, son aspect suivant son niveau (quatre paliers), et un
-  clic l'ouvre directement. Un enclos pas encore bâti reste vide et mène à ce qu'il
+  plan — quinze lots, dont douze reçoivent un bâtiment. Chaque bâtiment dressé
+  apparaît sur son lot, son aspect suivant son niveau (quatre paliers), et un
+  clic l'ouvre directement. Un lot pas encore bâti reste vide et mène à ce qu'il
   reste à bâtir. Une ville au bord de l'eau s'affiche avec son fleuve et son
   ponton. Un bouton ramène au territoire ; avancer d'une quinzaine reste sur la
   ville.

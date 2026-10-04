@@ -272,21 +272,34 @@ case vivent dans `Fenetre\DetailDeCase`, plus dans le contrôleur de la carte.
 
 **La ville vue d'en haut** (`carte?vue=ville`, en cliquant la tuile de la ville) remplace
 le territoire par un visuel — `ville`, ou `ville_port` quand `City::jouxteUnPointDEau()` —
-sur lequel chaque bâtiment dressé est posé à son enclos. Les emplacements sont des
-données de présentation (`Game\EmplacementsDeLaVille`) : quinze enclos en pixels du
-visuel (1408 × 768), douze bâtiments, **un enclos fixe par bâtiment** — on ne choisit
-pas où bâtir, on choisit quoi. `Fenetre\VueDeLaVille` les convertit en pourcentages, si
-bien que le gabarit (`partie/_vue_de_la_ville.html.twig`) n'a ni pixel ni échelle à
-connaître. Un bâtiment dressé est un lien — son sprite — vers sa fenêtre ; un enclos
-vide est un losange cliquable qui mène à la Résidence (ce qu'il reste à bâtir) ; les
-trois enclos libres sont du décor. Le sprite est choisi par palier, `min(niveau, 4)` :
-les planches en livrent quatre et les bâtiments montent au niveau cinq. Les sprites
-sont découpés depuis les planches du Drive par `outils/decouper-batiments.py`
-(`sources-sprites/`, ignoré par git) : fond beige retiré par remplissage depuis les
-bords, WebP à fond transparent dans `app/assets/images/ville/batiments/<type>_<palier>.webp`.
-**Pour déplacer un bâtiment**, changer ses coordonnées dans `EmplacementsDeLaVille` — le
-pied du sprite se cale sous le centre de l'enclos (`DECALAGE_DU_PIED`) et sa largeur suit
-celle de l'enclos (`FACTEUR_DE_LARGEUR`).
+sur lequel chaque bâtiment dressé est posé sur son **lot**. Le visuel ne porte que de la
+terre, des chemins et de la végétation : quinze clairières nues, que les sprites recouvrent.
+
+**Le lot fait l'échelle.** Chaque sprite porte son propre lot — plate-forme de terre battue
+à muret bas — **identique à ses quatre paliers** ; on le pose pour que son lot ait la
+largeur de la clairière du plan et que les deux centres coïncident. Un petit bâtiment du
+palier un n'est donc jamais gonflé à la taille d'un temple : il occupe une partie d'un lot
+qui a toujours la bonne taille. (La première série, mise à la largeur de l'enclos sprite par
+sprite, rendait « bizarre » : échelles et perspectives incohérentes.)
+
+- `Game\EmplacementsDeLaVille` : les quinze lots — centre en pixels du visuel (1376 × 768),
+  classe `l`/`m`/`s` (4×4, 3×3, 2×2 unités du plan guide) et bâtiment. **Un lot fixe par
+  bâtiment** : on ne choisit pas où bâtir, on choisit quoi. Trois lots libres, rendus par un
+  lot vide, sont du décor.
+- `Game\AncragesDesSprites` — **généré**, ne pas éditer : centre et largeur du lot dans chaque
+  sprite, mesurés par `outils/decouper-batiments.py`.
+- `Fenetre\VueDeLaVille` convertit le tout en pourcentages du visuel : le gabarit
+  (`partie/_vue_de_la_ville.html.twig`) n'a ni pixel ni échelle à connaître.
+- Un bâtiment dressé est un lien — son sprite — vers sa fenêtre ; un lot pas encore bâti
+  montre un lot vide et mène à la Résidence (ce qu'il reste à bâtir). Palier de sprite :
+  `min(niveau, 4)` — les planches en livrent quatre, les bâtiments montent au niveau cinq.
+
+**Les sprites se régénèrent par prompts** (`docs/prompts-images-ville.md`) puis se découpent par
+`outils/decouper-batiments.py` à partir de `sources-sprites/v2/` (ignoré par git) : fond
+blanc retiré par remplissage depuis les bords, quatre paliers recadrés sur un cadre commun,
+WebP à fond transparent dans `app/assets/images/ville/{batiments,lots}/`. Le sprite du Port est
+privé de son eau (bleu clair) : le fleuve est celui du plan. **Pour déplacer un lot**, changer
+ses coordonnées dans `EmplacementsDeLaVille` ; **pour remplacer un sprite**, relancer l'outil.
 
 **Chaque carré a son emplacement de visuel** : déposer
 `app/assets/images/batiments/<type>.webp` (`grenier.webp`, `maison_des_scribes.webp`…)

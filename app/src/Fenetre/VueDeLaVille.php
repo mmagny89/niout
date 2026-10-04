@@ -5,20 +5,24 @@ declare(strict_types=1);
 namespace App\Fenetre;
 
 use App\Entity\GameSave;
+use App\Game\AncragesDesSprites;
 use App\Game\EmplacementsDeLaVille;
 use App\Game\TypeDeBatiment;
 
 /**
- * La ville vue d'en haut : un visuel, des bâtiments posés sur leurs enclos, et
- * un clic qui ouvre le bon panneau.
+ * La ville vue d'en haut : un visuel, des sprites posés sur leurs lots, et un
+ * clic qui ouvre le bon panneau.
  *
  * Remplace la carte quand on clique la ville (`carte?vue=ville`). Un bâtiment
  * dressé montre son sprite — le palier suit son niveau — et ouvre sa fenêtre ;
- * un enclos dont le bâtiment n'existe pas encore reste vide, et mène à la
- * Résidence familiale, où se lit ce qu'il reste à bâtir.
+ * un lot dont le bâtiment n'existe pas encore montre un lot vide, et mène à la
+ * Résidence familiale, où se lit ce qu'il reste à bâtir. Les lots que le jeu
+ * n'emploie pas sont du décor.
  *
- * **Tout est en pourcentages du visuel** : le gabarit n'a ni pixel ni échelle à
- * connaître, la vue tient sur un téléphone comme sur un grand écran.
+ * **L'échelle vient du lot** : chaque sprite est posé pour que son lot ait la
+ * largeur de la clairière du plan, et que le centre de l'un tombe sur le centre
+ * de l'autre (`AncragesDesSprites`). **Tout est en pourcentages du visuel** : le
+ * gabarit n'a ni pixel ni échelle à connaître.
  */
 final readonly class VueDeLaVille
 {
@@ -31,43 +35,43 @@ final readonly class VueDeLaVille
         $avecPort = $ville->jouxteUnPointDEau();
         $emplacements = [];
 
-        foreach (EmplacementsDeLaVille::tous() as $enclos) {
-            $type = $enclos['type'];
+        foreach (EmplacementsDeLaVille::tous() as $lot) {
+            $type = $lot['type'];
             $batiment = null === $type ? null : $ville->batimentDeType($type);
             // La Résidence est là dès le premier jour, sans chantier ni ligne en
             // base : le foyer de la lignée.
             $dresse = null !== $type && (null !== $batiment || $type->estLeBatimentDeDepart());
             $niveau = $batiment?->getNiveau() ?? 1;
 
+            if ($dresse) {
+                $ancrage = AncragesDesSprites::BATIMENTS[$type->value];
+                $sprite = \sprintf('images/ville/batiments/%s_%d.webp', $type->value, EmplacementsDeLaVille::palierDeSprite($niveau));
+            } else {
+                // Un lot vide : un bâtiment pas encore bâti, ou du décor.
+                $ancrage = AncragesDesSprites::LOTS[$lot['classe']];
+                $sprite = \sprintf('images/ville/lots/lot_%s.webp', $lot['classe']);
+            }
+
+            // Le sprite est mis à l'échelle qui donne à son lot la largeur de la
+            // clairière, puis posé pour que les deux centres coïncident.
+            $echelle = EmplacementsDeLaVille::LARGEUR_DES_LOTS[$lot['classe']] * EmplacementsDeLaVille::FACTEUR_DE_LARGEUR
+                / $ancrage['largeurDuLot'];
+
             $emplacements[] = [
                 'type' => $type,
-                'libre' => null === $type,
+                'decor' => null === $type,
                 'dresse' => $dresse,
                 'niveau' => $dresse ? $niveau : null,
-                // Un enclos : le losange, en pourcentages du visuel.
-                'gauche' => self::pourcent($enclos['x'] - $enclos['demiLargeur'], EmplacementsDeLaVille::LARGEUR),
-                'haut' => self::pourcent($enclos['y'] - $enclos['demiHauteur'], EmplacementsDeLaVille::HAUTEUR),
-                'largeur' => self::pourcent(2 * $enclos['demiLargeur'], EmplacementsDeLaVille::LARGEUR),
-                'hauteur' => self::pourcent(2 * $enclos['demiHauteur'], EmplacementsDeLaVille::HAUTEUR),
-                // Le sprite : centré sur l'enclos, le pied un peu sous son centre.
-                'spriteX' => self::pourcent($enclos['x'], EmplacementsDeLaVille::LARGEUR),
-                'spriteY' => self::pourcent(
-                    $enclos['y'] + $enclos['demiHauteur'] * EmplacementsDeLaVille::DECALAGE_DU_PIED,
-                    EmplacementsDeLaVille::HAUTEUR,
-                ),
-                'spriteLargeur' => self::pourcent(
-                    2 * $enclos['demiLargeur'] * EmplacementsDeLaVille::FACTEUR_DE_LARGEUR,
-                    EmplacementsDeLaVille::LARGEUR,
-                ),
-                'sprite' => $dresse
-                    ? \sprintf('images/ville/batiments/%s_%d.webp', $type->value, EmplacementsDeLaVille::palierDeSprite($niveau))
-                    : null,
-                // Les bâtiments du fond se peignent avant ceux de devant.
-                'profondeur' => $enclos['y'],
+                'sprite' => $sprite,
+                'gauche' => self::pourcent($lot['x'] - $ancrage['centreX'] * $echelle, EmplacementsDeLaVille::LARGEUR),
+                'haut' => self::pourcent($lot['y'] - $ancrage['centreY'] * $echelle, EmplacementsDeLaVille::HAUTEUR),
+                'largeur' => self::pourcent($ancrage['largeur'] * $echelle, EmplacementsDeLaVille::LARGEUR),
+                // Les sprites du fond se peignent avant ceux de devant.
+                'profondeur' => $lot['y'],
                 // Où mène le clic : le bâtiment s'il existe, sinon la liste de
                 // ce qu'il reste à bâtir.
                 'onglet' => $dresse ? $type->value : TypeDeBatiment::ResidenceFamiliale->value,
-                'libelle' => null === $type ? null : $type->libelle(),
+                'libelle' => $type?->libelle(),
             ];
         }
 

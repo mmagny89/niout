@@ -7,6 +7,7 @@ namespace App\Tests\Functional;
 use App\Entity\Building;
 use App\Entity\GameSave;
 use App\Entity\User;
+use App\Game\AncragesDesSprites;
 use App\Game\EmplacementsDeLaVille;
 use App\Game\LanceurDePartie;
 use App\Game\TypeDeBatiment;
@@ -58,8 +59,8 @@ final class VueDeLaVilleTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte?vue=ville', $partie->getId()));
 
-        self::assertStringContainsString('ville-', (string) $crawler->filter('img[width="1408"]')->attr('src'));
-        self::assertStringNotContainsString('ville_port', (string) $crawler->filter('img[width="1408"]')->attr('src'));
+        self::assertStringContainsString('ville-', (string) $crawler->filter('img[width="1376"]')->attr('src'));
+        self::assertStringNotContainsString('ville_port', (string) $crawler->filter('img[width="1376"]')->attr('src'));
     }
 
     public function testLeVisuelAvecPortQuandLaVilleJouxteLEau(): void
@@ -70,7 +71,7 @@ final class VueDeLaVilleTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte?vue=ville', $partie->getId()));
 
-        self::assertStringContainsString('ville_port', (string) $crawler->filter('img[width="1408"]')->attr('src'));
+        self::assertStringContainsString('ville_port', (string) $crawler->filter('img[width="1376"]')->attr('src'));
     }
 
     /**
@@ -94,11 +95,11 @@ final class VueDeLaVilleTest extends WebTestCase
         self::assertStringContainsString('/batiments/grenier_2', (string) $grenier->filter('img')->attr('src'), 'Le palier suit le niveau.');
         self::assertSame('fenetre', $grenier->attr('data-turbo-frame'));
 
-        // Le Marché n'est pas bâti : son enclos est vide, et mène à la Résidence.
+        // Le Marché n'est pas bâti : son lot est vide, et mène à la Résidence.
         $marche = $crawler->filter('a[title="Marché — à bâtir"]');
         self::assertCount(1, $marche);
         self::assertSame(\sprintf('/partie/%d/ville?onglet=residence_familiale', $id), $marche->attr('href'));
-        self::assertCount(0, $marche->filter('img'), 'Un enclos vide ne porte pas de sprite.');
+        self::assertStringContainsString('/lots/lot_l', (string) $marche->filter('img')->attr('src'), 'Un lot pas encore bâti montre un lot vide.');
     }
 
     public function testLaResidenceEstLaDesLePremierJour(): void
@@ -126,8 +127,11 @@ final class VueDeLaVilleTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte?vue=ville', $partie->getId()));
 
-        // Douze bâtiments, douze liens ; les trois enclos libres n'en portent pas.
+        // Douze bâtiments, douze liens ; les trois lots libres n'en portent pas :
+        // ce sont des lots vides, sans lien.
         self::assertCount(12, $crawler->filter('a[data-turbo-frame="fenetre"][aria-label$="ouvrir"]'));
+        self::assertCount(3, $crawler->filter('img[src*="/lots/lot_s"]'));
+        self::assertCount(0, $crawler->filter('a img[src*="/lots/"]'), 'Le décor n\'est pas cliquable.');
         self::assertCount(12, array_filter(EmplacementsDeLaVille::tous(), static fn (array $e): bool => null !== $e['type']));
         self::assertCount(3, array_filter(EmplacementsDeLaVille::tous(), static fn (array $e): bool => null === $e['type']));
     }
@@ -149,6 +153,27 @@ final class VueDeLaVilleTest extends WebTestCase
                     \sprintf('%s/assets/images/ville/batiments/%s_%d.webp', \dirname(__DIR__, 2), $type->value, $palier),
                 );
             }
+        }
+    }
+
+    /**
+     * L'échelle vient du lot : sans ancrage, un sprite ne se pose pas. Le fichier
+     * est généré par `outils/decouper-batiments.py`.
+     */
+    public function testLesAncragesCouvrentTousLesBatimentsEtTousLesLots(): void
+    {
+        foreach (TypeDeBatiment::cases() as $type) {
+            self::assertArrayHasKey($type->value, AncragesDesSprites::BATIMENTS, $type->value);
+            self::assertGreaterThan(0, AncragesDesSprites::BATIMENTS[$type->value]['largeurDuLot']);
+        }
+
+        foreach (['s', 'm', 'l'] as $classe) {
+            self::assertArrayHasKey($classe, AncragesDesSprites::LOTS);
+            self::assertFileExists(\sprintf('%s/assets/images/ville/lots/lot_%s.webp', \dirname(__DIR__, 2), $classe));
+        }
+
+        foreach (EmplacementsDeLaVille::tous() as $lot) {
+            self::assertArrayHasKey($lot['classe'], EmplacementsDeLaVille::LARGEUR_DES_LOTS);
         }
     }
 

@@ -7,34 +7,39 @@ namespace App\Game;
 /**
  * Où chaque bâtiment se dresse sur le visuel de la ville.
  *
- * Les deux visuels (`ville`, `ville_port`) portent le même plan : quinze enclos
- * vides, que les bâtiments viennent remplir. Les coordonnées sont en pixels du
- * visuel — 1408 × 768 — et la vue les convertit en pourcentages, pour que tout
- * suive la taille de l'écran.
+ * Les deux visuels (`ville`, `ville_port`) portent le même plan : une dalle de
+ * terre, des chemins, et **quinze lots** — des clairières de terre nue sur
+ * lesquelles viennent se poser les sprites. Les coordonnées sont en pixels du
+ * visuel (1376 × 768) ; la vue les convertit en pourcentages, pour que tout suive
+ * la taille de l'écran.
  *
- * Douze enclos reçoivent un bâtiment, trois restent libres : ce sont de la
- * place que le jeu n'emploie pas encore. **Chaque bâtiment a son enclos, fixe** :
- * on ne choisit pas où bâtir, on choisit quoi — la ville se gère, elle ne se
+ * **Chaque sprite porte son propre lot** — le même, à tous ses paliers — et c'est
+ * le lot qui fait l'échelle : on pose le sprite pour que son lot ait la largeur de
+ * la clairière du plan (`AncragesDesSprites`, généré). Un petit bâtiment du palier
+ * un n'est donc jamais gonflé à la taille d'un temple : il occupe une partie d'un
+ * lot qui, lui, a toujours la bonne taille.
+ *
+ * Douze lots reçoivent un bâtiment, trois restent libres : de la place que le jeu
+ * n'emploie pas encore, rendue par un lot vide. **Chaque bâtiment a son lot, fixe**
+ * : on ne choisit pas où bâtir, on choisit quoi — la ville se gère, elle ne se
  * dessine pas (doc 15).
- *
- * Un enclos est un losange : son centre, sa demi-largeur et sa demi-hauteur.
  */
 final class EmplacementsDeLaVille
 {
-    public const int LARGEUR = 1408;
+    public const int LARGEUR = 1376;
     public const int HAUTEUR = 768;
 
     /**
-     * Le sprite d'un bâtiment est un peu plus large que son enclos : il en
-     * recouvre les murets.
+     * Largeur, sur le plan, de la clairière de chaque classe de lot : grand
+     * (4 × 4 unités du plan guide), moyen (3 × 3), petit (2 × 2).
      */
-    public const float FACTEUR_DE_LARGEUR = 1.15;
+    public const array LARGEUR_DES_LOTS = ['l' => 305, 'm' => 222, 's' => 148];
 
     /**
-     * Le bas du sprite descend sous le centre de l'enclos, de ce multiple de sa
-     * demi-hauteur : le bâtiment pose son pied sur le sol, pas en son milieu.
+     * Le sprite est un peu plus large que la clairière : son muret en recouvre le
+     * bord. Un sprite plus grand mordrait sur les chemins voisins.
      */
-    public const float DECALAGE_DU_PIED = 1.25;
+    public const float FACTEUR_DE_LARGEUR = 0.99;
 
     /**
      * Les planches livrent quatre paliers de sprite ; les bâtiments montent au
@@ -43,29 +48,31 @@ final class EmplacementsDeLaVille
     public const int PALIERS_DE_SPRITE = 4;
 
     /**
-     * @return list<array{x: int, y: int, demiLargeur: int, demiHauteur: int, type: ?TypeDeBatiment}>
+     * Le centre du lot, sa classe (`l`, `m`, `s`) et son bâtiment — null pour un
+     * lot libre.
+     *
+     * @return list<array{x: int, y: int, classe: string, type: ?TypeDeBatiment}>
      */
     public static function tous(): array
     {
         return [
-            ['x' => 565, 'y' => 200, 'demiLargeur' => 115, 'demiHauteur' => 62, 'type' => TypeDeBatiment::ResidenceFamiliale],
-            ['x' => 857, 'y' => 188, 'demiLargeur' => 90, 'demiHauteur' => 48, 'type' => TypeDeBatiment::MaisonDesScribes],
-            ['x' => 995, 'y' => 268, 'demiLargeur' => 105, 'demiHauteur' => 55, 'type' => TypeDeBatiment::Marche],
-            ['x' => 1135, 'y' => 357, 'demiLargeur' => 105, 'demiHauteur' => 55, 'type' => TypeDeBatiment::Caserne],
-            ['x' => 390, 'y' => 310, 'demiLargeur' => 115, 'demiHauteur' => 62, 'type' => TypeDeBatiment::Temple],
-            ['x' => 240, 'y' => 386, 'demiLargeur' => 90, 'demiHauteur' => 48, 'type' => TypeDeBatiment::QuartierDHabitation],
-            ['x' => 725, 'y' => 281, 'demiLargeur' => 65, 'demiHauteur' => 35, 'type' => null],
-            ['x' => 556, 'y' => 382, 'demiLargeur' => 65, 'demiHauteur' => 32, 'type' => null],
-            ['x' => 858, 'y' => 369, 'demiLargeur' => 90, 'demiHauteur' => 48, 'type' => TypeDeBatiment::Entrepot],
-            ['x' => 440, 'y' => 456, 'demiLargeur' => 88, 'demiHauteur' => 46, 'type' => TypeDeBatiment::Grenier],
-            ['x' => 712, 'y' => 451, 'demiLargeur' => 80, 'demiHauteur' => 42, 'type' => TypeDeBatiment::Atelier],
-            ['x' => 972, 'y' => 446, 'demiLargeur' => 82, 'demiHauteur' => 42, 'type' => TypeDeBatiment::Forge],
-            ['x' => 575, 'y' => 533, 'demiLargeur' => 80, 'demiHauteur' => 42, 'type' => TypeDeBatiment::Auberge],
-            // Le Port a son enclos au bord de l'eau, à côté du ponton de
-            // `ville_port` : il n'a d'existence que là où la ville jouxte un
-            // point d'eau (doc 01).
-            ['x' => 875, 'y' => 535, 'demiLargeur' => 120, 'demiHauteur' => 62, 'type' => TypeDeBatiment::Port],
-            ['x' => 675, 'y' => 600, 'demiLargeur' => 65, 'demiHauteur' => 32, 'type' => null],
+            ['x' => 697, 'y' => 160, 'classe' => 'l', 'type' => TypeDeBatiment::Temple],
+            ['x' => 885, 'y' => 251, 'classe' => 'l', 'type' => TypeDeBatiment::ResidenceFamiliale],
+            ['x' => 515, 'y' => 251, 'classe' => 'l', 'type' => TypeDeBatiment::Caserne],
+            ['x' => 1068, 'y' => 343, 'classe' => 'l', 'type' => TypeDeBatiment::Marche],
+            // Le Port a son lot au bord de l'eau, à côté du ponton de `ville_port` :
+            // il n'a d'existence que là où la ville jouxte un point d'eau (doc 01).
+            ['x' => 803, 'y' => 548, 'classe' => 'l', 'type' => TypeDeBatiment::Port],
+            ['x' => 696, 'y' => 326, 'classe' => 'm', 'type' => TypeDeBatiment::MaisonDesScribes],
+            ['x' => 844, 'y' => 399, 'classe' => 'm', 'type' => TypeDeBatiment::QuartierDHabitation],
+            ['x' => 327, 'y' => 326, 'classe' => 'm', 'type' => TypeDeBatiment::Entrepot],
+            ['x' => 512, 'y' => 382, 'classe' => 'm', 'type' => TypeDeBatiment::Grenier],
+            ['x' => 654, 'y' => 440, 'classe' => 's', 'type' => TypeDeBatiment::Atelier],
+            ['x' => 547, 'y' => 494, 'classe' => 's', 'type' => TypeDeBatiment::Forge],
+            ['x' => 360, 'y' => 440, 'classe' => 's', 'type' => TypeDeBatiment::Auberge],
+            ['x' => 172, 'y' => 384, 'classe' => 's', 'type' => null],
+            ['x' => 990, 'y' => 455, 'classe' => 's', 'type' => null],
+            ['x' => 915, 'y' => 492, 'classe' => 's', 'type' => null],
         ];
     }
 
