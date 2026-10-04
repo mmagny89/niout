@@ -1,11 +1,16 @@
 # Niout
 
-[![Qualité](https://github.com/mmagny89/niout/actions/workflows/qualite.yml/badge.svg?branch=main)](https://github.com/mmagny89/niout/actions/workflows/qualite.yml)
+[![Qualité et déploiement](https://github.com/mmagny89/niout/actions/workflows/qualite.yml/badge.svg?branch=main)](https://github.com/mmagny89/niout/actions/workflows/qualite.yml)
+[![Release](https://github.com/mmagny89/niout/actions/workflows/release.yml/badge.svg)](https://github.com/mmagny89/niout/actions/workflows/release.yml)
 [![Version](https://img.shields.io/github/v/tag/mmagny89/niout?label=version&sort=semver)](CHANGELOG.md)
 [![Licence MIT](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 [![PHP 8.5](https://img.shields.io/badge/PHP-8.5-777bb4)](https://www.php.net/)
 [![Symfony 8.1](https://img.shields.io/badge/Symfony-8.1-000000)](https://symfony.com/)
+[![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![FrankenPHP](https://img.shields.io/badge/FrankenPHP-1.12-6e40c9)](https://frankenphp.dev/)
+[![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![PHPStan niveau 8](https://img.shields.io/badge/PHPStan-niveau%208-2a5ea7)](https://phpstan.org/)
+[![Conventional Commits](https://img.shields.io/badge/Conventional_Commits-1.0.0-fe5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/fr/v1.0.0/)
 
 Jeu de gestion jouable au navigateur, situé dans l'Égypte du Nouvel Empire
 (~1550-1070 av. J.-C.). Le joueur incarne une famille chargée par un pharaon de

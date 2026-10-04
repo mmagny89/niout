@@ -1,4 +1,4 @@
-name: Publication
+name: Release
 
 # Une release se declenche par l'etiquette, jamais a la main : c'est
 # l'etiquette qui fait foi de ce qui est publie. L'entree manuelle n'existe
