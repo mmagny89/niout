@@ -111,14 +111,14 @@ final readonly class ExerciceDesSons
                 default => \sprintf('Que note le signe « %s » ?', mb_strtolower($signe->objet())),
             },
             'glyphe' => self::GLYPHE_VERS_SON === $type ? $signe->signe() : null,
-            'options' => array_values(array_map(
+            'options' => array_map(
                 static fn (SigneAlphabetique $s): array => [
                     'valeur' => $s->value,
                     'libelle' => $enGlyphes ? $s->signe() : \sprintf('%s — %s', $s->translitteration(), $s->son()),
                     'glyphe' => $enGlyphes,
                 ],
                 $propositions,
-            )),
+            ),
             'bonne' => $signe->value,
         ];
     }
