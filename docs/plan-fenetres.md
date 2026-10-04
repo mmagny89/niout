@@ -81,7 +81,7 @@ Chaque phase se livre seule, tests verts, et laisse le jeu jouable.
    suppression de la page cité.
 4. **Commande et reprise.** *(livrée)* Ouverture d'office en fenêtre ; la route « reprendre »
    atterrit sur la carte.
-5. **Case, expéditions, signaux** — selon la décision du § 7.
+5. **Case, expéditions, signaux.** *(livrée)* Selon la décision du § 7.
 6. **Assainissement.** `PartieController` fait 2 532 lignes et `ville()` en prend
    250 : elle calcule les données de **tous** les panneaux alors qu'on n'en ouvre
    qu'un. Une fois dans des cadres, chaque panneau ne doit calculer que le sien
@@ -173,3 +173,20 @@ fenêtre. L'écran de reprise est supprimé : `app_partie_reprendre` date l'ouve
 depuis « Mes parties ». **Même réserve** : l'ouverture d'office et la fermeture ne
 se vérifient qu'au navigateur. À essayer : créer une partie (la commande s'ouvre
 sur la carte), la fermer, recharger (elle ne revient pas), « retour » du navigateur.
+
+**Phase 5 livrée.** La carte est plein écran. **La case** est une fenêtre
+(`app_partie_case`, `/partie/{id}/case/{x}-{y}`) en **feuille** à droite — la forme est
+déclarée par le contenu (`data-forme="feuille"`) et lue par CSS (`:has()`), pas par
+JavaScript. **Écart au plan** : la fenêtre n'est pas *ancrée* à la case, c'est la
+fenêtre unique du § 4, en forme de feuille — l'ancrage demanderait de la
+géométrie à la volée que rien ne justifie encore. Les actions de case redirigent
+vers cette fenêtre (`retourALaCarte`). **Les signaux et les expéditions** sont des
+pastilles de la barre (`signaux` passé par la carte et par la route `barre`) ;
+`app_partie_expeditions` porte la liste. Les données de la case sortent du contrôleur
+vers `Fenetre\DetailDeCase`, et `?zone=x-y` reste un alias de l'ouverture. Le
+bouton « Lever le brouillard » du mode divin et un lien « Bâtiments » flottent sur la
+carte. **Même réserve** : tout ce qui est JavaScript et CSS réel ne se vérifie qu'au
+navigateur. À essayer : cliquer une case (la feuille s'ouvre, la carte reste
+cliquable), passer d'une case à l'autre, envoyer un éclaireur (la feuille se met
+à jour), cliquer une pastille de signal puis « Expéditions en route », avancer
+d'une quinzaine feuille ouverte (elle se rouvre).

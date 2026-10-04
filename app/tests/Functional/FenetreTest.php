@@ -139,6 +139,73 @@ final class FenetreTest extends WebTestCase
         self::assertGreaterThan(0, $crawler->filter('[data-carte-target="grille"]')->count(), 'La carte est toujours là, derrière.');
     }
 
+    public function testLaCaseRepondEnCadreEnFeuille(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-case-cadre@example.com');
+        $zone = $partie->getVille()->getZones()->last();
+        self::assertNotFalse($zone);
+
+        $client->request('GET', \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $zone->getX(), $zone->getY()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('turbo-frame#fenetre[data-forme="feuille"]', 'Le détail d\'une case est une feuille, pas la grande fenêtre.');
+        self::assertSelectorExists('#fenetre-titre');
+        self::assertSelectorNotExists('turbo-frame#barre');
+    }
+
+    public function testSansEnTeteDeCadreLaCaseRendLaCarteOuverteEtSurlignee(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-case-renvoi@example.com');
+        $zone = $partie->getVille()->getZones()->last();
+        self::assertNotFalse($zone);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $zone->getX(), $zone->getY()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('dialog[data-fenetre-target="fenetre"][open] #fenetre-titre');
+        self::assertGreaterThan(0, $crawler->filter('[data-carte-target="grille"]')->count());
+        self::assertCount(1, $crawler->filter('a.bg-or-300\\/45'), 'La case ouverte est surlignée sur la carte.');
+    }
+
+    public function testUneCaseInconnueEstIntrouvable(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-case-inconnue@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/case/99-99', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testLesExpeditionsSeLisentEnFenetre(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-expeditions@example.com');
+
+        $client->request('GET', \sprintf('/partie/%d/expeditions', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('#fenetre-titre', 'Expéditions');
+        self::assertSelectorTextContains('turbo-frame#fenetre', 'Aucune expédition en route');
+    }
+
+    /**
+     * La carte n'a plus de panneau de signaux : ils vivent dans la barre.
+     */
+    public function testLaBarreDitLesSignauxEtLesExpeditions(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-pastilles@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/barre', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        // Une partie neuve a des bras sans ouvrage : au moins un signal.
+        self::assertGreaterThan(0, $crawler->filter('turbo-frame#barre a[data-turbo-frame="fenetre"]')->count());
+    }
+
     /**
      * Le paramètre vient du visiteur : on ne le suit jamais sans le valider.
      */

@@ -12,19 +12,18 @@ use App\Entity\User;
 use App\Entity\Zone;
 use App\Enum\GameMode;
 use App\Fenetre\BatimentsDeLaCite;
+use App\Fenetre\DetailDeCase;
 use App\Fenetre\OuvertureDeFenetre;
 use App\Form\NouvellePartieType;
 use App\Game\AlphabetDesScribes;
 use App\Game\AppelDHabitants;
 use App\Game\AppelImpossible;
 use App\Game\AvantageDeNegoce;
-use App\Game\Bandits;
 use App\Game\CarnetDeContacts;
 use App\Game\CartoucheRoyal;
 use App\Game\CatalogueDeLaVille;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
-use App\Game\Charrier;
 use App\Game\CleDeLecture;
 use App\Game\Commerce;
 use App\Game\CommerceImpossible;
@@ -1282,10 +1281,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_carte', [
-            'id' => $partie->getId(),
-            'zone' => $zone->getX().'-'.$zone->getY(),
-        ]);
+        return $this->retourALaCarte($partie, $zone);
     }
 
     /**
@@ -1453,27 +1449,35 @@ final class PartieController extends AbstractController
     /**
      * La carte d'exploration : une grille isométrique, brouillard compris.
      *
-     * La case détaillée est choisie côté serveur plutôt qu'en JavaScript — le
-     * jeu se joue sans, et un lien reste partageable.
+     * **La carte est la seule page de jeu** : le détail d'une case, les
+     * expéditions, la ville, la commande s'ouvrent en fenêtre par-dessus
+     * (`docs/plan-fenetres.md`). Le serveur rend la fenêtre que l'adresse
+     * demande (`ouvre`), pour qu'un lien reste partageable et qu'un
+     * rechargement la retrouve.
+     *
+     * Une adresse `?zone=x-y`, d'avant les fenêtres, ouvre la fenêtre de cette
+     * case : les anciens liens continuent de marcher.
      */
     #[Route('/{id}/carte', name: 'app_partie_carte', requirements: ['id' => '\d+'], methods: ['GET'])]
     #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
     public function carte(
         Request $request,
         GameSave $partie,
-        Explorations $explorations,
-        Enquetes $enquetes,
-        Rivaux $rivaux,
-        MissionCatalogue $missions,
-        Prospection $prospection,
         EtatDeLaVille $etat,
         GeographieDeLaPartie $geographies,
-        Medjays $medjaysService,
         OuvertureDeFenetre $fenetres,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
-        $detaillee = $this->zoneDemandee($zones, $request->query->get('zone'));
+
+        $ancienne = $this->zoneDemandee($zones, $request->query->get('zone'));
+        if (null !== $ancienne && !$request->query->has('ouvre')) {
+            $request->query->set('ouvre', $this->generateUrl('app_partie_case', [
+                'id' => $partie->getId(),
+                'coordonnees' => $ancienne->getX().'-'.$ancienne->getY(),
+            ]));
+        }
+
         $chemin = $fenetres->chemin($request, $partie);
 
         return $this->render('partie/carte.html.twig', [
@@ -1485,87 +1489,38 @@ final class PartieController extends AbstractController
             'ouvre' => $chemin,
             'fenetre' => null === $chemin ? null : $fenetres->rendre($request, $chemin),
             'zones' => $zones,
-            'zoneDetaillee' => $detaillee,
-            // Ce que la case oppose réellement, renforts de la région compris
-            // (lot 10.1) : c'est ce chiffre-là qui décide d'y aller ou non.
-            'defenseDeLaZone' => null === $detaillee ? 0 : Bandits::defenseDe($partie->getVille(), $detaillee),
-            'medjaysDisponibles' => \count($medjaysService->disponibles($partie)),
-            // La réquisition de chars (lot 10.6) : ce qui l'empêche se dit
-            // avant la demande, jamais par un refus.
-            'charriersOuverts' => Charrier::disponiblePour($ville),
-            'empechementDesCharriers' => Charrier::empechement($ville),
-            'coutDunCharrier' => Charrier::COUT_PAR_EXPEDITION,
+            // La case dont la fenêtre est ouverte, pour la surligner.
+            'zoneDetaillee' => $this->zoneDeLOuverture($zones, $chemin),
+            // Les signaux et les expéditions en route se lisent dans la barre
+            // de jeu : on n'a plus de panneau où les ranger.
             'signaux' => $etat->signaux($partie),
             'connaitLaCrue' => $geographies->connaitLaCrue($partie),
-            'expeditionEnCours' => null !== $detaillee ? $ville->aUneExpeditionVers($detaillee) : false,
-            // Le prix dépend de la case : reconnaître ses propres abords ne
-            // coûte pas d'or. L'écran doit donc annoncer celui de cette case-là.
-            'coutDeReconnaissance' => null !== $detaillee
-                ? $explorations->coutVers($partie, $detaillee, RoleDExploration::Eclaireur)
-                : null,
-            // Même logique que le coût en or : nul à moins de trois cases.
-            'provisionsDeReconnaissance' => null !== $detaillee
-                ? $explorations->provisionsVers($partie, $detaillee, RoleDExploration::Eclaireur)
-                : RoleDExploration::Eclaireur->provisions(),
-            'dureeDeReconnaissance' => null !== $detaillee && !$detaillee->estDecouverte()
-                ? $explorations->dureeVers($partie, $detaillee)
-                : null,
-            'cultures' => Culture::cases(),
-            'champsMax' => Zone::CHAMPS_MAX,
-            'aUnGrenier' => $ville->possede(TypeDeBatiment::Grenier),
-            'peutFouiller' => $detaillee instanceof Zone && $enquetes->peutFouiller($ville, $detaillee),
-            // L'émissaire ne va que là où l'on sait déjà qu'il y a quelqu'un,
-            // et il lui faut des scribes pour consigner ce qu'il rapporte.
-            // **On ne propose pas un départ qui ne peut rien rapporter** :
-            // tous les témoignages versés, l'émissaire ne ramènerait qu'un
-            // « rien appris de neuf » payé trente deben. Même règle que la
-            // prospection — le bouton disparaît plutôt que de mentir.
-            'peutEnvoyerUnEmissaire' => $detaillee instanceof Zone
-                && $detaillee->estDecouverte()
-                && !$detaillee->porteLaVille()
-                && $ville->possede(TypeDeBatiment::MaisonDesScribes)
-                && !$ville->aUneExpeditionVers($detaillee)
-                && $enquetes->resteUnTemoignageARecueillir($partie),
-            'coutDeLEmissaire' => $detaillee instanceof Zone
-                ? $explorations->coutVers($partie, $detaillee, RoleDExploration::Emissaire)
-                : RoleDExploration::Emissaire->cout(),
-            'provisionsDeLEmissaire' => $detaillee instanceof Zone
-                ? $explorations->provisionsVers($partie, $detaillee, RoleDExploration::Emissaire)
-                : RoleDExploration::Emissaire->provisions(),
-            // Sans Port, aucune barque n'appareille : la case poissonneuse
-            // s'affiche, mais le bouton laisse la place au motif.
-            'aUnPort' => $ville->possede(TypeDeBatiment::Port),
-            // Les équipages du territoire, indexés par « x:y:ressource » —
-            // c'est ce qui dit au joueur qu'une carrière tourne à moitié faute
-            // de bras, plutôt que de le lui laisser deviner au stock.
-            'equipages' => Effectifs::repartirLeTerritoire($ville, $partie->getCycle()),
-            // Le prospecteur sonde une case déjà reconnue. On ne propose le
-            // départ que si quelque chose peut en sortir : un filon épuisé à
-            // rouvrir, ou de la place pour un nouveau que le terrain accepte.
-            // Annoncer un départ qui ne peut rien rapporter serait un piège.
-            'filonsAProspecter' => $detaillee instanceof Zone && $detaillee->estDecouverte()
-                ? $prospection->filonsPossibles($partie, $detaillee)
-                : [],
-            'peutProspecter' => $detaillee instanceof Zone
-                && $detaillee->estDecouverte()
-                && !$ville->aUneExpeditionVers($detaillee)
-                && [] !== $prospection->filonsPossibles($partie, $detaillee),
-            'coutDuProspecteur' => $detaillee instanceof Zone
-                ? $explorations->coutVers($partie, $detaillee, RoleDExploration::Prospecteur)
-                : RoleDExploration::Prospecteur->cout(),
-            'provisionsDuProspecteur' => $detaillee instanceof Zone
-                ? $explorations->provisionsVers($partie, $detaillee, RoleDExploration::Prospecteur)
-                : RoleDExploration::Prospecteur->provisions(),
-            'dureeDuProspecteur' => $detaillee instanceof Zone
-                ? $explorations->dureeVers($partie, $detaillee)
-                : null,
-            // Toutes les cases ne se valent pas : une veine encore exploitée
-            // se retrouve à coup sûr, du sable vierge tient du pari. L'écran
-            // dit lequel des deux **avant** l'engagement.
-            'chancesDeProspecter' => $detaillee instanceof Zone
-                ? $prospection->chancesSur($partie, $detaillee)
-                : 0,
         ]);
+    }
+
+    /**
+     * Le détail d'une case, en fenêtre : ce qu'elle est, ce qu'on peut y faire.
+     *
+     * Remplace le panneau de droite de la carte, qui prenait un tiers de la
+     * largeur pour un détail qu'on ne lit qu'un instant. La fenêtre est une
+     * feuille posée à droite : la carte reste visible à côté.
+     */
+    #[Route('/{id}/case/{coordonnees}', name: 'app_partie_case', requirements: ['id' => '\d+', 'coordonnees' => '\d{1,3}-\d{1,3}'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function detailDeLaCase(Request $request, GameSave $partie, string $coordonnees, DetailDeCase $details): Response
+    {
+        $zone = $details->zone($partie, $coordonnees) ?? throw $this->createNotFoundException('Case inconnue.');
+
+        // Une fenêtre, pas une page : sans l'en-tête `Turbo-Frame`, on rend la
+        // carte avec la case déjà ouverte (voir `ville()`).
+        if (!OuvertureDeFenetre::estUneRequeteDeCadre($request)) {
+            return $this->forward(self::class.'::carte', ['id' => $partie->getId()], ['ouvre' => $request->getRequestUri()]);
+        }
+
+        return $this->render('fenetre/case.html.twig', [
+            'partie' => $partie,
+            'ville' => $partie->getVille(),
+        ] + $details->pour($partie, $zone));
     }
 
     /**
@@ -1687,12 +1642,31 @@ final class PartieController extends AbstractController
             ?? throw $this->createNotFoundException('Case inconnue.');
     }
 
+    /**
+     * Après une action sur une case, on rend la fenêtre de cette case : la
+     * redirection tombe dans le cadre, ou rouvre la carte avec la case ouverte
+     * pour qui n'a pas de cadre.
+     */
     private function retourALaCarte(GameSave $partie, Zone $zone): Response
     {
-        return $this->redirectToRoute('app_partie_carte', [
+        return $this->redirectToRoute('app_partie_case', [
             'id' => $partie->getId(),
-            'zone' => $zone->getX().'-'.$zone->getY(),
+            'coordonnees' => $zone->getX().'-'.$zone->getY(),
         ]);
+    }
+
+    /**
+     * La case dont la fenêtre ouverte est le détail, ou null.
+     *
+     * @param list<Zone> $zones
+     */
+    private function zoneDeLOuverture(array $zones, ?string $chemin): ?Zone
+    {
+        if (null === $chemin || 1 !== preg_match('#/case/(\d{1,3}-\d{1,3})(?:\?|$)#', $chemin, $trouve)) {
+            return null;
+        }
+
+        return $this->zoneDemandee($zones, $trouve[1]);
     }
 
     /**
@@ -1742,10 +1716,7 @@ final class PartieController extends AbstractController
             $this->addFlash('erreur', $impossible->getMessage());
         }
 
-        return $this->redirectToRoute('app_partie_carte', [
-            'id' => $partie->getId(),
-            'zone' => $destination->getX().'-'.$destination->getY(),
-        ]);
+        return $this->retourALaCarte($partie, $destination);
     }
 
     /**

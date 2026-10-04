@@ -157,4 +157,45 @@
                class="shrink-0 whitespace-nowrap text-sm text-encre-500 hover:text-terre-600">Mes parties</a>
         </div>
     </div>
+
+    {# **Les signaux et les expéditions, en pastilles.** On passe des quinzaines
+       entières sur la carte : la fièvre, la disette, une fête se découvraient
+       en rentrant, plusieurs quinzaines trop tard. Le panneau qui les portait
+       a disparu avec la carte plein écran ; ils vivent désormais ici, visibles
+       en permanence, et le détail s'ouvre en fenêtre à la demande — la cité pour
+       un signal, la liste des expéditions pour la pastille de départ.
+
+       Le bon compte autant que le mauvais : une fête, une crue forte, des
+       dieux acquis sont des moments à saisir. N'existent que sur les écrans qui
+       connaissent l'état de la ville (`signaux` défini) : la carte et la barre
+       rechargée. #}
+    {% if signaux is defined %}
+        {% set expeditions = partie.ville.expeditions|length %}
+        {% if signaux is not empty or expeditions > 0 %}
+            <ul class="flex list-none flex-wrap items-center gap-2 border-t border-ocre-500/15 px-3 py-1.5 md:px-4">
+                {% for signal in signaux %}
+                    <li>
+                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'}) }}"
+                           data-turbo-frame="fenetre" title="{{ signal.detail }}"
+                           class="block rounded-sm border px-2.5 py-1 text-xs no-underline
+                                  {{ signal.ton == 'mauvais'
+                                      ? 'border-terre-600/50 bg-terre-500/10 text-terre-700'
+                                      : 'border-lapis-500/50 bg-lapis-500/5 text-lapis-600' }}">
+                            <span aria-hidden="true">{{ signal.ton == 'mauvais' ? '▲' : '◆' }}</span>
+                            {{ signal.titre }}
+                        </a>
+                    </li>
+                {% endfor %}
+                {% if expeditions > 0 %}
+                    <li>
+                        <a href="{{ path('app_partie_expeditions', {id: partie.id}) }}"
+                           data-turbo-frame="fenetre"
+                           class="block rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-2.5 py-1 text-xs text-encre-700 no-underline">
+                            Expéditions en route <span data-chiffres>({{ expeditions }})</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        {% endif %}
+    {% endif %}
 </header>

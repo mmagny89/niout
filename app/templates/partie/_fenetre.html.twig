@@ -9,12 +9,19 @@
    `fenetre_controller.js` le rend : Échap ferme, le focus entre dans la fenêtre à
    l'ouverture et retourne à ce qui l'a ouverte à la fermeture.
 
+   **Deux formes.** La fenêtre large (la cité, la commande) couvre l'essentiel
+   de la carte. Un contenu qui porte `data-forme="feuille"` — le détail d'une
+   case — la réduit à une feuille posée à droite, qui laisse la carte visible :
+   on regarde la case en cliquant les voisines. Le choix vient du contenu, lu
+   par CSS (`:has()`), sans JavaScript.
+
    `ouvre` est la page que l'URL demande d'ouvrir, déjà rendue côté serveur ;
    sinon le cadre est vide et attend un clic. #}
 <dialog data-fenetre-target="fenetre" {{ fenetre ? 'open' }}
         aria-labelledby="fenetre-titre"
         class="absolute inset-2 z-30 m-0 h-auto w-auto max-h-none overflow-hidden rounded-sm border border-ocre-500/40
-               bg-sable-50 p-0 text-encre-900 shadow-xl md:inset-6 lg:inset-x-[10%] lg:inset-y-6">
+               bg-sable-50 p-0 text-encre-900 shadow-xl md:inset-6 lg:inset-x-[10%] lg:inset-y-6
+               lg:has-[[data-forme=feuille]]:left-auto lg:has-[[data-forme=feuille]]:right-6 lg:has-[[data-forme=feuille]]:w-[30rem]">
     <button type="button" data-action="fenetre#fermer"
             class="absolute right-2 top-2 z-10 rounded-sm px-2 py-1 text-2xl leading-none text-encre-500 hover:text-terre-600"
             aria-label="Fermer la fenêtre">

@@ -124,10 +124,10 @@ final class SousOngletsTest extends WebTestCase
         $id = $partie->getId();
 
         foreach ([
-            \sprintf('/partie/%d/carte', $id) => 1,
-            // La commande est une fenêtre : la carte la porte, avec ses propres
-            // sections en plus de celles du territoire.
-            \sprintf('/partie/%d/commande', $id) => 2,
+            // La carte n'a plus de panneau à sections : tout s'ouvre en fenêtre.
+            \sprintf('/partie/%d/carte', $id) => 0,
+            // La commande est une fenêtre : la carte la porte, avec ses sections.
+            \sprintf('/partie/%d/commande', $id) => 1,
             '/parties' => 1,
         ] as $adresse => $attendues) {
             $crawler = $client->request('GET', $adresse);

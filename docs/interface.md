@@ -257,6 +257,19 @@ quittent la ville vers une case de la carte portent `data-turbo-frame="_top"`.
 Le bouton de cycle, quand la ville est rendue en fenêtre, ramène à la **carte**
 (`ouvre` conservé), pas à `/ville` : la fenêtre se rouvre au même endroit.
 
+**La carte occupe tout l'écran, le reste est fenêtre** (phase 5). Plus de panneau de
+droite : le **détail d'une case** s'ouvre en *feuille* posée à droite
+(`app_partie_case`, `fenetre/case.html.twig`), qui laisse la carte visible — on
+regarde une case en cliquant ses voisines. Le contenu se déclare feuille par
+`data-forme="feuille"` et la fenêtre s'y adapte par CSS (`:has()`), sans JavaScript.
+Les actions d'une case (éclaireur, carrière, semis, fouille) redirigent vers cette
+même fenêtre, comme celles de la ville. **Les signaux** (fièvre, disette, fête…) et
+les **expéditions en route** sont des pastilles dans la barre de jeu (`_barre.html.twig`,
+seulement là où `signaux` est connu) ; un signal ouvre la Résidence, la pastille
+d'expéditions ouvre `app_partie_expeditions`. Les anciennes adresses `carte?zone=x-y`
+ouvrent la fenêtre de la case : les liens d'avant restent valables. Les données de la
+case vivent dans `Fenetre\DetailDeCase`, plus dans le contrôleur de la carte.
+
 **Chaque carré a son emplacement de visuel** : déposer
 `app/assets/images/batiments/<type>.webp` (`grenier.webp`, `maison_des_scribes.webp`…)
 suffit, `BatimentsDeLaCite` teste l'existence du fichier et le gabarit n'a pas à

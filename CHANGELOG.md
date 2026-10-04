@@ -14,6 +14,12 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **La carte prend tout l'écran** : le panneau de droite disparaît. Le détail d'une
+  case s'ouvre en feuille à droite, la carte restant visible — on peut regarder
+  la case voisine sans rien fermer. Les signaux de la ville (fièvre, disette, fête…)
+  et les expéditions en route sont des pastilles dans la barre de jeu, toujours
+  sous les yeux ; un clic en ouvre le détail.
+
 - **La commande du pharaon s'ouvre d'office dans une fenêtre** posée sur la carte,
   dès la partie créée ; « Prendre mes fonctions » la ferme. Reprendre une partie
   ramène directement sur la carte : il n'y a plus d'écran de reprise, la barre de
