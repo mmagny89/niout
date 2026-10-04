@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 # Le code applicatif vit dans app/ ; la racine ne porte que l'infrastructure
 # Docker (voir .claude/rules/stack-conventions.md).
