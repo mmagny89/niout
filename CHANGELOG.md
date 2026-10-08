@@ -135,6 +135,11 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **Le message d'erreur d'une action avait un fond transparent** : sa couleur (`terre-50`) n'existait pas dans le thème, et le texte se
+  superposait au contenu. Les teintes claires `terre-50` et `terre-100` (pastille du bouton de quinzaine) sont définies.
+- **Une infobulle sans action montre le curseur d'aide « ? »** : on la lit, on ne clique pas. Les liens, boutons, champs et replis gardent leur curseur.
+- **Le rail « La cité » est une liste** : sur grand écran, chaque bâtiment est une ligne — son sprite, son nom en entier (il était rogné), son niveau
+  et son rendement quand il est sous 100 % ; les travaux en cours se voient d'un coup d'œil. Sur téléphone, les carrés restent.
 - **L'Auberge et ses devinettes** : chaque devinette s'affiche en carte (énoncé en grand, d'où elle vient en pastille, réponses lettrées
   A à D sur deux colonnes) — au Temple et chez les scribes aussi ; la salle tient en une seule carte.
 - **Les trois sous-pages de la Maison des scribes sont refaites** : la clé de lecture et l'alphabet partagent une même carte de signe

@@ -40,6 +40,10 @@
     --color-terre-500: #a8571f;
     --color-terre-600: #8c4718;
     --color-terre-700: #6f3712;
+    /* Les teintes claires de la terre cuite : fond d'un message d'erreur, pastille du bouton de quinzaine. Elles manquaient — une
+       classe Tailwind dont la couleur n'existe pas ne rend rien, et le fond restait transparent. */
+    --color-terre-50: #fbf0e6;
+    --color-terre-100: #f5dfcd;
 
     /* Lapis-lazuli — accent secondaire, liens et informations. */
     --color-lapis-400: #2f6c97;
@@ -234,6 +238,11 @@
     animation: infobulle-entre 120ms ease-out 250ms both;
 }
 @keyframes infobulle-entre { from { opacity: 0; transform: translateY(-3px); } }
+/* **Une infobulle sans action se signale par le curseur d'aide** (« ? ») : on ne clique pas, on lit. Tout ce qui agit
+   (lien, bouton, champ, repli, élément qui porte une action Stimulus) garde son curseur de main ou de saisie. */
+[data-infobulle]:not(a, button, summary, input, select, textarea, label, [href], [role="button"], [data-action], [onclick]) {
+    cursor: help;
+}
 @media (hover: none) {
     /* Au doigt, pas de survol : l'infobulle resterait collée après un toucher. */
     [data-infobulle]:hover:not(:focus-visible)::after { display: none; }

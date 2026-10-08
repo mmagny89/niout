@@ -82,7 +82,8 @@ qu'on ne la lit pas** (`display: none`, non un simple `opacity: 0`) : une infobu
 de dix-huit rem et posée au bord gauche d'un élément proche du bord droit, élargissait la zone défilante de son
 panneau — c'était le défilement horizontal de la Résidence. Le fondu est une **animation d'entrée**, non une
 transition. **L'élément lu passe devant ses voisins** (`z-index` au survol et au focus) : un voisin animé
-(`transform`) est son propre contexte d'empilement, peint après, et recouvrirait l'infobulle. Le panneau d'une
+(`transform`) est son propre contexte d'empilement, peint après, et recouvrirait l'infobulle. **Sans action, le curseur d'aide** (« ? ») : une infobulle se lit, elle ne se clique pas ; tout ce qui agit
+(lien, bouton, champ, repli, élément portant `data-action`) garde sa main ou sa saisie. Le panneau d'une
 fenêtre porte `overflow-x: hidden` en garde-fou : aucune animation ne doit y refaire un défilement horizontal.
 
 ## L'accueil
@@ -377,6 +378,10 @@ blanc retiré par remplissage depuis les bords, quatre paliers recadrés sur un 
 WebP à fond transparent dans `app/assets/images/ville/{batiments,lots}/`. Le sprite du Port est
 privé de son eau (bleu clair) : le fleuve est celui du plan. **Pour déplacer un lot**, changer
 ses coordonnées dans `EmplacementsDeLaVille` ; **pour remplacer un sprite**, relancer l'outil.
+
+**Le rail est une liste dès `md`, des carrés sur téléphone** : une ligne par bâtiment — sprite à gauche, nom en entier
+(il était rogné dans un carré), niveau et rendement dessous quand il est sous 100 % —, la ligne active marquée d'un
+liseré à gauche, un ⚒ pour les travaux en cours.
 
 **Chaque carré du rail montre le sprite du palier de son bâtiment** — le même que sur la
 ville vue d'en haut (`app/assets/images/ville/batiments/<type>_<palier>.webp`, palier =
