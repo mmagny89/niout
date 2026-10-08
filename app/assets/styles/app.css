@@ -236,7 +236,7 @@
        d'une case glisse depuis la droite, d'où elle vient. Le contenu d'un cadre qui
        change (d'un bâtiment à l'autre) fond en douceur, sans rejouer la fenêtre. */
     dialog[open] { animation: fenetre-ouvre 200ms ease-out; }
-    dialog[open]:has([data-forme="feuille"]) { animation: feuille-ouvre 240ms cubic-bezier(0.22, 1, 0.36, 1); }
+    dialog[open]:has([data-forme="feuille"]), dialog[open][data-forme="feuille"] { animation: feuille-ouvre 240ms cubic-bezier(0.22, 1, 0.36, 1); }
     turbo-frame#fenetre > * { animation: fondu 160ms ease-out; }
     @keyframes fenetre-ouvre { from { opacity: 0; transform: translateY(10px) scale(0.985); } }
     @keyframes feuille-ouvre { from { opacity: 0; transform: translateX(32px); } }
@@ -696,3 +696,6 @@ select.liste-deroulante {
         scroll-behavior: auto !important;
     }
 }
+
+/* Le contenu de la fenêtre s'estompe pendant que le suivant charge : on ne lit pas un écran périmé. */
+turbo-frame#fenetre[busy] { opacity: 0.45; transition: opacity 120ms; }

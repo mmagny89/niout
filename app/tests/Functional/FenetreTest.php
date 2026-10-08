@@ -271,7 +271,10 @@ final class FenetreTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $zone->getX(), $zone->getY()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorExists('turbo-frame#fenetre[data-forme="feuille"]', 'Le détail d\'une case est une feuille, pas la grande fenêtre.');
+        // Sur un enfant du cadre, pas sur le cadre : Turbo ne recopie pas les attributs d'un cadre
+        // au chargement, et la feuille s'ouvrait alors large et centrée au clic.
+        self::assertSelectorExists('turbo-frame#fenetre [data-forme="feuille"]', 'Le détail d\'une case est une feuille, pas la grande fenêtre.');
+        self::assertSelectorNotExists('turbo-frame#fenetre[data-forme]', 'Le cadre lui-même ne porte pas la forme.');
         self::assertSelectorExists('#fenetre-titre');
         self::assertSelectorNotExists('turbo-frame#barre');
     }

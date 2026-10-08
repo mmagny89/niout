@@ -6,10 +6,10 @@
    marcheur qui a fait la part du chemin que dit le pourcentage. La phrase et les chiffres
    disent la même chose en lettres ; le dessin est décoratif. #}
 {% set icones = {eclaireur: 'expedition', emissaire: 'chef', chef_expedition: 'troupe', prospecteur: 'chantier'} %}
-<turbo-frame id="fenetre" class="block h-full" data-forme="feuille">
+<turbo-frame id="fenetre" class="block h-full">
     {{ include('_messages_de_jeu.html.twig') }}
 
-    <div class="h-full overflow-y-auto p-5 pr-12 md:p-6 md:pr-12"
+    <div class="h-full overflow-y-auto p-5 pr-12 md:p-6 md:pr-12" data-forme="feuille"
          data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
         <div class="flex items-center gap-3">
             {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 40}) }}

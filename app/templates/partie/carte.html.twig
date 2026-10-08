@@ -114,7 +114,7 @@
                                                       {{ centre.x + pas.x }}px {{ centre.y }}px,
                                                       {{ centre.x }}px {{ centre.y + pas.y }}px,
                                                       {{ centre.x - pas.x }}px {{ centre.y }}px);"
-                           {{ zone.porteLaVille ? 'title="Voir la ville" data-turbo-frame="_top"' : 'data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"' }}
+                           {{ zone.porteLaVille ? 'title="Voir la ville" data-turbo-frame="_top"' : 'data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir" data-fenetre-forme="feuille"' }}
                            aria-label="{{ zone.porteLaVille
                                ? 'Voir la ville ' ~ ville.avecPreposition
                                : 'Case ' ~ zone.x ~ ', ' ~ zone.y ~ ' — ' ~ (zone.estDecouverte ? zone.terrain.libelle ~ (repere ? ', ' ~ repere.texte : '') : 'inexplorée') }}"></a>
