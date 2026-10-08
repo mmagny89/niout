@@ -44,7 +44,7 @@ final readonly class EtatDeLaVille
     /**
      * Tout ce que la ville a de notable, le bon comme le mauvais.
      *
-     * @return list<array{ton: string, icone: string, titre: string, detail: string}>
+     * @return list<array{ton: string, icone: string, titre: string, detail: string, onglet?: string}>
      */
     public function signaux(GameSave $partie): array
     {
@@ -52,7 +52,7 @@ final readonly class EtatDeLaVille
     }
 
     /**
-     * @return list<array{ton: string, icone: string, titre: string, detail: string}>
+     * @return list<array{ton: string, icone: string, titre: string, detail: string, onglet?: string}>
      */
     public function ennuis(GameSave $partie): array
     {
@@ -188,7 +188,7 @@ final readonly class EtatDeLaVille
     }
 
     /**
-     * @return list<array{ton: string, icone: string, titre: string, detail: string}>
+     * @return list<array{ton: string, icone: string, titre: string, detail: string, onglet?: string}>
      */
     public function bonnesNouvelles(GameSave $partie): array
     {
@@ -207,6 +207,8 @@ final readonly class EtatDeLaVille
                     $fete->divinite()->libelle(),
                     Offrandes::POINTS_DE_FETE,
                 ),
+                // Une fête se célèbre au Temple : la pastille y mène, s'il est bâti.
+                ...null !== $ville->batimentDeType(TypeDeBatiment::Temple) ? ['onglet' => TypeDeBatiment::Temple->value] : [],
             ];
         }
 

@@ -155,7 +155,15 @@
                disait ni la saison ni la crue, qui conditionnent la moisson. #}
             <p class="min-w-0 line-clamp-2 text-xs leading-tight text-encre-600 md:line-clamp-none md:overflow-visible md:text-sm xl:whitespace-nowrap">
                 {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 22}) }}
-                {{ partie.dateDeJeu.libelle }}
+                {# Ce que la saison change dit son sens au survol, plutôt que dans chaque fenêtre. Sans Nil,
+                   la saison du Nil ne dit rien de vrai : pas d'infobulle. #}
+                {% set saison = partie.dateDeJeu.saison %}
+                {% if saison and (connaitLaCrue is not defined or connaitLaCrue) %}
+                    <span data-infobulle="{{ saison.libelle }}, {{ saison.sens }}. {{ saison.description }}" tabindex="0"
+                          class="cursor-help underline decoration-dotted decoration-encre-500/40 underline-offset-4">{{ partie.dateDeJeu.libelle }}</span>
+                {% else %}
+                    {{ partie.dateDeJeu.libelle }}
+                {% endif %}
                 <span class="text-encre-500" data-chiffres>· cycle {{ partie.cycle }}</span>
                 {# La crue de l'année conditionne la moisson de Chémou : le
                    joueur doit l'avoir sous les yeux quand il décide de
@@ -169,15 +177,6 @@
                    commande — gardent l'affichage d'avant. #}
                 {% if connaitLaCrue is not defined or connaitLaCrue %}
                     <span class="text-encre-500" title="{{ partie.crue.presage }}">· crue {{ partie.crue.libelle }}</span>
-                {% endif %}
-                {# Une fête qu'on n'a pas vue passer est une fête qui n'existe
-                   pas : elle ne dure que deux à quatre quinzaines par an. #}
-                {% if partie.feteEnCours %}
-                    {# Sur téléphone la fête n'est pas répétée dans la date : sa pastille, dans la rangée des
-                       signaux, la dit déjà, et la date a besoin de la place pour la saison et la crue. #}
-                    <span class="hidden text-lapis-500 md:inline" title="{{ partie.feteEnCours.description }}">
-                        · {{ partie.feteEnCours.libelle }}
-                    </span>
                 {% endif %}
             </p>
 
@@ -205,7 +204,7 @@
             <ul class="defile-ombre flex list-none flex-nowrap items-center gap-2 overflow-x-auto border-t border-ocre-500/15 px-3 py-1.5 md:flex-wrap md:overflow-visible md:px-4">
                 {% for signal in signaux %}
                     <li>
-                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'}) }}"
+                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: signal.onglet ?? 'residence_familiale'}) }}"
                            data-turbo-frame="fenetre" data-infobulle="{{ signal.detail }}"
                            class="signal group min-h-8 md:min-h-0 {{ signal.ton == 'mauvais' ? 'signal--mauvais' : 'signal--bon' }}">
                             {{ include('partie/_pictogramme.html.twig', {nom: signal.icone, taille: 20, classe: 'signal__image'}) }}

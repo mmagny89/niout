@@ -79,32 +79,8 @@
             </ul>
         </nav>
 
-        <div class="min-h-0 min-w-0 flex-1 overflow-y-auto px-5 pb-10 pt-4 md:px-6"
+        <div class="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-10 pt-4 md:px-6"
              data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
-            {# Ce que la barre de jeu ne dit pas : ce que la saison change
-               concrètement. Une ligne, pas un encadré.
-
-               **Sans Nil, la saison ne dit rien de vrai** (doc 02) : « le Nil
-               déborde, les paysans libérés grossissent les chantiers » n'a aucun
-               sens au Levant ou au Sinaï. Le calendrier reste égyptien — c'est
-               celui de la cour —, mais on n'y lit plus une crue absente. #}
-            <p class="text-xs text-encre-500">
-                {% if not connaitLaCrue %}
-                    <strong class="text-encre-700">{{ partie.dateDeJeu.libelle }}</strong> —
-                    aucun fleuve ne monte ici : les saisons du Nil n'y règlent ni les
-                    champs ni les chantiers.
-                {% elseif partie.dateDeJeu.saison %}
-                    <strong class="text-encre-700">{{ partie.dateDeJeu.saison.libelle }}</strong>,
-                    {{ partie.dateDeJeu.saison.sens }} — {{ partie.dateDeJeu.saison.description }}
-                {% else %}
-                    <strong class="text-encre-700">Hériou-renpèt</strong> — les cinq jours
-                    « au-dessus de l'année », hors mois et hors saison.
-                {% endif %}
-            </p>
-
-            {# L'état de la ville, le bon comme le mauvais, sur une ligne. #}
-            {{ include('partie/_signaux.html.twig') }}
-
             {# Le panneau du bâtiment ouvert. L'identifiant `panneau-<bâtiment>` est
                celui qu'il avait quand les onglets de la ville se masquaient les
                uns les autres : les tests, les ancres et les liens s'y repèrent

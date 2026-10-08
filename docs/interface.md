@@ -362,8 +362,7 @@ gabarit. Une image absente ne rend rien. `EtatDeLaVille` nomme l'`icone` de chaq
 
 ## Signaux, alertes et reprise d'onglet
 
-**L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`,
-`_signaux.html.twig`). La fièvre, la disette et le mécontentement ne
+**L'état de la ville se lit depuis les deux écrans** (`EtatDeLaVille`). La fièvre, la disette et le mécontentement ne
 s'affichaient que dans la ville, alors qu'on passe des quinzaines entières sur
 la carte à explorer et à exploiter : on découvrait la maladie en rentrant,
 plusieurs quinzaines trop tard. Un seul service produit la liste, et les deux
@@ -372,9 +371,9 @@ et c'est la carte qui aurait cessé de dire la vérité. **Le bon compte autant
 que le mauvais** (décision de la joueuse) : une fête, une crue forte, des dieux
 acquis, un renom qui attire sont des moments à saisir, et n'annoncer que les
 ennuis ferait du jeu une liste de pannes. Chaque signal nomme la **cause et le
-geste** — un diagnostic sans remède se subit. Sur la carte et en tête de ville,
-ils tiennent en une ligne de pastilles avec leur détail dans un `<details>`
-natif : tout ce qui ne défile pas est de la hauteur en moins.
+geste** — un diagnostic sans remède se subit. Ils vivent **une seule fois**, en pastilles dans
+la barre de jeu, visibles de la carte comme de la ville : les répéter en tête
+de la fenêtre disait deux fois la même chose et mangeait la hauteur du panneau.
 
 **Chaque réglage vit là où il se comprend** (playtest) : la **répartition des
 réserves** — ce qu'on garde de chaque ressource, donc ce qui part au Marché —
