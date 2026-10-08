@@ -723,3 +723,12 @@ parcelles — des cartes d'état, puis le formulaire de semis. Elles sont fusion
 (culture en liste déroulante si l'on peut semer, en texte sinon ; étape en pastille dont l'explication est
 en infobulle ; équipage en points), un seul formulaire, un seul bouton. L'explication longue de la terre
 passe en infobulle. `testLeDetailDUneCaseRangeSesActionsEnOngletsUtiles` garde « une ligne par parcelle ».
+
+**Détail d'une case : l'en-tête ne répète pas ce que disent les pastilles.** Une phrase d'introduction
+n'apparaît que pour la ville, une case sous le brouillard, ou une case vide ; une case à champs ou à
+gisements les montre en pastilles, et leurs onglets en portent le détail. Les trois envois
+(éclaireur, expédition armée, émissaire, prospecteur, fouille) sont **tous** des cartes de même
+forme : ce que fait le rôle (`RoleDExploration::mission()`), le bouton, puis le coût en pastilles.
+Cas essayés en local sur une vraie partie : case sous le brouillard, case gardée par des brigands,
+terre fertile vide (semis de deux cultures), case à fouiller, gisement épuisé, éclaireur et
+expédition armée envoyés.

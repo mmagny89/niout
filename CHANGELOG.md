@@ -113,6 +113,12 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **On ne propose plus d'envoyer un prospecteur sur la ville** : le bouton « ce sol pourrait rendre
+  argile, roseaux… » apparaissait sur la case de la ville, qui n'a jamais de gisement. Le serveur
+  refuse maintenant ce départ comme l'écran ne le propose plus.
+- **Une expédition armée déjà partie ne se propose plus une seconde fois** : la case dit qu'elle est
+  en route au lieu de laisser un bouton que le serveur refuserait.
+
 - **Le détail d'une case s'ouvrait parfois au centre au lieu de rester à droite** : la forme de la
   fenêtre dépendait d'un attribut que Turbo ne recopie pas au chargement. Elle est décidée dès le
   clic et confirmée par le contenu ; le cadre s'estompe pendant le chargement.
