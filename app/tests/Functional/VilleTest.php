@@ -42,8 +42,11 @@ final class VilleTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Avaris');
         self::assertSelectorTextContains('body', 'Résidence familiale');
-        self::assertSelectorTextContains('body', 'Bâtiments dressés');
-        self::assertSelectorTextContains('body', 'À bâtir');
+        // Une seule liste : les bâtiments dressés et ceux qui restent à bâtir, distingués par l'état de
+        // leur carte, pas par deux titres.
+        self::assertSelectorTextContains('body', 'Les bâtiments de la ville');
+        self::assertSelectorExists('li[data-etat="dresse"]');
+        self::assertSelectorExists('li[data-etat="a-batir"]');
     }
 
     public function testLesEmpechementsSontExpliquesAuJoueur(): void

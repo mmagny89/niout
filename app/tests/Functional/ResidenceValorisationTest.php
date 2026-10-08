@@ -82,7 +82,7 @@ final class ResidenceValorisationTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         self::assertResponseIsSuccessful();
 
-        $cartes = $crawler->filter('#residence-section-batiments ul.grid')->last()->filter('li.carte-vivante');
+        $cartes = $crawler->filter('#residence-section-batiments li[data-etat="a-batir"], #residence-section-batiments li[data-etat="bloque"]');
         self::assertGreaterThan(3, $cartes->count(), 'Une ville neuve a de quoi bâtir.');
         self::assertCount($cartes->count(), $cartes->filter('img[src*="/images/ville/batiments/"]'), 'Chaque carte porte le sprite de son bâtiment.');
         self::assertGreaterThan(0, $cartes->first()->filter('ul[aria-label="Ce que coûte le chantier"] li')->count());
@@ -95,6 +95,31 @@ final class ResidenceValorisationTest extends WebTestCase
                 $bloque = true;
             }
             self::assertFalse($bloque && $realisable, 'Ce qu\'on peut engager passe avant ce qui est bloqué.');
+        }
+    }
+
+    /**
+     * Le salaire des bras se règle au curseur, mais le champ numérique reste la source soumise : le
+     * curseur, le verdict et le champ vivent dans le même contrôleur (une cible hors de son contrôleur
+     * n'est jamais trouvée, sans erreur), et le verdict arrive en trois textes déjà rendus.
+     */
+    public function testLeSalaireDesBrasSeRegleAuCurseurSurUnChampSource(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'salaire-curseur@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertResponseIsSuccessful();
+
+        $formulaire = $crawler->filter('#residence-section-gouvernement form[data-controller="curseur"]');
+        self::assertCount(1, $formulaire);
+        self::assertSame('true', $formulaire->attr('data-curseur-mauvais-en-bas-value'), 'Un salaire trop bas est le mauvais côté.');
+        self::assertCount(1, $formulaire->filter('input#salaire[data-curseur-target="champ"][name="salaire"]'));
+        self::assertCount(1, $formulaire->filter('input[type="range"][data-curseur-target="piste"]'));
+        $verdict = $formulaire->filter('[data-curseur-target="verdict"]');
+        self::assertCount(1, $verdict);
+        foreach (['data-bas', 'data-milieu', 'data-haut'] as $attribut) {
+            self::assertNotSame('', trim((string) $verdict->attr($attribut)), $attribut);
         }
     }
 
@@ -112,14 +137,15 @@ final class ResidenceValorisationTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
-        $dresses = $crawler->filter('#residence-section-batiments ul.grid')->eq(0)->text();
-        $aBatir = $crawler->filter('#residence-section-batiments ul.grid')->eq(1)->text();
+        // Une seule liste de cartes : les dressés, puis ce qu'il reste à bâtir.
+        $dresses = $crawler->filter('#residence-section-batiments li[data-etat="dresse"]');
+        $aBatir = $crawler->filter('#residence-section-batiments li[data-etat="a-batir"], #residence-section-batiments li[data-etat="bloque"]');
 
-        // Les listes de **cartes**, pas la rangée de pastilles du bilan qui les précède.
-        self::assertStringContainsString('Grenier', $dresses);
-        self::assertStringContainsString('Améliorer', $dresses);
-        self::assertStringNotContainsString('Grenier', $aBatir, 'Déjà dressé : il ne reste pas à bâtir.');
-        self::assertStringNotContainsString('Améliorer', $aBatir);
+        self::assertCount(1, $crawler->filter('#residence-section-batiments ul.grid'), 'Dressés et à bâtir ne font qu\'une liste.');
+        self::assertStringContainsString('Grenier', $dresses->text());
+        self::assertStringContainsString('Améliorer', $dresses->text());
+        self::assertStringNotContainsString('Grenier', $aBatir->text(), 'Déjà dressé : il ne reste pas à bâtir.');
+        self::assertStringNotContainsString('Améliorer', $aBatir->text());
     }
 
     /**

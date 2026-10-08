@@ -1,0 +1,65 @@
+{# Un bâtiment de la ville, dressé **ou** à bâtir : la même carte, pour que la liste soit une seule liste.
+
+   Attend `batiment` (un `Building` dressé, ou `null` pour un bâtiment à bâtir) et `offre` (ce qu'on
+   peut engager : « Améliorer » ou « Construire » ; peut manquer pour un bâtiment au niveau maximal).
+   `rang` règle l'apparition décalée. Le geste vit dans `_offre_de_construction.html.twig`, partagé par
+   les deux cas pour qu'ils ne divergent pas. #}
+{% set dresse = batiment is not null %}
+{% set type = dresse ? batiment.type : offre.type %}
+{% set bloque = not dresse and offre and not offre.estRealisable %}
+{% set sprite = image_de_batiment(type, dresse ? batiment.niveau : 1) %}
+<li class="carte-vivante case-vivante flex flex-col rounded-sm border p-4
+           {{ bloque ? 'border-ocre-500/20 bg-sable-50/40' : 'border-ocre-500/30 bg-sable-50' }}"
+    style="--i: {{ rang|default(0) }}" data-etat="{{ dresse ? 'dresse' : (bloque ? 'bloque' : 'a-batir') }}">
+    <div class="flex items-start gap-3">
+        {% if sprite %}
+            <img src="{{ asset(sprite) }}" alt="" loading="lazy" decoding="async"
+                 class="w-24 shrink-0 select-none {{ bloque ? 'opacity-50 grayscale' : '' }}">
+        {% endif %}
+        <div class="min-w-0 flex-1">
+            <h3 class="font-display text-lg leading-tight {{ bloque ? 'text-encre-500' : 'text-encre-900' }}">{{ type.libelle }}</h3>
+            {% if dresse %}
+                {# Le niveau en crans : autant que le bâtiment peut en atteindre, allumés jusqu'au sien. #}
+                <p class="mt-1 flex items-center gap-2 text-sm text-encre-500" data-chiffres
+                   data-infobulle="Niveau {{ batiment.niveau }} sur {{ batiment.niveauMaxAtteignable }}.">
+                    <span class="flex gap-0.5" aria-hidden="true">
+                        {% for cran in 1..batiment.niveauMaxAtteignable %}
+                            <span class="size-2.5 rotate-45 {{ cran <= batiment.niveau ? 'bg-terre-500' : 'border border-ocre-500/50' }}"></span>
+                        {% endfor %}
+                    </span>
+                    Niveau {{ batiment.niveau }} sur {{ batiment.niveauMaxAtteignable }}
+                </p>
+            {% else %}
+                <p class="mt-1 text-xs uppercase tracking-wide text-encre-500">{{ offre.libelleDeLAction }}</p>
+            {% endif %}
+            <p class="mt-2 text-sm text-encre-600">{{ type.fonction }}</p>
+        </div>
+    </div>
+
+    {% if dresse %}
+        {# Une jauge, pas un recrutement : les ouvriers se puisent dans le vivier d'actifs (doc 05),
+           le joueur ne les embauche pas un par un. #}
+        {% set effectif = effectifs[type.value] %}
+        <div class="mt-3" data-chiffres>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                <div class="jauge h-full rounded-full {{ effectif.rendement < 100 ? 'bg-terre-600' : 'bg-linear-to-r from-lapis-500 to-lapis-400' }}"
+                     style="width: {{ min(100, effectif.rendement) }}%"></div>
+            </div>
+            <p class="mt-1 text-sm {{ effectif.rendement < 100 ? 'text-terre-600' : 'text-encre-500' }}">
+                {% if effectif.requis == 0 %}
+                    Sans chef : {{ effectif.rendement }} % de rendement.
+                {% else %}
+                    {{ effectif.affectes }} / {{ effectif.requis }} travailleurs ·
+                    {{ effectif.rendement }} % de rendement
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+
+    {# `mt-auto` : les coûts et le bouton se calent en bas de la carte, alignés d'une carte à l'autre. #}
+    {% if offre %}
+        <div class="mt-auto {{ dresse ? 'border-t border-ocre-500/20 pt-3' : '' }}">
+            {{ include('partie/batiments/_offre_de_construction.html.twig') }}
+        </div>
+    {% endif %}
+</li>

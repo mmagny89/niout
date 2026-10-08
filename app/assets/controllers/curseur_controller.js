@@ -14,8 +14,17 @@ import { Controller } from '@hotwired/stimulus';
  *   la cible `surplus` dit en toutes lettres combien partira.
  */
 export default class extends Controller {
-    static targets = ['champ', 'piste', 'valeur', 'surplus'];
-    static values = { seuil: Number, mode: { type: String, default: 'seuil' }, reserve: Number };
+    static targets = ['champ', 'piste', 'valeur', 'surplus', 'verdict'];
+    static values = {
+        seuil: Number,
+        mode: { type: String, default: 'seuil' },
+        reserve: Number,
+        // Le mauvais côté est le bas (un salaire trop bas mécontente) et non le haut (un prix trop haut).
+        mauvaisEnBas: Boolean,
+        // Pour un verdict en trois temps (en dessous de l'usage, l'usage, au-delà) : les deux repères.
+        juste: Number,
+        genereux: Number,
+    };
 
     connect() {
         this.pisteTarget.min = this.champTarget.min || 0;
@@ -42,12 +51,21 @@ export default class extends Controller {
         const limite = this.modeValue === 'part' ? valeur : this.seuilValue;
         const part = max > min ? ((limite - min) / (max - min)) * 100 : 100;
         const pourcent = Math.min(100, Math.max(0, part));
+        const [avant, apres] = this.mauvaisEnBasValue
+            ? ['var(--color-terre-500)', 'var(--color-lapis-400)']
+            : ['var(--color-lapis-400)', 'var(--color-terre-500)'];
 
-        this.pisteTarget.style.background =
-            `linear-gradient(to right, var(--color-lapis-400) ${pourcent}%, var(--color-terre-500) ${pourcent}%)`;
+        this.pisteTarget.style.background = `linear-gradient(to right, ${avant} ${pourcent}%, ${apres} ${pourcent}%)`;
 
         if (this.hasValeurTarget) {
-            this.valeurTarget.classList.toggle('text-terre-600', valeur > this.seuilValue);
+            const mauvais = this.mauvaisEnBasValue ? valeur < this.seuilValue : valeur > this.seuilValue;
+            this.valeurTarget.classList.toggle('text-terre-600', mauvais);
+        }
+        if (this.hasVerdictTarget) {
+            const cle = valeur < this.justeValue ? 'bas' : (valeur >= this.genereuxValue ? 'haut' : 'milieu');
+            this.verdictTarget.textContent = this.verdictTarget.dataset[cle] ?? '';
+            this.verdictTarget.classList.toggle('text-terre-600', cle === 'bas');
+            this.verdictTarget.classList.toggle('text-lapis-600', cle !== 'bas');
         }
         if (this.hasSurplusTarget) {
             const part = Math.max(0, this.reserveValue - Math.max(0, valeur));
