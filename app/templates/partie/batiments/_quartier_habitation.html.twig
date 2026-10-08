@@ -11,7 +11,20 @@
 {{ sous.panneau('quartier', 'habitants', true) }}
 
 <h3 class="mt-8 text-xl text-encre-900">Qui vit ici</h3>
-<p class="mt-2 text-sm text-encre-500">
+{% import 'partie/batiments/_tuile_de_bord.html.twig' as tuiles %}
+<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:max-w-4xl">
+    {{ tuiles.tuile('habitants', 'Maisonnées logées', ville.foyersOccupes ~ ' / ' ~ ville.capaciteEnFoyers,
+        ville.foyersOccupes, ville.capaciteEnFoyers, ville.manqueDeLogements,
+        ville.population ~ ' habitants · ' ~ ville.actifs ~ ' actifs, ' ~ ville.inactifs ~ ' à charge',
+        'Le Quartier plafonne le nombre de maisonnées, il ne peuple pas. Plein, aucun enfant ne naît et personne ne vient.') }}
+    {{ tuiles.tuile('chantier', 'Bras à placer', brasDisponibles, null, null, false,
+        'dans les bâtiments qui en réclament',
+        'Les actifs que vos bâtiments n\'ont pas encore réclamés. Embaucher un chef ouvre des postes.') }}
+    {{ tuiles.tuile('deben', 'Masse salariale', masseSalariale, null, null, masseSalariale > ville.deben,
+        'deben par quinzaine · ' ~ ville.consommationDeNourriture ~ ' vivres de rations',
+        'Ce que les équipes coûtent à chaque quinzaine. Si la caisse ne suit pas, celles qu\'on ne peut pas payer cessent le travail.') }}
+</div>
+<p class="mt-4 text-sm text-encre-500">
     {{ ville.population }} habitants, dont {{ ville.actifs }} en âge de
     travailler et {{ ville.inactifs }} à charge.
     {{ ville.foyersOccupes }} maisonnées sur {{ ville.capaciteEnFoyers }} logées.
@@ -31,6 +44,19 @@
 
 {{ sous.panneau('quartier', 'appel', false) }}
 <div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+    {# Les deux verrous, dits avant qu'on s'engage : la place et la bourse. #}
+    <ul class="mb-4 flex list-none flex-wrap gap-2 p-0" aria-label="Ce qu'il faut pour faire venir du monde">
+        <li class="signal {{ ville.manqueDeLogements ? 'signal--mauvais' : 'signal--bon' }}"
+            data-infobulle="Il faut une maison libre : le Quartier plafonne les maisonnées.">
+            {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 20}) }}
+            {{ ville.manqueDeLogements ? 'Plus de place' : 'Des maisons libres' }}
+        </li>
+        <li class="signal {{ ville.deben < coutDUnAppel ? 'signal--mauvais' : 'signal--bon' }}"
+            data-infobulle="Faire venir une maisonnée coûte {{ coutDUnAppel }} deben, au prix que fixe votre renommée.">
+            {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 20}) }}
+            {{ ville.deben < coutDUnAppel ? 'Bourse trop courte' : 'Bourse suffisante' }}
+        </li>
+    </ul>
     <p class="text-sm text-encre-600">
         Votre famille est <strong class="font-medium text-encre-900">{{ palier.libelle|lower }}</strong> :
         {{ palier.attractivite }}
@@ -51,12 +77,14 @@
             <input type="hidden" name="_token" value="{{ csrf_token('appeler') }}">
             <input type="hidden" name="onglet" value="{{ onglet.cle }}">
 
-            <span class="text-sm text-encre-500" data-chiffres>
+            <span class="inline-flex items-center gap-1 text-sm text-encre-500" data-chiffres>
+                {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 22}) }}
                 {{ coutDUnAppel }} deben la maisonnée
             </span>
 
             <button type="submit"
-                    class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                    class="bouton-offrande group ml-auto inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 22, classe: 'bouton-offrande__image'}) }}
                 Faire venir une maisonnée
             </button>
         </form>

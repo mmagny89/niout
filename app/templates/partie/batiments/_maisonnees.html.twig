@@ -35,7 +35,10 @@
 
 <ul class="mt-4 grid list-none grid-cols-[repeat(auto-fill,minmax(5.5rem,1fr))] gap-2 p-0" data-chiffres>
     {% for habitants in maisons %}
-        <li class="flex flex-col items-center">
+        {# Chaque maison apparaît à son tour, et se soulève au survol avec sa description
+           en infobulle. Les habitants se balancent à peine, chacun à son rythme. #}
+        <li class="case-vivante maison flex flex-col items-center" style="--i: {{ loop.index0 }}"
+            data-infobulle="Maisonnée {{ loop.index }} : {{ descriptions[loop.index0] }}">
             <svg viewBox="0 0 64 20" class="h-4 w-full fill-terre-400" aria-hidden="true" focusable="false">
                 <polygon points="2,20 32,2 62,20"/>
             </svg>
@@ -43,11 +46,11 @@
                  role="img" aria-label="Maisonnée {{ loop.index }} : {{ descriptions[loop.index0] }}">
                 {% for habitant in habitants %}
                     {% if habitant == 'actif' %}
-                        <svg viewBox="0 0 12 22" class="h-7 w-3 fill-lapis-500" aria-hidden="true" focusable="false"><use href="#gens-adulte"/></svg>
+                        <svg viewBox="0 0 12 22" class="habitant h-7 w-3 fill-lapis-500" style="--r: {{ (loop.index0 * 3 + loop.parent.loop.index0) % 7 }}" aria-hidden="true" focusable="false"><use href="#gens-adulte"/></svg>
                     {% elseif habitant == 'malade' %}
-                        <svg viewBox="0 0 12 22" class="h-7 w-3 fill-terre-500" aria-hidden="true" focusable="false"><use href="#gens-malade"/></svg>
+                        <svg viewBox="0 0 12 22" class="habitant habitant--malade h-7 w-3 fill-terre-500" aria-hidden="true" focusable="false"><use href="#gens-malade"/></svg>
                     {% elseif habitant == 'enfant' %}
-                        <svg viewBox="0 0 12 22" class="h-7 w-3 fill-ocre-500" aria-hidden="true" focusable="false"><use href="#gens-enfant"/></svg>
+                        <svg viewBox="0 0 12 22" class="habitant h-7 w-3 fill-ocre-500" style="--r: {{ (loop.index0 * 2 + loop.parent.loop.index0) % 7 }}" aria-hidden="true" focusable="false"><use href="#gens-enfant"/></svg>
                     {% else %}
                         <svg viewBox="0 0 14 22" class="h-7 w-3.5 fill-encre-500 text-encre-500" aria-hidden="true" focusable="false"><use href="#gens-ancien"/></svg>
                     {% endif %}

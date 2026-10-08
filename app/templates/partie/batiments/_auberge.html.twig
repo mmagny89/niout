@@ -28,7 +28,17 @@
     </div>
 
 {{ sous.panneau('auberge', 'salle', false) }}
-<p class="mt-6 max-w-4xl text-sm text-encre-500">
+{# La salle, un soir : la braise rougeoie et la fumée monte. Décoratif, éteint si l'on a
+   demandé moins de mouvement ; le texte dessous dit l'essentiel. #}
+<div class="salle mt-6 flex items-center gap-4 overflow-hidden rounded-sm border border-terre-500/30 px-5 py-4">
+    <span class="salle__braise inline-flex">{{ include('partie/_pictogramme.html.twig', {nom: 'offrande', taille: 64}) }}</span>
+    <div>
+        <p class="font-display text-xl text-terre-700">La salle de l'Auberge</p>
+        <p class="text-sm text-encre-600">Un feu, de la bière, et des histoires de passage.</p>
+    </div>
+</div>
+
+<p class="mt-4 max-w-4xl text-sm text-encre-500">
     Bateliers, porteurs de nouvelles, marchands en chemin : on y boit, on y
     parle, et l'on s'y pose des devinettes. Rien de ce qui s'y dit n'engage la
     ville — mais on y apprend des choses.

@@ -21,7 +21,7 @@
         <span>{{ nombreDeSignesAppris }} signe{{ nombreDeSignesAppris > 1 ? 's' : '' }} appris sur {{ totalDesSignes }}</span>
     </p>
 
-    <progress class="mt-2 h-2 w-full" max="{{ totalDesSignes }}" value="{{ nombreDeSignesAppris }}"
+    <progress class="progression mt-2 w-full" max="{{ totalDesSignes }}" value="{{ nombreDeSignesAppris }}"
               aria-label="Signes appris : {{ nombreDeSignesAppris }} sur {{ totalDesSignes }}"></progress>
 
     {% if suivant %}

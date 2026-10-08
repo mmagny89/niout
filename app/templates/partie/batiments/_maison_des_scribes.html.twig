@@ -21,9 +21,12 @@
         {# Le fil rouge d'abord : c'est ce que le roi attend, et un fil
    dont on ne sait pas ce qu'il demande n'est qu'une décoration. #}
 {% if filRouge %}
-    <div class=" rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-4">
-        <h3 class="font-display text-lg text-encre-900">{{ filRouge.libelle }}</h3>
-        <p class="mt-1 text-sm text-encre-700">{{ filRouge.consigne }}</p>
+    <div class="carte-vivante flex items-start gap-4 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-4">
+        {{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 44}) }}
+        <div>
+            <h3 class="font-display text-lg text-encre-900">{{ filRouge.libelle }}</h3>
+            <p class="mt-1 text-sm text-encre-700">{{ filRouge.consigne }}</p>
+        </div>
     </div>
 {% endif %}
 
@@ -41,7 +44,7 @@
         <input type="hidden" name="inscription" value="{{ inscription.value }}">
         <input type="hidden" name="ordre" value="" data-dechiffrage-target="reponse">
 
-        <p class="text-center font-hieroglyphes text-5xl leading-tight text-encre-900" aria-hidden="true">
+        <p class="inscription-gravee text-center font-hieroglyphes text-5xl leading-tight text-encre-900" aria-hidden="true">
             {%- for signe in inscription.signes %}{{ signe.signe }}{% endfor -%}
         </p>
         <p class="mt-1 text-center text-xs text-encre-500">
@@ -84,8 +87,9 @@
 
         <div class="mt-5 text-center">
             <button type="submit" data-dechiffrage-target="valider" disabled
-                    class="rounded-sm bg-terre-500 px-5 py-2 text-sm font-medium text-sable-50
+                    class="inline-flex items-center gap-2 rounded-sm bg-terre-500 px-5 py-2 text-sm font-medium text-sable-50
                            hover:bg-terre-600 disabled:cursor-not-allowed disabled:opacity-40">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'enigme', taille: 22}) }}
                 Lire l'inscription
             </button>
         </div>
@@ -124,15 +128,22 @@
     <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
         {% for entree in dossiers %}
             {% set dossier = entree.dossier %}
-            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+            <li class="carte-vivante rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
                 <div class="flex flex-wrap items-baseline justify-between gap-3">
-                    <h3 class="font-display text-lg text-encre-900">
+                    <h3 class="flex items-center gap-2 font-display text-lg text-encre-900">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'enigme', taille: 32}) }}
                         {{ dossier.enquete.libelle }}
                         {% if dossier.enquete.estPrincipale %}
                             <span class="ml-2 text-xs text-terre-600">fil rouge</span>
                         {% endif %}
                     </h3>
-                    <span class="text-sm text-encre-500" data-chiffres>
+                    <span class="flex items-center gap-2 text-sm text-encre-500" data-chiffres>
+                        {# Un point par indice requis : plein pour ceux qui concordent. #}
+                        <span class="flex gap-1" aria-hidden="true">
+                            {% for rang in 1..max(dossier.enquete.indicesRequis, 1) %}
+                                <span class="case-vivante size-3 rounded-full {{ rang <= dossier.concordantsReunis ? 'bg-lapis-500' : 'border border-ocre-500/60' }}" style="--i: {{ rang }}"></span>
+                            {% endfor %}
+                        </span>
                         {{ dossier.concordantsReunis }} / {{ dossier.enquete.indicesRequis }}
                         indices concordants
                     </span>
@@ -217,10 +228,14 @@
     </p>
 {% endif %}
 
+<progress class="progression mt-3 w-full max-w-md" max="{{ signesEnTout }}" value="{{ cleDeLecture|length }}"
+          aria-label="Signes de la clé lus : {{ cleDeLecture|length }} sur {{ signesEnTout }}"></progress>
+
 <ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
     {% for symbole in cleDeLecture %}
-        <li class="flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
-            <span class="font-hieroglyphes text-4xl leading-none text-encre-900"
+        <li class="carte-vivante signe-carte flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4"
+            data-infobulle="{{ symbole.codeDeGardiner }} — {{ symbole.libelle }}">
+            <span class="signe-plaque font-hieroglyphes text-4xl leading-none text-encre-900"
                   aria-hidden="true">{{ symbole.signe }}</span>
             <span>
                 <span class="block text-encre-900">{{ symbole.libelle }}</span>
@@ -352,8 +367,9 @@
 
             <div class="mt-5 text-center">
                 <button type="submit" data-dechiffrage-target="valider" disabled
-                        class="rounded-sm bg-lapis-500 px-5 py-2 text-sm font-medium text-sable-50
+                        class="inline-flex items-center gap-2 rounded-sm bg-lapis-500 px-5 py-2 text-sm font-medium text-sable-50
                                hover:bg-lapis-600 disabled:cursor-not-allowed disabled:opacity-40">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 22}) }}
                     Écrire le nom
                 </button>
             </div>
@@ -383,7 +399,7 @@
                 <li class="text-center" title="{{ signe.objet }} ({{ signe.codeDeGardiner }}), le son {{ signe.translitteration }}">
                     <span class="block font-hieroglyphes text-4xl leading-none
                                  {{ connu ? 'text-encre-900' : 'text-encre-500/40' }}">{{ signe.signe }}</span>
-                    <span class="mt-1 block text-xs {{ connu ? 'text-encre-500' : 'text-encre-500/50' }}">
+                    <span class="mt-1 block text-xs {{ connu ? 'text-encre-500' : 'text-encre-500/80' }}">
                         {{ signe.translitteration }}
                     </span>
                 </li>
@@ -437,10 +453,14 @@
     </p>
 {% endif %}
 
+<progress class="progression mt-3 w-full max-w-md" max="{{ signesDeLAlphabetEnTout }}" value="{{ alphabet|length }}"
+          aria-label="Signes de l'alphabet lus : {{ alphabet|length }} sur {{ signesDeLAlphabetEnTout }}"></progress>
+
 <ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
     {% for signe in alphabet %}
-        <li class="flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
-            <span class="font-hieroglyphes text-4xl leading-none text-encre-900"
+        <li class="carte-vivante signe-carte flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4"
+            data-infobulle="{{ signe.codeDeGardiner }} — le son {{ signe.translitteration }} ({{ signe.objet|lower }})">
+            <span class="signe-plaque font-hieroglyphes text-4xl leading-none text-encre-900"
                   aria-hidden="true">{{ signe.signe }}</span>
             <span>
                 <span class="block text-encre-900">
@@ -498,7 +518,8 @@
                                 {% endif %}
                                 <div class="mt-2 grid gap-1">
                                     {% for option in question.options %}
-                                        <label class="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-sm text-encre-700 hover:bg-ocre-300/20">
+                                        <label class="flex cursor-pointer items-center gap-2 rounded-sm border border-transparent px-2 py-1 text-sm text-encre-700 transition hover:bg-ocre-300/20
+                                                 has-checked:border-lapis-500/50 has-checked:bg-lapis-500/10">
                                             <input type="radio" name="reponse[{{ rang }}]" value="{{ option.valeur }}" required>
                                             <span class="{{ option.glyphe ? 'font-hieroglyphes text-2xl leading-none' : '' }}">{{ option.libelle }}</span>
                                         </label>
