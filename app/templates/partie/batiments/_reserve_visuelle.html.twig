@@ -1,4 +1,4 @@
-{# Une réserve en cases : ce qu'elle contient, et ce qui lui reste de place.
+{# Une réserve en jauge empilée : ce qu'elle contient, et ce qui lui reste de place.
 
    **Une représentation, pas un état** (`VueDeLaReserve`) : chaque case vaut un
    pas de ressource, et les cases pleines se rangent par ressource (Grenier) ou
@@ -15,46 +15,69 @@
     materiaux: 'bg-ocre-600', precieux: 'bg-lapis-500', ouvrages: 'bg-or-400',
     autres: 'bg-encre-500'
 } %}
+{# Une famille de matériaux n'est pas une ressource : elle emprunte un pictogramme. #}
+{% set pictos = {materiaux: 'chantier', precieux: 'pharaon', ouvrages: 'amelioration'} %}
 <div class="mt-4">
-    <div class="flex flex-wrap items-baseline justify-between gap-2 text-sm" data-chiffres>
-        <span class="{{ vue.saturee ? 'text-terre-600' : 'text-encre-600' }}">
-            <strong class="font-medium">{{ vue.occupation }}</strong> sur {{ vue.plafond }}
-            {% if vue.saturee %}— presque plein{% else %}— {{ vue.libre }} de libre{% endif %}
-        </span>
-        <span class="text-xs text-encre-500">Une case : {{ vue.pas }} unité{{ vue.pas > 1 ? 's' : '' }}</span>
-    </div>
+    {# **Une seule barre, proportionnelle au plafond** : chaque ressource est un segment de sa largeur, la place
+       libre est hachurée. On lit d'un coup d'œil ce qui domine et ce qu'il reste — c'est ce qu'on veut voir
+       avant de lancer une récolte ou une caravane. Le total, la place libre et l'alerte sont dans les tuiles :
+       ils ne sont pas répétés ici, seule la couleur du cadre vire à la terre cuite quand c'est presque plein.
 
-    <div class="mt-2 flex flex-wrap gap-1 rounded-sm border {{ vue.saturee ? 'border-terre-500/50' : 'border-ocre-500/30' }} bg-sable-50 p-2"
-         role="img"
-         aria-label="Réserve : {{ vue.occupation }} sur {{ vue.plafond }}, {{ vue.libre }} de libre">
-        {% for groupe in vue.groupes %}
-            {% for _ in 1..groupe.cases %}
-                <span class="h-4 w-4 rounded-xs {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}" aria-hidden="true"></span>
+       Le dessin est masqué aux lecteurs d'écran : les fiches dessous disent la même chose en toutes lettres.
+       La couleur n'est jamais seule — chaque teinte a son nom et son nombre. #}
+    <div class="flex h-7 overflow-hidden rounded-full border {{ vue.saturee ? 'border-terre-500/60' : 'border-ocre-500/40' }} bg-sable-50"
+         role="img" aria-label="Réserve : {{ vue.occupation }} sur {{ vue.plafond }}, {{ vue.libre }} de libre">
+        <div class="jauge flex h-full" style="width: {{ min(100, (vue.occupation * 100 / max(1, vue.plafond))|round(1)) }}%" aria-hidden="true">
+            {% for groupe in vue.groupes %}
+                <span class="h-full border-r border-sable-50/70 last:border-r-0 {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}"
+                      style="width: {{ (groupe.quantite * 100 / max(1, vue.occupation))|round(2) }}%"
+                      title="{{ groupe.libelle }} {{ groupe.quantite }}"></span>
             {% endfor %}
-        {% endfor %}
-        {% set vides = vue.casesEnTout - vue.casesPleines %}
-        {% if vides > 0 %}
-            {% for _ in 1..vides %}
-                <span class="h-4 w-4 rounded-xs border border-dashed border-ocre-500/50" aria-hidden="true"></span>
-            {% endfor %}
-        {% endif %}
+        </div>
+        <div class="reserve-libre h-full flex-1" aria-hidden="true"></div>
     </div>
 
     {% if vue.groupes is empty %}
-        <p class="mt-2 text-sm text-encre-500">La réserve est vide.</p>
+        <p class="mt-3 text-sm text-encre-500">La réserve est vide.</p>
     {% else %}
-        <ul class="mt-3 list-none space-y-1 p-0 text-sm" data-chiffres>
+        <ul class="mt-4 grid list-none grid-cols-[repeat(auto-fill,minmax(11.5rem,1fr))] gap-2 p-0" data-chiffres>
             {% for groupe in vue.groupes %}
-                <li>
-                    <span class="flex items-center gap-2">
-                        <span class="inline-block h-3 w-3 rounded-xs {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}" aria-hidden="true"></span>
-                        <span class="text-encre-900">{{ groupe.libelle }}</span>
-                        <span class="text-encre-600">{{ groupe.quantite }}</span>
-                    </span>
-                    {% if groupe.lignes|length > 1 %}
-                        <span class="ml-5 block text-xs text-encre-500">
-                            {% for ligne in groupe.lignes %}{{ ligne.ressource.libelle }} {{ ligne.quantite }}{{ not loop.last ? ' · ' : '' }}{% endfor %}
+                <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-3 py-2 {{ groupe.lignes|length > 1 ? 'col-span-full' : '' }}">
+                    <span class="block h-1.5 rounded-full {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}" aria-hidden="true"></span>
+                    <span class="mt-2 flex items-center gap-2">
+                        {% if image_de_ressource(groupe.cle) %}
+                            {{ include('partie/_icone_ressource.html.twig', {ressource: groupe.cle, taille: 34}) }}
+                        {% elseif pictos[groupe.cle] is defined %}
+                            {{ include('partie/_pictogramme.html.twig', {nom: pictos[groupe.cle], taille: 30}) }}
+                        {% endif %}
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm text-encre-700">{{ groupe.libelle }}</span>
+                            <span class="flex items-baseline justify-between gap-2">
+                                <span class="font-display text-xl leading-tight text-encre-900">{{ groupe.quantite }}</span>
+                                <span class="whitespace-nowrap text-xs text-encre-500">{{ (groupe.quantite * 100 / max(1, vue.plafond))|round }} %</span>
+                            </span>
                         </span>
+                    </span>
+                    {# Une famille de plusieurs ressources : une pastille par ressource, avec son dessin quand elle en a un
+                       et sa part de la famille en filet — la plus fournie fait la pleine largeur. #}
+                    {% if groupe.lignes|length > 1 %}
+                        {% set plusFournie = groupe.lignes|reduce((m, l) => max(m, l.quantite), 1) %}
+                        <ul class="mt-3 grid list-none grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-x-4 gap-y-2 p-0">
+                            {% for ligne in groupe.lignes %}
+                                <li title="{{ ligne.ressource.libelle }} {{ ligne.quantite }}">
+                                    <span class="flex items-center gap-1.5 text-xs">
+                                        {% if image_de_ressource(ligne.ressource) %}
+                                            {{ include('partie/_icone_ressource.html.twig', {ressource: ligne.ressource, taille: 22}) }}
+                                        {% endif %}
+                                        <span class="min-w-0 flex-1 truncate text-encre-600">{{ ligne.ressource.libelle|capitalize }}</span>
+                                        <span class="text-encre-900">{{ ligne.quantite }}</span>
+                                    </span>
+                                    <span class="mt-1 block h-1 overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                                        <span class="block h-full rounded-full {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}" style="width: {{ (ligne.quantite * 100 / plusFournie)|round }}%"></span>
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
                     {% endif %}
                 </li>
             {% endfor %}

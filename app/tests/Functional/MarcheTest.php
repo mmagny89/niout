@@ -460,6 +460,26 @@ final class MarcheTest extends KernelTestCase
         self::assertSame(City::MARGE_MINIMALE, $ville->getMargeDuMarche());
     }
 
+    /**
+     * **Sans travailleur, le Marché ne fonctionne pas** : ni vente à la main, ni surplus écoulé tout seul.
+     */
+    public function testSansAucunTravailleurLeMarcheNeVendRien(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerAvecMarche('marche-sans-bras@example.com');
+        $ville = $partie->getVille();
+        $ville->crediterRessources([Ressource::Calcaire->value => 100]);
+        $ville->garderEnReserve(Ressource::Calcaire, 10);
+        $ville->laisserPartir($ville->getActifs(), 0);
+
+        self::assertSame([], $this->marche()->tenirLEtal($partie), 'Personne ne tient l\'étal.');
+        self::assertSame(100, $ville->quantite(Ressource::Calcaire));
+
+        $this->expectException(VenteImpossible::class);
+        $this->expectExceptionMessage('aucun travailleur');
+        $this->marche()->vendre($partie, Ressource::Calcaire, 5);
+    }
+
     private function lancerAvecMarche(string $email): GameSave
     {
         $partie = $this->lancerPartie($email);

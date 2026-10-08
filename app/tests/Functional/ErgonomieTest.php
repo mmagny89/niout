@@ -245,7 +245,9 @@ final class ErgonomieTest extends WebTestCase
 
         $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
-        self::assertSelectorTextContains('body', 'À bâtir');
+        // Les panneaux fermés restent dans le document : la liste des bâtiments (dressés et à bâtir
+        // fusionnés) comme les habitants.
+        self::assertSelectorTextContains('body', 'Les bâtiments de la ville');
         self::assertSelectorTextContains('body', 'Habitants');
     }
 

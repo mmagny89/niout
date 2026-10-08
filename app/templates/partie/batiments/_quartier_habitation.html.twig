@@ -11,30 +11,74 @@
 {{ sous.panneau('quartier', 'habitants', true) }}
 
 <h3 class="mt-8 text-xl text-encre-900">Qui vit ici</h3>
-<p class="mt-2 text-sm text-encre-500">
-    {{ ville.population }} habitants, dont {{ ville.actifs }} en âge de
-    travailler et {{ ville.inactifs }} à charge.
-    {{ ville.foyersOccupes }} maisonnées sur {{ ville.capaciteEnFoyers }} logées.
-    {{ brasDisponibles }} bras restent à placer dans les bâtiments.
-</p>
+{% import 'partie/batiments/_tuile_de_bord.html.twig' as tuiles %}
+<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 lg:max-w-4xl">
+    {{ tuiles.tuile('habitants', 'Maisonnées logées', ville.foyersOccupes ~ ' / ' ~ ville.capaciteEnFoyers,
+        ville.foyersOccupes, ville.capaciteEnFoyers, ville.manqueDeLogements,
+        ville.population ~ ' habitants · ' ~ ville.actifs ~ ' actifs, ' ~ ville.inactifs ~ ' à charge',
+        'Le Quartier plafonne le nombre de maisonnées, il ne peuple pas. Plein, aucun enfant ne naît et personne ne vient.') }}
+    {{ tuiles.tuile('chantier', 'Bras à placer', brasDisponibles, null, null, false,
+        'dans les bâtiments qui en réclament',
+        'Les actifs que vos bâtiments n\'ont pas encore réclamés. Embaucher un chef ouvre des postes.') }}
+    {{ tuiles.tuile('deben', 'Masse salariale', masseSalariale, null, null, masseSalariale > ville.deben,
+        'deben par quinzaine · ' ~ ville.consommationDeNourriture ~ ' vivres de rations',
+        'Ce que les équipes coûtent à chaque quinzaine. Si la caisse ne suit pas, celles qu\'on ne peut pas payer cessent le travail.') }}
+</div>
 {{ include('partie/batiments/_maisonnees.html.twig') }}
 
-<p class="mt-4 text-sm {{ masseSalariale > ville.deben ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-    Masse salariale : <strong class="font-medium">{{ masseSalariale }} deben</strong> par quinzaine,
-    pour {{ ville.consommationDeNourriture }} vivres de rations.
-    {% if masseSalariale > ville.deben %}
+{# Les chiffres de la masse salariale sont dans la tuile ; ne reste ici que ce qui n'y tient pas. #}
+{% if masseSalariale > ville.deben %}
+    <p class="mt-4 text-sm text-terre-600">
         Votre caisse ne suit plus : les équipes que vous ne pourrez pas
         payer cesseront le travail.
-    {% endif %}
-</p>
+    </p>
+{% endif %}
     </div>
 
 {{ sous.panneau('quartier', 'appel', false) }}
 <div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
-    <p class="text-sm text-encre-600">
-        Votre famille est <strong class="font-medium text-encre-900">{{ palier.libelle|lower }}</strong> :
-        {{ palier.attractivite }}
-    </p>
+    {# Les deux verrous, dits avant qu'on s'engage : la place et la bourse. #}
+    <ul class="mb-4 flex list-none flex-wrap gap-2 p-0" aria-label="Ce qu'il faut pour faire venir du monde">
+        <li class="signal {{ ville.manqueDeLogements ? 'signal--mauvais' : 'signal--bon' }}"
+            data-infobulle="Il faut une maison libre : le Quartier plafonne les maisonnées.">
+            {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 20}) }}
+            {{ ville.manqueDeLogements ? 'Plus de place' : 'Des maisons libres' }}
+        </li>
+        <li class="signal {{ ville.deben < coutDUnAppel ? 'signal--mauvais' : 'signal--bon' }}"
+            data-infobulle="Faire venir une maisonnée coûte {{ coutDUnAppel }} deben, au prix que fixe votre renommée.">
+            {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 20}) }}
+            {{ ville.deben < coutDUnAppel ? 'Bourse trop courte' : 'Bourse suffisante' }}
+        </li>
+    </ul>
+    {# **Le rang de la famille se lit comme une échelle**, pas comme une phrase : cinq marches, celle où l'on
+       se tient allumée, ce qu'un appel coûte à chacune dessous. Le prix de base seulement — celui que la
+       renommée fixe ; le prix payé est dit plus bas. #}
+    {% set renommee = partie.famille.renommee %}
+    <ol class="grid list-none grid-cols-5 gap-1.5 p-0" aria-label="Rang de la famille et prix de base d'un appel" data-chiffres>
+        {% for rang in paliers %}
+            {% set atteint = rang.seuilDEntree <= renommee %}
+            {% set courant = rang == palier %}
+            <li class="rounded-sm border px-1.5 py-2 text-center {{ courant ? 'border-terre-500/60 bg-terre-500/10' : 'border-transparent' }}"
+                {{ courant ? 'aria-current="step"' }}>
+                <span class="block h-1.5 rounded-full {{ atteint ? 'bg-linear-to-r from-terre-500 to-or-400' : 'bg-ocre-500/20' }}" aria-hidden="true"></span>
+                <span class="mt-1.5 block text-xs {{ courant ? 'font-medium text-terre-600' : (atteint ? 'text-encre-700' : 'text-encre-500') }}">{{ rang.libelle }}</span>
+                <span class="mt-0.5 block text-xs text-encre-500">{{ rang.coutDAppel }} deben</span>
+            </li>
+        {% endfor %}
+    </ol>
+
+    <div class="mt-4 flex items-start gap-3 rounded-sm border-l-4 border-or-300 bg-or-300/10 px-4 py-3">
+        {{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 32}) }}
+        <div class="min-w-0 text-sm">
+            <p class="text-encre-900">{{ palier.attractivite }}</p>
+            {% if palier.suivant %}
+                <p class="mt-1 text-xs text-encre-500" data-chiffres>
+                    Encore {{ palier.suivant.seuilDEntree - renommee }} points de renommée pour être
+                    {{ palier.suivant.libelle|lower }} : un appel y coûte {{ palier.suivant.coutDAppel }} deben de base.
+                </p>
+            {% endif %}
+        </div>
+    </div>
 
     {% if ville.manqueDeLogements %}
         <p class="mt-3 text-sm text-encre-500">
@@ -51,12 +95,14 @@
             <input type="hidden" name="_token" value="{{ csrf_token('appeler') }}">
             <input type="hidden" name="onglet" value="{{ onglet.cle }}">
 
-            <span class="text-sm text-encre-500" data-chiffres>
+            <span class="inline-flex items-center gap-1 text-sm text-encre-500" data-chiffres>
+                {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 22}) }}
                 {{ coutDUnAppel }} deben la maisonnée
             </span>
 
             <button type="submit"
-                    class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                    class="bouton-offrande group ml-auto inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 22, classe: 'bouton-offrande__image'}) }}
                 Faire venir une maisonnée
             </button>
         </form>

@@ -28,7 +28,7 @@
                                 {% if ligne.compte.verified %}
                                     <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-lapis-600">Vérifié</span>
                                 {% else %}
-                                    <span class="rounded-sm bg-ocre-400/20 px-2 py-0.5 text-ocre-600">
+                                    <span class="rounded-sm bg-ocre-400/20 px-2 py-0.5 text-encre-700">
                                         Non vérifié — purge le
                                         {{ ligne.compte.createdAt|date_modify('+' ~ delaiDeVerification ~ ' days')|date('d/m/Y') }}
                                     </span>

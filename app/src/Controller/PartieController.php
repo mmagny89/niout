@@ -24,7 +24,6 @@ use App\Game\Chantiers;
 use App\Game\Commerce;
 use App\Game\CommerceImpossible;
 use App\Game\Culture;
-use App\Game\DateDeJeu;
 use App\Game\Dechiffrage;
 use App\Game\DechiffrageImpossible;
 use App\Game\Divinite;
@@ -64,6 +63,7 @@ use App\Game\PrixDuMarche;
 use App\Game\Progression;
 use App\Game\QueteImpossible;
 use App\Game\QuetesDeChantier;
+use App\Game\RecapitulatifDeQuinzaine;
 use App\Game\Recette;
 use App\Game\RecrutementImpossible;
 use App\Game\Recrutements;
@@ -409,7 +409,7 @@ final class PartieController extends AbstractController
                 throw $this->createNotFoundException('Bâtiment inconnu.');
             }
 
-            $consigne = $ville->consigneDeFabricationDe($type);
+            $consigne = $ville->consigneDeFabricationDe($type, max(1, $request->request->getInt('poste', 1)));
 
             if (null !== $consigne) {
                 $ville->leverLaConsigne($consigne);
@@ -440,7 +440,7 @@ final class PartieController extends AbstractController
 
         $lots = max(1, min($request->request->getInt('lots', 1), Fabrication::lotsMaximum($atelier->getNiveau())));
 
-        $ville->consigner($recette, $lots);
+        $ville->consigner($recette, $lots, max(1, $request->request->getInt('poste', 1)));
         $gestionnaire->flush();
 
         $this->addFlash('succes', \sprintf(
@@ -1518,22 +1518,22 @@ final class PartieController extends AbstractController
      */
     #[Route('/{id}/cycle', name: 'app_partie_cycle', requirements: ['id' => '\d+'], methods: ['POST'])]
     #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
-    public function passerUnCycle(Request $request, GameSave $partie, PassageDeCycle $cycle): Response
-    {
+    public function passerUnCycle(
+        Request $request,
+        GameSave $partie,
+        PassageDeCycle $cycle,
+        RecapitulatifDeQuinzaine $recapitulatif,
+    ): Response {
         if (!$this->isCsrfTokenValid('cycle', (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton invalide.');
         }
 
-        $evenements = $cycle->passer($partie);
+        $avant = $recapitulatif->photographier($partie);
+        $evenements = $cycle->passerEnDetail($partie);
 
-        $this->addFlash('succes', \sprintf(
-            'Une quinzaine passe. Nous voici en %s.',
-            DateDeJeu::pourCycle($partie->getCycle())->libelle(),
-        ));
-
-        foreach ($evenements as $evenement) {
-            $this->addFlash('succes', $evenement);
-        }
+        // Un récapitulatif, et non une pile de messages : ce que la quinzaine a changé
+        // (écarts), puis le journal rangé par catégorie. Il voyage en message flash.
+        $this->addFlash('quinzaine', $recapitulatif->composer($avant, $partie, $evenements));
 
         return $this->retourDemande($request, $partie);
     }

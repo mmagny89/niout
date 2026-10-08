@@ -17,6 +17,7 @@ use App\Game\LanceurDePartie;
 use App\Game\PassageDeCycle;
 use App\Game\PrixDuMarche;
 use App\Game\Ressource;
+use App\Game\Salaires;
 use App\Game\SensDEchange;
 use App\Game\SpecialiteDeChef;
 use App\Game\TypeDeBatiment;
@@ -362,11 +363,11 @@ final class CommerceTest extends KernelTestCase
 
         $debenAvant = $ville->getDeben();
         $calcaireAvant = $ville->quantite(Ressource::Calcaire);
-        $this->cycle()->passer($partie);
+        $horsCaravane = $this->passerEnCompteLImpot($partie);
 
         $convoi = $ville->routeVers('memphis')?->convoiPour(Ressource::Calcaire);
         self::assertNotNull($convoi);
-        self::assertSame($debenAvant - $convoi->valeur(), $ville->getDeben(), 'La bourse est engagée au départ.');
+        self::assertSame($debenAvant - $convoi->valeur() + $horsCaravane, $ville->getDeben(), 'La bourse est engagée au départ.');
         self::assertSame($calcaireAvant, $ville->quantite(Ressource::Calcaire), 'Rien n\'arrive avant le retour.');
 
         $quantite = $convoi->getQuantite();
@@ -634,9 +635,14 @@ final class CommerceTest extends KernelTestCase
     /**
      * Passe une quinzaine et rend ce que l'impôt du mois y a versé à la caisse.
      */
+    /**
+     * Passe une quinzaine et rend ce que la caisse gagne **hors caravane** : l'impôt du mois, moins la
+     * paie — chaque bâtiment réclame désormais ses travailleurs, chef ou non, et les paie.
+     */
     private function passerEnCompteLImpot(GameSave $partie): int
     {
         $total = 0;
+        $paie = static::getContainer()->get(Salaires::class)->masseSalariale($partie->getVille(), $partie->getCycle());
 
         foreach ($this->cycle()->passer($partie) as $annonce) {
             if (1 === preg_match('/impôt du mois.*?(\d+) deben/u', $annonce, $trouve)) {
@@ -644,7 +650,7 @@ final class CommerceTest extends KernelTestCase
             }
         }
 
-        return $total;
+        return $total - $paie;
     }
 
     private function cycle(): PassageDeCycle

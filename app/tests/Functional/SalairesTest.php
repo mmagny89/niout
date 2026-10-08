@@ -89,7 +89,7 @@ final class SalairesTest extends KernelTestCase
         $this->installerUnChef($partie, TypeDeBatiment::Grenier, salaire: 8);
         $avecLeChef = $this->salaires()->masseSalariale($ville, $partie->getCycle());
 
-        self::assertSame(0, $avecLeSeulOuvrier, 'Sans chef, le Grenier ne réclame aucun bras.');
+        self::assertSame(Salaires::SALAIRE_DUN_TRAVAILLEUR, $avecLeSeulOuvrier, 'Sans chef, le Grenier réclame tout de même son équipage.');
         self::assertSame(8 + Salaires::SALAIRE_DUN_TRAVAILLEUR, $avecLeChef);
     }
 

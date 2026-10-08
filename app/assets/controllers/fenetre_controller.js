@@ -92,6 +92,9 @@ export default class extends Controller {
         this.surEnvoi = (evenement) => this.actionFaite(evenement);
         this.element.addEventListener('turbo:frame-load', this.surChargement);
         this.element.addEventListener('turbo:submit-end', this.surEnvoi);
+
+        // Une page rendue avec la fenêtre déjà ouverte : sa forme se lit dans son contenu.
+        this.synchroniserLaForme();
     }
 
     disconnect() {
@@ -104,6 +107,11 @@ export default class extends Controller {
         this.element.removeEventListener('turbo:submit-end', this.surEnvoi);
     }
 
+    /** La forme de la fenêtre est celle du contenu qu'elle porte : feuille à droite, ou fenêtre large. */
+    synchroniserLaForme() {
+        this.fenetreTarget.dataset.forme = this.fenetreTarget.querySelector('[data-forme]')?.dataset.forme ?? 'large';
+    }
+
     /** Un lien a demandé la fenêtre : on l'ouvre tout de suite, le contenu suit. */
     ouvrir(evenement) {
         if (evenement?.metaKey || evenement?.ctrlKey || evenement?.shiftKey || (evenement?.button ?? 0) !== 0) {
@@ -111,6 +119,13 @@ export default class extends Controller {
         }
 
         this.origine = evenement?.currentTarget ?? document.activeElement;
+
+        // **La forme se décide avant l'ouverture, pas à l'arrivée du contenu.** La fenêtre apparaît
+        // tout de suite et le contenu suit : tant qu'il n'est pas là, le cadre est vide — ou garde
+        // l'écran précédent —, sans le `data-forme` que la CSS lisait pour poser la feuille à
+        // droite. La fenêtre s'ouvrait donc large et centrée, puis sautait à droite. Le lien dit
+        // la forme qu'il attend (`data-fenetre-forme`) ; le chargement la confirmera.
+        this.fenetreTarget.dataset.forme = evenement?.currentTarget?.dataset?.fenetreForme ?? 'large';
         this.montrer();
     }
 
@@ -241,6 +256,10 @@ export default class extends Controller {
         if (evenement.target?.id !== 'fenetre') {
             return;
         }
+
+        // La forme réelle est celle du contenu arrivé : elle corrige l'attente du lien, et suit
+        // la navigation dans la fenêtre (de la case aux expéditions, de la ville à une case).
+        this.synchroniserLaForme();
 
         this.montrer();
 

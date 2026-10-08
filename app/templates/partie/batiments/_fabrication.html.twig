@@ -1,59 +1,97 @@
 {# L'ouvrage d'un atelier — l'Atelier et la Forge partagent tout, c'est la
    recette qui dit où elle se travaille (doc 08).
 
-   **Un seul ordre à la fois et par bâtiment** : chacun est un lieu, pas une
-   file, et c'est ce qui donne son coût d'opportunité à la fabrication —
-   tisser, c'est ne pas cuire. Les deux se rendent donc par le même gabarit,
-   chacun dans son propre onglet. #}
+   **Un ordre à la fois, par travailleur** (décision de la joueuse) : chaque
+   travailleur du bâtiment est un poste, avec son ouvrage et sa consigne, et le
+   bâtiment mène autant d'ordres de front que de postes tenus. Tisser, c'est
+   ne pas cuire avec ces mains-là — le coût d'opportunité reste, mais par
+   travailleur. Un bâtiment sans personne garde un poste, mais ne fonctionne pas. Les
+   deux bâtiments se rendent par le même gabarit, chacun dans son onglet. #}
 {% import 'partie/_sous_onglets.html.twig' as sous %}
 {% set atelier = ateliers[onglet.type.value] ?? null %}
 {% set direction = directions[onglet.type.value] ?? null %}
+{% set consignesActives = atelier ? atelier.postes|filter(p => p.consigne)|length : 0 %}
 {% set sections = [
     {cle: 'ouvrage', libelle: "À l'ouvrage"},
-    {cle: 'consigne', libelle: atelier and atelier.consigne ? 'Consigne · active' : 'Consigne'},
+    {cle: 'consigne', libelle: consignesActives > 0 ? 'Consigne · active' : 'Consigne'},
 ] %}
 {% if direction %}
     {% set sections = sections|merge([{cle: 'direction', libelle: direction.chefs is empty ? 'Direction · vacante' : 'Direction'}]) %}
 {% endif %}
 {% if atelier %}
+{# Un travailleur sous consigne permanente est réservé à elle : il n'est pas disponible pour un ordre à la main. #}
+{% set libres = atelier.postes|filter(p => not p.ordre and not p.consigne) %}
 {{ sous.debut('fabrication-' ~ onglet.type.value, partie.id, "Sections de l'atelier", sections) }}
 {{ sous.panneau('fabrication-' ~ onglet.type.value, 'ouvrage', true) }}
     <h3 class="mt-8 text-xl text-encre-900">À l'ouvrage</h3>
 
-    {% if atelier.ordre %}
-        <div class="mt-3 rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-4 py-3">
-            <div class="flex flex-wrap items-baseline justify-between gap-3">
-                <h3 class="font-display text-lg text-encre-900">{{ atelier.ordre.recette.libelle }}</h3>
-                <span class="text-sm text-encre-500" data-chiffres>
-                    encore {{ atelier.ordre.cyclesRestants }} quinzaine{{ atelier.ordre.cyclesRestants > 1 ? 's' : '' }}
-                </span>
-            </div>
+    {# **Un poste, un travailleur** : on voit d'un coup d'œil qui travaille à quoi et qui est libre. L'objet qui
+       se fabrique « travaille » (il se balance), et la barre s'anime tant qu'elle n'est pas pleine. Décoratif —
+       l'avancement est écrit. #}
+    <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
+        {% for poste in atelier.postes %}
+            {% if poste.ordre %}
+                <li class="carte-vivante rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-4 py-3">
+                    <div class="flex items-center gap-3">
+                        {{ include('partie/_icone_ressource.html.twig', {ressource: poste.ordre.recette, taille: 56}) }}
+                        <div class="min-w-0 flex-1">
+                            <p class="flex items-center gap-1 text-xs text-encre-500">{{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 16}) }} Travailleur {{ poste.numero }}</p>
+                            <h4 class="font-display text-lg leading-tight text-encre-900">{{ poste.ordre.recette.libelle|capitalize }}</h4>
+                            <span class="text-xs text-encre-500" data-chiffres>
+                                encore {{ poste.ordre.cyclesRestants }} quinzaine{{ poste.ordre.cyclesRestants > 1 ? 's' : '' }}
+                                · {{ poste.ordre.pourcentageDAvancement }} %
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                        <div class="jauge jauge--ouvrage h-full rounded-full bg-terre-500" style="width: {{ poste.ordre.pourcentageDAvancement }}%"></div>
+                    </div>
+                    <p class="mt-2 text-xs text-encre-500" data-chiffres>
+                        {{ poste.ordre.lots }} lot{{ poste.ordre.lots > 1 ? 's' : '' }} —
+                        {{ poste.ordre.piecesAttendues }} pièces à l'achèvement. Matières déjà payées.
+                    </p>
+                    {% if poste.consigne %}
+                        <p class="mt-1 flex items-center gap-1 text-xs text-lapis-600">{{ include('partie/_pictogramme.html.twig', {nom: 'echange', taille: 16}) }} Puis {{ poste.consigne.recette.libelle }}, de lui-même</p>
+                    {% endif %}
+                </li>
+            {% else %}
+                <li class="rounded-sm border border-dashed border-ocre-500/50 bg-sable-50/50 px-4 py-3 text-encre-500">
+                    <p class="flex items-center gap-1 text-xs">{{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 16, classe: 'opacity-50 grayscale'}) }} Travailleur {{ poste.numero }}</p>
+                    <p class="mt-1 font-display text-lg text-encre-600">{{ poste.consigne ? 'Sous consigne' : 'Libre' }}</p>
+                    <p class="text-xs">
+                        {% if poste.consigne and poste.consigne.estEnAttenteDeMatieres %}<span class="text-terre-600">À l'arrêt, faute de matières pour {{ poste.consigne.recette.libelle }}.</span>
+                        {% elseif poste.consigne %}<span class="text-lapis-600">Sous consigne : {{ poste.consigne.recette.libelle }}, il s'y remet de lui-même.</span>
+                        {% else %}Mettez-le à l'ouvrage ci-dessous.{% endif %}
+                    </p>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
 
-            <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
-                <div class="h-full bg-terre-500" style="width: {{ atelier.ordre.pourcentageDAvancement }}%"></div>
-            </div>
-
-            <p class="mt-3 text-sm text-encre-500" data-chiffres>
-                {{ atelier.ordre.lots }} lot{{ atelier.ordre.lots > 1 ? 's' : '' }} —
-                {{ atelier.ordre.piecesAttendues }} pièces à l'achèvement.
-                Les matières sont déjà payées ; rien ne rentre avant la fin.
-            </p>
-        </div>
+    {% if libres is empty %}
+        <p class="mt-3 max-w-4xl text-sm text-encre-500">
+            Tous vos travailleurs sont à l'ouvrage ou sous consigne permanente. Levez une
+            consigne, embauchez, ou attendez qu'un poste se libère.
+        </p>
     {% else %}
+        <h4 class="mt-6 text-sm font-medium uppercase tracking-wide text-encre-500">Mettre à l'ouvrage</h4>
         <p class="mt-2 max-w-4xl text-sm text-encre-500" data-chiffres>
-            Un lot consomme ses matières à l'engagement et rend plusieurs pièces
+            L'ouvrage va au premier travailleur libre. Un lot consomme ses matières à l'engagement et rend plusieurs pièces
             à l'achèvement. Jusqu'à {{ atelier.lotsMaximum }} à la fois ; les bras
             qui tiennent le bâtiment en décident le rythme.
         </p>
 
         <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
             {% for offre in atelier.recettes %}
-                <li class="flex flex-col rounded-sm border p-4
-                           {{ offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
+                {# Le contrôleur est sur la carte, pas sur le formulaire : les matières d'un lot sont
+                   au-dessus de lui, et une cible hors du contrôleur n'est jamais trouvée. #}
+                <li class="carte-vivante flex flex-col rounded-sm border p-4
+                           {{ offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}"
+                    data-controller="lots" data-lots-pieces-value="{{ offre.recette.piecesDunLot }}">
                     <div class="flex flex-wrap items-baseline justify-between gap-3">
                         <h3 class="flex items-center gap-2 font-display text-lg {{ offre.realisable ? 'text-encre-900' : 'text-encre-500' }}">
-                            {{ include('partie/_icone_ressource.html.twig', {ressource: offre.recette, taille: 44}) }}
-                            {{ offre.recette.libelle }}
+                            {{ include('partie/_icone_ressource.html.twig', {ressource: offre.recette, taille: 56}) }}
+                            {{ offre.recette.libelle|capitalize }}
                         </h3>
                         <span class="text-sm text-encre-500" data-chiffres>
                             {{ offre.recette.piecesDunLot }} pièces le lot ·
@@ -61,10 +99,17 @@
                         </span>
                     </div>
 
-                    <p class="mt-2 flex flex-wrap items-center gap-1 text-sm text-encre-600" data-chiffres>
+                    {# Les matières d'un lot, avec leur illustration : `data-base` est la quantité
+                       d'**un** lot, que `lots_controller.js` multiplie par le nombre saisi. #}
+                    {% set valeurs = offre.recette.ingredientsDunLot|keys %}
+                    <p class="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-encre-600" data-chiffres>
                         <span class="text-encre-500">Un lot :</span>
                         {% for libelle, quantite in offre.matieres %}
-                            <span class="rounded-sm bg-ocre-500/10 px-1.5 py-0.5">{{ quantite }} {{ libelle }}</span>
+                            <span class="inline-flex items-center gap-1 rounded-full bg-ocre-500/10 py-0.5 pl-1 pr-2.5"
+                                  data-lots-target="matiere" data-base="{{ quantite }}">
+                                {{ include('partie/_icone_ressource.html.twig', {ressource: valeurs[loop.index0], taille: 26}) }}
+                                <span><span data-quantite>{{ quantite }}</span> {{ libelle }}</span>
+                            </span>
                         {% endfor %}
                     </p>
 
@@ -87,13 +132,24 @@
                             <input type="hidden" name="recette" value="{{ offre.recette.value }}">
 
                             <label for="lots-{{ offre.recette.value }}" class="text-sm text-encre-600">Lots</label>
-                            <input type="number" id="lots-{{ offre.recette.value }}" name="lots"
-                                   value="1" min="1" max="{{ atelier.lotsMaximum }}"
-                                   class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
-                                   data-chiffres>
+                            <span class="inline-flex items-center">
+                                <button type="button" data-action="lots#moins" aria-label="Un lot de moins" tabindex="-1"
+                                        class="size-9 rounded-l-sm border border-ocre-500/40 text-lg leading-none text-encre-600 hover:bg-ocre-300/25">&minus;</button>
+                                <input type="number" id="lots-{{ offre.recette.value }}" name="lots"
+                                       value="1" min="1" max="{{ atelier.lotsMaximum }}"
+                                       data-lots-target="lots" data-action="input->lots#calculer"
+                                       class="h-9 w-14 border-y border-ocre-500/40 bg-sable-50 px-1 text-center text-sm text-encre-900"
+                                       data-chiffres>
+                                <button type="button" data-action="lots#plus" aria-label="Un lot de plus" tabindex="-1"
+                                        class="size-9 rounded-r-sm border border-ocre-500/40 text-lg leading-none text-encre-600 hover:bg-ocre-300/25">+</button>
+                            </span>
+
+                            <span class="text-xs text-encre-500" data-chiffres data-lots-target="pieces"
+                                  data-infobulle="Les matières sont prélevées à l'engagement ; les pièces ne rentrent qu'à l'achèvement."></span>
 
                             <button type="submit"
-                                    class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                    class="bouton-offrande group ml-auto inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                {{ include('partie/_pictogramme.html.twig', {nom: 'chantier', taille: 22, classe: 'bouton-offrande__image'}) }}
                                 Mettre à l'ouvrage
                             </button>
                         </form>
@@ -107,74 +163,79 @@
 {{ sous.panneau('fabrication-' ~ onglet.type.value, 'consigne', false) }}
     <h3 class="mt-4 text-xl text-encre-900">Consigne permanente</h3>
     <p class="mt-2 max-w-4xl text-sm text-encre-500">
-        Dites une fois ce que ce bâtiment doit refaire, et il s'y remettra
-        <strong class="text-encre-700">dès qu'il se libère</strong>, sans que
-        vous ayez à revenir. Il prend ses matières dans vos réserves à chaque
-        relance — jamais d'avance — et s'arrête en le disant si elles viennent
-        à manquer.
+        Dites une fois ce que <strong class="text-encre-700">chaque travailleur</strong>
+        doit refaire, et il s'y remettra <strong class="text-encre-700">dès qu'il se
+        libère</strong>, sans que vous ayez à revenir. Il prend ses matières dans vos
+        réserves à chaque relance — jamais d'avance — et s'arrête en le disant si
+        elles viennent à manquer.
     </p>
 
-    {% if atelier.consigne %}
-        <div class="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-2 rounded-sm border border-lapis-500/30 bg-lapis-500/5 px-4 py-3">
-            <span class="font-display text-encre-900">{{ atelier.consigne.recette.libelle }}</span>
-            <span class="text-sm text-encre-500" data-chiffres>
-                {{ atelier.consigne.lots }} lot{{ atelier.consigne.lots > 1 ? 's' : '' }} à chaque fois
-            </span>
-            {% if atelier.consigne.estEnAttenteDeMatieres %}
-                <span class="text-sm text-terre-600">à l'arrêt, faute de matières</span>
-            {% endif %}
-            {% if partie.estEnCours %}
-                <form method="post" action="{{ path('app_partie_consigne', {id: partie.id}) }}" class="ml-auto">
-                    <input type="hidden" name="_token" value="{{ csrf_token('consigne') }}">
-                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
-                    <input type="hidden" name="batiment" value="{{ atelier.type.value }}">
-                    <button type="submit" name="lever" value="1"
-                            class="rounded-sm border border-ocre-500/40 px-3 py-1.5 text-sm text-encre-600 hover:bg-ocre-500/10">
-                        Lever la consigne
-                    </button>
-                </form>
-            {% endif %}
-        </div>
-    {% else %}
-        <p class="mt-3 text-sm text-encre-500">
-            Aucune consigne : ce bâtiment s'arrêtera à la fin de son ouvrage et
-            attendra que vous le relanciez.
-        </p>
-    {% endif %}
+    <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 lg:grid-cols-2">
+        {% for poste in atelier.postes %}
+            {% set consigne = poste.consigne %}
+            <li class="carte-vivante rounded-sm border p-4 {{ consigne ? 'border-lapis-500/30 bg-lapis-500/5' : 'border-ocre-500/30 bg-sable-50' }}">
+                <div class="flex items-center gap-3">
+                    {% if consigne %}
+                        {# Les flèches du cycle tournent doucement : la consigne se répète d'elle-même. #}
+                        {{ include('partie/_icone_ressource.html.twig', {ressource: consigne.recette, taille: 44}) }}
+                    {% else %}
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 32, classe: 'opacity-60'}) }}
+                    {% endif %}
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs text-encre-500">Travailleur {{ poste.numero }}</p>
+                        {% if consigne %}
+                            <p class="font-display text-lg leading-tight text-encre-900">{{ consigne.recette.libelle|capitalize }}</p>
+                            <p class="flex items-center gap-1 text-xs text-encre-500" data-chiffres>
+                                {{ include('partie/_pictogramme.html.twig', {nom: 'echange', taille: 16, classe: consigne.estEnAttenteDeMatieres ? 'opacity-40 grayscale' : 'consigne__image'}) }}
+                                {{ consigne.lots }} lot{{ consigne.lots > 1 ? 's' : '' }} à chaque fois
+                                {% if consigne.estEnAttenteDeMatieres %}<span class="text-terre-600">· à l'arrêt, faute de matières</span>{% endif %}
+                            </p>
+                        {% else %}
+                            <p class="text-sm text-encre-500">Aucune consigne : il s'arrêtera à la fin de son ouvrage.</p>
+                        {% endif %}
+                    </div>
+                </div>
 
-    {% if partie.estEnCours and atelier.recettes is not empty %}
-        <form method="post" action="{{ path('app_partie_consigne', {id: partie.id}) }}"
-              class="mt-3 flex flex-wrap items-baseline gap-3">
-            <input type="hidden" name="_token" value="{{ csrf_token('consigne') }}">
-            <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                {% if partie.estEnCours and atelier.recettes is not empty %}
+                    <form method="post" action="{{ path('app_partie_consigne', {id: partie.id}) }}"
+                          class="mt-3 flex flex-wrap items-center gap-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('consigne') }}">
+                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                        <input type="hidden" name="poste" value="{{ poste.numero }}">
+                        <input type="hidden" name="batiment" value="{{ atelier.type.value }}">
 
-            <label for="consigne-recette-{{ atelier.type.value }}" class="text-sm text-encre-600">
-                {{ atelier.consigne ? 'Réorienter vers' : 'Mettre en consigne' }}
-            </label>
-            <select id="consigne-recette-{{ atelier.type.value }}" name="recette"
-                    class="rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900">
-                {% for offre in atelier.recettes %}
-                    <option value="{{ offre.recette.value }}"
-                            {{ atelier.consigne and atelier.consigne.recette == offre.recette ? 'selected' : '' }}>
-                        {{ offre.recette.libelle }}
-                    </option>
-                {% endfor %}
-            </select>
-
-            <label for="consigne-lots-{{ atelier.type.value }}" class="text-sm text-encre-600">Lots</label>
-            <input type="number" id="consigne-lots-{{ atelier.type.value }}" name="lots"
-                   value="{{ atelier.consigne ? atelier.consigne.lots : 1 }}"
-                   min="1" max="{{ atelier.lotsMaximum }}"
-                   class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
-                   data-chiffres>
-
-            <button type="submit"
-                    class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-lapis-600 hover:bg-lapis-500/10">
-                {{ atelier.consigne ? 'Corriger' : 'Consigner' }}
-            </button>
-        </form>
-    {% endif %}
+                        <label for="consigne-recette-{{ atelier.type.value }}-{{ poste.numero }}" class="sr-only">Recette du travailleur {{ poste.numero }}</label>
+                        <select id="consigne-recette-{{ atelier.type.value }}-{{ poste.numero }}" name="recette"
+                                class="min-w-0 flex-1 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900">
+                            {% for offre in atelier.recettes %}
+                                <option value="{{ offre.recette.value }}"
+                                        {{ consigne and consigne.recette == offre.recette ? 'selected' : '' }}>
+                                    {{ offre.recette.libelle }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <label for="consigne-lots-{{ atelier.type.value }}-{{ poste.numero }}" class="text-sm text-encre-600">Lots</label>
+                        <input type="number" id="consigne-lots-{{ atelier.type.value }}-{{ poste.numero }}" name="lots"
+                               value="{{ consigne ? consigne.lots : 1 }}" min="1" max="{{ atelier.lotsMaximum }}"
+                               class="w-16 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-2 text-sm text-encre-900"
+                               data-chiffres>
+                        <button type="submit"
+                                class="rounded-sm border border-lapis-500/50 px-3 py-2 text-sm text-lapis-600 hover:bg-lapis-500/10">
+                            {{ consigne ? 'Corriger' : 'Consigner' }}
+                        </button>
+                        {% if consigne %}
+                            <button type="submit" name="lever" value="1"
+                                    class="rounded-sm border border-ocre-500/40 px-3 py-2 text-sm text-encre-600 hover:bg-ocre-500/10">
+                                Lever
+                            </button>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
     </div>
+
 
 {% if direction %}
 {{ sous.panneau('fabrication-' ~ onglet.type.value, 'direction', false) }}

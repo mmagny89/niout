@@ -98,15 +98,21 @@ Les images : `sources-sprites/` (ignoré par git, JPEG de plusieurs Mo) alimente
 `outils/preparer-plans-de-ville.py` (Pillow seul), qui écrivent sous
 `app/assets/images/`. `Game/AncragesDesSprites.php` est **généré** : ne pas l'éditer.
 
-Deux prérequis faciles à oublier, tous deux dus à des artefacts vivant dans `app/var/`, ignoré par git :
+Trois prérequis faciles à oublier — les deux premiers dus à des artefacts vivant dans `app/var/`, ignoré par git :
 
 - PHPStan a besoin du container compilé : lancer `cache:warmup` avant l'analyse si le cache est vide.
 - Les tests fonctionnels ont besoin de la CSS compilée : lancer `tailwind:build` d'abord.
   Sans elle, AssetMapper cherche `tailwindcss` comme un fichier réel, `base.html.twig` lève
   une exception, et **tout test qui rend une page échoue** — sans que le message ne mentionne
   Tailwind de façon évidente.
+- **Après une migration, migrer aussi la base de test** : `docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction --env=test`. Sans cela, tout test qui persiste l'entité touchée échoue sur « column … does not exist ».
 
 Le site répond sur `https://localhost` (certificat auto-signé Caddy en dev).
+
+**Contrôler un écran au navigateur** : l'extension Claude in Chrome ouvre `http://localhost` (le navigateur
+intégré à l'application refuse le certificat auto-signé). Un défaut de mise en page — défilement horizontal,
+infobulle recouverte, glyphe qui déborde — ne se voit pas aux tests : se mesure au navigateur
+(`scrollWidth` contre `clientWidth`, boîtes des éléments).
 
 ## Conventions
 

@@ -15,18 +15,20 @@
 {{ sous.panneau('grenier', 'reserve', true) }}
 
 <h3 class="mt-8 text-xl text-encre-900">La réserve</h3>
+{% import 'partie/batiments/_tuile_de_bord.html.twig' as tuiles %}
+<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-3xl">
+    {{ tuiles.tuile('prestige', 'Vivres en réserve', ville.nourriture,
+        ville.nourriture, ville.plafondDesVivres, ville.vivresPresqueSatures,
+        'sur ' ~ ville.plafondDesVivres ~ ' que le Grenier peut tenir',
+        'Au-delà du plafond, ce qui rentrerait se perd. Monter le Grenier élargit la réserve.') }}
+    {{ tuiles.tuile('habitants', 'Mangés par quinzaine', ville.consommationDeNourriture,
+        null, null, false,
+        'deux demi-rations par actif, une par bouche à charge',
+        'Ce que la ville consomme à chaque quinzaine. Si la réserve ne suffit pas, la faim gagne.') }}
+</div>
 {{ include('partie/batiments/_reserve_visuelle.html.twig', {vue: reserveDesVivres}) }}
 
-<p class="mt-4 max-w-4xl text-sm {{ ville.vivresPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-    {{ ville.nourriture }} vivres sur {{ ville.plafondDesVivres }}.
-    La ville en mange {{ ville.consommationDeNourriture }} par quinzaine —
-    deux demi-rations par actif, une par bouche à charge.
-    {% if ville.vivresPresqueSatures %}
-        Le Grenier est presque plein : ce qui rentrerait au-delà se perd.
-    {% endif %}
-</p>
-
-<p class="mt-2 max-w-4xl text-sm text-encre-500">
+<p class="mt-4 max-w-4xl text-sm text-encre-500">
     Monter le Grenier, c'est conserver davantage <em>et</em> mieux moissonner :
     les champs du territoire sont gouvernés d'ici.
 </p>

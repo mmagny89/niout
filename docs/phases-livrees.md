@@ -2484,3 +2484,44 @@ barre, reste utilisable), un cadre `fenetre`, l'état dans l'URL (`carte?ouvre=�
 **Laisse ouvert.** Aucune vérification au navigateur automatisé ; l'Auberge, plus orange que
 les autres planches ; les étiquettes du plan guide encore dans l'image (cachées par les lots) ;
 les ressources sans planche.
+
+---
+
+### 5.16 Refonte des panneaux de bâtiment et règle des travailleurs  ✅  *(hors phase — non publié)*
+
+Ni système de jeu neuf ni phase numérotée : une passe d'ergonomie panneau par panneau, menée au navigateur avec
+la joueuse, et une règle de main-d'œuvre qui en est sortie. Le détail des écrans est dans
+[`interface.md`](interface.md), celui des règles dans [`regles-du-jeu.md`](regles-du-jeu.md) ; ce qu'il faut
+retenir ici :
+
+**Intention.** Dire une chose **une seule fois**, à l'endroit où on la cherche, et la montrer plutôt que la
+phrase. Les pastilles de la ville vivaient dans la barre *et* en tête de chaque fenêtre ; la saison dans la
+date *et* dans une phrase ; un salaire dans un champ *et* dans une jauge. Chaque panneau a donc perdu ses
+paragraphes qui redisaient des tuiles, et gagné des tuiles, des jauges et des pastilles. Même matière
+partout : tuiles de chiffres, jauge empilée, fiches, pastilles d'état de même forme.
+
+**Deux décisions de la joueuse, qui ont changé le jeu.**
+- **Une consigne par travailleur** : un atelier ou une forge mène autant d'ordres de front que de travailleurs
+  en poste, chacun avec sa consigne ; on ne choisit pas son travailleur et celui qui a une consigne est réservé
+  à elle. Migration `Version20261008210000` (`poste` sur les ordres et les consignes, unicité par poste).
+- **Un bâtiment réclame ses travailleurs, chef ou non** : sans personne il ne fonctionne pas, avec trop peu de
+  bras il tourne au ralenti, au complet il atteint 50 % sans chef et 100 % avec. Les exploitations du territoire
+  gardent l'ancienne règle. Sans travailleur, l'atelier n'engage rien et le Marché ne vend plus.
+
+**Pièges payés, à ne pas repayer**
+- **Une infobulle invisible occupe de la place.** Le `::after` d'une infobulle en `opacity: 0` restait dans la
+  mise en page et élargissait le panneau de la Résidence — défilement horizontal, sans aucune erreur. Elle est
+  maintenant en `display: none` jusqu'à la lecture.
+- **Un élément animé est son propre contexte d'empilement.** Les infobulles des tuiles et des maisons passaient
+  sous leurs voisines ; l'élément lu monte au survol.
+- **Un script de modification chaîné à un `sed` qui échoue ne s'exécute pas** — et les tests restent verts. Vérifier
+  au rendu que le changement a bien eu lieu, pas seulement que la suite passe.
+- **Un glyphe large déborde d'une plaque taillée pour les autres** (avant-bras, vipère) : la plaque se dimensionne
+  sur le plus large.
+- **`max()` d'un seul entier lève** : en PHP, `max($a, ...[])` n'est pas un tableau.
+- **Un test qui tire une case au hasard est instable** : `ProspectionTest::testUneCaseSterileAnnonceZeroChance`
+  échoue de temps en temps (une case « sans rien » en porte parfois), sans lien avec le code.
+
+**Laisse ouvert.** Les trois effets de la règle des travailleurs sur le calibrage (voir § 5 du plan de bataille) ;
+les exercices des scribes sur un écran étroit ; le Port et la Forge, qui partagent les gabarits sans avoir été
+revus un à un.

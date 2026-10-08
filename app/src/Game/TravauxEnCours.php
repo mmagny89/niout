@@ -87,32 +87,42 @@ final readonly class TravauxEnCours
         $travaux = [];
 
         foreach (Recette::batimentsQuiFabriquent() as $type) {
-            $ordre = $ville->ordreDeFabricationDe($type);
+            $postes = array_unique([
+                ...array_map(static fn ($o): int => $o->getPoste(), $ville->ordresDeFabricationDe($type)),
+                ...array_map(static fn ($c): int => $c->getPoste(), $ville->consignesDeFabricationDe($type)),
+            ]);
+            sort($postes);
 
-            if (null === $ordre) {
-                // Une consigne à l'arrêt n'est pas un travail en cours, mais
-                // c'est exactement ce qu'on veut voir ici : un atelier qui ne
-                // produit plus sans qu'on l'ait décidé.
-                $consigne = $ville->consigneDeFabricationDe($type);
+            foreach ($postes as $poste) {
+                // Plusieurs travailleurs : chaque poste se lit à part, numéroté.
+                $categorie = $poste > 1 ? \sprintf('%s (poste %d)', $type->libelle(), $poste) : $type->libelle();
+                $ordre = $ville->ordreDeFabricationDe($type, $poste);
 
-                if (null !== $consigne && $consigne->estEnAttenteDeMatieres()) {
-                    $travaux[] = [
-                        'categorie' => $type->libelle(),
-                        'libelle' => $consigne->getRecette()->libelle(),
-                        'detail' => 'à l\'arrêt, faute de matières',
-                        'quinzaines' => 0,
-                    ];
+                if (null === $ordre) {
+                    // Une consigne à l'arrêt n'est pas un travail en cours, mais
+                    // c'est exactement ce qu'on veut voir ici : un atelier qui ne
+                    // produit plus sans qu'on l'ait décidé.
+                    $consigne = $ville->consigneDeFabricationDe($type, $poste);
+
+                    if (null !== $consigne && $consigne->estEnAttenteDeMatieres()) {
+                        $travaux[] = [
+                            'categorie' => $categorie,
+                            'libelle' => $consigne->getRecette()->libelle(),
+                            'detail' => 'à l\'arrêt, faute de matières',
+                            'quinzaines' => 0,
+                        ];
+                    }
+
+                    continue;
                 }
 
-                continue;
+                $travaux[] = [
+                    'categorie' => $categorie,
+                    'libelle' => $ordre->getRecette()->libelle(),
+                    'detail' => \sprintf('%d pièces à l\'achèvement', $ordre->piecesAttendues()),
+                    'quinzaines' => $ordre->cyclesRestants(),
+                ];
             }
-
-            $travaux[] = [
-                'categorie' => $type->libelle(),
-                'libelle' => $ordre->getRecette()->libelle(),
-                'detail' => \sprintf('%d pièces à l\'achèvement', $ordre->piecesAttendues()),
-                'quinzaines' => $ordre->cyclesRestants(),
-            ];
         }
 
         return $travaux;

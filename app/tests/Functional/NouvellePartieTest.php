@@ -29,6 +29,50 @@ final class NouvellePartieTest extends WebTestCase
         self::assertResponseRedirects('/connexion');
     }
 
+    /**
+     * Les deux modes sont des cartes cochables, mais restent **les boutons radio du formulaire** :
+     * mêmes valeurs, même champ, atteints au clavier. Une carte qui n'envelopperait pas son radio
+     * ne cocherait rien au clic, sans erreur visible.
+     */
+    public function testLesModesSontDesCartesQuiEnveloppentLeursRadios(): void
+    {
+        $client = static::createClient();
+        $this->connecter($client, 'cartes-modes@example.com');
+
+        $crawler = $client->request('GET', '/partie/nouvelle');
+
+        self::assertResponseIsSuccessful();
+        $cartes = $crawler->filter('label.choix-mode');
+        self::assertCount(2, $cartes);
+        self::assertSame(
+            ['campagne', 'aventure'],
+            $cartes->each(static fn ($carte): string => (string) $carte->filter('input[type="radio"]')->attr('value')),
+        );
+        // Le contrôleur s'attache au groupe des modes et aux réglages, rien d'autre.
+        self::assertCount(1, $crawler->filter('[data-nouvelle-partie-target="mode"]'));
+        self::assertCount(1, $crawler->filter('[data-nouvelle-partie-target="reglagesAventure"]'));
+    }
+
+    /**
+     * Les listes déroulantes du thème de formulaire portent les classes du projet. Celles du thème
+     * de Symfony vivent dans `vendor/`, que Tailwind ne scanne pas : sans ce bloc, une liste
+     * s'affichait sans cadre ni fond, et l'on ne voyait pas que c'en était une.
+     */
+    public function testLesListesDeroulantesPortentLeStyleDuProjet(): void
+    {
+        $client = static::createClient();
+        $this->connecter($client, 'listes@example.com');
+
+        $crawler = $client->request('GET', '/partie/nouvelle');
+
+        $listes = $crawler->filter('select');
+        self::assertGreaterThan(0, $listes->count());
+        $listes->each(static function ($liste): void {
+            self::assertStringContainsString('liste-deroulante', (string) $liste->attr('class'));
+            self::assertStringContainsString('border-ocre-500/40', (string) $liste->attr('class'));
+        });
+    }
+
     public function testUneCampagneDemarreAAvarisAvecSaDotation(): void
     {
         $client = static::createClient();

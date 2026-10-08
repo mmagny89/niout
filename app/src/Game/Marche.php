@@ -91,6 +91,10 @@ final readonly class Marche
             throw new VenteImpossible('Il faut vendre au moins une unité.');
         }
 
+        if ($this->coefficientDeVente($partie) < 1) {
+            throw new VenteImpossible('Votre Marché n\'a aucun travailleur : personne ne tient l\'étal.');
+        }
+
         $reste = $this->venteRestante($partie);
 
         if ($reste < 1) {
@@ -104,9 +108,9 @@ final readonly class Marche
         }
 
         // Ce que vaut le Marché : ses bras et la compétence de ceux qui les
-        // dirigent (lot 4.8). Un Marché désert écoule à moitié prix — le
-        // plancher de 50 % vaut ici comme partout ; un Marché tenu par un bon
-        // Vendeur dépasse le plein tarif.
+        // dirigent (lot 4.8). Un Marché sans chef mais au complet écoule
+        // à moitié prix ; sans aucun travailleur, il ne fonctionne pas ; un Marché
+        // tenu par un bon Vendeur dépasse le plein tarif.
         //
         // **La renommée s'ajoute à ce coefficient, elle n'en pose pas un
         // second** (lot 9.3) : on achète moins cher et l'on vend plus cher à
@@ -199,6 +203,12 @@ final readonly class Marche
         }
 
         $coefficient = $this->coefficientDeVente($partie);
+
+        // Sans travailleur, personne ne tient l'étal : on ne brade pas le surplus pour rien.
+        if ($coefficient < 1) {
+            return [];
+        }
+
         $recetteTotale = 0;
         $ecoule = [];
 
@@ -277,8 +287,14 @@ final readonly class Marche
     {
         $ville = $partie->getVille();
 
-        $coefficient = EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Marche, $partie->getCycle())
-            + AvantageDeNegoce::deLaRenommee($partie->getFamille()->getRenommee());
+        $qualite = EffetDeChef::qualiteDeDirection($ville, TypeDeBatiment::Marche, $partie->getCycle());
+
+        // Sans travailleur, le Marché ne fonctionne pas : la renommée n'y change rien.
+        if ($qualite < 1) {
+            return 0;
+        }
+
+        $coefficient = $qualite + AvantageDeNegoce::deLaRenommee($partie->getFamille()->getRenommee());
 
         // La marge que le joueur fait payer à ses propres habitants **est un
         // facteur, pas un terme** : elle multiplie ce que vaut la vente, là où

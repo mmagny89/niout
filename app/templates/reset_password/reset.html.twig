@@ -2,6 +2,7 @@
 
 {% block title %}Nouveau mot de passe — Niout{% endblock %}
 {% block titre_page %}Choisir un nouveau mot de passe{% endblock %}
+{% block icone %}chef{% endblock %}
 
 {% block formulaire %}
     {{ form_start(resetForm) }}
@@ -21,7 +22,8 @@
         {{ form_row(resetForm.plainPassword.second) }}
 
         <button type="submit"
-                class="w-full rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+                class="bouton-offrande group inline-flex w-full items-center justify-center gap-2 rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+            {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 22, classe: 'bouton-offrande__image'}) }}
             Enregistrer le nouveau mot de passe
         </button>
     {{ form_end(resetForm) }}

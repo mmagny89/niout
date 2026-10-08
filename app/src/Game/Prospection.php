@@ -71,6 +71,14 @@ final readonly class Prospection
      */
     public function filonsPossibles(GameSave $partie, Zone $zone): array
     {
+        // **On ne prospecte pas la ville** : le générateur n'y pose jamais de gisement, et proposer
+        // d'y envoyer un prospecteur — « ce sol pourrait rendre argile, roseaux… » — payait un départ
+        // pour sonder ses propres rues. L'émissaire exclut déjà la case de la ville ; le prospecteur
+        // aussi, ici, pour que l'écran et le serveur (`Explorations`) disent la même chose.
+        if ($zone->porteLaVille()) {
+            return [];
+        }
+
         return [...$this->filonsARouvrir($zone), ...$this->filonsANaitre($partie, $zone)];
     }
 

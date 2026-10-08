@@ -158,20 +158,22 @@ final class DemiRendementTest extends KernelTestCase
             Effectifs::rendementDe($ville, TypeDeBatiment::Grenier, $partie->getCycle()),
         );
 
-        // La ville perd tous ses actifs : il ne reste personne à envoyer.
+        // La ville perd tous ses actifs : il ne reste personne à envoyer, et le bâtiment
+        // ne fonctionne plus — chef ou pas, sans travailleur il est arrêté.
         $ville->laisserPartir($ville->getActifs(), 0);
 
         self::assertSame(
-            Effectifs::RENDEMENT_PLANCHER,
+            0,
             Effectifs::rendementDe($ville, TypeDeBatiment::Grenier, $partie->getCycle()),
         );
     }
 
     /**
      * Un chef embauché n'a rien recruté tant qu'il n'a pas pris son poste
-     * (doc 05) : le bâtiment ne réclame donc encore aucun bras.
+     * (doc 05) : le bâtiment ne réclame que son équipage de base, et reste au
+     * plafond de 50 % des bâtiments sans chef — jusqu'à ce que le chef arrive.
      */
-    public function testUnChefPasEncoreEnPosteNeReclameAucunBras(): void
+    public function testUnChefPasEncoreEnPosteNeRelevePasLePlafond(): void
     {
         self::bootKernel();
         $partie = $this->lancerPartie('pas-en-poste@example.com');
@@ -183,8 +185,11 @@ final class DemiRendementTest extends KernelTestCase
         $batiment = $ville->batimentDeType(TypeDeBatiment::Grenier);
         self::assertNotNull($batiment);
 
-        self::assertSame(0, Effectifs::travailleursRequis($batiment, $partie->getCycle()));
+        // L'équipage de base est réclamé chef ou non ; le chef le fait passer du demi au plein.
+        self::assertSame(1, Effectifs::travailleursRequis($batiment, $partie->getCycle()));
+        self::assertSame(Effectifs::RENDEMENT_PLANCHER, Effectifs::rendementDe($ville, TypeDeBatiment::Grenier, $partie->getCycle()));
         self::assertSame(1, Effectifs::travailleursRequis($batiment, $partie->getCycle() + 1));
+        self::assertSame(Effectifs::RENDEMENT_PLEIN, Effectifs::rendementDe($ville, TypeDeBatiment::Grenier, $partie->getCycle() + 1));
     }
 
     /**

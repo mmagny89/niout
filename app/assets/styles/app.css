@@ -40,6 +40,10 @@
     --color-terre-500: #a8571f;
     --color-terre-600: #8c4718;
     --color-terre-700: #6f3712;
+    /* Les teintes claires de la terre cuite : fond d'un message d'erreur, pastille du bouton de quinzaine. Elles manquaient — une
+       classe Tailwind dont la couleur n'existe pas ne rend rien, et le fond restait transparent. */
+    --color-terre-50: #fbf0e6;
+    --color-terre-100: #f5dfcd;
 
     /* Lapis-lazuli — accent secondaire, liens et informations. */
     --color-lapis-400: #2f6c97;
@@ -94,5 +98,701 @@
     :focus-visible {
         outline: 2px solid var(--color-lapis-500);
         outline-offset: 2px;
+    }
+}
+
+/*
+ * Pictogrammes et mouvement de l'interface.
+ *
+ * Tout mouvement est derrière `prefers-reduced-motion: no-preference` : une
+ * animation décorative qu'on ne peut pas éteindre est une gêne, pas un plus.
+ * Ces classes décrivent des composants qui reviennent (barre de jeu), d'où des
+ * noms plutôt qu'une pile d'utilitaires.
+ */
+@layer components {
+    /* Un compteur de la barre : pictogramme, libellé, chiffre — une pastille qui
+       réagit au survol, au lieu d'une ligne de texte. */
+    .compteur {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 0.375rem;
+        position: relative;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        padding: 0.125rem 0.625rem 0.125rem 0.375rem;
+        list-style: none;
+        transition: background-color 150ms, border-color 150ms, transform 150ms;
+    }
+    .compteur:hover {
+        background-color: color-mix(in srgb, var(--color-ocre-300) 22%, transparent);
+        border-color: color-mix(in srgb, var(--color-ocre-500) 35%, transparent);
+    }
+    .compteur--alerte {
+        border-color: color-mix(in srgb, var(--color-terre-600) 45%, transparent);
+        background-color: color-mix(in srgb, var(--color-terre-500) 8%, transparent);
+    }
+    .compteur--calme { opacity: 0.85; }
+
+    /* Un signal de la ville : le pictogramme dit la nature, la bordure le ton. */
+    .signal {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        border-radius: 999px;
+        border: 1px solid;
+        padding: 0.125rem 0.75rem 0.125rem 0.375rem;
+        font-size: 0.75rem;
+        text-decoration: none;
+        /* Une pastille ne se coupe jamais en deux lignes : dans la barre, sur téléphone, la rangée défile. */
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: transform 150ms, box-shadow 150ms;
+    }
+    .signal:hover { box-shadow: 0 2px 6px rgb(43 32 22 / 0.18); }
+    .signal--mauvais {
+        border-color: color-mix(in srgb, var(--color-terre-600) 50%, transparent);
+        background-color: color-mix(in srgb, var(--color-terre-500) 10%, transparent);
+        color: var(--color-terre-700);
+    }
+    .signal--bon {
+        border-color: color-mix(in srgb, var(--color-lapis-500) 50%, transparent);
+        background-color: color-mix(in srgb, var(--color-lapis-500) 6%, transparent);
+        color: var(--color-lapis-600);
+    }
+    .signal--neutre {
+        border-color: color-mix(in srgb, var(--color-ocre-500) 40%, transparent);
+        background-color: color-mix(in srgb, var(--color-ocre-300) 12%, transparent);
+        color: var(--color-encre-700);
+    }
+
+    /* Le chiffre qui vient de bouger, et de combien (`compteurs_controller.js`). */
+    .compteur__ecart {
+        position: absolute;
+        left: 50%;
+        top: 100%;
+        pointer-events: none;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .compteur__ecart--hausse { color: var(--color-lapis-500); }
+    .compteur__ecart--baisse { color: var(--color-terre-600); }
+
+    /* Une carte qui réagit : elle se soulève au survol. */
+    .carte-vivante { transition: transform 180ms, box-shadow 180ms, border-color 180ms; }
+    .carte-vivante:hover {
+        transform: translateY(-2px);
+        border-color: color-mix(in srgb, var(--color-ocre-500) 60%, transparent);
+        box-shadow: 0 6px 16px rgb(43 32 22 / 0.12);
+    }
+    /* L'élément allumé d'une série (un dieu honoré, un homme levé). */
+    .case-vivante--allumee { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-or-300) 80%, transparent)); }
+}
+
+/*
+ * Infobulle : `data-infobulle="…"` sur n'importe quel élément. Au survol, et au focus
+ * clavier — une aide qu'on ne lit qu'à la souris n'en est pas une. Aucun JavaScript.
+ *
+ * Elle se pose sous l'élément, alignée à son bord gauche : les compteurs sont à gauche
+ * de la barre, et une infobulle centrée sortirait de l'écran. Le texte est **un
+ * complément** — l'élément porte déjà son nom pour un lecteur d'écran —, et un conteneur
+ * qui défile (`overflow`) la rognerait : on ne la pose pas dedans.
+ *
+ * **Hors de la mise en page tant qu'elle n'est pas lue** (`display: none`, pas seulement
+ * `opacity: 0`) : une infobulle invisible mais présente, large de dix-huit rem et posée au
+ * bord gauche d'un élément proche du bord droit, élargit la zone défilante de son panneau —
+ * c'est le défilement horizontal de la Résidence, dû à la dernière tuile du tableau de bord.
+ * Le fondu est donc une animation d'entrée et non une transition.
+ */
+[data-infobulle] { position: relative; }
+/* L'élément dont on lit l'infobulle passe devant ses voisins : un voisin animé (`transform`) est son propre
+   contexte d'empilement, peint après, et recouvrirait l'infobulle — des tuiles passaient sous les maisons. */
+[data-infobulle]:hover,
+[data-infobulle]:focus-visible { z-index: 50; }
+[data-infobulle]::after {
+    content: attr(data-infobulle);
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 60;
+    width: max-content;
+    max-width: min(18rem, 80vw);
+    padding: 0.375rem 0.625rem;
+    border-radius: 0.25rem;
+    background-color: var(--color-encre-900);
+    color: var(--color-sable-50);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.35;
+    text-align: left;
+    white-space: normal;
+    box-shadow: 0 4px 12px rgb(43 32 22 / 0.3);
+    display: none;
+    pointer-events: none;
+}
+[data-infobulle]:hover::after,
+[data-infobulle]:focus-visible::after {
+    display: block;
+    animation: infobulle-entre 120ms ease-out 250ms both;
+}
+@keyframes infobulle-entre { from { opacity: 0; transform: translateY(-3px); } }
+/* **Une infobulle sans action se signale par le curseur d'aide** (« ? ») : on ne clique pas, on lit. Tout ce qui agit
+   (lien, bouton, champ, repli, élément qui porte une action Stimulus) garde son curseur de main ou de saisie. */
+[data-infobulle]:not(a, button, summary, input, select, textarea, label, [href], [role="button"], [data-action], [onclick]) {
+    cursor: help;
+}
+@media (hover: none) {
+    /* Au doigt, pas de survol : l'infobulle resterait collée après un toucher. */
+    [data-infobulle]:hover:not(:focus-visible)::after { display: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* La fenêtre s'ouvre au lieu d'apparaître : un fondu qui monte, et la feuille
+       d'une case glisse depuis la droite, d'où elle vient. Le contenu d'un cadre qui
+       change (d'un bâtiment à l'autre) fond en douceur, sans rejouer la fenêtre. */
+    dialog[open] { animation: fenetre-ouvre 200ms ease-out; }
+    dialog[open]:has([data-forme="feuille"]), dialog[open][data-forme="feuille"] { animation: feuille-ouvre 240ms cubic-bezier(0.22, 1, 0.36, 1); }
+    turbo-frame#fenetre > * { animation: fondu 160ms ease-out; }
+    @keyframes fenetre-ouvre { from { opacity: 0; transform: translateY(10px) scale(0.985); } }
+    @keyframes feuille-ouvre { from { opacity: 0; transform: translateX(32px); } }
+    @keyframes fondu { from { opacity: 0; } }
+
+    /* Le récapitulatif de la quinzaine : il descend, la lune fait un tour. */
+    .recapitulatif { animation: recap-entre 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .recapitulatif__lune { animation: lune-tourne 900ms cubic-bezier(0.34, 1.2, 0.64, 1) both 120ms; }
+    @keyframes recap-entre { from { opacity: 0; transform: translateY(-24px); } }
+    @keyframes lune-tourne { from { opacity: 0; transform: rotate(-200deg) scale(0.4); } }
+
+    /* Une jauge se remplit à l'ouverture de l'écran, de gauche à droite. */
+    .jauge { transform-origin: left; animation: remplir 900ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @keyframes remplir { from { transform: scaleX(0); } }
+
+    /* Une série d'éléments apparaît l'un après l'autre (`--i` : le rang). */
+    .case-vivante { animation: apparition 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: calc(min(var(--i, 0), 40) * 35ms); }
+    @keyframes apparition { from { opacity: 0; transform: scale(0.4); } }
+    .case-vivante--serree { animation-delay: calc(min(var(--i, 0), 60) * 10ms); animation-duration: 260ms; }
+    .case-vivante--allumee { animation: lueur 3.2s ease-in-out infinite; }
+    @keyframes lueur {
+        0%, 100% { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-or-300) 60%, transparent)); }
+        50% { filter: drop-shadow(0 0 9px color-mix(in srgb, var(--color-or-300) 95%, transparent)); }
+    }
+
+    /* L'offrande : la fumée monte au survol du bouton. */
+    .bouton-offrande__image { transition: transform 220ms; }
+    .bouton-offrande:hover .bouton-offrande__image { transform: translateY(-3px) scale(1.12); }
+
+    .compteur__image,
+    .signal__image,
+    .bouton-cycle__image {
+        transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .compteur:hover .compteur__image { transform: scale(1.18) rotate(-4deg); }
+    .signal:hover .signal__image { transform: scale(1.2); }
+
+    /* Une mauvaise nouvelle bat doucement : elle se voit sans crier. */
+    .signal--mauvais .signal__image { animation: battement 2.4s ease-in-out infinite; }
+    .compteur--alerte .compteur__image { animation: battement 2.4s ease-in-out infinite; }
+    @keyframes battement {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.14); }
+    }
+
+    /* Le chiffre qui change : un éclat, puis l'écart qui monte et s'efface. */
+    .compteur--hausse { animation: eclat-hausse 1.1s ease-out; }
+    .compteur--baisse { animation: eclat-baisse 1.1s ease-out; }
+    @keyframes eclat-hausse {
+        0% { background-color: color-mix(in srgb, var(--color-or-300) 70%, transparent); transform: scale(1.12); }
+        100% { background-color: transparent; transform: scale(1); }
+    }
+    @keyframes eclat-baisse {
+        0% { background-color: color-mix(in srgb, var(--color-terre-400) 45%, transparent); transform: scale(0.94); }
+        100% { background-color: transparent; transform: scale(1); }
+    }
+    .compteur__ecart { animation: ecart 1.6s ease-out forwards; }
+    @keyframes ecart {
+        0% { opacity: 0; transform: translate(-50%, 0); }
+        15% { opacity: 1; }
+        100% { opacity: 0; transform: translate(-50%, 14px); }
+    }
+
+    /* Le cycle : les flèches font un demi-tour au survol, tournent tant que Turbo
+       traite la requête (`aria-busy` est posé par Turbo sur le formulaire). */
+    .bouton-cycle:hover .bouton-cycle__image { transform: rotate(180deg); }
+    form[aria-busy="true"] .bouton-cycle__image { animation: tour 0.9s linear infinite; }
+    @keyframes tour { to { transform: rotate(360deg); } }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .tuile__image--alerte { animation: battement 2.4s ease-in-out infinite; }
+}
+
+/* Une pastille d'écart du récapitulatif : gain en lapis, perte en terre cuite. */
+@layer components {
+    .ecart {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        border-radius: 999px;
+        border: 1px solid;
+        padding: 0.125rem 0.875rem 0.125rem 0.375rem;
+    }
+    .ecart--hausse {
+        border-color: color-mix(in srgb, var(--color-lapis-500) 45%, transparent);
+        background-color: color-mix(in srgb, var(--color-lapis-500) 7%, transparent);
+        color: var(--color-lapis-600);
+    }
+    .ecart--baisse {
+        border-color: color-mix(in srgb, var(--color-terre-600) 50%, transparent);
+        background-color: color-mix(in srgb, var(--color-terre-500) 9%, transparent);
+        color: var(--color-terre-700);
+    }
+}
+
+/* Le curseur de réglage : une piste teintée (`curseur_controller.js`), un pouce net. */
+@layer components {
+    .curseur {
+        appearance: none;
+        height: 0.5rem;
+        border-radius: 999px;
+        outline-offset: 4px;
+    }
+    .curseur::-webkit-slider-thumb {
+        appearance: none;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 999px;
+        border: 2px solid var(--color-sable-50);
+        background-color: var(--color-encre-700);
+        box-shadow: 0 1px 4px rgb(43 32 22 / 0.4);
+        cursor: grab;
+    }
+    .curseur::-moz-range-thumb {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 999px;
+        border: 2px solid var(--color-sable-50);
+        background-color: var(--color-encre-700);
+        cursor: grab;
+    }
+}
+
+/* Le bandeau d'eau du Port : un dégradé de lapis et deux rangées de vagues qui dérivent. */
+@layer components {
+    .vagues {
+        background-color: color-mix(in srgb, var(--color-lapis-400) 12%, var(--color-sable-50));
+        background-image:
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='12' viewBox='0 0 80 12'%3E%3Cpath d='M0 6 Q10 0 20 6 T40 6 T60 6 T80 6' fill='none' stroke='%232f6c97' stroke-opacity='.35' stroke-width='2'/%3E%3C/svg%3E"),
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='12' viewBox='0 0 80 12'%3E%3Cpath d='M0 6 Q10 0 20 6 T40 6 T60 6 T80 6' fill='none' stroke='%232f6c97' stroke-opacity='.2' stroke-width='2'/%3E%3C/svg%3E");
+        background-repeat: repeat-x, repeat-x;
+        background-position: 0 100%, 40px calc(100% - 8px);
+        background-size: 80px 12px, 80px 12px;
+    }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .vagues { animation: derive 9s linear infinite; }
+    @keyframes derive {
+        to { background-position: 80px 100%, 120px calc(100% - 8px); }
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* L'ouvrage en cours : une barre qui s'anime en rayures tant qu'elle n'est pas pleine. */
+    .jauge--ouvrage {
+        background-image: repeating-linear-gradient(-45deg, rgb(255 255 255 / 0.18) 0 8px, transparent 8px 16px);
+        background-size: 22.6px 22.6px;
+        animation: remplir 900ms cubic-bezier(0.22, 1, 0.36, 1) both, rayures 1.2s linear infinite;
+    }
+    @keyframes rayures { to { background-position: 22.6px 0; } }
+
+    /* La consigne permanente : le cycle tourne, très lentement. */
+    .consigne__image { animation: tour 6s linear infinite; }
+}
+
+/* Les écritures : la plaque gravée d'une inscription, les signes comme des tuiles, les cases
+   qui se remplissent. Les cases sont des boutons dont `dechiffrage_controller.js` pose
+   `data-signe` : le style suit l'attribut, aucun JavaScript de plus. */
+@layer components {
+    .inscription-gravee {
+        border-radius: 0.25rem;
+        border: 1px solid color-mix(in srgb, var(--color-or-400) 45%, transparent);
+        background: linear-gradient(180deg,
+            color-mix(in srgb, var(--color-or-300) 18%, var(--color-sable-50)),
+            color-mix(in srgb, var(--color-ocre-300) 14%, var(--color-sable-100)));
+        padding: 1rem 0.5rem;
+        text-shadow: 0 1px 0 rgb(255 255 255 / 0.7), 0 -1px 0 rgb(43 32 22 / 0.25);
+    }
+    [data-dechiffrage-target="reserve"] button:not([hidden]) {
+        transition: transform 150ms, box-shadow 150ms, background-color 150ms;
+    }
+    [data-dechiffrage-target="reserve"] button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgb(43 32 22 / 0.18);
+    }
+
+    /* Une tuile de signe : le glyphe sur une plaque claire, qui se redresse au survol. */
+    .signe-plaque {
+        display: flex;
+        flex-shrink: 0;
+        width: 3.75rem;
+        height: 3.75rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.25rem;
+        background-color: color-mix(in srgb, var(--color-or-300) 14%, var(--color-sable-100));
+        border: 1px solid color-mix(in srgb, var(--color-ocre-500) 30%, transparent);
+        transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* La barre de progression native, aux couleurs du jeu (le navigateur la veut verte). */
+    progress.progression {
+        appearance: none;
+        height: 0.625rem;
+        border: 0;
+        border-radius: 999px;
+        overflow: hidden;
+        background-color: color-mix(in srgb, var(--color-ocre-500) 20%, transparent);
+    }
+    progress.progression::-webkit-progress-bar { background-color: transparent; }
+    progress.progression::-webkit-progress-value {
+        border-radius: 999px;
+        background-image: linear-gradient(to right, var(--color-lapis-500), var(--color-lapis-400));
+    }
+    progress.progression::-moz-progress-bar {
+        border-radius: 999px;
+        background-image: linear-gradient(to right, var(--color-lapis-500), var(--color-lapis-400));
+    }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .signe-carte:hover .signe-plaque { transform: scale(1.12) rotate(-3deg); }
+    [data-dechiffrage-target="case"][data-signe] { animation: pose 320ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes pose { from { transform: scale(0.7); opacity: 0.4; } }
+}
+
+/*
+ * Hors de toute couche, et c'est voulu : la case d'une inscription porte déjà des utilitaires
+ * (`border-dashed`, `bg-sable-100`) qui, étant dans la couche `utilities`, l'emporteraient sur
+ * une règle de `components`. Seul le CSS sans couche passe devant — défaut payé en l'écrivant :
+ * la case se remplissait, mais gardait son pointillé.
+ */
+[data-dechiffrage-target="case"] { transition: border-color 150ms, background-color 150ms, transform 150ms; }
+[data-dechiffrage-target="case"][data-signe] {
+    border-style: solid;
+    border-color: var(--color-or-400);
+    background-color: color-mix(in srgb, var(--color-or-300) 22%, var(--color-sable-50));
+}
+
+/* L'Auberge : un soir chaud, une braise qui respire. Le Quartier : des maisons qui se posent
+   une à une, des habitants qui se balancent à peine. */
+@layer components {
+    .salle {
+        background-image: radial-gradient(ellipse at 12% 60%,
+            color-mix(in srgb, var(--color-terre-400) 28%, transparent), transparent 60%),
+            linear-gradient(90deg, color-mix(in srgb, var(--color-ocre-300) 18%, var(--color-sable-50)), var(--color-sable-50));
+    }
+    .maison { transition: transform 180ms; }
+    .maison:hover { transform: translateY(-3px); }
+    /* Chaque maison est son propre contexte d'empilement (animation, transform) : sans cela, l'infobulle de
+       l'une passe sous la maison suivante, qui est peinte après. La maison lue passe devant ses voisines. */
+    .maison:hover, .maison:focus-within { z-index: 10; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .salle__braise { animation: braise 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
+    @keyframes braise {
+        0%, 100% { filter: brightness(1); transform: scale(1); }
+        40% { filter: brightness(1.18) drop-shadow(0 0 8px color-mix(in srgb, var(--color-terre-400) 70%, transparent)); transform: scale(1.04); }
+        70% { filter: brightness(1.05); }
+    }
+    .habitant { animation: balancement 3.4s ease-in-out infinite; animation-delay: calc(var(--r, 0) * -0.5s); transform-origin: 50% 100%; }
+    @keyframes balancement { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+    .habitant--malade { animation: battement 2.4s ease-in-out infinite; }
+}
+
+/*
+ * La carte isométrique. Chaque case est un conteneur : sa tuile, son repère, sa zone cliquable.
+ * La tuile se soulève quand on survole ou sélectionne **sa** zone — `:has()` suffit, aucun JS.
+ * (Hors couche : rien n'y porte d'utilitaire qui pourrait l'emporter.)
+ */
+/* **Le conteneur ne capte aucun clic ; seul le losange le fait.** Les conteneurs sont des
+   rectangles de 188 × 116 qui se recouvrent : sans cela, celui d'une case du premier plan
+   interceptait les clics de la case derrière lui, dans les coins que son losange ne couvre
+   pas — des zones où l'on ne pouvait plus cliquer. Le `clip-path` du lien exclut tout clic
+   hors du losange, donc rendre le lien seul cliquable restitue la précision d'origine. */
+.case-iso { pointer-events: none; }
+.case-iso > a { pointer-events: auto; }
+
+.case-iso__tuile { transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.case-iso:has(> a:hover) > .case-iso__tuile,
+.case-iso:has(> a:focus-visible) > .case-iso__tuile,
+.case-iso--choisie > .case-iso__tuile { transform: translateY(-7px); }
+.case-iso:has(> a:hover) > .repere,
+.case-iso--choisie > .repere { transform: translateY(-7px); }
+
+.repere {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    filter: drop-shadow(0 2px 2px rgb(43 32 22 / 0.45));
+    transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Le territoire se déploie du fond vers l'avant : chaque case tombe à son tour, plafonné
+       pour qu'une grande carte ne se fasse pas attendre. */
+    .case-iso { animation: case-tombe 420ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(min(var(--i, 0), 24) * 28ms); }
+    @keyframes case-tombe { from { opacity: 0; transform: translateY(-18px); } }
+
+    /* Les repères flottent ; un danger bat plus vite. */
+    .repere img { animation: flotte 2.8s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -0.3s); }
+    .repere--danger img { animation: battement 1.4s ease-in-out infinite; }
+    @keyframes flotte { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+}
+
+/* Le portrait d'une case, en tête de la feuille : la tuile pose son ombre et flotte. */
+.case-portrait::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 11rem;
+    height: 0.75rem;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgb(43 32 22 / 0.28), transparent 70%);
+}
+@media (prefers-reduced-motion: no-preference) {
+    .case-portrait__tuile { animation: flotte-tuile 4s ease-in-out infinite; }
+    @keyframes flotte-tuile { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+}
+
+/*
+ * Pages d'accueil et liste des parties.
+ *
+ * `.revele` : les blocs apparaissent en entrant à l'écran (`apparition_controller.js`). **Masqués
+ * seulement si les scripts s'exécutent et si le mouvement n'est pas refusé** : sans l'un ou l'autre,
+ * rien n'est caché — le contenu ne dépend jamais de l'animation.
+ */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .revele { opacity: 0; transform: translateY(18px); transition: opacity 500ms ease-out, transform 500ms cubic-bezier(0.22, 1, 0.36, 1); }
+    .revele.apparu { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .vitrine img { transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+    .vitrine:hover img { transform: scale(1.025); }
+    .partie-tuile { animation: flotte-tuile 5s ease-in-out infinite; }
+}
+
+/*
+ * Création d'une partie : les modes en cartes cochables, la difficulté en dangers, l'aperçu du territoire.
+ * Hors couche : la carte porte des utilitaires (`border`, `bg-sable-50`) qui l'emporteraient dans une couche.
+ */
+.choix-mode { transition: border-color 150ms, background-color 150ms, box-shadow 150ms; }
+.choix-mode:has(:checked) {
+    border-color: var(--color-terre-500);
+    background-color: color-mix(in srgb, var(--color-or-300) 14%, var(--color-sable-50));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-terre-500) 45%, transparent);
+}
+.choix-mode:has(:focus-visible) { outline: 2px solid var(--color-lapis-500); outline-offset: 2px; }
+.choix-mode__coche { opacity: 0; color: var(--color-terre-600); font-size: 1.25rem; transition: opacity 150ms; }
+.choix-mode:has(:checked) .choix-mode__coche { opacity: 1; }
+
+.danger-allume, .danger-eteint { font-size: 1rem; line-height: 1; transition: color 150ms, transform 150ms; }
+.danger-allume { color: var(--color-terre-500); }
+.danger-eteint { color: color-mix(in srgb, var(--color-ocre-500) 35%, transparent); }
+
+/* L'aperçu : la grille choisie, couchée en losange comme la carte du jeu. */
+.apercu-carte-cadre { display: flex; justify-content: center; padding: 1.25rem 0 0.5rem; }
+.apercu-carte {
+    display: grid;
+    grid-template-columns: repeat(var(--cote, 8), 1fr);
+    width: 9rem;
+    transform: scaleY(0.58) rotate(45deg);
+    transform-origin: center;
+    margin: 1.5rem 0;
+}
+.apercu-carte span { aspect-ratio: 1; transition: background-color 200ms; }
+.apercu-carte .case-a { background-color: color-mix(in srgb, var(--color-ocre-300) 70%, var(--color-sable-100)); }
+.apercu-carte .case-b { background-color: color-mix(in srgb, var(--color-ocre-500) 55%, var(--color-sable-100)); }
+@media (prefers-reduced-motion: no-preference) {
+    .apercu-carte span { animation: pose 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+    .danger-allume { animation: pose 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+}
+
+/* Le chevron des listes déroulantes du thème de formulaire (`templates/form/theme.html.twig`). */
+select.liste-deroulante {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%237a6849' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.75rem 0.5rem;
+}
+
+/* La commande du pharaon : un papyrus, un sceau, un bouton qui invite. */
+@layer components {
+    .decret {
+        background-image:
+            radial-gradient(ellipse at 90% 0%, color-mix(in srgb, var(--color-or-300) 30%, transparent), transparent 55%),
+            linear-gradient(180deg, color-mix(in srgb, var(--color-ocre-300) 20%, var(--color-sable-50)), var(--color-sable-50));
+        box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--color-sable-50) 70%, transparent), 0 2px 10px rgb(43 32 22 / 0.08);
+    }
+    .decret__sceau { filter: drop-shadow(0 2px 3px rgb(43 32 22 / 0.3)); }
+    }
+@media (prefers-reduced-motion: no-preference) {
+    .decret__sceau { animation: sceau-pose 700ms cubic-bezier(0.34, 1.56, 0.64, 1) 350ms both; }
+    @keyframes sceau-pose { from { opacity: 0; transform: scale(2) rotate(-18deg); } }
+    .bouton-invite { animation: invite 2.4s ease-in-out infinite; }
+    @keyframes invite {
+        0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-terre-400) 0%, transparent); }
+        50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-terre-400) 28%, transparent); }
+    }
+}
+
+/* Le petit aperçu de la commande. Hors couche, comme `.apercu-carte` qu'il surcharge — dans une couche il
+   perdrait. Une rotation ne change pas la mise en page : le losange déborde de sa boîte d'environ un
+   cinquième de chaque côté, d'où la marge. */
+.apercu-carte.apercu-carte--petit { width: 2.75rem; margin: 0.25rem 1rem; }
+
+/*
+ * La piste d'une expédition : départ, ligne, marcheur, arrivée. `--part` est la part du chemin faite.
+ * Hors couche : aucune utilité de Tailwind n'y est posée à surcharger, mais le marcheur est
+ * positionné en `calc` sur la ligne, ce qu'un utilitaire ne sait pas dire.
+ */
+.piste { position: relative; display: flex; align-items: center; gap: 0.5rem; height: 1.5rem; }
+.piste__depart, .piste__arrivee { display: flex; flex-shrink: 0; }
+.piste__ligne {
+    position: relative;
+    flex: 1;
+    height: 0.375rem;
+    border-radius: 999px;
+    background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-ocre-500) 45%, transparent) 0 6px, transparent 6px 11px);
+}
+.piste__fait {
+    position: absolute; inset: 0 auto 0 0;
+    width: var(--part);
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--color-lapis-500), var(--color-lapis-400));
+}
+/* Le marcheur est posé sur la ligne, entre le départ (18 px + 0,5 rem) et l'arrivée. */
+.piste__marcheur {
+    position: absolute;
+    top: 50%;
+    left: calc(18px + 0.5rem + (100% - 36px - 1rem) * var(--part-nombre, 0.5));
+    display: flex;
+    transform: translate(-50%, -62%);
+    filter: drop-shadow(0 1px 1px rgb(43 32 22 / 0.4));
+}
+@media (prefers-reduced-motion: no-preference) {
+    .piste__fait { animation: remplir 1100ms cubic-bezier(0.22, 1, 0.36, 1) both; transform-origin: left; }
+    .piste__marcheur { animation: marche 1100ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @keyframes marche { from { left: calc(18px + 0.5rem); } }
+    .piste__marcheur img { animation: pas 0.7s ease-in-out infinite; }
+    @keyframes pas { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-2px) rotate(6deg); } }
+}
+
+/* Écrans de compte : la tablette, et la ville qui flotte à côté. */
+.auth-tablette { background-image: linear-gradient(180deg, color-mix(in srgb, var(--color-ocre-300) 10%, var(--color-sable-50)), var(--color-sable-50)); }
+@media (prefers-reduced-motion: no-preference) {
+    .auth-decor__ville { animation: flotte-tuile 5s ease-in-out infinite; filter: drop-shadow(0 12px 10px rgb(43 32 22 / 0.18)); }
+}
+
+/*
+ * **Mouvement réduit : tout s'arrête, d'un seul bloc.** Chaque animation du jeu vit déjà derrière
+ * `prefers-reduced-motion: no-preference`, mais les *transitions* (survol, soulèvement, apparition
+ * d'une infobulle) s'écrivent à côté des règles qu'elles décorent, et il y en avait quatorze hors
+ * de ce garde. Plutôt que de les déplacer une à une — et d'oublier la suivante —, ce bloc final les
+ * ramène toutes à l'instantané, y compris celles de Tailwind (`transition`, `animate-*`). Les états
+ * (une infobulle visible, une carte cochée) restent ; seul le trajet disparaît.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        animation-delay: 0ms !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Le contenu de la fenêtre s'estompe pendant que le suivant charge : on ne lit pas un écran périmé. */
+turbo-frame#fenetre[busy] { opacity: 0.45; transition: opacity 120ms; }
+
+/*
+ * Une rangée qui défile le dit : une ombre apparaît du côté où il reste du contenu (barre de jeu sur
+ * téléphone). Sans elle, trois compteurs sur sept paraissaient être tout ce qu'on possède. Les deux
+ * premiers dégradés (`local`) recouvrent l'ombre quand on est au bout ; les deux autres (`scroll`)
+ * restent collés aux bords — d'où une ombre seulement là où il y a de quoi défiler. Au-delà de `md` la
+ * rangée ne défile plus et ne porte aucune ombre.
+ */
+@media (max-width: 767px) {
+    .defile-ombre {
+        background:
+            linear-gradient(to right, var(--color-sable-50) 30%, transparent) left center / 2rem 100% no-repeat local,
+            linear-gradient(to left, var(--color-sable-50) 30%, transparent) right center / 2rem 100% no-repeat local,
+            radial-gradient(farthest-side at 0 50%, rgb(43 32 22 / 0.22), transparent) left center / 0.6rem 100% no-repeat scroll,
+            radial-gradient(farthest-side at 100% 50%, rgb(43 32 22 / 0.22), transparent) right center / 0.6rem 100% no-repeat scroll;
+        background-color: var(--color-sable-50);
+    }
+}
+
+/* Le grand appel à l'action de l'accueil, en cartouche : un disque d'or porte le pictogramme, deux lignes
+   disent où l'on va, une flèche glisse au survol. Hors d'un simple bouton plein, il se lit comme l'entrée
+   de la cité. Les dimensions et le contexte d'empilement vivent ici : une classe Tailwind neuve n'existe
+   qu'après `tailwind:build`. */
+@layer components {
+    .bouton-cartouche {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.875rem;
+        padding: 0.5rem 1.5rem 0.5rem 0.5rem;
+        border-radius: 999px;
+        border: 1px solid color-mix(in srgb, var(--color-or-400) 70%, transparent);
+        background: linear-gradient(135deg, var(--color-terre-500), var(--color-terre-700));
+        color: var(--color-sable-50);
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgb(111 55 18 / 0.28), inset 0 1px 0 rgb(255 255 255 / 0.18);
+        transition: transform 180ms, box-shadow 180ms;
+    }
+    .bouton-cartouche:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgb(111 55 18 / 0.34), inset 0 1px 0 rgb(255 255 255 / 0.18);
+    }
+    .bouton-cartouche__disque {
+        display: grid;
+        place-items: center;
+        flex: none;
+        width: 3.25rem;
+        height: 3.25rem;
+        border-radius: 999px;
+        background: radial-gradient(circle at 35% 30%, var(--color-or-300), var(--color-or-500));
+        box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.25);
+    }
+    .bouton-cartouche__titre { display: block; font-family: var(--font-display); font-size: 1.25rem; line-height: 1.15; }
+    .bouton-cartouche__sous-titre { display: block; font-size: 0.75rem; opacity: 0.8; }
+    .bouton-cartouche__fleche { margin-left: 0.25rem; font-size: 1.25rem; transition: transform 180ms; }
+    .bouton-cartouche:hover .bouton-cartouche__fleche { transform: translateX(4px); }
+}
+
+/* La maison de briques crues du Quartier d'habitation. Les tracés vivent dans un `<symbol>` (une ville de
+   cent soixante maisons ne les répète pas) : leurs couleurs passent donc par ces classes, que `<use>`
+   hérite. Une maison libre est la même, estompée et sans ouverture : on voit la place qui reste. */
+@layer components {
+    .maison__toit { fill: var(--color-terre-400); stroke: var(--color-terre-600); stroke-width: 1; }
+    .maison__acrotere { fill: var(--color-terre-500); }
+    .maison__facade { fill: color-mix(in srgb, var(--color-ocre-500) 22%, var(--color-sable-50)); stroke: color-mix(in srgb, var(--color-ocre-500) 55%, transparent); stroke-width: 1; }
+    .maison__briques { fill: none; stroke: color-mix(in srgb, var(--color-ocre-500) 30%, transparent); stroke-width: 1; }
+    .maison__porte { fill: color-mix(in srgb, var(--color-terre-700) 45%, var(--color-sable-100)); }
+    .maison__ouverture { fill: color-mix(in srgb, var(--color-terre-700) 50%, var(--color-sable-100)); }
+    .maison-libre { opacity: 0.38; filter: grayscale(0.6); }
+    .maison-libre .maison__porte, .maison-libre .maison__ouverture { fill: transparent; }
+}
+
+/* La place libre d'une réserve : des hachures claires, pour qu'elle se lise comme un vide à remplir. */
+@layer components {
+    .reserve-libre {
+        background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--color-ocre-500) 22%, transparent) 6px 7px);
     }
 }

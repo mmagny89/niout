@@ -222,6 +222,12 @@ son attribut Stimulus. Aucun test fonctionnel ne les aurait vus.
 | **Le bonus de renommée passif du niveau 4 de Résidence** | Promis par le doc 01, jamais chiffré, jamais implanté |
 | **Les paramètres de lancement du doc 14** | Point de départ dans la succession et vitesse des règnes ne sont pas offerts. La taille de grille et la difficulté le sont déjà |
 
+**Trois effets de la règle des travailleurs (2026-10-08) n'ont pas été éprouvés** : le **début de
+partie**, où chaque bâtiment réclame désormais son équipage et la paie suit (une ville neuve peut manquer de
+bras avant d'avoir un chef) ; les **épidémies**, qui couchent des bras et peuvent maintenant **arrêter**
+un bâtiment, ce que l'ancien plancher de 50 % empêchait ; et la **production parallèle**, qui multiplie la
+fabrication d'un grand atelier par son nombre de travailleurs — à surveiller côté équilibre.
+
 ### Deux calibrages qui divergent, et qu'on garde
 
 Ce ne sont pas des oublis mais des décisions prises **contre** le document,
@@ -398,7 +404,9 @@ autorité sur toute question d'arborescence, nommage, ports et `.env`.
 | Arrivée d'habitants | Les **volontaires du pharaon** à l'ouverture, puis une **action du joueur** adossée à la renommée — et impossible sans logement disponible |
 | Ration alimentaire | **1 vivre par actif, une demi-ration par inactif**, par quinzaine |
 | Salariés du territoire | **1 par champ, 2 par gisement, 1 par pêcherie** : rien ne s'exploite tout seul. Le niveau du Grenier, de l'Entrepôt et du Port augmente équipage **et** rendement de l'exploitation qu'il gouverne |
-| Poste vacant | **Tout tourne au moins à moitié**, bâtiments comme exploitations — aucune impasse possible, et l'emploi devient un investissement plutôt qu'une taxe |
+| Postes et chef (2026-10-08) | **Un bâtiment réclame ses travailleurs, chef ou non** : sans personne il ne fonctionne pas, avec trop peu de bras il tourne au ralenti, au complet il atteint 50 % sans chef et 100 % avec. **Les exploitations du territoire** (champs, carrières, pêcheries) **gardent l'ancienne règle** — jamais zéro, la famille moissonne elle-même. Remplace « tout tourne au moins à moitié » |
+| Consigne par travailleur | **Chaque travailleur d'un atelier est un poste** avec son ordre et sa consigne : un bâtiment mène autant d'ordres de front que de travailleurs. On ne choisit pas son travailleur, et celui qui a une consigne est réservé à elle |
+| Un réglage, une jauge | Salaire, répartition de l'Entrepôt, prix du Marché, prix d'un étal : **à la jauge seule**, jamais un champ numérique qui la double, jamais caché dans un repli |
 | Salaires impayés | Le poste **s'arrête**, puis mécontentement et départs — même mécanisme que la famine |
 | Salaire des travailleurs | **Dû**, en forfait par tête, bien inférieur à celui d'un chef |
 | Dotation royale | De quoi dresser **les quatre bâtiments d'ouverture** (Quartier, Grenier, Marché, Entrepôt), plus un an de vivres et un an de salaires. Aucune marge en matériaux : le pharaon finance le démarrage, pas la suite |

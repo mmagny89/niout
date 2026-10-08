@@ -28,11 +28,26 @@
     </div>
 
 {{ sous.panneau('auberge', 'salle', false) }}
-<p class="mt-6 max-w-4xl text-sm text-encre-500">
-    Bateliers, porteurs de nouvelles, marchands en chemin : on y boit, on y
-    parle, et l'on s'y pose des devinettes. Rien de ce qui s'y dit n'engage la
-    ville — mais on y apprend des choses.
-</p>
+{# La salle, un soir : la braise rougeoie et la fumée monte. Décoratif, éteint si l'on a demandé moins de mouvement.
+   **Une seule carte** : le texte qui la suivait en paragraphe vit maintenant dedans, avec ce qu'on y fait en pastilles. #}
+<div class="salle mt-6 overflow-hidden rounded-sm border border-terre-500/30 px-5 py-5">
+    <div class="flex items-center gap-4">
+        <span class="salle__braise inline-flex">{{ include('partie/_pictogramme.html.twig', {nom: 'offrande', taille: 72}) }}</span>
+        <div class="min-w-0">
+            <p class="font-display text-2xl text-terre-700">La salle de l'Auberge</p>
+            <p class="text-sm text-encre-600">Un feu, de la bière, et des histoires de passage.</p>
+        </div>
+    </div>
+    <ul class="mt-4 flex list-none flex-wrap gap-2 p-0 text-xs text-encre-700">
+        <li class="rounded-full border border-terre-500/30 bg-sable-50/70 px-3 py-1">Bateliers</li>
+        <li class="rounded-full border border-terre-500/30 bg-sable-50/70 px-3 py-1">Porteurs de nouvelles</li>
+        <li class="rounded-full border border-terre-500/30 bg-sable-50/70 px-3 py-1">Marchands en chemin</li>
+    </ul>
+    <p class="mt-3 max-w-3xl text-sm text-encre-600">
+        On y boit, on y parle, et l'on s'y pose des devinettes. Rien de ce qui s'y dit
+        n'engage la ville — mais on y apprend des choses.
+    </p>
+</div>
     </div>
 
 {% if direction %}

@@ -4,6 +4,10 @@
    réponse de cadre). #}
     {% set typesDeFlash = { 'succes': 'good', 'erreur': 'bad' } %}
     <div class="pointer-events-none fixed inset-x-0 top-24 z-40 flex flex-col items-center gap-2 px-5">
+        {# Le récapitulatif d'une quinzaine passe avant les messages : c'est ce qu'on veut lire en premier. #}
+        {% for recap in app.flashes('quinzaine') %}
+            {{ include('_recapitulatif_de_quinzaine.html.twig', {recap: recap}) }}
+        {% endfor %}
         {% for type, style in typesDeFlash %}
             {% for message in app.flashes(type) %}
                 <div role="{{ style == 'bad' ? 'alert' : 'status' }}" data-controller="flash"

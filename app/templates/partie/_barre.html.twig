@@ -9,8 +9,12 @@
    ne crée aucun contexte d'empilement, et ses volets déroulants passaient
    sous le contenu de la page — sous la carte mise à l'échelle en
    particulier, dont le `transform` crée le sien. #}
-<header class="relative z-50 shrink-0 border-b border-ocre-500/25 bg-sable-50">
-    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-1.5 px-3 py-1.5 md:gap-y-2 md:px-4 md:py-2">
+{# `data-controller="compteurs"` : à chaque rechargement de la barre, ce qui a
+   bougé depuis le dernier affichage s'allume et dit de combien (`compteurs_controller.js`).
+   Pure décoration : le chiffre est dans le texte, l'écart est annoncé en `aria-hidden`. #}
+<header class="relative z-50 shrink-0 border-b border-ocre-500/25 bg-sable-50"
+        data-controller="compteurs" data-compteurs-cle-value="partie-{{ partie.id }}">
+    <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 px-3 py-1.5 md:gap-y-2 md:px-4 md:py-2 xl:flex-nowrap">
         {# Sur un téléphone, les compteurs tiennent sur **une seule ligne
            qui défile latéralement** au lieu de se replier sur trois : la
            barre passait de 189 px à moins de la moitié, sur un écran qui
@@ -22,37 +26,47 @@
            `-mx-3 px-3` : la rangée qui défile mord sur la marge du parent,
            pour que le premier et le dernier compteur ne paraissent pas
            coupés au repos. #}
-        <div class="-mx-3 flex w-full flex-nowrap items-center gap-x-4 gap-y-2 overflow-x-auto px-3 text-sm
-                    md:mx-0 md:w-auto md:flex-wrap md:overflow-visible md:px-0">
+        <div class="defile-ombre -mx-3 flex w-full flex-nowrap items-center gap-x-4 gap-y-2 overflow-x-auto px-3 text-sm
+                    md:mx-0 md:w-auto md:flex-wrap md:overflow-visible md:px-0 xl:min-w-0 xl:flex-nowrap xl:gap-x-2">
             <a href="{{ path('app_partie_carte', {id: partie.id}) }}"
-               class="font-display text-lg text-terre-600 no-underline">
+               class="shrink-0 font-display text-lg text-terre-600 no-underline">
                 {{ partie.ville.nom }}
             </a>
 
             {# Le deben ne se range dans aucune famille : il est la monnaie,
                il n'a aucun plafond, et c'est le seul compteur qu'on
                consulte à chaque décision. #}
-            <span class="flex shrink-0 items-baseline gap-1.5" data-chiffres data-compteur="deben">
-                <span class="text-encre-500">Deben</span>
+            <span class="compteur" tabindex="0" data-infobulle="Deben — la monnaie de la ville. Elle n'a aucun plafond." data-chiffres data-compteur="deben" data-compteurs-target="compteur" data-nom="deben" data-valeur="{{ partie.ville.deben }}">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 26, classe: 'compteur__image'}) }}
+                <span class="sr-only">Deben</span>
                 <span class="font-medium text-encre-900">{{ partie.ville.deben }}</span>
             </span>
 
+            {# Le pictogramme d'une famille est un repère visuel, pas une règle :
+               le regroupement reste un affichage (`FamilleDeRessource`). #}
+            {% set pictos_famille = {vivres: 'prestige', materiaux: 'chantier', precieux: 'pharaon', ouvrages: 'amelioration'} %}
             {% for groupe in partie.ville.stockParFamille %}
                 {% set sature = groupe.famille.value == 'vivres'
                     ? partie.ville.vivresPresqueSatures
                     : (groupe.famille.value in ['materiaux', 'ouvrages'] ? partie.ville.materiauxPresqueSatures : false) %}
 
                 <details class="relative shrink-0">
-                    <summary class="list-none rounded-sm px-2 py-1 hover:bg-ocre-300/20"
-                             title="{{ groupe.famille.description }}">
-                        <span class="text-encre-500">{{ groupe.famille.libelle }}</span>
+                    <summary class="compteur {{ sature ? 'compteur--alerte' : '' }}"
+                             data-infobulle="{{ groupe.famille.libelle }} — {{ groupe.famille.description }}"
+                             data-compteurs-target="compteur" data-nom="{{ groupe.famille.value }}" data-valeur="{{ groupe.total }}">
+                        {{ include('partie/_pictogramme.html.twig', {nom: pictos_famille[groupe.famille.value]|default(null), taille: 26, classe: 'compteur__image'}) }}
+                        <span class="sr-only">{{ groupe.famille.libelle }}</span>
                         <span class="{{ sature ? 'text-terre-600' : 'text-encre-900' }}" data-chiffres>
                             {{ groupe.total }}
                             {%- if groupe.famille.value == 'vivres' %} / {{ partie.ville.plafondDesVivres }}{% endif -%}
                         </span>
                     </summary>
 
-                    <div class="absolute left-0 top-full z-10 mt-1 max-h-80 w-64 overflow-y-auto rounded-sm
+                    {# Sur téléphone la rangée des compteurs défile latéralement, donc **rogne** tout ce qui en
+                        dépasse : un volet en `absolute` s'ouvrait, mais invisible. En `fixed` il sort de la
+                        rangée et se pose sous la barre, sur la largeur de l'écran. #}
+                    <div class="fixed inset-x-3 top-28 z-10 max-h-[60vh] w-auto overflow-y-auto rounded-sm
+                                md:absolute md:inset-x-auto md:left-0 md:top-full md:mt-1 md:max-h-80 md:w-64
                                 border border-ocre-500/30 bg-sable-50 p-3 shadow-lg">
                         <p class="mb-2 text-xs text-encre-500">{{ groupe.famille.description }}</p>
 
@@ -78,8 +92,8 @@
             {# La saturation des réserves se lit sans ouvrir un volet : le
                joueur doit la voir venir, pas la découvrir en perdant une
                moisson. #}
-            <span class="flex shrink-0 items-baseline gap-1.5" data-chiffres
-                  title="L'Entrepôt tient les matériaux et les ouvrages. Au-delà de {{ partie.ville.plafondDesMateriaux }}, ce qui rentre se perd.">
+            <span class="compteur compteur--calme" data-chiffres tabindex="0"
+                  data-infobulle="L'Entrepôt tient les matériaux et les ouvrages. Au-delà de {{ partie.ville.plafondDesMateriaux }}, ce qui rentre se perd.">
                 <span class="text-encre-500">Entrepôt</span>
                 <span class="{{ partie.ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-900' }}">
                     {{ partie.ville.materiaux }} / {{ partie.ville.plafondDesMateriaux }}
@@ -90,14 +104,16 @@
                ancien — une demi-ration. Le logement dit quand bâtir avant
                d'espérer un habitant de plus. #}
             <details class="relative shrink-0">
-                <summary class="list-none rounded-sm px-2 py-1 hover:bg-ocre-300/20">
-                    <span class="text-encre-500">Habitants</span>
+                <summary class="compteur {{ partie.ville.manqueDeLogements ? 'compteur--alerte' : '' }}" data-infobulle="Habitants — {{ partie.ville.actifs }} actifs, {{ partie.ville.inactifs }} à charge. Cliquez pour le détail."
+                         data-compteurs-target="compteur" data-nom="habitants" data-valeur="{{ partie.ville.population }}">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 22, classe: 'compteur__image'}) }}
+                    <span class="sr-only">Habitants</span>
                     <span class="{{ partie.ville.manqueDeLogements ? 'text-terre-600' : 'text-encre-900' }}" data-chiffres>
                         {{ partie.ville.population }}
                     </span>
                 </summary>
 
-                <div class="absolute left-0 top-full z-10 mt-1 w-64 rounded-sm border border-ocre-500/30
+                <div class="fixed inset-x-3 top-28 z-10 w-auto rounded-sm md:absolute md:inset-x-auto md:left-0 md:top-full md:mt-1 md:w-64 border border-ocre-500/30
                             bg-sable-50 p-3 text-sm shadow-lg">
                     <dl class="space-y-1" data-chiffres>
                         <div class="flex items-baseline justify-between gap-3">
@@ -126,11 +142,28 @@
                     {% endif %}
                 </div>
             </details>
+
+            {# Sur téléphone, « Mes parties » ferme la rangée des compteurs au lieu de prendre de la place à
+               côté du bouton de cycle : on y va rarement en cours de partie, et la date a besoin de la
+               largeur. Dès `md` le lien reprend sa place d'origine (celui-ci disparaît). #}
+            <a href="{{ path('app_parties') }}"
+               class="inline-flex shrink-0 items-center whitespace-nowrap rounded-sm px-2 py-1.5 text-sm text-encre-500 hover:text-terre-600 md:hidden">Mes parties</a>
         </div>
 
-        <div class="flex w-full flex-nowrap items-center justify-between gap-3 md:w-auto md:justify-start">
-            <p class="min-w-0 truncate text-xs text-encre-600 md:overflow-visible md:text-sm">
-                {{ partie.dateDeJeu.libelle }}
+        <div class="flex w-full flex-nowrap items-center justify-between gap-3 md:w-auto md:justify-start xl:shrink-0">
+            {# Sur téléphone la date tient sur deux lignes au lieu d'être tronquée : « Khent-khéti, an 2 — C… » ne
+               disait ni la saison ni la crue, qui conditionnent la moisson. #}
+            <p class="min-w-0 line-clamp-2 text-xs leading-tight text-encre-600 md:line-clamp-none md:overflow-visible md:text-sm xl:whitespace-nowrap">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 22}) }}
+                {# Ce que la saison change dit son sens au survol, plutôt que dans chaque fenêtre. Sans Nil,
+                   la saison du Nil ne dit rien de vrai : pas d'infobulle. #}
+                {% set saison = partie.dateDeJeu.saison %}
+                {% if saison and (connaitLaCrue is not defined or connaitLaCrue) %}
+                    <span data-infobulle="{{ saison.libelle }}, {{ saison.sens }}. {{ saison.description }}" tabindex="0"
+                          class="cursor-help underline decoration-dotted decoration-encre-500/40 underline-offset-4">{{ partie.dateDeJeu.libelle }}</span>
+                {% else %}
+                    {{ partie.dateDeJeu.libelle }}
+                {% endif %}
                 <span class="text-encre-500" data-chiffres>· cycle {{ partie.cycle }}</span>
                 {# La crue de l'année conditionne la moisson de Chémou : le
                    joueur doit l'avoir sous les yeux quand il décide de
@@ -145,19 +178,12 @@
                 {% if connaitLaCrue is not defined or connaitLaCrue %}
                     <span class="text-encre-500" title="{{ partie.crue.presage }}">· crue {{ partie.crue.libelle }}</span>
                 {% endif %}
-                {# Une fête qu'on n'a pas vue passer est une fête qui n'existe
-                   pas : elle ne dure que deux à quatre quinzaines par an. #}
-                {% if partie.feteEnCours %}
-                    <span class="text-lapis-500" title="{{ partie.feteEnCours.description }}">
-                        · {{ partie.feteEnCours.libelle }}
-                    </span>
-                {% endif %}
             </p>
 
             {{ actionHtml|raw }}
 
             <a href="{{ path('app_parties') }}"
-               class="shrink-0 whitespace-nowrap text-sm text-encre-500 hover:text-terre-600">Mes parties</a>
+               class="hidden shrink-0 whitespace-nowrap py-1.5 text-sm text-encre-500 hover:text-terre-600 md:inline-flex">Mes parties</a>
         </div>
     </div>
 
@@ -175,16 +201,13 @@
     {% if signaux is defined %}
         {% set expeditions = partie.ville.expeditions|length %}
         {% if signaux is not empty or expeditions > 0 %}
-            <ul class="flex list-none flex-wrap items-center gap-2 border-t border-ocre-500/15 px-3 py-1.5 md:px-4">
+            <ul class="defile-ombre flex list-none flex-nowrap items-center gap-2 overflow-x-auto border-t border-ocre-500/15 px-3 py-1.5 md:flex-wrap md:overflow-visible md:px-4">
                 {% for signal in signaux %}
                     <li>
-                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'}) }}"
-                           data-turbo-frame="fenetre" title="{{ signal.detail }}"
-                           class="block rounded-sm border px-2.5 py-1 text-xs no-underline
-                                  {{ signal.ton == 'mauvais'
-                                      ? 'border-terre-600/50 bg-terre-500/10 text-terre-700'
-                                      : 'border-lapis-500/50 bg-lapis-500/5 text-lapis-600' }}">
-                            <span aria-hidden="true">{{ signal.ton == 'mauvais' ? '▲' : '◆' }}</span>
+                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: signal.onglet ?? 'residence_familiale'}) }}"
+                           data-turbo-frame="fenetre" data-infobulle="{{ signal.detail }}"
+                           class="signal group min-h-8 md:min-h-0 {{ signal.ton == 'mauvais' ? 'signal--mauvais' : 'signal--bon' }}">
+                            {{ include('partie/_pictogramme.html.twig', {nom: signal.icone, taille: 20, classe: 'signal__image'}) }}
                             {{ signal.titre }}
                         </a>
                     </li>
@@ -192,8 +215,9 @@
                 {% if expeditions > 0 %}
                     <li>
                         <a href="{{ path('app_partie_expeditions', {id: partie.id}) }}"
-                           data-turbo-frame="fenetre"
-                           class="block rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-2.5 py-1 text-xs text-encre-700 no-underline">
+                           data-turbo-frame="fenetre" data-infobulle="Des expéditions sont parties : cliquez pour voir où elles en sont."
+                           class="signal signal--neutre group min-h-8 md:min-h-0">
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 20, classe: 'signal__image'}) }}
                             Expéditions en route <span data-chiffres>({{ expeditions }})</span>
                         </a>
                     </li>

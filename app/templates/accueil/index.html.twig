@@ -3,6 +3,7 @@
 {% block title %}Niout — bâtir une ville dans l'Égypte du Nouvel Empire{% endblock %}
 
 {% block body %}
+<div data-controller="apparition">
     {# **La page se lit en largeur** : une accroche et la carte côte à côte, puis
        des rangées de plusieurs colonnes, au lieu d'une pile de sections pleine
        largeur qu'il fallait faire défiler cinq fois. Sur téléphone tout
@@ -12,7 +13,8 @@
        avant chargement, sans quoi le texte saute à l'arrivée de chaque image. #}
     <section class="mx-auto grid max-w-6xl items-center gap-x-10 gap-y-8 px-5 pt-10 pb-10 lg:grid-cols-5 lg:pt-14 lg:pb-14">
         <div class="lg:col-span-2">
-            <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+            <p class="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 26}) }}
                 Jeu de gestion · Égypte, ~1550-1070 av. J.-C.
             </p>
             <h1 class="mt-4 text-3xl leading-tight text-encre-900 sm:text-4xl">
@@ -28,16 +30,23 @@
                chercher son chemin dans l'en-tete pour retrouver ses parties. #}
             <div class="mt-7 flex flex-wrap items-center gap-4">
                 {% if app.user %}
-                    <a href="{{ path('app_parties') }}"
-                       class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
-                        Mes parties
+                    <a href="{{ path('app_parties') }}" class="bouton-cartouche">
+                        <span class="bouton-cartouche__disque" aria-hidden="true">
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 32}) }}
+                        </span>
+                        <span>
+                            <span class="bouton-cartouche__titre">Mes parties</span>
+                            <span class="bouton-cartouche__sous-titre">Reprendre votre cité</span>
+                        </span>
+                        <span class="bouton-cartouche__fleche" aria-hidden="true">→</span>
                     </a>
                     <a href="{{ path('app_partie_nouvelle') }}" class="text-encre-700 hover:text-terre-600">
                         Commencer une nouvelle partie
                     </a>
                 {% else %}
                     <a href="{{ path('app_register') }}"
-                       class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                       class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 24, classe: 'bouton-offrande__image'}) }}
                         Créer un compte
                     </a>
                     <a href="{{ path('app_login') }}" class="text-encre-700 hover:text-terre-600">
@@ -47,7 +56,7 @@
             </div>
         </div>
 
-        <figure class="overflow-hidden rounded-sm border border-ocre-500/30 bg-sable-50 lg:col-span-3">
+        <figure class="revele vitrine overflow-hidden rounded-sm border border-ocre-500/30 bg-sable-50 lg:col-span-3">
             <img src="{{ asset('images/captures/carte.webp') }}" width="1520" height="800"
                  decoding="async" class="block w-full"
                  alt="Carte isométrique du territoire de Malkata : le Nil bordé de roseaux
@@ -84,7 +93,7 @@
                       sa translittération nb-mȝꜥt-rꜥ et les codes de Gardiner des trois signes.',
             },
         ] %}
-            <article class="flex flex-col overflow-hidden rounded-sm border border-ocre-500/30 bg-sable-50">
+            <article class="revele vitrine flex flex-col overflow-hidden rounded-sm border border-ocre-500/30 bg-sable-50">
                 <img src="{{ asset('images/captures/' ~ capture.fichier) }}"
                      width="{{ capture.largeur }}" height="{{ capture.hauteur }}"
                      loading="lazy" decoding="async" class="block w-full" alt="{{ capture.alt }}">
@@ -101,7 +110,10 @@
     <section class="border-y border-ocre-500/25 bg-sable-50">
         <div class="mx-auto grid max-w-6xl gap-x-12 gap-y-8 px-5 py-10 lg:grid-cols-2">
             <div>
-                <h2 class="text-2xl text-encre-900">Aucune minuterie. Jamais.</h2>
+                <h2 class="flex items-center gap-3 text-2xl text-encre-900">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 40}) }}
+                    Aucune minuterie. Jamais.
+                </h2>
                 <p class="mt-3 text-encre-600">
                     Un chantier, une caravane ou une expédition prennent du temps — mais ce temps ne
                     s'écoule que lorsque vous déclenchez un cycle. Rien ne tourne pendant que vous
@@ -118,16 +130,16 @@
             <div>
                 <h2 class="text-2xl text-encre-900">Deux façons de jouer</h2>
                 <div class="mt-3 grid gap-4 sm:grid-cols-2">
-                    <article>
-                        <h3 class="text-lg text-terre-600">Campagne</h3>
+                    <article class="revele carte-vivante rounded-sm border border-transparent p-3">
+                        <h3 class="flex items-center gap-2 text-lg text-terre-600">{{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 32}) }} Campagne</h3>
                         <p class="mt-1 text-sm text-encre-600">
                             Dix missions, dix villes attestées — d'Avaris reprise aux Hyksôs jusqu'aux
                             mines de turquoise du Sinaï. Chacune est commanditée par un pharaon réel,
                             avec son mystère local à élucider. Difficulté croissante.
                         </p>
                     </article>
-                    <article>
-                        <h3 class="text-lg text-terre-600">Aventure</h3>
+                    <article class="revele carte-vivante rounded-sm border border-transparent p-3">
+                        <h3 class="flex items-center gap-2 text-lg text-terre-600">{{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 32}) }} Aventure</h3>
                         <p class="mt-1 text-sm text-encre-600">
                             Une seule ville, Memphis, développée à travers une succession de règnes.
                             Pas d'objectif de fin imposé ; taille de carte et difficulté réglables
@@ -143,15 +155,16 @@
         <h2 class="text-2xl text-encre-900">Ce que vous y ferez</h2>
         <div class="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:grid-cols-5">
             {% set activites = [
-                { titre: 'Bâtir', texte: 'Douze bâtiments, du grenier au temple. Chacun ouvre une fonction et monte en niveau, avec des chantiers en brique crue qui prennent le temps de sécher.' },
-                { titre: 'Explorer', texte: 'Un éclaireur reconnaît chaque case, puis vous décidez : escorte de Medjaÿ, émissaire ou expédition lourde selon ce qu\'il a trouvé.' },
-                { titre: 'Commercer', texte: 'Marché local pour l\'immédiat, caravanes et navires pour le lointain — sur les routes historiques du Chemin d\'Horus au pays de Pount.' },
-                { titre: 'Enquêter', texte: 'Déchiffrez des inscriptions à la Maison des scribes, recoupez témoignages et indices pour lever l\'obstacle qui pèse sur votre ville.' },
-                { titre: 'Apprendre', texte: 'Lisez les hiéroglyphes, puis écrivez-les : les vingt-quatre signes qui notent un son, votre nom de famille, le cartouche du pharaon.' },
+                { icone: 'chantier', titre: 'Bâtir', texte: 'Douze bâtiments, du grenier au temple. Chacun ouvre une fonction et monte en niveau, avec des chantiers en brique crue qui prennent le temps de sécher.' },
+                { icone: 'expedition', titre: 'Explorer', texte: 'Un éclaireur reconnaît chaque case, puis vous décidez : escorte de Medjaÿ, émissaire ou expédition lourde selon ce qu\'il a trouvé.' },
+                { icone: 'echange', titre: 'Commercer', texte: 'Marché local pour l\'immédiat, caravanes et navires pour le lointain — sur les routes historiques du Chemin d\'Horus au pays de Pount.' },
+                { icone: 'enigme', titre: 'Enquêter', texte: 'Déchiffrez des inscriptions à la Maison des scribes, recoupez témoignages et indices pour lever l\'obstacle qui pèse sur votre ville.' },
+                { icone: 'pharaon', titre: 'Apprendre', texte: 'Lisez les hiéroglyphes, puis écrivez-les : les vingt-quatre signes qui notent un son, votre nom de famille, le cartouche du pharaon.' },
             ] %}
             {% for activite in activites %}
-                <article>
-                    <h3 class="text-base text-lapis-500">{{ activite.titre }}</h3>
+                <article class="revele carte-vivante rounded-sm border border-ocre-500/25 bg-sable-50 p-4">
+                    {{ include('partie/_pictogramme.html.twig', {nom: activite.icone, taille: 48}) }}
+                    <h3 class="mt-2 text-base text-lapis-500">{{ activite.titre }}</h3>
                     <p class="mt-1 text-sm text-encre-600">{{ activite.texte }}</p>
                 </article>
             {% endfor %}
@@ -164,9 +177,12 @@
                 <span class="font-display text-xl text-encre-900">Niout</span> — « la ville », en égyptien ancien.
             </p>
             <a href="{{ app.user ? path('app_parties') : path('app_register') }}"
-               class="rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+               class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'chantier', taille: 24, classe: 'bouton-offrande__image'}) }}
+                
                 {{ app.user ? 'Reprendre' : 'Commencer' }}
             </a>
         </div>
     </section>
+</div>
 {% endblock %}

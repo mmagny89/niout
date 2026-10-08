@@ -7,6 +7,7 @@ namespace App\Fenetre\Panneau;
 use App\Entity\Building;
 use App\Entity\GameSave;
 use App\Game\Effectifs;
+use App\Game\EffetDeChef;
 use App\Game\Recrutements;
 use App\Game\SpecialiteDeChef;
 
@@ -32,6 +33,10 @@ final readonly class DirectionDesBatiments
         return [
             'directions' => $this->directions($partie),
             'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
+            // Le rendement total : travailleurs, plafond du chef et compétence ensemble (l'en-tête le montre à part).
+            'rendementsTotaux' => EffetDeChef::qualitesDeDirection($ville, $partie->getCycle()),
+            // Et celui de la quinzaine suivante : un chef embauché prend son poste à ce moment-là, et le plafond monte.
+            'rendementsProchains' => EffetDeChef::qualitesDeDirection($ville, $partie->getCycle() + 1),
             // Embaucher un chef ouvre des postes : sans ce bilan, le joueur
             // voyait son rendement baisser ailleurs sans comprendre que ses
             // bras étaient partis tenir le nouveau bâtiment.

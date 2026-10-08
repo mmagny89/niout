@@ -66,8 +66,63 @@ final class ResidenceValorisationTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/ville?onglet=grenier', $partie->getId()));
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'Sans chef, ce bâtiment tourne à 50 %');
+        self::assertSelectorTextContains('body', 'Sans chef, ce bâtiment ne dépasse pas 50 %');
         self::assertSelectorTextContains('body', 'Spécialités possibles ici');
+    }
+
+    /**
+     * Ce qu'il reste à bâtir se lit en cartes : le sprite du bâtiment, son coût en pastilles (avec les
+     * illustrations des ressources), et ce qu'on peut engager passe avant ce qui est bloqué.
+     */
+    public function testLesBatimentsABatirSontDesCartesAvecSpriteEtCoutEnPastilles(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'valorisation-a-batir@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertResponseIsSuccessful();
+
+        $cartes = $crawler->filter('#residence-section-batiments li[data-etat="a-batir"], #residence-section-batiments li[data-etat="bloque"]');
+        self::assertGreaterThan(3, $cartes->count(), 'Une ville neuve a de quoi bâtir.');
+        self::assertCount($cartes->count(), $cartes->filter('img[src*="/images/ville/batiments/"]'), 'Chaque carte porte le sprite de son bâtiment.');
+        self::assertGreaterThan(0, $cartes->first()->filter('ul[aria-label="Ce que coûte le chantier"] li')->count());
+
+        // Réalisables d'abord : une fois un bloqué rencontré, plus aucun réalisable ne suit.
+        $boutons = $cartes->each(static fn ($carte): bool => $carte->filter('form[action$="/batir"]')->count() > 0);
+        $bloque = false;
+        foreach ($boutons as $realisable) {
+            if (!$realisable) {
+                $bloque = true;
+            }
+            self::assertFalse($bloque && $realisable, 'Ce qu\'on peut engager passe avant ce qui est bloqué.');
+        }
+    }
+
+    /**
+     * Le salaire des bras se règle au seul curseur ; un champ caché reste la source soumise : le
+     * curseur, le verdict et le champ vivent dans le même contrôleur (une cible hors de son contrôleur
+     * n'est jamais trouvée, sans erreur), et le verdict arrive en trois textes déjà rendus.
+     */
+    public function testLeSalaireDesBrasSeRegleAuSeulCurseurSurUnChampCache(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'salaire-curseur@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertResponseIsSuccessful();
+
+        $formulaire = $crawler->filter('#residence-section-gouvernement form[data-controller="curseur"]');
+        self::assertCount(1, $formulaire);
+        self::assertSame('true', $formulaire->attr('data-curseur-mauvais-en-bas-value'), 'Un salaire trop bas est le mauvais côté.');
+        self::assertCount(1, $formulaire->filter('input[type="hidden"]#salaire[data-curseur-target="champ"][name="salaire"]'));
+        self::assertCount(0, $formulaire->filter('input[type="number"]'), 'La jauge ne se double pas d\'un champ numérique.');
+        self::assertCount(1, $formulaire->filter('input[type="range"][data-curseur-target="piste"]'));
+        self::assertCount(1, $formulaire->filter('[data-curseur-target="nombre"]'));
+        $verdict = $formulaire->filter('[data-curseur-target="verdict"]');
+        self::assertCount(1, $verdict);
+        foreach (['data-bas', 'data-milieu', 'data-haut'] as $attribut) {
+            self::assertNotSame('', trim((string) $verdict->attr($attribut)), $attribut);
+        }
     }
 
     /**
@@ -84,13 +139,15 @@ final class ResidenceValorisationTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
-        $dresses = $crawler->filter('#residence-section-batiments ul')->eq(0)->text();
-        $aBatir = $crawler->filter('#residence-section-batiments ul')->eq(1)->text();
+        // Une seule liste de cartes : les dressés, puis ce qu'il reste à bâtir.
+        $dresses = $crawler->filter('#residence-section-batiments li[data-etat="dresse"]');
+        $aBatir = $crawler->filter('#residence-section-batiments li[data-etat="a-batir"], #residence-section-batiments li[data-etat="bloque"]');
 
-        self::assertStringContainsString('Grenier', $dresses);
-        self::assertStringContainsString('Améliorer', $dresses);
-        self::assertStringNotContainsString('Grenier', $aBatir, 'Déjà dressé : il ne reste pas à bâtir.');
-        self::assertStringNotContainsString('Améliorer', $aBatir);
+        self::assertCount(1, $crawler->filter('#residence-section-batiments ul.grid'), 'Dressés et à bâtir ne font qu\'une liste.');
+        self::assertStringContainsString('Grenier', $dresses->text());
+        self::assertStringContainsString('Améliorer', $dresses->text());
+        self::assertStringNotContainsString('Grenier', $aBatir->text(), 'Déjà dressé : il ne reste pas à bâtir.');
+        self::assertStringNotContainsString('Améliorer', $aBatir->text());
     }
 
     /**
@@ -115,7 +172,7 @@ final class ResidenceValorisationTest extends WebTestCase
 
     /**
      * Le Marché propose d'emblée la quantité que la place absorbe, et montre sa
-     * place du jour en cases.
+     * place du jour en jauge.
      */
     public function testLeMarcheProposeLaQuantiteQueLaPlaceAbsorbe(): void
     {
@@ -130,10 +187,63 @@ final class ResidenceValorisationTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'La place du jour');
-        self::assertGreaterThan(0, $crawler->filter('[role="img"][aria-label^="Débouché de la quinzaine"]')->count());
+        // La place du jour est une tuile : son chiffre est écrit, la jauge est décorative.
+        self::assertSelectorTextContains('body', 'écoulés sur');
+        self::assertGreaterThan(0, $crawler->filter('[data-controller="vente"]')->count(), 'Chaque lot montre ce que sa vente rapporterait.');
 
         $quantite = (int) $crawler->filter('#quantite-poterie')->attr('value');
         self::assertGreaterThan(1, $quantite, 'Une place neuve absorbe plus d\'une poterie.');
+    }
+
+    /**
+     * L'Entrepôt range ses seuils en cartes à curseur : le champ numérique reste la source
+     * soumise (il marche sans JavaScript), le curseur le double.
+     */
+    public function testLEntrepotRepartitLesSeuilsEnCartesACurseur(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'entrepot-curseurs@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Entrepot));
+        $ville->crediterRessources([\App\Game\Ressource::Argile->value => 40]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=entrepot', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        $formulaire = $crawler->filter('form[data-controller="curseur"][data-curseur-mode-value="part"]')->reduce(
+            static fn ($n): bool => 1 === $n->filter('input#garde-argile')->count(),
+        );
+        self::assertCount(1, $formulaire, 'Chaque ressource en réserve a sa carte et son curseur.');
+        self::assertSame('0', $formulaire->filter('input#garde-argile')->attr('min'));
+        self::assertGreaterThan(0, $formulaire->filter('input[name="_token"]')->count(), 'Le formulaire reste soumis par le champ.');
+    }
+
+    /**
+     * Le contrôleur d'aperçu des lots est sur la carte de la recette, **au-dessus** de ce
+     * qu'il met à jour : une cible hors de son contrôleur n'est jamais trouvée, et rien ne
+     * le dit à l'écran. Aucun test fonctionnel n'exécute le JavaScript — la parade est
+     * cette assertion de structure.
+     */
+    public function testLApercuDesLotsEnglobeLesMatieresEtLeChamp(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'forge-lots@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Forge));
+        $ville->crediterRessources([\App\Game\Ressource::Cuivre->value => 50, \App\Game\Ressource::BoisLocal->value => 50]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=forge', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        $cartes = $crawler->filter('li[data-controller="lots"]');
+        self::assertGreaterThan(0, $cartes->count());
+        $cartes->each(static function ($carte): void {
+            self::assertGreaterThan(0, $carte->filter('[data-lots-target="matiere"][data-base]')->count(), 'Les matières sont dans le contrôleur.');
+            self::assertGreaterThan(0, $carte->filter('input[data-lots-target="lots"]')->count());
+            self::assertGreaterThan(0, $carte->filter('form[action$="/fabriquer"]')->count());
+        });
     }
 
     /**

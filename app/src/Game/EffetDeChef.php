@@ -23,7 +23,7 @@ use App\Entity\Employee;
  * que la règle promet, comme le double comptage retiré au lot 4.5.
  *
  * **Un mauvais chef reste meilleur que pas de chef.** Un bâtiment sans
- * personne tourne au plancher de 50 % ; le pire des chefs, une fois son
+ * chef, même au complet, plafonne à 50 % ; le pire des chefs, une fois son
  * équipe au complet, rend 98 % — presque neutre, jamais punitif. C'est ce qui
  * fait de l'embauche un pari sur le mieux, et non un risque de faire pire que
  * rien.
@@ -169,6 +169,27 @@ final readonly class EffetDeChef
         $facteur = self::facteurDesChefs($ville, $type, $cycle, $recette);
 
         return intdiv($rendement * $facteur, Effectifs::RENDEMENT_PLEIN);
+    }
+
+    /**
+     * Le **rendement total** de chaque bâtiment dressé, en centièmes — ce que montre son en-tête : ses travailleurs,
+     * le plafond que le chef ouvre (50 % sans lui, 100 % avec) et la compétence du chef, ensemble. C'est la même
+     * valeur que `qualiteDeDirection()` sans recette, calculée d'un coup pour toute la ville.
+     *
+     * @return array<string, int> indexé par la valeur du type de bâtiment
+     */
+    public static function qualitesDeDirection(City $ville, int $cycle): array
+    {
+        $qualites = [];
+
+        foreach (Effectifs::repartir($ville, $cycle) as $valeur => $ligne) {
+            $qualites[$valeur] = intdiv(
+                $ligne['rendement'] * self::facteurDesChefs($ville, $ligne['batiment']->getType(), $cycle),
+                Effectifs::RENDEMENT_PLEIN,
+            );
+        }
+
+        return $qualites;
     }
 
     /**

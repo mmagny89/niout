@@ -24,7 +24,7 @@ use Doctrine\ORM\Mapping as ORM;
  * est un autre lieu : les deux travaillent de front.
  */
 #[ORM\Entity(repositoryClass: OrdreDeFabricationRepository::class)]
-#[ORM\UniqueConstraint(name: 'UNIQ_ORDRE_PAR_BATIMENT', columns: ['ville_id', 'batiment'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_ORDRE_PAR_POSTE', columns: ['ville_id', 'batiment', 'poste'])]
 class OrdreDeFabrication
 {
     /**
@@ -49,11 +49,18 @@ class OrdreDeFabrication
 
     /**
      * Où l'ouvrage se fait. Redondant avec `Recette::batiment()`, et c'est
-     * assumé : la contrainte d'unicité « un ordre par bâtiment » a besoin
+     * assumé : la contrainte d'unicité « un ordre par poste de bâtiment » a besoin
      * d'une colonne, pas d'une méthode.
      */
     #[ORM\Column(enumType: TypeDeBatiment::class)]
     private TypeDeBatiment $batiment;
+
+    /**
+     * Le poste — le travailleur — qui mène l'ouvrage, de 1 à N. Un bâtiment tient autant d'ordres
+     * à la fois que de travailleurs ; chacun a le sien, d'où l'unicité par poste.
+     */
+    #[ORM\Column(options: ['default' => 1])]
+    private int $poste = 1;
 
     #[ORM\Column]
     private int $lots;
@@ -64,9 +71,10 @@ class OrdreDeFabrication
     #[ORM\Column]
     private int $avancementEnDixiemes = 0;
 
-    public function __construct(City $ville, Recette $recette, int $lots)
+    public function __construct(City $ville, Recette $recette, int $lots, int $poste = 1)
     {
         $this->ville = $ville;
+        $this->poste = max(1, $poste);
         $this->recette = $recette;
         $this->batiment = $recette->batiment();
         $this->lots = $lots;
@@ -114,6 +122,11 @@ class OrdreDeFabrication
         return $this->batiment;
     }
 
+    public function getPoste(): int
+    {
+        return $this->poste;
+    }
+
     public function getLots(): int
     {
         return $this->lots;
@@ -136,12 +149,17 @@ class OrdreDeFabrication
      * Avance d'une quinzaine, au rythme que l'Atelier peut tenir.
      *
      * `$qualiteDeDirection` est la qualité de direction du bâtiment
-     * (`EffetDeChef`) : un Atelier désert tourne au plancher de 50 % et met
+     * (`EffetDeChef`) : un Atelier sans chef mais au complet tourne à 50 % et met
      * donc deux fois plus longtemps, un Atelier bien tenu par un bon chef va
-     * plus vite que la durée nominale.
+     * plus vite que la durée nominale. **Sans travailleur, rien n'avance** : à 0 %
+     * l'ouvrage attend ses bras.
      */
     public function avancerDUnCycle(int $qualiteDeDirection): static
     {
+        if ($qualiteDeDirection < 1) {
+            return $this;
+        }
+
         $this->avancementEnDixiemes += max(
             1,
             intdiv(self::DIXIEMES_PAR_CYCLE * $qualiteDeDirection, Effectifs::RENDEMENT_PLEIN),

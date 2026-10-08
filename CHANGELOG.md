@@ -12,6 +12,240 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+## [0.15.0] - 2026-10-08
+
+**Chaque bâtiment est revu, et la main-d'œuvre change de règle.** Les fenêtres disent chaque chose une
+seule fois — en tuiles, en jauges et en pastilles plutôt qu'en phrases — et tous les bâtiments ont été
+repris un à un : Résidence, Quartier, Grenier, Entrepôt, Marché, routes, Atelier et Forge, Temple, Maison
+des scribes, Auberge, onglet Direction. Surtout, **un bâtiment réclame désormais ses travailleurs, chef
+ou non** : sans personne il ne fonctionne pas, et un atelier mène autant d'ouvrages de front que de
+travailleurs.
+
+### Ajouté
+
+- **Une consigne par travailleur** : chaque travailleur d'un atelier ou d'une forge est un poste, avec son ouvrage et sa consigne
+  permanente — un bâtiment mène autant d'ordres de front que de travailleurs en poste (au moins un). L'écran montre une carte
+  par travailleur, libre ou à l'ouvrage. On ne choisit pas son travailleur : l'ouvrage va au premier libre, et un travailleur sous
+  consigne permanente est réservé à elle.
+- **L'en-tête de chaque bâtiment dit toujours ses chefs et ses travailleurs**, même à zéro, avec leurs icônes.
+- **Les routes commerciales ont un visage** : chaque cité porte son pictogramme, la distance (avec sa piste), le volume d'un convoi et ce qu'elle
+  vend et achète en pastilles à illustration. Le prix d'un étal se règle à la jauge, entre le plancher et le plafond de la cité ; un ordre
+  posé montre son empressement en jauge.
+- **La pastille d'une fête mène au Temple**, s'il est bâti ; sinon elle ouvre la Résidence comme avant.
+- **Un nouvel appel « Mes parties » à l'accueil** : un cartouche à disque d'or, deux lignes et une flèche qui glisse au survol.
+- **« Ce que le pharaon attend » s'illustre** : chaque objectif de mission porte son dessin — deben,
+  habitants, échanges, amélioration, prestige, ou l'illustration de la ressource à rapporter.
+- **La barre de jeu prend des pictogrammes et du mouvement** : le deben, les réserves
+  et les habitants sont des pastilles à pictogramme (le libellé reste lisible aux
+  lecteurs d'écran), chaque signal de la ville porte le dessin de sa nature, et le
+  bouton « Quinzaine suivante » tourne pendant que le temps passe. Un chiffre qui
+  bouge s'éclaire et dit de combien. Rien ne bouge pour qui a demandé moins de
+  mouvement à son système.
+- **Le Temple et la Caserne se lisent d'un coup d'œil** : le Temple montre autant d'ankhs
+  que de dieux qu'il peut porter, allumés pour ceux qu'on honore, et ce que vaut une
+  offrande ; les jauges de faveur se remplissent à l'ouverture. La Caserne aligne un écu
+  par homme (levé, blessé ou place libre) qui apparaît l'un après l'autre. Les cartes se
+  soulèvent au survol.
+- **La Résidence familiale s'ouvre sur cinq tuiles** — habitants, postes tenus, vivres,
+  bourse, renommée — avec leur jauge qui vire à la terre cuite quand quelque chose cloche ;
+  les quatre tableaux de chiffres restent dessous, repliés. Les alertes et les bonnes
+  nouvelles portent le dessin de leur nature.
+
+- **Des infobulles** sur les compteurs de la barre, les signaux, les tuiles de la Résidence,
+  le bandeau du Temple et les écus de la Caserne : elles disent ce que mesure le chiffre et
+  quoi faire quand il vire au rouge. Elles s'affichent aussi au clavier.
+- **La fenêtre s'ouvre en douceur** : un fondu qui monte, la feuille d'une case glisse depuis
+  la droite, et le contenu change en fondu d'un bâtiment à l'autre.
+
+- **Le récapitulatif de la quinzaine** : en passant le temps, une carte descend et dit ce qui
+  a changé — bourse, vivres, habitants, matériaux, renommée, en pastilles qui s'allument —
+  puis le journal rangé par catégorie (santé, commerce, dieux, royaume…), replié s'il est long.
+  Il remplace la pile de messages.
+- **Des illustrations de remplacement** pour la grauwacke, le poisson, les dattes, les outils
+  et les armes, et le deben reprend son pictogramme : plus de ligne sans image au Marché.
+  Les cinq premières sont provisoires.
+
+- **Le Marché montre ce que chaque vente rapporte** : un aperçu du gain qui suit la quantité
+  saisie, un bouton « Tout » qui remplit ce que la place absorbe encore, et la place du jour en
+  jauge. Le prix se règle aussi au curseur, dont la piste vire à la terre cuite au-delà de ce
+  que la ville tolère. Les lots portent leur illustration.
+- **Le Grenier s'ouvre sur deux tuiles** — vivres en réserve et ration par quinzaine —, et la
+  réserve en cases (Grenier et Entrepôt) montre l'illustration de chaque ressource dans sa
+  légende ; ses cases se posent l'une après l'autre.
+
+- **L'Entrepôt répartit ce qu'on garde en cartes à curseur** : chaque ressource a son
+  illustration, sa barre (lapis pour ce qu'on garde, terre cuite pour ce qui part), un curseur
+  qui double le champ, et la phrase « N partiront au Marché » qui suit en direct. La réserve
+  s'ouvre sur deux tuiles : matériaux et place libre.
+- **Le Port a son bandeau d'eau** : des vagues qui dérivent, éteintes si l'on a demandé moins
+  de mouvement.
+
+- **La Forge et l'Atelier montrent ce qu'un ordre coûte avant de l'engager** : chaque matière
+  d'un lot porte son illustration, et les quantités ainsi que les pièces attendues se
+  recalculent quand on ajoute ou retire des lots (boutons − et +). L'ouvrage en cours montre
+  l'objet qu'on fabrique et une barre rayée qui s'anime ; la consigne permanente fait tourner
+  les flèches du cycle, et s'éteint quand elle attend des matières.
+
+- **La Maison des scribes prend vie** : l'inscription à lire est gravée sur une plaque dorée,
+  les cases se dorent et se posent en rebondissant quand on y place un signe, et la clé de
+  lecture comme l'alphabet deviennent des tuiles de glyphes qui se redressent au survol, avec
+  leur code de Gardiner en infobulle et une jauge de progression. Les dossiers d'enquête
+  montrent leurs indices concordants en points, et les réponses d'exercice choisies s'éclairent.
+
+- **Le Quartier d'habitation s'ouvre sur trois tuiles** — maisonnées logées, bras à placer,
+  masse salariale. Ses maisons se posent une à une et se soulèvent au survol (la description de
+  la maisonnée en infobulle), et ses habitants se balancent à peine. « Faire venir du monde »
+  annonce les deux verrous — la place et la bourse — en pastilles avant qu'on s'engage.
+- **L'Auberge a sa salle** : une braise qui respire et un soir chaud, à côté des devinettes.
+
+- **La carte s'anime et se lit sans cliquer** : le territoire se déploie du fond vers l'avant,
+  la case survolée ou sélectionnée se soulève, et des repères flottent au-dessus des cases
+  reconnues — brigands (qui battent), quelque chose à fouiller, gisement, champ. Le détail d'une
+  case s'ouvre sur son portrait (la tuile, qui flotte), ses pastilles d'état et des boutons à
+  pictogramme.
+
+- **L'accueil et la liste des parties s'animent** : les blocs apparaissent en entrant à l'écran,
+  les activités et les deux modes de jeu ont leur pictogramme, et chaque partie porte la tuile de
+  sa ville, qui flotte, avec ses chiffres en pictogrammes (cycle, deben, renommée).
+
+- **Créer une partie se fait en voyant ce qu'on choisit** : Campagne et Aventure sont deux
+  cartes à cocher (la carte choisie s'entoure, avec sa coche), et en Aventure la difficulté
+  allume autant de dangers que de crans pendant que la taille de la carte dessine son territoire
+  en losanges.
+
+- **La commande du pharaon est un décret** : un papyrus doré, un sceau qui se pose, des lignes
+  qui se déroulent, et un bouton « Prendre mes fonctions » dont le halo invite. La dotation royale
+  apparaît tuile après tuile, et « La partie » montre la difficulté en signes allumés et la carte en
+  losanges à son échelle.
+
+- **Les expéditions en route se suivent sur une piste** : la case visée en miniature, le rôle en
+  pictogramme, et un marcheur qui avance de la ville vers la case, à la part du chemin que dit le
+  pourcentage. Sans expédition, la fenêtre dit quoi envoyer et où.
+
+- **Les écrans de compte ont une tablette et un décor** : connexion, inscription, mot de passe
+  oublié et nouveau mot de passe partagent une tablette à pictogramme, avec la ville qui flotte à
+  côté sur grand écran. Chaque page a son dessin, ses boutons aussi, et « Mon compte » montre
+  l'état de l'adresse en pastille et la ville de votre partie.
+
+- **Le détail d'une case se range en onglets** — gisements, champs, envois — et ne montre que
+  ceux qui servent. Les champs d'une terre tiennent en une seule liste — une ligne par parcelle : sa
+  culture (qu'on change sur place), l'étape de son cycle, qui y travaille — et un seul bouton pour
+  semer. Chaque expédition est une carte (ce que fait le rôle, ce qu'elle coûte).
+
+- **Les bâtiments de la Résidence ne font plus qu'une liste** : dressés puis à bâtir, sur la même carte.
+  Le Gouvernement montre le salaire des bras en curseur (terre cuite sous l'usage, lapis au-delà, avec ce
+  que la ville en pense), les échéances en frise de cartes à pictogramme, et les chantiers avec leurs
+  quatre étapes reliées. La Mission est un décret : la mission en crans, les objectifs en jauges, la
+  requête du pharaon avec l'illustration de ce qu'il réclame, le règne en Aventure avec sa succession.
+- **La liste des bâtiments de la Résidence se lit d'un coup d'œil** : chaque bâtiment, dressé ou à
+  bâtir, montre son sprite ; le niveau est en crans, le rendement en jauge, et le coût du chantier en
+  pastilles avec l'illustration de chaque ressource. Un bilan (dressés, à engager, en attente) ouvre la
+  section, et ce qu'on peut engager passe avant ce qui est bloqué.
+
+### Corrigé
+
+- **L'en-tête d'un bâtiment ne se contredit plus quand un chef vient d'être embauché** : la pastille compte les chefs *en poste* et dit combien
+  arrivent (« 0 / 1 chef · 1 arrive »), et le rendement annonce celui de la quinzaine suivante (« 50 % → 100 % »).
+- **Le rendement a sa pastille, et c'est le rendement total** (travailleurs, plafond du chef et compétence ensemble) ; la pastille des travailleurs
+  ne dit plus que « 2 / 2 travailleurs ».
+- **L'onglet Direction de chaque bâtiment** ne redit plus l'en-tête : une carte par chef, ce qu'un chef changerait en une jauge quand il
+  n'y en a pas, les spécialités en pastilles, les candidats en cartes à pastilles.
+- **Le message d'erreur d'une action avait un fond transparent** : sa couleur (`terre-50`) n'existait pas dans le thème, et le texte se
+  superposait au contenu. Les teintes claires `terre-50` et `terre-100` (pastille du bouton de quinzaine) sont définies.
+- **Une infobulle sans action montre le curseur d'aide « ? »** : on la lit, on ne clique pas. Les liens, boutons, champs et replis gardent leur curseur.
+- **Le rail « La cité » est une liste** : sur grand écran, chaque bâtiment est une ligne — son sprite, son nom en entier (il était rogné), son niveau
+  et son rendement quand il est sous 100 % ; les travaux en cours se voient d'un coup d'œil. Sur téléphone, les carrés restent.
+- **L'Auberge et ses devinettes** : chaque devinette s'affiche en carte (énoncé en grand, d'où elle vient en pastille, réponses lettrées
+  A à D sur deux colonnes) — au Temple et chez les scribes aussi ; la salle tient en une seule carte.
+- **Les trois sous-pages de la Maison des scribes sont refaites** : la clé de lecture et l'alphabet partagent une même carte de signe
+  (plaque en grand, nom, code de Gardiner en pastille, renvoi à l'autre table) ; l'alphabet pose la leçon « Niout » et votre nom côte à côte ;
+  la stèle du pharaon devient une carte à part ; les exercices ont des réponses en pastilles et un vrai cartouche.
+- **La Maison des scribes s'ouvre sur quatre tuiles** (érudition, signes appris, clé de lecture, alphabet) au lieu d'une section
+  qui redisait le même compte. Les barres et les phrases de comptage de la clé et de l'alphabet sont parties.
+- **Les cartes de dieux du Temple** : portrait, nom, palier coiffant une jauge de faveur (hachurée au-delà de ce que le Temple
+  porte), effet, badges (fête, dieu qui se détourne), puis l'offrande sur une ligne. Les deux paragraphes et le titre qui redisaient
+  la bande des ankhs sont partis.
+- **Le Marché dit les choses autrement qu'en phrases** : la place du jour tient en trois tuiles (ce qu'elle absorbe encore, les habitants,
+  le niveau du Marché) ; le prix qu'on fait se règle toujours à vue, à la jauge seule, avec le nombre en grand et le verdict de la ville.
+- **Les états des fiches d'exploitation sont des pastilles de même forme** (épuisée, jamais ouverte, sans un bras, extraction en cours),
+  et les filons épuisés ne sont plus barrés : leur dessin se délave sur des hachures de place libre. Dans l'en-tête d'un bâtiment,
+  un travailleur par poste remplace le rond bleu des bras en poste.
+- **L'en-tête d'un bâtiment** : la fonction se lit à côté du titre, et les bras en poste deviennent une pastille (pastilles pleines et
+  creuses, rendement) à côté de celle du niveau. Dans les champs, « Produit » disparaît : la pastille d'étape suffit ; les filons
+  disent « Extraction en cours ». « Champ de orge » devient « Champ d'orge ».
+- **La répartition de l'Entrepôt se règle à la jauge seule** : plus de champ numérique ni de barre qui doublaient le curseur ;
+  le nombre gardé s'affiche en grand au-dessus, le surplus qui partira au Marché dessous, à côté des boutons.
+- **Les fiches de champs disent ce que disait le détail de la case** : l'étape de la culture (Semis, Récolte… avec son explication
+  au survol), l'équipage et le rendement. Dans l'Entrepôt, chaque famille de ressources se déplie en pastilles à pictogramme,
+  avec un filet pour sa part de la famille, au lieu d'une ligne de noms et de nombres.
+- **Les champs, carrières et pêcheries se lisent comme la réserve** : deux tuiles (équipages, ce qui ne rend rien), une barre qui
+  range les exploitations par état, et une fiche par exploitation avec ce qu'il reste à tirer. Le tableau « case par case »
+  et la phrase de comptage, qui redisaient la même chose, sont partis.
+- **La réserve du Grenier et de l'Entrepôt en jauge empilée** : une barre proportionnelle au plafond (un segment par
+  ressource, la place libre hachurée) et une fiche par ressource avec son pictogramme, sa quantité et sa part, à la place
+  de la grille de cases et de sa légende.
+- **Le Grenier et l'Entrepôt ne disent plus trois fois la même chose** : le total, la place libre et la ration de la ville
+  ne sont plus répétés sous les tuiles, au-dessus et sous la réserve en cases.
+- **« Faire venir du monde » se lit comme une échelle** : les cinq rangs de la famille en marches (celle où l'on se tient
+  est allumée, le prix de base d'un appel dessous), ce que cela vaut en citation dorée, et combien de points de
+  renommée il reste pour monter.
+- **Le Quartier d'habitation change de visage** : les maisonnées sont des maisons de briques crues à toit-terrasse,
+  porte cintrée et fenêtres, et leurs habitants — adultes, enfants, anciens à la canne, alités — ont une silhouette
+  plus lisible. Les places libres sont la même maison, estompée.
+- **Le niveau d'un bâtiment ne se confond plus avec la croix de fermeture** : il passe sous le titre, en pastille à crans
+  (« Niveau ◆◆◇◇◇ 2 / 5 »), et le titre laisse la place de la croix.
+- **Plus de défilement horizontal dans la Résidence** (tableau de bord et liste des bâtiments) : l'infobulle
+  invisible de la dernière tuile dépassait du panneau. Une infobulle n'occupe plus de place tant qu'on ne la lit pas.
+- **La saison ne se répète plus en tête des fenêtres** : sa phrase (« Chémou, la récolte — le fleuve est au plus bas… »)
+  doublait la date de la barre de jeu. Elle s'y lit désormais au survol de la date.
+- **Le salaire des bras se règle à la jauge seule** : le champ numérique doublait la jauge ; le nombre
+  s'affiche en clair dans la phrase et suit le curseur.
+- **Les signaux de la ville ne se répètent plus** : « 8 bâtiments sans chef », une fête en cours
+  s'affichaient dans la barre de jeu *et* en tête de chaque fenêtre de bâtiment. Ils ne restent que dans la barre.
+- **La barre de jeu sur téléphone** : une ombre apparaît du côté où la rangée des compteurs (ou des
+  signaux) défile encore — avant, trois compteurs sur sept paraissaient être tout ce qu'on possédait ;
+  la date tient sur deux lignes au lieu d'être tronquée, et ne perd plus la saison ni la crue ;
+  « Mes parties » ferme la rangée des compteurs au lieu de voler la place de la date ; le bouton de
+  cycle et les pastilles de signal atteignent 44 et 32 px de haut.
+
+- **On ne propose plus d'envoyer un prospecteur sur la ville** : le bouton « ce sol pourrait rendre
+  argile, roseaux… » apparaissait sur la case de la ville, qui n'a jamais de gisement. Le serveur
+  refuse maintenant ce départ comme l'écran ne le propose plus.
+- **Une expédition armée déjà partie ne se propose plus une seconde fois** : la case dit qu'elle est
+  en route au lieu de laisser un bouton que le serveur refuserait.
+
+- **Le détail d'une case s'ouvrait parfois au centre au lieu de rester à droite** : la forme de la
+  fenêtre dépendait d'un attribut que Turbo ne recopie pas au chargement. Elle est décidée dès le
+  clic et confirmée par le contenu ; le cadre s'estompe pendant le chargement.
+
+- **Sur téléphone, les volets de la barre (vivres, habitants) restaient invisibles** : ils
+  s'ouvraient dans la rangée des compteurs, qui défile et les rognait. Ils se posent maintenant sous
+  la barre, sur la largeur de l'écran. Les signaux défilent sur une seule ligne, et l'en-tête public
+  passe à la ligne au lieu de déborder.
+- **Mouvement réduit** : à la demande du système, toutes les transitions et animations du jeu
+  s'arrêtent (il en restait quatorze qui échappaient au garde).
+- **Contrastes** : deux textes sous le seuil de 4,5:1 retrouvent une couleur lisible, et la zone de
+  toucher des liens de navigation et de pied de page atteint 24 px.
+
+- **Les listes déroulantes des formulaires étaient invisibles** (créer une partie, mission de
+  départ, difficulté, taille de la carte) : sans cadre ni fond, elles se confondaient avec du
+  texte. Elles ont maintenant un cadre et un chevron.
+- **Le mode d'essai n'écrase plus les écrans** : il donne 200 de chaque ressource (au lieu d'un
+  million) et une bourse de 50 000, et recombler une partie atteint ce compte sans l'additionner.
+  En mode d'essai les plafonds affichés suivent le stock : aucune réserve ne paraît saturée.
+
+- **Des zones de la carte ne répondaient plus au clic** : les conteneurs de cases, des
+  rectangles qui se recouvrent, interceptaient les clics des cases derrière eux dans les coins
+  que leur losange ne couvre pas. Ils laissent maintenant tout passer ; seul le losange capte.
+
+### Modifié
+
+- **Un bâtiment réclame ses travailleurs, chef ou non** : sans personne, il ne fonctionne pas (0 %) ; avec trop peu de bras,
+  il tourne au ralenti ; au complet il atteint 50 % sans chef, 100 % avec. Les ateliers n'engagent plus rien sans travailleur, le
+  Marché ne vend plus, et les équipages de base se paient. Les champs, carrières et pêcheries ne changent pas.
+- **La barre de jeu tient sur une seule ligne** sur un écran large : les libellés des
+  compteurs cèdent la place à leur pictogramme (le nom reste dans l'infobulle).
+
 ## [0.14.0] - 2026-10-04
 
 **La carte devient la seule page de jeu.** La ville, la commande du pharaon, le détail
@@ -258,7 +492,8 @@ au journal des phases.
 - Déploiement par clé SSH restreinte à un script unique (*forced command*),
   empreinte d'hôte épinglée.
 
-[Non publié]: https://github.com/mmagny89/niout/compare/v0.14.0...HEAD
+[Non publié]: https://github.com/mmagny89/niout/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/mmagny89/niout/releases/tag/v0.15.0
 [0.14.0]: https://github.com/mmagny89/niout/releases/tag/v0.14.0
 [0.13.0]: https://github.com/mmagny89/niout/releases/tag/v0.13.0
 [0.12.0]: https://github.com/mmagny89/niout/releases/tag/v0.12.0

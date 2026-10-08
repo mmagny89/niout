@@ -86,7 +86,7 @@ final class ModeDivinTest extends WebTestCase
         $relue = $this->relire($partie);
         self::assertTrue($relue->estEnModeDivin());
         self::assertGreaterThanOrEqual(ModeDivin::RICHESSE, $relue->getVille()->quantite(Ressource::Argile));
-        self::assertGreaterThanOrEqual(ModeDivin::RICHESSE, $relue->getVille()->getDeben());
+        self::assertGreaterThanOrEqual(ModeDivin::BOURSE, $relue->getVille()->getDeben());
         self::assertSelectorTextContains('body', 'Partie d\'essai');
     }
 
@@ -106,6 +106,31 @@ final class ModeDivinTest extends WebTestCase
 
         self::assertNull(Stockage::plafondPour($ville, Ressource::Argile));
         self::assertGreaterThanOrEqual(ModeDivin::RICHESSE, $ville->quantite(Ressource::Argile));
+    }
+
+    /**
+     * L'essai sert à regarder un système tourner, pas à noyer les écrans : recombler une partie
+     * déjà riche n'ajoute rien, et aucune réserve ne paraît saturée.
+     */
+    public function testLeModeNeSatureRienEtLeCombleNeSAjouteJamais(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancer($this->creerJoueur('sobre@example.com'));
+        $ville = $partie->getVille();
+        $modeDivin = static::getContainer()->get(ModeDivin::class);
+
+        $modeDivin->basculer($partie);
+        $argile = $ville->quantite(Ressource::Argile);
+        $deben = $ville->getDeben();
+
+        $modeDivin->combler($partie);
+        $modeDivin->combler($partie);
+
+        self::assertSame($argile, $ville->quantite(Ressource::Argile), 'Combler atteint le compte, il ne l\'additionne pas.');
+        self::assertSame($deben, $ville->getDeben());
+        self::assertLessThan(1_000, $argile, 'Un compte à l\'échelle d\'une partie, pas un million.');
+        self::assertFalse($ville->materiauxPresqueSatures(), 'Le plafond affiché suit le stock en mode d\'essai.');
+        self::assertFalse($ville->vivresPresqueSatures());
     }
 
     /**

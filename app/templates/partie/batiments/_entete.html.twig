@@ -1,31 +1,99 @@
-{# L'en-tête commun à tout panneau de bâtiment : son nom, son niveau, sa
-   fonction et ses bras.
+{# L'en-tête commun à tout panneau de bâtiment : son nom et sa fonction sur une même ligne, puis, en pastilles, son
+   niveau et ses bras.
 
-   Le même bandeau partout : le joueur apprend une fois où lire le niveau et
-   le rendement, puis le retrouve dans chaque onglet sans avoir à chercher. #}
-<div class="flex flex-wrap items-baseline justify-between gap-3">
+   Le même bandeau partout : le joueur apprend une fois où lire le niveau et le rendement, puis le retrouve
+   dans chaque onglet sans avoir à chercher.
+
+   **La fonction se tient à côté du titre** (elle passe dessous quand la place manque) : posée sur sa propre
+   ligne, elle séparait le titre de ses pastilles. Le titre garde la place de la croix de fermeture (44 px,
+   en haut à droite de la fenêtre) — à droite, le niveau se confondait avec elle. #}
+<div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 pr-12">
     <h2 id="fenetre-titre" class="text-2xl text-encre-900">{{ onglet.libelle }}</h2>
-    {% if onglet.batiment %}
-        <span class="text-sm text-encre-500" data-chiffres>
-            Niveau {{ onglet.batiment.niveau }} sur {{ onglet.batiment.niveauMaxAtteignable }}
-        </span>
-    {% endif %}
+    <p class="min-w-0 max-w-2xl flex-1 basis-64 text-sm text-encre-500">{{ onglet.type.fonction }}</p>
 </div>
 
-<p class="mt-2 max-w-4xl text-sm text-encre-600">{{ onglet.type.fonction }}</p>
-
 {% if onglet.batiment %}
-    {# Une jauge, pas un recrutement : les ouvriers se puisent dans le vivier
-       d'actifs (doc 05), le joueur ne les embauche pas un par un. #}
+    {% set niveau = onglet.batiment.niveau %}
+    {% set maximum = onglet.batiment.niveauMaxAtteignable %}
+    {# Une jauge, pas un recrutement : les ouvriers se puisent dans le vivier d'actifs (doc 05), le joueur ne
+       les embauche pas un par un. #}
     {% set effectif = effectifs[onglet.type.value] ?? null %}
-    {% if effectif %}
-        <p class="mt-2 text-sm {{ effectif.rendement < 100 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-            {% if effectif.requis == 0 %}
-                Sans chef : {{ effectif.rendement }} % de rendement.
-            {% else %}
-                {{ effectif.affectes }} / {{ effectif.requis }} travailleurs ·
-                {{ effectif.rendement }} % de rendement
-            {% endif %}
-        </p>
-    {% endif %}
+    <ul class="mt-3 flex list-none flex-wrap items-center gap-2 p-0 text-xs" data-chiffres>
+        {# Le niveau se lit en crans. Le texte « Niveau N sur M » reste écrit pour les lecteurs d'écran. #}
+        <li class="inline-flex items-center gap-2 rounded-full border border-ocre-500/40 bg-ocre-500/10 py-1 pl-3 pr-3.5 text-encre-700">
+            <span class="sr-only">Niveau {{ niveau }} sur {{ maximum }}</span>
+            <span aria-hidden="true" class="font-medium uppercase tracking-wider text-encre-500">Niveau</span>
+            <span aria-hidden="true" class="flex gap-1">
+                {% for cran in 1..maximum %}
+                    <span class="size-2 rotate-45 {{ cran <= niveau ? 'bg-terre-500' : 'border border-ocre-500/60' }}"></span>
+                {% endfor %}
+            </span>
+            <span aria-hidden="true" class="font-medium text-encre-900">{{ niveau }}<span class="text-encre-500"> / {{ maximum }}</span></span>
+        </li>
+
+        {# Les chefs et les travailleurs, **toujours** dits, même à zéro : le chef ouvre les postes, les travailleurs les
+           tiennent, et l'un sans l'autre explique le rendement. Chaque pastille a son icône — le chef n'est pas un
+           travailleur. #}
+        {% set direction = directions[onglet.type.value] ?? null %}
+        {% if direction %}
+            {# Un chef **embauché** n'est pas un chef **en poste** : tant qu'il n'a pas pris le sien, le plafond reste à 50 %.
+               La pastille compte ceux qui y sont, et dit combien arrivent. #}
+            {% set enPoste = direction.chefs|filter(c => c.estEnPoste(partie.cycle))|length %}
+            {% set quiArrivent = direction.chefs|length - enPoste %}
+            {% set sansChef = enPoste == 0 %}
+            <li class="inline-flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-3.5
+                       {{ sansChef ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600' }}">
+                <span aria-hidden="true" class="flex items-center">
+                    {% for place in 1..max(direction.batiment.nombreDeChefs, 1) %}
+                        <span class="{{ place <= enPoste ? '' : 'opacity-35 grayscale' }}">{{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 18}) }}</span>
+                    {% endfor %}
+                </span>
+                <span>{{ enPoste }} / {{ direction.batiment.nombreDeChefs }} chef{{ direction.batiment.nombreDeChefs > 1 ? 's' : '' }}</span>
+                {% if quiArrivent > 0 %}
+                    <span class="text-encre-500" data-infobulle="{{ quiArrivent }} chef{{ quiArrivent > 1 ? 's' : '' }} embauché{{ quiArrivent > 1 ? 's' : '' }} prend{{ quiArrivent > 1 ? 'nent' : '' }} son poste à la prochaine quinzaine.">
+                        · {{ quiArrivent }} arrive
+                    </span>
+                {% endif %}
+            </li>
+        {% endif %}
+
+        {% if effectif %}
+            {# Un travailleur par poste : plein pour un bras en poste, délavé pour un poste vide (au moins un, dessiné
+               délavé, quand aucun poste n'est ouvert). Teinte terre cuite s'il en manque. #}
+            {% set alerte = effectif.affectes < effectif.requis %}
+            <li class="inline-flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-3.5
+                       {{ alerte ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600' }}">
+                <span class="sr-only">{{ effectif.affectes }} sur {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}</span>
+                <span aria-hidden="true" class="flex items-center">
+                    {% if effectif.requis <= 8 %}
+                        {% for place in 1..max(effectif.requis, 1) %}
+                            <span class="{{ place <= effectif.affectes ? '' : 'opacity-35 grayscale' }}">{{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 18}) }}</span>
+                        {% endfor %}
+                    {% else %}
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 18}) }}
+                    {% endif %}
+                </span>
+                <span aria-hidden="true">{{ effectif.affectes }} / {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}</span>
+            </li>
+        {% endif %}
+
+        {# **Le rendement a sa pastille**, et c'est le rendement *total* : ce que le bâtiment rend vraiment, ses travailleurs, le
+           plafond que le chef ouvre (50 % sans lui, 100 % avec) et la compétence du chef ensemble — pas le seul effet des bras. #}
+        {% set total = rendementsTotaux[onglet.type.value] ?? (effectif ? effectif.rendement : null) %}
+        {% set prochain = rendementsProchains[onglet.type.value] ?? total %}
+        {% if total is not null %}
+            <li class="inline-flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-3.5
+                       {{ total < 100 ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : (total > 100 ? 'border-or-400/60 bg-or-300/15 text-encre-900' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600') }}"
+                data-infobulle="Ce que le bâtiment rend, tout compris : ses travailleurs, le plafond que le chef ouvre (50 % sans chef, 100 % avec) et sa compétence.{{ prochain != total ? ' À la prochaine quinzaine : ' ~ prochain ~ ' %.' : '' }}">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'amelioration', taille: 18}) }}
+                <span class="text-encre-500">Rendement</span>
+                <strong class="font-medium" data-chiffres>{{ total }} %</strong>
+                {% if prochain != total %}
+                    <span class="{{ prochain > total ? 'text-lapis-600' : 'text-terre-600' }}" data-chiffres>
+                        <span aria-hidden="true">→</span> {{ prochain }} %
+                    </span>
+                {% endif %}
+            </li>
+        {% endif %}
+    </ul>
 {% endif %}

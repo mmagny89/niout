@@ -16,11 +16,12 @@
     {% set aOuvrir = routesDIci|filter(o => not o.route) %}
 
     <h3 class="mt-8 text-xl text-encre-900">Routes commerciales</h3>
-    <p class="mt-2 max-w-4xl text-sm text-encre-600" data-chiffres>
-        {{ ouvertes|length }} ouverte{{ ouvertes|length > 1 ? 's' : '' }} ·
-        {{ enChemin|length }} en chemin ·
-        {{ aOuvrir|length }} à ouvrir
-    </p>
+    {# Le décompte en trois pastilles : on voit d'un coup d'œil ce qui roule, ce qui marche, ce qui reste à faire. #}
+    <ul class="mt-3 flex list-none flex-wrap gap-2 p-0 text-sm" data-chiffres>
+        <li class="signal signal--bon">{{ ouvertes|length }} ouverte{{ ouvertes|length > 1 ? 's' : '' }}</li>
+        <li class="signal signal--neutre">{{ enChemin|length }} en chemin</li>
+        <li class="signal signal--neutre">{{ aOuvrir|length }} à ouvrir</li>
+    </ul>
 
     <details class="mt-2 text-sm text-encre-500">
         <summary class="cursor-pointer text-encre-700">Comment ouvre-t-on une route ?</summary>
@@ -35,97 +36,114 @@
 
     {% macro carte(offre, partie, onglet, etals) %}
         {% set route = offre.route %}
-        <li class="rounded-sm border p-4
+        <li class="carte-vivante rounded-sm border p-4
                    {{ route or offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <h4 class="font-display text-lg text-encre-900">{{ offre.partenaire.nom }}</h4>
-                <span class="text-xs uppercase tracking-wide text-encre-500">
-                    {{ offre.partenaire.route.libelle }}
-                    ·
-                    {% if route and route.estOuverte %}ouverte
-                    {% elseif route %}en chemin
-                    {% else %}à ouvrir{% endif %}
+            {# **La cité d'abord** : qui elle est, à quelle distance, ce qu'un convoi porte, ce qu'elle vend et achète.
+               Chaque marchandise a son dessin ; la flèche dit le sens (↗ elle vend, on achète ; ↙ elle achète). #}
+            <div class="flex flex-wrap items-start gap-3">
+                <span class="grid size-12 shrink-0 place-items-center rounded-full border border-or-400/40 bg-or-300/20" aria-hidden="true">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 30}) }}
                 </span>
+                <div class="min-w-0 flex-1 basis-60">
+                    <h4 class="font-display text-xl leading-tight text-encre-900">{{ offre.partenaire.nom }}</h4>
+                    <p class="mt-0.5 text-sm text-encre-500">{{ offre.partenaire.description }}</p>
+                </div>
+                {% if route and route.estOuverte %}
+                    <span class="signal signal--bon">{{ offre.partenaire.route.libelle }} · ouverte</span>
+                {% elseif route %}
+                    <span class="signal signal--neutre">{{ offre.partenaire.route.libelle }} · en chemin</span>
+                {% else %}
+                    <span class="signal signal--neutre border-dashed">{{ offre.partenaire.route.libelle }} · à ouvrir</span>
+                {% endif %}
             </div>
 
-            {# Deux colonnes dès que la place le permet : ce qu'est la cité à gauche,
-               ce qu'on y fait à droite. Le panneau fait toute la largeur de la
-               fenêtre, autant s'en servir. #}
-            <div class="mt-1 grid gap-x-8 gap-y-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-            <div>
-            <p class="mt-1 text-sm text-encre-600">{{ offre.partenaire.description }}</p>
+            <ul class="mt-3 flex list-none flex-wrap items-center gap-x-5 gap-y-2 p-0 text-sm text-encre-600" data-chiffres>
+                <li class="inline-flex items-center gap-1.5">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 20}) }}
+                    {{ offre.partenaire.distanceEnQuinzaines }} quinzaines de trajet
+                    {{ include('partie/batiments/_piste_de_route.html.twig', {total: offre.partenaire.distanceEnQuinzaines, parcouru: 0}) }}
+                </li>
+                <li class="inline-flex items-center gap-1.5">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'echange', taille: 20}) }}
+                    {{ offre.volume }} unités par convoi
+                </li>
+            </ul>
 
-            <p class="mt-2 text-sm text-encre-500" data-chiffres>
-                {{ offre.partenaire.distanceEnQuinzaines }} quinzaines de trajet ·
-                {{ offre.volume }} unités par convoi
-            </p>
-
-            <p class="mt-1 text-sm text-encre-600">
-                Vend
-                {%- for ressource in offre.partenaire.vend %}
-                    {{ ressource.libelle }}{{ not loop.last ? ',' : '' }}
-                {%- endfor %} ·
-                achète
-                {%- for ressource in offre.partenaire.achete %}
-                    {{ ressource.libelle }}{{ not loop.last ? ',' : '' }}
-                {%- endfor %}.
-            </p>
-
+            <div class="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+                {% for sens in [
+                    {titre: 'Vend', fleche: '↗', liste: offre.partenaire.vend},
+                    {titre: 'Achète', fleche: '↙', liste: offre.partenaire.achete},
+                ] %}
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        <span class="w-14 text-xs uppercase tracking-wide text-encre-500"><span aria-hidden="true">{{ sens.fleche }}</span> {{ sens.titre }}</span>
+                        {% for ressource in sens.liste %}
+                            <span class="inline-flex items-center gap-1 rounded-full border border-ocre-500/30 bg-sable-50 py-0.5 pl-1 pr-2 text-xs text-encre-700">
+                                {{ include('partie/_icone_ressource.html.twig', {ressource: ressource, taille: 20}) }}{{ ressource.libelle }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
             </div>
-            <div>
+
             {% if route %}
                 {% if route.estOuverte %}
-                    {# Ce qui est en chemin. Un convoi parti est un engagement
-                       pris : sa marchandise a déjà quitté les réserves, ou ses
-                       deben la caisse. #}
+                    {# Ce qui est en chemin. Un convoi parti est un engagement pris : sa marchandise a déjà quitté les
+                       réserves, ou ses deben la caisse. #}
                     {% set convoisEnChemin = route.convois|filter(c => not c.estRentre) %}
                     {% if convoisEnChemin|length > 0 %}
-                        <ul class="mt-3 space-y-2 list-none p-0">
+                        <ul class="mt-4 space-y-2 list-none p-0">
                             {% for convoi in convoisEnChemin %}
-                                <li class="text-sm text-encre-600" data-chiffres>
-                                    {{ convoi.sens.value == 'vendre' ? 'Parti avec' : 'Ramène' }}
-                                    {{ convoi.quantite }} {{ convoi.ressource.libelle }}
-                                    à {{ convoi.prix }} deben —
-                                    retour dans {{ convoi.quinzainesAvantRetour }}
-                                    quinzaine{{ convoi.quinzainesAvantRetour > 1 ? 's' : '' }}.
-                                    <span class="ml-1 align-middle">
-                                        {{ include('partie/batiments/_piste_de_route.html.twig', {
-                                            total: 2 * offre.partenaire.distanceEnQuinzaines,
-                                            parcouru: 2 * offre.partenaire.distanceEnQuinzaines - convoi.quinzainesAvantRetour,
-                                        }) }}
+                                <li class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-sm border border-lapis-500/30 bg-lapis-500/5 px-3 py-2 text-sm text-encre-700" data-chiffres>
+                                    {{ include('partie/_icone_ressource.html.twig', {ressource: convoi.ressource, taille: 28}) }}
+                                    <span class="min-w-0 flex-1">
+                                        {{ convoi.sens.value == 'vendre' ? 'Parti avec' : 'Ramène' }}
+                                        {{ convoi.quantite }} {{ convoi.ressource.libelle }}
+                                        à {{ convoi.prix }} deben —
+                                        retour dans {{ convoi.quinzainesAvantRetour }}
+                                        quinzaine{{ convoi.quinzainesAvantRetour > 1 ? 's' : '' }}.
                                     </span>
+                                    {{ include('partie/batiments/_piste_de_route.html.twig', {
+                                        total: 2 * offre.partenaire.distanceEnQuinzaines,
+                                        parcouru: 2 * offre.partenaire.distanceEnQuinzaines - convoi.quinzainesAvantRetour,
+                                    }) }}
                                 </li>
                             {% endfor %}
                         </ul>
                     {% endif %}
 
-                    {# L'étal : le joueur affiche ses conditions et attend. Le
-                       prix décide de l'empressement du partenaire, donc du
-                       volume qui bouge — et l'écran le montre **avant** qu'il
-                       ne s'engage. #}
-                    <ul class="mt-3 space-y-2 list-none p-0">
+                    {# L'étal : le joueur affiche ses conditions et attend. Le prix décide de l'empressement du
+                       partenaire, donc du volume qui bouge — et l'écran le montre **avant** qu'il ne s'engage.
+                       Le prix se règle à la jauge, entre le plancher et le plafond de la cité : un champ numérique
+                       doublerait la jauge, et laisserait taper un prix hors fourchette. #}
+                    <ul class="mt-4 space-y-2 list-none p-0">
                         {% for ligne in etals[offre.partenaire.cle] ?? [] %}
-                            <li class="rounded-sm border border-ocre-500/20 bg-sable-50/60 p-3">
+                            <li class="rounded-sm border border-ocre-500/25 bg-sable-50 p-3">
                                 <form method="post" action="{{ path('app_partie_etal', {id: partie.id}) }}"
-                                      class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                                      class="flex flex-wrap items-center gap-x-4 gap-y-2"
+                                      {% if not ligne.ordre and partie.estEnCours %}data-controller="curseur" data-curseur-seuil-value="{{ ligne.plafond }}"{% endif %}>
                                     <input type="hidden" name="_token" value="{{ csrf_token('etal') }}">
                                     <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                                     <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
                                     <input type="hidden" name="ressource" value="{{ ligne.ressource.value }}">
                                     <input type="hidden" name="sens" value="{{ ligne.sens.value }}">
 
-                                    <span class="text-sm text-encre-900">
-                                        {{ ligne.sens.libelle }} {{ ligne.ressource.libelle }}
-                                    </span>
-                                    <span class="text-sm text-encre-500" data-chiffres>
-                                        entre {{ ligne.plancher }} et {{ ligne.plafond }} deben
+                                    <span class="flex min-w-40 items-center gap-2">
+                                        {{ include('partie/_icone_ressource.html.twig', {ressource: ligne.ressource, taille: 36}) }}
+                                        <span>
+                                            <span class="inline-block rounded-full border px-2 text-xs {{ ligne.sens.value == 'vendre' ? 'border-lapis-500/40 text-lapis-600' : 'border-terre-500/40 text-terre-600' }}">{{ ligne.sens.libelle }}</span>
+                                            <span class="block text-sm text-encre-900">{{ ligne.ressource.libelle|capitalize }}</span>
+                                        </span>
                                     </span>
 
                                     {% if ligne.ordre %}
-                                        <span class="text-sm text-encre-900" data-chiffres>
-                                            posé à {{ ligne.ordre.prix }},
-                                            {{ ligne.ordre.quantiteParConvoi }} par convoi —
-                                            <span class="{{ ligne.empressement < 40 ? 'text-terre-600' : '' }}">
+                                        {# Un ordre posé : son prix, son volume, et l'empressement qu'il suscite en jauge. #}
+                                        <span class="min-w-0 flex-1 text-sm text-encre-900" data-chiffres>
+                                            posé à {{ ligne.ordre.prix }} deben,
+                                            {{ ligne.ordre.quantiteParConvoi }} par convoi
+                                            <span class="mt-1 flex items-center gap-2 text-xs {{ ligne.empressement < 40 ? 'text-terre-600' : 'text-encre-500' }}">
+                                                <span class="block h-1.5 w-24 overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                                                    <span class="block h-full rounded-full {{ ligne.empressement < 40 ? 'bg-terre-500' : 'bg-lapis-500' }}" style="width: {{ ligne.empressement }}%"></span>
+                                                </span>
                                                 {{ ligne.empressement }} % d'empressement
                                             </span>
                                         </span>
@@ -134,63 +152,70 @@
                                             Retirer
                                         </button>
                                     {% elseif partie.estEnCours %}
-                                        <span class="ml-auto flex items-center gap-2">
-                                            <label class="text-xs text-encre-500" for="prix-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}">Prix</label>
-                                            <input type="number" id="prix-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}"
-                                                   name="prix" value="{{ ligne.plancher }}" min="1"
-                                                   class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
-                                                   data-chiffres>
-                                            <label class="text-xs text-encre-500" for="qte-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}">Par convoi</label>
-                                            <input type="number" id="qte-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}"
-                                                   name="quantite" value="{{ offre.volume }}" min="1"
-                                                   class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
-                                                   data-chiffres>
-                                            <button type="submit"
-                                                    class="rounded-sm border border-ocre-500/40 px-3 py-1 text-sm text-encre-700 hover:bg-ocre-500/10">
-                                                Annoncer
-                                            </button>
+                                        <input type="hidden" id="prix-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}" name="prix"
+                                               value="{{ ligne.plancher }}" min="{{ ligne.plancher }}" max="{{ ligne.plafond }}"
+                                               data-curseur-target="champ">
+                                        <span class="min-w-48 flex-1">
+                                            <label for="prix-curseur-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}" class="flex items-baseline justify-between text-sm text-encre-600">
+                                                <span class="text-xs text-encre-500" data-chiffres>{{ ligne.plancher }} – {{ ligne.plafond }} deben</span>
+                                                <span><strong class="font-display text-xl font-normal text-encre-900" data-curseur-target="nombre" data-chiffres>{{ ligne.plancher }}</strong> deben</span>
+                                            </label>
+                                            <input type="range" id="prix-curseur-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}"
+                                                   data-curseur-target="piste" data-action="input->curseur#deplacer" class="curseur w-full">
                                         </span>
+                                        <label class="flex items-center gap-1.5 text-xs text-encre-500" for="qte-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}">
+                                            × <input type="number" id="qte-{{ offre.partenaire.cle }}-{{ ligne.ressource.value }}"
+                                                   name="quantite" value="{{ offre.volume }}" min="1"
+                                                   class="w-16 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
+                                                   data-chiffres aria-label="Quantité par convoi">
+                                            par convoi
+                                        </label>
+                                        <button type="submit"
+                                                class="rounded-sm border border-lapis-500/50 px-3 py-1 text-sm text-lapis-600 hover:bg-lapis-500/10">
+                                            Annoncer
+                                        </button>
                                     {% endif %}
                                 </form>
                             </li>
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="mt-3 text-sm text-encre-500" data-chiffres>
-                        Convoi en chemin : encore
-                        {{ route.quinzainesAvantOuverture }}
-                        quinzaine{{ route.quinzainesAvantOuverture > 1 ? 's' : '' }}.
-                        <span class="ml-1 align-middle">
-                            {{ include('partie/batiments/_piste_de_route.html.twig', {
-                                total: offre.partenaire.distanceEnQuinzaines,
-                                parcouru: offre.partenaire.distanceEnQuinzaines - route.quinzainesAvantOuverture,
-                            }) }}
+                    <p class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-sm border border-ocre-500/30 bg-ocre-500/5 px-3 py-2 text-sm text-encre-600" data-chiffres>
+                        <span>
+                            Convoi en chemin : encore
+                            {{ route.quinzainesAvantOuverture }}
+                            quinzaine{{ route.quinzainesAvantOuverture > 1 ? 's' : '' }}.
                         </span>
+                        {{ include('partie/batiments/_piste_de_route.html.twig', {
+                            total: offre.partenaire.distanceEnQuinzaines,
+                            parcouru: offre.partenaire.distanceEnQuinzaines - route.quinzainesAvantOuverture,
+                        }) }}
                     </p>
                 {% endif %}
             {% elseif offre.empechement %}
-                <p class="mt-3 text-sm text-terre-600">{{ offre.empechement }}</p>
+                <p class="mt-4 text-sm text-terre-600">{{ offre.empechement }}</p>
             {% elseif partie.estEnCours %}
                 <form method="post" action="{{ path('app_partie_commercer', {id: partie.id}) }}"
-                      class="mt-3 flex flex-wrap items-center gap-3">
+                      class="mt-4 flex flex-wrap items-center gap-3">
                     <input type="hidden" name="_token" value="{{ csrf_token('commercer') }}">
                     <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                     <input type="hidden" name="partenaire" value="{{ offre.partenaire.cle }}">
-                    <span class="text-sm text-encre-500" data-chiffres>{{ offre.cout }} deben</span>
-                    {# Le rabais du doc 12 : une route déjà armée dans une
-                       partie précédente s'ouvre moins cher. Dit ici, à
-                       l'engagement, plutôt que découvert au débit. #}
+                    <span class="inline-flex items-center gap-1.5 text-sm text-encre-600" data-chiffres>
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 22}) }}
+                        {{ offre.cout }} deben
+                    </span>
+                    {# Le rabais du doc 12 : une route déjà armée dans une partie précédente s'ouvre moins cher. Dit ici,
+                       à l'engagement, plutôt que découvert au débit. #}
                     {% if offre.heritee %}
-                        <span class="text-sm text-ocre-700">— vous connaissez déjà ce chemin</span>
+                        <span class="text-sm text-ocre-600">— vous connaissez déjà ce chemin</span>
                     {% endif %}
                     <button type="submit"
-                            class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                            class="bouton-offrande group ml-auto inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 22, classe: 'bouton-offrande__image'}) }}
                         Envoyer une première {{ offre.partenaire.route.convoi }}
                     </button>
                 </form>
             {% endif %}
-            </div>
-            </div>
         </li>
     {% endmacro %}
 

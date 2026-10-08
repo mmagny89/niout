@@ -1,14 +1,27 @@
 {# Le détail d'une case, dans la fenêtre : une feuille posée à droite, qui laisse
    la carte visible à côté (`data-forme="feuille"`, lue par la fenêtre).
 
+   **`data-forme` est posé sur un enfant du cadre, jamais sur le `<turbo-frame>` lui-même** :
+   Turbo remplace le contenu d'un cadre mais ne recopie pas ses attributs. Posé sur le cadre, il
+   n'existait que dans une page rendue côté serveur — au clic, la feuille s'ouvrait large et
+   centrée. `fenetre_controller.js` le lit dans le contenu arrivé.
+
    Ce qui se lisait dans le panneau de droite de la carte. Les formulaires
    d'action — éclaireur, carrière, semis, fouille — se soumettent dans le cadre,
    et le serveur redirige vers cette même fenêtre. #}
-<turbo-frame id="fenetre" class="block h-full" data-forme="feuille">
+{% import 'partie/_sous_onglets.html.twig' as sous %}
+<turbo-frame id="fenetre" class="block h-full">
     {{ include('_messages_de_jeu.html.twig') }}
 
-    <div class="h-full overflow-y-auto" data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
+    <div class="h-full overflow-y-auto" data-forme="feuille" data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
     <article class="p-5 pr-12 md:p-6 md:pr-12">
+        {# La case en portrait : sa tuile, qui flotte doucement. La même image que sur la
+           carte — la fenêtre dit de quelle case on parle sans qu'on ait à relire les coordonnées. #}
+        <div class="case-portrait relative mx-auto mb-3 flex h-32 items-end justify-center" aria-hidden="true">
+            <img src="{{ asset('images/tuiles/' ~ (zoneDetaillee.porteLaVille ? 'ville' : (zoneDetaillee.estDecouverte ? zoneDetaillee.terrain.tuile : 'brouillard')) ~ '.png') }}"
+                 alt="" class="case-portrait__tuile h-auto w-52 select-none">
+        </div>
+
         <div class="flex flex-wrap items-baseline justify-between gap-3">
             <h2 id="fenetre-titre" class="font-display text-xl text-encre-900">
                 {% if zoneDetaillee.porteLaVille %}
@@ -30,34 +43,41 @@
         {# Une case sous brouillard ne dit rien de son terrain ni de
            son contenu : c'est justement ce que l'éclaireur va
            chercher. #}
-        <p class="mt-3 text-sm text-encre-600">
-            {% if zoneDetaillee.porteLaVille %}
-                Votre ville se dresse ici.
-            {% elseif not zoneDetaillee.estDecouverte %}
-                Nul ne sait ce qui s'y trouve. Une reconnaissance le dira.
-            {% elseif zoneDetaillee.porteUnChamp %}
-                {{ zoneDetaillee.champs }} champ{{ zoneDetaillee.champs > 1 ? 's' : '' }} sur cette terre,
-                chacun avec sa culture et son propre cycle.
-                <br>
-                {% for parcelle in zoneDetaillee.parcelles %}
-                    {% set etape = parcelle.etape(partie.dateDeJeu.saison, partie.dateDeJeu.rangDansLaSaison) %}
-                    {% set equipage = equipages[zoneDetaillee.x ~ ':' ~ zoneDetaillee.y ~ ':champ:' ~ parcelle.rang] %}
-                    <strong>{{ parcelle.culture.libelle }}</strong> —
-                    {{ etape.libelle|lower }}, {{ etape.explication|lower }}
-                    {% if equipage %}
-                        <span class="text-encre-500" data-chiffres>
-                            · {{ equipage.affectes }} / {{ equipage.requis }} travailleur{{ equipage.requis > 1 ? 's' : '' }}
-                            · {{ equipage.rendement }} % de rendement
-                        </span>
-                    {% endif %}
-                    <br>
+        {# **Une phrase seulement quand les pastilles ne disent rien** : une case qui porte des champs ou
+           des gisements les montre en pastilles, et leurs onglets en portent le détail — répéter
+           « 4 champs sur cette terre » juste au-dessus ne servait qu'à pousser les onglets plus bas. #}
+        {% if zoneDetaillee.porteLaVille or not zoneDetaillee.estDecouverte or zoneDetaillee.contenu.value == 'rien' and not (zoneDetaillee.porteUnChamp or zoneDetaillee.porteUnGisement) %}
+            <p class="mt-3 text-sm text-encre-600">
+                {% if zoneDetaillee.porteLaVille %}
+                    Votre ville se dresse ici.
+                {% elseif not zoneDetaillee.estDecouverte %}
+                    Nul ne sait ce qui s'y trouve. Une reconnaissance le dira.
+                {% else %}
+                    {{ zoneDetaillee.contenu.libelle }}.
+                {% endif %}
+            </p>
+        {% endif %}
+
+        {# Ce que la case porte, en pastilles : on le lit avant le détail. #}
+        {% if zoneDetaillee.estDecouverte and not zoneDetaillee.porteLaVille %}
+            <ul class="mt-3 flex list-none flex-wrap gap-2 p-0">
+                {% if zoneDetaillee.estGardee %}
+                    <li class="signal signal--mauvais">{{ include('partie/_pictogramme.html.twig', {nom: 'danger', taille: 20}) }} Tenue par des brigands</li>
+                {% endif %}
+                {% if zoneDetaillee.contenu.value == 'evenement' and not zoneDetaillee.indiceRecueilli %}
+                    <li class="signal signal--bon">{{ include('partie/_pictogramme.html.twig', {nom: 'enigme', taille: 20}) }} Quelque chose s'y trame</li>
+                {% endif %}
+                {% for gisement in zoneDetaillee.gisements %}
+                    <li class="signal signal--neutre">
+                        {{ include('partie/_icone_ressource.html.twig', {ressource: gisement.ressource, taille: 24}) }}
+                        {{ gisement.ressource.libelle|capitalize }}
+                    </li>
                 {% endfor %}
-            {% elseif zoneDetaillee.porteUnGisement %}
-                Ce que la case recèle :
-            {% else %}
-                {{ zoneDetaillee.contenu.libelle }}.
-            {% endif %}
-        </p>
+                {% if zoneDetaillee.porteUnChamp %}
+                    <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 20}) }} {{ zoneDetaillee.champs }} champ{{ zoneDetaillee.champs > 1 ? 's' : '' }}</li>
+                {% endif %}
+            </ul>
+        {% endif %}
 
         {# Le danger se dit **avant** qu'on tente d'exploiter : le
            découvrir par un refus serait le subir au lieu de le
@@ -79,146 +99,31 @@
                 </span>
             </p>
 
-            {# On n'attaque pas d'un bouton : il faut y mener une
-               expédition. Le Chef d'expédition est le seul rôle qui
-               parte en armes, et le combat se résout à son arrivée
-               — un assaut se prépare (lot 10.5). #}
-            {% if medjaysDisponibles > 0 and partie.estEnCours %}
-                <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}"
-                      class="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-2">
-                    <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
-                    <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
-                    <input type="hidden" name="role" value="chef_expedition">
-
-                    {# Les chars s'empruntent à l'armée du pharaon,
-                       pour cette sortie-là seulement : aucun
-                       entretien, aucun retour dans l'effectif. #}
-                    {% if charriersOuverts %}
-                        <label class="text-sm text-encre-600" for="charriers">
-                            Chars réquisitionnés ({{ coutDunCharrier }} deben pièce)
-                        </label>
-                        <input type="number" id="charriers" name="charriers" value="0" min="0" max="3"
-                               class="w-16 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
-                               data-chiffres>
-                    {% endif %}
-
-                    <button type="submit"
-                            class="rounded-sm border border-terre-500/50 px-3 py-1 text-sm text-encre-900 hover:bg-terre-500/10">
-                        Y mener une expédition
-                    </button>
-                </form>
-
-                {% if not charriersOuverts and empechementDesCharriers %}
-                    <p class="mt-2 text-sm text-encre-500">{{ empechementDesCharriers }}</p>
-                {% endif %}
-            {% endif %}
         {% endif %}
 
-        {# L'émissaire va parler aux gens d'une case reconnue : c'est
-           son emploi propre, et la seule façon d'entendre un
-           témoignage (doc 04, doc 10). #}
-        {% if peutEnvoyerUnEmissaire %}
-            <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}" class="mt-4">
-                <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
-                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
-                <input type="hidden" name="role" value="emissaire">
-                <button type="submit"
-                        class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
-                    Envoyer un émissaire
-                </button>
-                <span class="ml-3 text-sm text-encre-500" data-chiffres>
-                    {{ coutDeLEmissaire }} deben · {{ provisionsDeLEmissaire }} vivres
-                </span>
-            </form>
-        {% endif %}
+        {# **Un onglet par chose qu'on fait d'une case** : les gisements qu'on y exploite, les champs
+           qu'on y sème, et les expéditions qu'on y envoie. Ce qu'elle *est* — portrait, titre,
+           pastilles, danger — reste au-dessus, toujours visible. Une case qui n'a qu'une chose à
+           offrir n'a pas de barre d'onglets, et un onglet vide n'existe pas. Tout reste dans le document, seulement masqué ; la mémoire de
+           l'onglet est propre à chaque case (`retenir`), pour que semer ou ouvrir une carrière
+           — qui rechargent la fenêtre — ne ramènent pas à l'aperçu. #}
+        {% set decouverte = zoneDetaillee.estDecouverte %}
+        {% set aDesGisements = decouverte and zoneDetaillee.porteUnGisement %}
+        {% set aDesChamps = decouverte and (zoneDetaillee.porteUnChamp or (zoneDetaillee.accepteUnChamp and partie.estEnCours)) %}
+        {% set aDesActions = not decouverte
+            or (zoneDetaillee.estGardee and medjaysDisponibles > 0 and partie.estEnCours)
+            or peutEnvoyerUnEmissaire or (peutProspecter and partie.estEnCours) or peutFouiller or zoneDetaillee.indiceRecueilli %}
+        {% set sections = [] %}
+        {% if aDesGisements %}{% set sections = sections|merge([{cle: 'gisements', libelle: 'Gisements (' ~ zoneDetaillee.gisements|length ~ ')'}]) %}{% endif %}
+        {% if aDesChamps %}{% set sections = sections|merge([{cle: 'champs', libelle: zoneDetaillee.porteUnChamp ? 'Champs (' ~ zoneDetaillee.champs ~ ')' : 'Champs'}]) %}{% endif %}
+        {% if aDesActions %}{% set sections = sections|merge([{cle: 'actions', libelle: 'Envoyer'}]) %}{% endif %}
+        {% set avecOnglets = sections|length > 1 %}
+        {% set premiere = sections is empty ? null : sections[0].cle %}
+        {% set prefixe = 'case-' ~ zoneDetaillee.x ~ '-' ~ zoneDetaillee.y %}
+        {% if avecOnglets %}{{ sous.debut(prefixe, partie.id, 'Sections de la case', sections) }}{% endif %}
 
-        {# Un filon épuisé n'est pas une impasse : on peut envoyer
-           sonder la case pour rouvrir la veine, ou en trouver une
-           autre. Le départ n'est proposé que si quelque chose peut
-           en sortir — annoncer une fouille qui ne peut rien
-           rapporter serait un piège. #}
-        {% if peutProspecter and partie.estEnCours %}
-            <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}" class="mt-4">
-                <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
-                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
-                <input type="hidden" name="role" value="prospecteur">
-                <button type="submit"
-                        class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
-                    Envoyer un prospecteur
-                </button>
-                <span class="ml-3 text-sm text-encre-500" data-chiffres>
-                    {{ coutDuProspecteur }} deben · {{ provisionsDuProspecteur }} vivres
-                    · {{ dureeDuProspecteur }} cycle{{ dureeDuProspecteur > 1 ? 's' : '' }}
-                    · {{ chancesDeProspecter }} % de chances
-                </span>
-            </form>
-            <p class="mt-2 text-sm text-encre-500">
-                {% if chancesDeProspecter >= 100 %}
-                    La veine est encore en activité : vos gens savent
-                    exactement où elle s'est perdue, ils la retrouveront.
-                {% elseif chancesDeProspecter < 30 %}
-                    Ce sol n'a jamais rien livré : on y sonde à l'aveugle.
-                {% endif %}
-                Ce que ce sol pourrait rendre :
-                {% for filon in filonsAProspecter %}{{ filon.libelle|lower }}{{ not loop.last ? ', ' : '' }}{% endfor %}.
-            </p>
-        {% endif %}
-
-        {# Les cases « quelque chose s'y trame » sont posées depuis le
-           lot 3.2 et ne menaient nulle part : elles rendent désormais
-           un indice, une fois. #}
-        {% if peutFouiller %}
-            <form method="post" action="{{ path('app_partie_fouiller', {id: partie.id}) }}" class="mt-4">
-                <input type="hidden" name="_token" value="{{ csrf_token('fouiller') }}">
-                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
-                <button type="submit"
-                        class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
-                    Fouiller les lieux
-                </button>
-            </form>
-        {% elseif zoneDetaillee.indiceRecueilli %}
-            <p class="mt-4 text-sm text-encre-500">
-                Vos gens ont déjà retourné cette terre : elle a livré ce qu'elle avait.
-            </p>
-        {% endif %}
-
-        {% if zoneDetaillee.porteUnChamp and not aUnGrenier %}
-            <p class="mt-3 text-sm text-terre-600">
-                Sans Grenier, ces champs travaillent pour rien : la récolte n'a nulle
-                part où se conserver.
-            </p>
-        {% endif %}
-
-        {% if not zoneDetaillee.estDecouverte %}
-            {% if not partie.estEnCours %}
-                <p class="mt-4 text-sm text-encre-500">La partie a échoué : plus aucun éclaireur ne part.</p>
-            {% elseif expeditionEnCours %}
-                <p class="mt-4 text-sm text-encre-500">
-                    Un éclaireur est déjà en chemin.
-                </p>
-            {% else %}
-                <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}" class="mt-5">
-                    <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
-                    <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
-                    <button type="submit"
-                            class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
-                        Envoyer un éclaireur
-                    </button>
-                    <span class="ml-3 text-sm text-encre-500" data-chiffres>
-                        {# Les cases à moins de trois cases de la
-                           ville se reconnaissent entièrement
-                           gratuitement — ni or ni vivres. #}
-                        {% if coutDeReconnaissance == 0 and provisionsDeReconnaissance == 0 %}
-                            gratuit
-                        {% else %}
-                            {{ coutDeReconnaissance > 0 ? coutDeReconnaissance ~ ' or' : 'sans frais' }}
-                            · {{ provisionsDeReconnaissance }} vivres
-                        {% endif %}
-                        · {{ dureeDeReconnaissance }} cycle{{ dureeDeReconnaissance > 1 ? 's' : '' }}
-                    </span>
-                </form>
-            {% endif %}
-        {% else %}
+        {% if aDesGisements %}
+        {% if avecOnglets %}{{ sous.panneau(prefixe, 'gisements', premiere == 'gisements') }}{% else %}<div>{% endif %}
             {# Gisements et champ ne s'excluent pas : une berge du
                Nil peut être à la fois poissonneuse et cultivable.
                Les deux actions s'affichent donc côte à côte, là où
@@ -264,7 +169,8 @@
                                     <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
                                     <input type="hidden" name="ressource" value="{{ gisement.ressource.value }}">
                                     <button type="submit"
-                                            class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                            class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                        {{ include('partie/_pictogramme.html.twig', {nom: 'chantier', taille: 22, classe: 'bouton-offrande__image'}) }}
                                         {{ estPoisson ? 'Jeter les filets' : 'Ouvrir une carrière' }}
                                     </button>
                                 </form>
@@ -274,53 +180,246 @@
                 </ul>
             {% endif %}
 
-            {% if zoneDetaillee.accepteUnChamp and partie.estEnCours %}
-                <h4 class="mt-6 font-display text-encre-900">Les parcelles de cette terre</h4>
-                <p class="mt-1 max-w-2xl text-sm text-encre-500">
-                    Une case est une terre, pas un champ : on y sème jusqu'à
-                    <span data-chiffres>{{ champsMax }}</span> parcelles,
-                    <strong class="text-encre-700">chacune avec sa culture et son
-                    propre cycle</strong>. Laissez une place vide pour ne rien y semer,
-                    ou l'arracher. Chaque parcelle réclame son homme.
-                </p>
+        </div>
+        {% endif %}
 
+        {% if aDesChamps %}
+        {% if avecOnglets %}{{ sous.panneau(prefixe, 'champs', premiere == 'champs') }}{% else %}<div>{% endif %}
+            {# **Une seule liste pour les champs de la terre** : chaque parcelle est une ligne — sa culture
+               (qu'on choisit, si l'on peut semer), l'étape de son cycle, qui y travaille. Elles étaient
+               deux : des cartes d'état, puis un formulaire qui répétait les mêmes parcelles. #}
+            {% set peutSemer = zoneDetaillee.accepteUnChamp and partie.estEnCours %}
+
+            {% if zoneDetaillee.porteUnChamp and not aUnGrenier %}
+                <p class="mt-4 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-3 py-2 text-sm text-terre-700">
+                    Sans Grenier, ces champs travaillent pour rien : la récolte n'a nulle
+                    part où se conserver.
+                </p>
+            {% endif %}
+
+            <p class="mt-4 text-sm text-encre-500"
+               data-infobulle="Une case est une terre, pas un champ : chaque parcelle a sa culture et son propre cycle, et réclame son homme. Laissez une place en friche pour ne rien y semer, ou pour l'arracher.">
+                Jusqu'à <span data-chiffres>{{ champsMax }}</span> parcelles, chacune avec sa culture et son cycle.
+            </p>
+
+            {% if peutSemer %}
                 <form method="post" action="{{ path('app_partie_semer', {id: partie.id}) }}" class="mt-3">
                     <input type="hidden" name="_token" value="{{ csrf_token('semer') }}">
                     <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+            {% endif %}
 
-                    <ul class="space-y-2 list-none p-0">
-                        {% for rang in 1..champsMax %}
-                            {% set parcelle = zoneDetaillee.parcelleAuRang(rang) %}
-                            <li class="flex flex-wrap items-center gap-3">
-                                <label for="culture-{{ rang }}" class="w-24 text-sm text-encre-600">
-                                    Parcelle {{ rang }}
-                                </label>
+            <ul class="list-none space-y-2 p-0 {{ peutSemer ? '' : 'mt-3' }}">
+                {% for rang in (peutSemer ? 1..champsMax : zoneDetaillee.parcelles|map(p => p.rang)) %}
+                    {% set parcelle = zoneDetaillee.parcelleAuRang(rang) %}
+                    {% set etape = parcelle ? parcelle.etape(partie.dateDeJeu.saison, partie.dateDeJeu.rangDansLaSaison) : null %}
+                    {% set equipage = parcelle ? equipages[zoneDetaillee.x ~ ':' ~ zoneDetaillee.y ~ ':champ:' ~ rang] : null %}
+                    <li class="carte-vivante rounded-sm border border-ocre-500/30 {{ parcelle ? 'bg-sable-50' : 'bg-sable-50/50' }} px-3 py-2">
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 26, classe: parcelle ? '' : 'opacity-30 grayscale'}) }}
+                            {% if peutSemer %}
+                                <label for="culture-{{ rang }}" class="text-sm text-encre-600">Parcelle {{ rang }}</label>
                                 <select id="culture-{{ rang }}" name="culture-{{ rang }}"
-                                        class="rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900">
+                                        class="min-w-0 flex-1 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1.5 text-sm text-encre-900">
                                     <option value="">— en friche —</option>
                                     {% for culture in cultures %}
-                                        <option value="{{ culture.value }}"
-                                                {{ parcelle and parcelle.culture == culture ? 'selected' : '' }}>
+                                        <option value="{{ culture.value }}" {{ parcelle and parcelle.culture == culture ? 'selected' : '' }}>
                                             {{ culture.libelle }}
                                         </option>
                                     {% endfor %}
                                 </select>
-                                {% if parcelle %}
-                                    <span class="text-sm text-encre-500">
-                                        {{ parcelle.etape(partie.dateDeJeu.saison, partie.dateDeJeu.rangDansLaSaison).libelle }}
-                                    </span>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
+                            {% else %}
+                                <span class="text-sm text-encre-900"><strong>{{ parcelle.culture.libelle }}</strong>
+                                    <span class="text-encre-500">— parcelle {{ rang }}</span></span>
+                            {% endif %}
+                            {% if etape %}
+                                <span class="signal signal--bon" data-infobulle="{{ etape.explication }}">{{ etape.libelle }}</span>
+                            {% endif %}
+                        </div>
+                        {% if equipage %}
+                            <p class="mt-1.5 flex items-center gap-2 pl-9 text-xs text-encre-500" data-chiffres>
+                                <span class="flex gap-0.5" aria-hidden="true">
+                                    {% for place in 1..max(equipage.requis, 1) %}
+                                        <span class="size-2.5 rounded-full {{ place <= equipage.affectes ? 'bg-lapis-500' : 'border border-terre-500/70' }}"></span>
+                                    {% endfor %}
+                                </span>
+                                {{ equipage.affectes }} / {{ equipage.requis }} travailleur{{ equipage.requis > 1 ? 's' : '' }}
+                                · {{ equipage.rendement }} % de rendement
+                            </p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
 
+            {% if peutSemer %}
                     <button type="submit"
-                            class="mt-3 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                            class="bouton-offrande group mt-3 inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 22, classe: 'bouton-offrande__image'}) }}
                         Semer cette terre
                     </button>
                 </form>
             {% endif %}
+        </div>
         {% endif %}
+
+        {% if aDesActions %}
+        {% if avecOnglets %}{{ sous.panneau(prefixe, 'actions', premiere == 'actions') }}{% else %}<div>{% endif %}
+        {% if not zoneDetaillee.estDecouverte %}
+            {% if not partie.estEnCours %}
+                <p class="mt-4 text-sm text-encre-500">La partie a échoué : plus aucun éclaireur ne part.</p>
+            {% elseif expeditionEnCours %}
+                <p class="mt-4 text-sm text-encre-500">
+                    Un éclaireur est déjà en chemin.
+                </p>
+            {% else %}
+                <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}"
+                      class="carte-vivante mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+                    <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
+                    <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                    <p class="mb-3 text-sm text-encre-600">{{ constant('App\\Game\\RoleDExploration::Eclaireur').mission }}</p>
+                    <button type="submit"
+                            class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 22, classe: 'bouton-offrande__image'}) }}
+                        Envoyer un éclaireur
+                    </button>
+                    {# Les cases à moins de trois cases de la ville se reconnaissent entièrement
+                       gratuitement — ni or ni vivres. #}
+                    <ul class="mt-3 flex list-none flex-wrap gap-2 p-0" data-chiffres aria-label="Ce que coûte l'expédition">
+                        {% if coutDeReconnaissance == 0 and provisionsDeReconnaissance == 0 %}
+                            <li class="signal signal--bon">{{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 20}) }} gratuit</li>
+                        {% else %}
+                            <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 20}) }} {{ coutDeReconnaissance > 0 ? coutDeReconnaissance ~ ' deben' : 'sans frais' }}</li>
+                            <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 20}) }} {{ provisionsDeReconnaissance }} vivres</li>
+                        {% endif %}
+                        <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 20}) }} {{ dureeDeReconnaissance }} cycle{{ dureeDeReconnaissance > 1 ? 's' : '' }}</li>
+                    </ul>
+                </form>
+            {% endif %}
+        {% endif %}
+        {% if zoneDetaillee.estGardee %}
+            {# On n'attaque pas d'un bouton : il faut y mener une
+               expédition. Le Chef d'expédition est le seul rôle qui
+               parte en armes, et le combat se résout à son arrivée
+               — un assaut se prépare (lot 10.5). #}
+            {% if expeditionEnCours %}
+                <p class="mt-3 flex items-center gap-2 text-sm text-encre-600">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 24}) }}
+                    Une expédition est déjà en route vers cette case.
+                </p>
+            {% elseif medjaysDisponibles > 0 and partie.estEnCours %}
+                <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}"
+                      class="carte-vivante mt-3 rounded-sm border border-terre-500/40 bg-sable-50 p-4">
+                    <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
+                    <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                    <input type="hidden" name="role" value="chef_expedition">
+                    <p class="mb-3 text-sm text-encre-600">{{ constant('App\\Game\\RoleDExploration::ChefDExpedition').mission }}</p>
+
+                    {# Les chars s'empruntent à l'armée du pharaon,
+                       pour cette sortie-là seulement : aucun
+                       entretien, aucun retour dans l'effectif. #}
+                    {% if charriersOuverts %}
+                        <p class="mb-3 flex flex-wrap items-center gap-2">
+                            <label class="text-sm text-encre-600" for="charriers">
+                                Chars réquisitionnés ({{ coutDunCharrier }} deben pièce)
+                            </label>
+                            <input type="number" id="charriers" name="charriers" value="0" min="0" max="3"
+                                   class="w-16 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
+                                   data-chiffres>
+                        </p>
+                    {% endif %}
+
+                    <button type="submit"
+                            class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 22, classe: 'bouton-offrande__image'}) }}
+                        Y mener une expédition
+                    </button>
+
+                    {% if not charriersOuverts and empechementDesCharriers %}
+                        <p class="mt-3 text-sm text-encre-500">{{ empechementDesCharriers }}</p>
+                    {% endif %}
+                </form>
+            {% endif %}
+        {% endif %}
+
+        {# L'émissaire va parler aux gens d'une case reconnue : c'est
+           son emploi propre, et la seule façon d'entendre un
+           témoignage (doc 04, doc 10). #}
+        {% if peutEnvoyerUnEmissaire %}
+            <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}" class="carte-vivante mt-3 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+                <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
+                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                <input type="hidden" name="role" value="emissaire">
+                <p class="mb-3 text-sm text-encre-600">{{ constant('App\\Game\\RoleDExploration::Emissaire').mission }}</p>
+                <button type="submit"
+                        class="bouton-offrande group inline-flex items-center gap-2 rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 22, classe: 'bouton-offrande__image'}) }}
+                    Envoyer un émissaire
+                </button>
+                <ul class="mt-3 flex list-none flex-wrap gap-2 p-0" data-chiffres aria-label="Ce que coûte l'expédition">
+                    <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 20}) }} {{ coutDeLEmissaire }} deben</li>
+                    <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 20}) }} {{ provisionsDeLEmissaire }} vivres</li>
+                </ul>
+            </form>
+        {% endif %}
+
+        {# Un filon épuisé n'est pas une impasse : on peut envoyer
+           sonder la case pour rouvrir la veine, ou en trouver une
+           autre. Le départ n'est proposé que si quelque chose peut
+           en sortir — annoncer une fouille qui ne peut rien
+           rapporter serait un piège. #}
+        {% if peutProspecter and partie.estEnCours %}
+            <form method="post" action="{{ path('app_partie_explorer', {id: partie.id}) }}" class="carte-vivante mt-3 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+                <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
+                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                <input type="hidden" name="role" value="prospecteur">
+                <p class="mb-3 text-sm text-encre-600">{{ constant('App\\Game\\RoleDExploration::Prospecteur').mission }}</p>
+                <button type="submit"
+                        class="bouton-offrande group inline-flex items-center gap-2 rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 22, classe: 'bouton-offrande__image'}) }}
+                    Envoyer un prospecteur
+                </button>
+                <ul class="mt-3 flex list-none flex-wrap gap-2 p-0" data-chiffres aria-label="Ce que coûte l'expédition">
+                    <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 20}) }} {{ coutDuProspecteur }} deben</li>
+                    <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 20}) }} {{ provisionsDuProspecteur }} vivres</li>
+                    <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 20}) }} {{ dureeDuProspecteur }} cycle{{ dureeDuProspecteur > 1 ? 's' : '' }}</li>
+                    <li class="signal {{ chancesDeProspecter >= 60 ? 'signal--bon' : 'signal--neutre' }}">{{ chancesDeProspecter }} % de chances</li>
+                </ul>
+            <p class="mt-3 text-sm text-encre-500">
+                {% if chancesDeProspecter >= 100 %}
+                    La veine est encore en activité : vos gens savent
+                    exactement où elle s'est perdue, ils la retrouveront.
+                {% elseif chancesDeProspecter < 30 %}
+                    Ce sol n'a jamais rien livré : on y sonde à l'aveugle.
+                {% endif %}
+                Ce que ce sol pourrait rendre :
+                {% for filon in filonsAProspecter %}{{ filon.libelle|lower }}{{ not loop.last ? ', ' : '' }}{% endfor %}.
+            </p>
+            </form>
+        {% endif %}
+
+        {# Les cases « quelque chose s'y trame » sont posées depuis le
+           lot 3.2 et ne menaient nulle part : elles rendent désormais
+           un indice, une fois. #}
+        {% if peutFouiller %}
+            <form method="post" action="{{ path('app_partie_fouiller', {id: partie.id}) }}" class="carte-vivante mt-3 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+                <input type="hidden" name="_token" value="{{ csrf_token('fouiller') }}">
+                <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
+                <p class="mb-3 text-sm text-encre-600">Quelque chose s'y trame : vos gens retournent la terre, et elle rend un indice, une fois.</p>
+                <button type="submit"
+                        class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'enigme', taille: 22, classe: 'bouton-offrande__image'}) }}
+                    Fouiller les lieux
+                </button>
+            </form>
+        {% elseif zoneDetaillee.indiceRecueilli %}
+            <p class="mt-4 text-sm text-encre-500">
+                Vos gens ont déjà retourné cette terre : elle a livré ce qu'elle avait.
+            </p>
+        {% endif %}
+
+        </div>
+        {% endif %}
+
+        {% if avecOnglets %}</div>{% endif %}
     </article>
 
     {{ include('fenetre/_retour_en_haut.html.twig') }}

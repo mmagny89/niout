@@ -34,6 +34,196 @@ final class CarteTest extends WebTestCase
     }
 
     /**
+     * Chaque case est un conteneur qui porte sa tuile ET sa zone cliquable : c'est ce qui
+     * permet à la tuile de se soulever (`:has()`) quand on survole **sa** zone. Une zone
+     * cliquable hors de son conteneur ne soulèverait rien, sans erreur visible.
+     */
+    public function testChaqueCaseRegroupeSaTuileEtSaZoneCliquable(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'case-iso@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        $cases = $crawler->filter('.case-iso');
+        self::assertCount(9, $cases);
+        $cases->each(static function ($case): void {
+            self::assertCount(1, $case->children()->filter('img.case-iso__tuile'));
+            self::assertCount(1, $case->children()->filter('a[aria-label]'));
+        });
+    }
+
+    /**
+     * Les conteneurs de cases sont des rectangles qui se recouvrent : ils doivent laisser passer
+     * les clics, et seul le losange du lien les capte. Sans cette règle, une case du premier plan
+     * interceptait les clics de sa voisine dans les coins — des zones où l'on ne pouvait plus
+     * cliquer. Aucun test fonctionnel n'exécute la CSS : on garde la règle elle-même.
+     */
+    public function testLesConteneursDeCasesLaissentPasserLesClics(): void
+    {
+        $css = (string) file_get_contents(\dirname(__DIR__, 2).'/assets/styles/app.css');
+
+        self::assertMatchesRegularExpression('/\.case-iso\s*\{\s*pointer-events:\s*none;\s*\}/', $css);
+        self::assertMatchesRegularExpression('/\.case-iso\s*>\s*a\s*\{\s*pointer-events:\s*auto;\s*\}/', $css);
+    }
+
+    /**
+     * **Accessibilité et mobile**, deux gardes que seul le source peut tenir (aucun test fonctionnel
+     * n'exécute la CSS ni ne mesure d'écran) :
+     * - un bloc final ramène toute animation et toute transition à l'instantané si l'on a demandé
+     *   moins de mouvement — il y avait quatorze transitions hors du garde ;
+     * - les volets de la barre sortent de la rangée qui défile (`fixed` sur téléphone, `absolute`
+     *   dès `md`) : dans la rangée, un volet s'ouvrait mais restait rogné, donc invisible.
+     */
+    public function testLeMouvementReduitEtLesVoletsMobilesSontGardes(): void
+    {
+        $css = (string) file_get_contents(\dirname(__DIR__, 2).'/assets/styles/app.css');
+        self::assertMatchesRegularExpression('/@media \(prefers-reduced-motion: reduce\)\s*\{[^@]*transition-duration:\s*0\.01ms\s*!important/s', $css);
+        self::assertMatchesRegularExpression('/@media \(prefers-reduced-motion: reduce\)\s*\{[^@]*animation-duration:\s*0\.01ms\s*!important/s', $css);
+
+        $barre = (string) file_get_contents(\dirname(__DIR__, 2).'/templates/partie/_barre.html.twig');
+        self::assertSame(2, substr_count($barre, 'fixed inset-x-3 top-28'), 'Les deux volets de la barre sortent de la rangée sur téléphone.');
+        self::assertSame(2, substr_count($barre, 'md:absolute'));
+    }
+
+    /**
+     * Le détail d'une case range ce qu'on y fait en onglets — gisements, champs, envois —, **seulement
+     * ceux qui servent** : une case sous le brouillard n'a qu'une chose à offrir et pas de barre ;
+     * une terre cultivable a ses champs. Onglets et panneaux s'apparient par rang, dans le même ordre.
+     */
+    public function testLeDetailDUneCaseRangeSesActionsEnOngletsUtiles(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'case-onglets@example.com');
+        $partie = $this->lancer($joueur);
+
+        $zones = [];
+        foreach ($partie->getVille()->getZones() as $candidate) {
+            if (!$candidate->porteLaVille()) {
+                $zones[] = $candidate;
+            }
+        }
+        $fertile = $zones[0];
+        $fertile->definirTerrain(TypeDeTerrain::Fertile)->poserUnContenu(ContenuDeZone::ChampEligible)->decouvrir();
+        $brouillard = $zones[1];
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $fertile->getX(), $fertile->getY()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertResponseIsSuccessful();
+        $onglets = $crawler->filter('nav[aria-label="Sections de la case"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
+        $panneaux = $crawler->filter('[role="tabpanel"]')->each(static fn ($n): string => (string) $n->attr('id'));
+        self::assertNotEmpty($onglets, 'Une terre cultivable a des onglets.');
+        self::assertSame($onglets, $panneaux, 'Onglets et panneaux s\'apparient dans le même ordre.');
+        self::assertStringContainsString('champs', implode(' ', $onglets));
+        // Une seule liste pour les champs : une ligne par parcelle, la culture se choisit sur place.
+        // Elles étaient deux (des cartes d'état, puis un formulaire qui répétait les mêmes parcelles).
+        $champs = $crawler->filter('[role="tabpanel"][id$="-section-champs"]');
+        self::assertCount(Zone::CHAMPS_MAX, $champs->filter('li'), 'Une ligne par parcelle, sans doublon.');
+        self::assertCount(Zone::CHAMPS_MAX, $champs->filter('select[name^="culture-"]'));
+        self::assertCount(1, $champs->filter('form[action$="/semer"]'));
+        self::assertCount(1, $crawler->filter('[data-forme="feuille"]'), 'La forme est portée par le contenu.');
+        self::assertCount(0, $crawler->filter('turbo-frame#fenetre[data-forme]'), 'Turbo ne recopie pas les attributs d\'un cadre : la forme n\'y vit pas.');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $brouillard->getX(), $brouillard->getY()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $crawler->filter('[role="tablist"]'), 'Une seule chose à offrir : pas de barre d\'onglets.');
+        self::assertSelectorTextContains('turbo-frame#fenetre', 'Envoyer un éclaireur');
+    }
+
+    /**
+     * Une expédition armée déjà partie vers une case gardée ne se propose plus une seconde fois : la
+     * case le dit, au lieu de laisser un bouton que le serveur refuserait.
+     */
+    public function testUneExpeditionArmeeDejaPartieNeSeProposePlus(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'brigands-en-route@example.com');
+        $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+
+        $zone = null;
+        foreach ($ville->getZones() as $candidate) {
+            if (!$candidate->porteLaVille()) {
+                $zone = $candidate;
+                break;
+            }
+        }
+        self::assertInstanceOf(Zone::class, $zone);
+        $zone->decouvrir()->installerUneBande(4);
+        $ville->leverUnMedjay(new \App\Entity\Medjay($ville, \App\Game\SpecialisationMedjay::Fantassin));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+        $adresse = \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $zone->getX(), $zone->getY());
+
+        $crawler = $client->request('GET', $adresse, [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertGreaterThan(0, $crawler->filter('input[name="role"][value="chef_expedition"]')->count(), 'Sans expédition, on peut en mener une.');
+
+        $ville->ajouterExpedition(new \App\Entity\Expedition($ville, $zone, \App\Game\RoleDExploration::ChefDExpedition, 2));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', $adresse, [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertCount(0, $crawler->filter('input[name="role"][value="chef_expedition"]'));
+        self::assertSelectorTextContains('turbo-frame#fenetre', 'Une expédition est déjà en route vers cette case');
+    }
+
+    /**
+     * **La barre de jeu sur téléphone** : les deux rangées qui défilent portent une ombre qui dit qu'il
+     * reste du contenu ; « Mes parties » ferme la rangée des compteurs sur téléphone et reprend sa place
+     * à côté du bouton de cycle dès `md` (un seul des deux est jamais visible) ; la date ne se tronque
+     * plus sur une ligne. Aucun test fonctionnel ne mesure un écran : on garde la structure.
+     */
+    public function testLaBarreSurTelephoneDitQuIlResteDuContenuEtGardeSaDate(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'barre-mobile@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+        self::assertResponseIsSuccessful();
+
+        self::assertGreaterThanOrEqual(1, $crawler->filter('header .defile-ombre')->count(), 'La rangée des compteurs défile et le dit.');
+
+        $liens = $crawler->filter(\sprintf('header a[href="/parties"]'));
+        self::assertCount(2, $liens, '« Mes parties » existe deux fois, une seule visible à la fois.');
+        $classes = $liens->each(static fn ($lien): string => (string) $lien->attr('class'));
+        self::assertCount(1, array_filter($classes, static fn (string $c): bool => str_contains($c, 'md:hidden')));
+        self::assertCount(1, array_filter($classes, static fn (string $c): bool => str_contains($c, 'hidden') && str_contains($c, 'md:inline-flex')));
+
+        $date = (string) $crawler->filter('header p.line-clamp-2')->attr('class');
+        self::assertStringContainsString('md:line-clamp-none', $date, 'Deux lignes sur téléphone, entière dès md.');
+        self::assertStringNotContainsString('truncate', $date);
+
+        $css = (string) file_get_contents(\dirname(__DIR__, 2).'/assets/styles/app.css');
+        self::assertMatchesRegularExpression('/@media \(max-width: 767px\)\s*\{\s*\.defile-ombre\s*\{/', $css);
+    }
+
+    /**
+     * Une case tenue par des brigands se repère **sur la carte**, avant même d'ouvrir son détail.
+     */
+    public function testUneCaseGardeeAUnRepereDeDanger(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'repere-danger@example.com');
+        $partie = $this->lancer($joueur);
+
+        $zone = null;
+        foreach ($partie->getVille()->getZones() as $candidate) {
+            if (!$candidate->porteLaVille()) {
+                $zone = $candidate;
+                break;
+            }
+        }
+        self::assertInstanceOf(Zone::class, $zone);
+        $zone->decouvrir()->installerUneBande(5);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        self::assertCount(1, $crawler->filter('.repere--danger'));
+        self::assertStringContainsString('tenue par des brigands', (string) $crawler->filter('.case-iso a[aria-label*="brigands"]')->attr('aria-label'));
+    }
+
+    /**
      * Le détail d'une case semée affiche son étape (semis, pousse, récolte ou
      * repos) — la régression à surveiller est une erreur Twig si l'étape
      * n'est pas calculable.

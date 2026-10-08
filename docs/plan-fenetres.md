@@ -223,3 +223,14 @@ n'est pas coupé) puis, au clavier, Tab jusqu'à une case (elle se teinte), Entr
 focus entre sur le titre), Échap (il revient sur la case) ; au lecteur d'écran
 (VoiceOver), vérifier que le titre est annoncé à l'ouverture. Ces essais clôturent le
 chantier.
+
+### Suite — les panneaux de bâtiment, au navigateur *(non publié)*
+
+Les écrans ont été revus un à un dans un vrai navigateur (extension Claude in Chrome, `http://localhost`) : le
+« non vérifié » ci-dessus tient toujours pour le mobile et le lecteur d'écran, plus pour le bureau. Ce passage a
+trouvé ce que les tests ne voient pas : un **défilement horizontal** dans la Résidence (une infobulle invisible
+qui occupait de la place), des **infobulles recouvertes** par leurs voisines animées, des **glyphes débordant**
+de leur plaque. Le panneau d'une fenêtre porte maintenant `overflow-x: hidden` en garde-fou. Détail dans
+[`interface.md`](interface.md) (« Infobulles », « L'en-tête d'un bâtiment ») et dans le journal
+([`phases-livrees.md`](phases-livrees.md), § 5.16).
+

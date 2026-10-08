@@ -25,16 +25,18 @@ use Doctrine\ORM\EntityManagerInterface;
  *   les ressources d'un seul et voir lesquels aboutissent.
  * - **Les pièces n'entrent qu'à l'achèvement.** C'est la règle des champs :
  *   rien ne rentre hors de la récolte.
- * - **Un seul ordre à la fois.** L'Atelier est un lieu, pas une file d'attente,
- *   et c'est ce qui donne son coût d'opportunité à la fabrication — tisser,
- *   c'est ne pas cuire.
+ * - **Un seul ordre à la fois, par travailleur.** Un poste n'est pas une file
+ *   d'attente, et c'est ce qui donne son coût d'opportunité à la fabrication —
+ *   tisser, c'est ne pas cuire avec ces mains-là. Un bâtiment mène autant
+ *   d'ordres de front que de travailleurs en poste (`postesDe()`), chacun avec
+ *   sa consigne ; un bâtiment désert garde un poste, mais ne fonctionne pas.
  * - **Le niveau ouvre les recettes et la taille des ordres** (doc 01) : la
  *   complexité de l'artisanat croît avec le bâtiment, et un grand atelier
  *   travaille par plus gros lots.
  *
  * Le **rythme** vient des bras et des chefs, par le canal habituel
- * (`EffetDeChef::qualiteDeDirection()`) : un Atelier désert met deux fois plus
- * de temps, sans jamais s'arrêter — « rien ne s'éteint faute d'employés ».
+ * (`EffetDeChef::qualiteDeDirection()`) : un Atelier au complet mais sans chef
+ * met deux fois plus de temps ; **sans aucun travailleur, il ne fonctionne pas.**
  */
 final readonly class Fabrication
 {
@@ -54,9 +56,24 @@ final readonly class Fabrication
      *
      * @throws FabricationImpossible
      */
-    public function lancer(GameSave $partie, Recette $recette, int $lots): OrdreDeFabrication
+    public function lancer(GameSave $partie, Recette $recette, int $lots, ?int $poste = null): OrdreDeFabrication
     {
-        $ordre = $this->engager($partie, $recette, $lots);
+        $ville = $partie->getVille();
+        $type = $recette->batiment();
+
+        // Le joueur ne choisit pas son travailleur : l'ouvrage va au premier poste libre. Un travailleur sous
+        // consigne permanente est **réservé** à elle — il n'est pas disponible pour un ordre à la main.
+        $poste ??= $this->premierPosteLibre($partie, $type);
+
+        if (null === $poste) {
+            throw new FabricationImpossible(\sprintf('Tous les travailleurs de votre %s ont déjà un ouvrage en cours ou une consigne permanente.', $type->libelle()));
+        }
+
+        if (null !== $ville->consigneDeFabricationDe($type, $poste)) {
+            throw new FabricationImpossible(\sprintf('Ce travailleur de votre %s est réservé à sa consigne permanente.', $type->libelle()));
+        }
+
+        $ordre = $this->engager($partie, $recette, $lots, $poste);
 
         $this->entityManager->persist($ordre);
         $this->entityManager->flush();
@@ -70,7 +87,7 @@ final readonly class Fabrication
      *
      * @throws FabricationImpossible
      */
-    private function engager(GameSave $partie, Recette $recette, int $lots, ?OrdreDeFabrication $aReemployer = null): OrdreDeFabrication
+    private function engager(GameSave $partie, Recette $recette, int $lots, int $poste = 1, ?OrdreDeFabrication $aReemployer = null): OrdreDeFabrication
     {
         $ville = $partie->getVille();
         $type = $recette->batiment();
@@ -80,8 +97,20 @@ final readonly class Fabrication
             throw new FabricationImpossible(\sprintf('Il vous faut %s %s pour cela.', TypeDeBatiment::Forge === $type ? 'une' : 'un', $type->libelle()));
         }
 
-        if (null !== $ville->ordreDeFabricationDe($type) && $ville->ordreDeFabricationDe($type) !== $aReemployer) {
-            throw new FabricationImpossible(\sprintf('Votre %s a déjà un ouvrage en cours.', $type->libelle()));
+        // Sans un seul travailleur, le bâtiment ne fonctionne pas : on n'engage pas des matières
+        // dans un ouvrage que personne ne mènera.
+        if (Effectifs::rendementDe($ville, $type, $partie->getCycle()) < 1) {
+            throw new FabricationImpossible(\sprintf('Votre %s n\'a aucun travailleur : il ne fonctionne pas.', $type->libelle()));
+        }
+
+        if ($poste < 1 || $poste > self::postesDe($partie, $type)) {
+            throw new FabricationImpossible(\sprintf('Votre %s n\'a pas de travailleur au poste %d.', $type->libelle(), $poste));
+        }
+
+        $enCours = $ville->ordreDeFabricationDe($type, $poste);
+
+        if (null !== $enCours && $enCours !== $aReemployer) {
+            throw new FabricationImpossible(\sprintf('Ce travailleur de votre %s a déjà un ouvrage en cours.', $type->libelle()));
         }
 
         if ($recette->niveauRequis() > $atelier->getNiveau()) {
@@ -115,7 +144,7 @@ final readonly class Fabrication
             return $aReemployer->repartir($recette, $lots);
         }
 
-        $ordre = new OrdreDeFabrication($ville, $recette, $lots);
+        $ordre = new OrdreDeFabrication($ville, $recette, $lots, $poste);
         $ville->ajouterOrdreDeFabrication($ordre);
 
         return $ordre;
@@ -133,23 +162,64 @@ final readonly class Fabrication
     {
         $messages = [];
 
+        $ville = $partie->getVille();
+
         foreach (Recette::batimentsQuiFabriquent() as $type) {
-            $messages = [...$messages, ...$this->avancerUnAtelier($partie, $type)];
+            // Chaque travailleur mène son ouvrage : on parcourt les postes qui ont un ordre ou une
+            // consigne, y compris ceux que la ville ne tient plus (un ordre en cours va à son terme).
+            $postes = array_unique([
+                ...array_map(static fn ($o): int => $o->getPoste(), $ville->ordresDeFabricationDe($type)),
+                ...array_map(static fn ($c): int => $c->getPoste(), $ville->consignesDeFabricationDe($type)),
+            ]);
+            sort($postes);
+
+            foreach ($postes as $poste) {
+                $messages = [...$messages, ...$this->avancerUnPoste($partie, $type, $poste)];
+            }
         }
 
         return $messages;
     }
 
     /**
-     * @return list<string>
+     * Le premier travailleur disponible : sans ouvrage en cours **et** sans consigne permanente (qui le
+     * réserve). Nul quand tous sont pris.
      */
-    private function avancerUnAtelier(GameSave $partie, TypeDeBatiment $type): array
+    private function premierPosteLibre(GameSave $partie, TypeDeBatiment $type): ?int
     {
         $ville = $partie->getVille();
-        $ordre = $ville->ordreDeFabricationDe($type);
+
+        for ($poste = 1; $poste <= self::postesDe($partie, $type); ++$poste) {
+            if (null === $ville->ordreDeFabricationDe($type, $poste) && null === $ville->consigneDeFabricationDe($type, $poste)) {
+                return $poste;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Le nombre de travailleurs qui tiennent un atelier, donc d'ordres qu'il mène de front.
+     * Au moins un poste est compté : l'atelier désert garde sa place, mais ne fonctionne pas
+     * (0 %), et `engager()` refuse alors tout ordre.
+     */
+    public static function postesDe(GameSave $partie, TypeDeBatiment $type): int
+    {
+        $repartition = Effectifs::repartir($partie->getVille(), $partie->getCycle());
+
+        return max(1, $repartition[$type->value]['affectes'] ?? 0);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function avancerUnPoste(GameSave $partie, TypeDeBatiment $type, int $poste): array
+    {
+        $ville = $partie->getVille();
+        $ordre = $ville->ordreDeFabricationDe($type, $poste);
 
         if (null === $ordre) {
-            return $this->tenterLaConsigne($partie, $type)['messages'];
+            return $this->tenterLaConsigne($partie, $type, $poste)['messages'];
         }
 
         // La recette est passée : un Brasseur presse la bière, pas le papyrus.
@@ -184,8 +254,8 @@ final readonly class Fabrication
         // ferait perdre une quinzaine à chaque ouvrage. Elle **réemploie la
         // ligne** de l'ordre livré, jamais une nouvelle : Doctrine insérant
         // avant de supprimer, une suppression suivie d'une insertion dans la
-        // même quinzaine ferait sauter l'unicité par bâtiment.
-        $relance = $this->tenterLaConsigne($partie, $type, $ordre);
+        // même quinzaine ferait sauter l'unicité par poste.
+        $relance = $this->tenterLaConsigne($partie, $type, $poste, $ordre);
 
         // Sans consigne pour le reprendre, l'ordre livré quitte l'atelier.
         if (!$relance['reprise']) {
@@ -208,21 +278,21 @@ final readonly class Fabrication
      *
      * @return array{messages: list<string>, reprise: bool}
      */
-    private function tenterLaConsigne(GameSave $partie, TypeDeBatiment $type, ?OrdreDeFabrication $aReemployer = null): array
+    private function tenterLaConsigne(GameSave $partie, TypeDeBatiment $type, int $poste = 1, ?OrdreDeFabrication $aReemployer = null): array
     {
         $ville = $partie->getVille();
-        $consigne = $ville->consigneDeFabricationDe($type);
+        $consigne = $ville->consigneDeFabricationDe($type, $poste);
 
         if (null === $consigne) {
             return ['messages' => [], 'reprise' => false];
         }
 
         try {
-            $this->engager($partie, $consigne->getRecette(), $consigne->getLots(), $aReemployer);
+            $this->engager($partie, $consigne->getRecette(), $consigne->getLots(), $poste, $aReemployer);
         } catch (FabricationImpossible $empechement) {
             return [
                 'messages' => $consigne->signalerLAttente()
-                    ? [\sprintf('%s s\'arrête : %s', $type->libelle(), lcfirst($empechement->getMessage()))]
+                    ? [\sprintf('%s s\'arrête : %s', $poste > 1 ? \sprintf('%s (poste %d)', $type->libelle(), $poste) : $type->libelle(), lcfirst($empechement->getMessage()))]
                     : [],
                 'reprise' => false,
             ];
@@ -230,16 +300,17 @@ final readonly class Fabrication
 
         $attendait = $consigne->estEnAttenteDeMatieres();
         $consigne->reprendre();
+        $nom = $poste > 1 ? \sprintf('%s (poste %d)', $type->libelle(), $poste) : $type->libelle();
 
         $messages = [\sprintf(
             '%s se remet à %s.',
-            $type->libelle(),
+            $nom,
             $consigne->getRecette()->libelle(),
         )];
 
         return [
             'messages' => $attendait
-                ? [\sprintf('%s reprend son ouvrage.', $type->libelle()), ...$messages]
+                ? [\sprintf('%s reprend son ouvrage.', $nom), ...$messages]
                 : $messages,
             'reprise' => true,
         ];

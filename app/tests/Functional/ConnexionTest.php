@@ -12,6 +12,26 @@ final class ConnexionTest extends WebTestCase
 {
     private const string MOT_DE_PASSE = 'Ouadi-Hammamat-1194';
 
+    /**
+     * Les pages de compte partagent une tablette et un pictogramme propre à chacune : le titre est
+     * dans la tablette, et le décor (la ville) n'est jamais nécessaire — il est masqué aux
+     * lecteurs d'écran. Si l'icône d'une page ne désignait aucun fichier, elle disparaîtrait
+     * sans erreur.
+     */
+    public function testLesPagesDeCompteSontDesTablettesAIcone(): void
+    {
+        $client = static::createClient();
+
+        foreach (['/connexion' => 'faveur', '/inscription' => 'habitants', '/mot-de-passe-oublie' => 'enigme'] as $adresse => $icone) {
+            $crawler = $client->request('GET', $adresse);
+
+            self::assertResponseIsSuccessful($adresse);
+            self::assertCount(1, $crawler->filter('.auth-tablette h1'), $adresse);
+            self::assertGreaterThan(0, $crawler->filter('.auth-tablette img[src*="/images/interface/'.$icone.'"]')->count(), $adresse);
+            self::assertSame('true', $crawler->filter('.auth-decor')->attr('aria-hidden'), $adresse);
+        }
+    }
+
     public function testLaPageDeCompteExigeUneConnexion(): void
     {
         $client = static::createClient();

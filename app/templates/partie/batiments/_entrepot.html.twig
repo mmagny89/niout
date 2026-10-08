@@ -17,15 +17,21 @@
 {{ sous.panneau('entrepot', 'reserve', true) }}
 
 <h3 class="mt-8 text-xl text-encre-900">La réserve</h3>
+{% import 'partie/batiments/_tuile_de_bord.html.twig' as tuiles %}
+<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-3xl">
+    {{ tuiles.tuile('chantier', 'Matériaux et ouvrages', ville.materiaux,
+        ville.materiaux, ville.plafondDesMateriaux, ville.materiauxPresqueSatures,
+        'sur ' ~ ville.plafondDesMateriaux ~ ' que l\'Entrepôt peut tenir',
+        'Toutes les ressources d\'une même réserve se partagent ce plafond. Au-delà, ce qui rentre se perd.') }}
+    {{ tuiles.tuile('amelioration', 'Place libre', max(0, ville.plafondDesMateriaux - ville.materiaux), null, null, ville.materiauxPresqueSatures,
+        'avant que le surplus ne se perde',
+        'Écoulez, offrez ou agrandissez l\'Entrepôt avant qu\'il ne soit plein.') }}
+</div>
 {{ include('partie/batiments/_reserve_visuelle.html.twig', {vue: reserveDesMateriaux}) }}
 
-<p class="mt-4 max-w-4xl text-sm {{ ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-    {{ ville.materiaux }} unités sur {{ ville.plafondDesMateriaux }}.
+<p class="mt-4 max-w-4xl text-sm text-encre-500">
     Les ressources d'une même réserve se partagent ce plafond : dix roseaux
     rangés, c'est dix de moins pour l'argile.
-    {% if ville.materiauxPresqueSatures %}
-        Au-delà, ce qui rentre se perd — écoulez, offrez, ou agrandissez.
-    {% endif %}
 </p>
     </div>
 
@@ -52,72 +58,82 @@
 {% if repartition is empty %}
     <p class="mt-4 text-sm text-encre-500">Vos réserves sont vides.</p>
 {% else %}
-    <div class="mt-4 overflow-x-auto">
-        <table class="w-full min-w-xl border-collapse text-sm">
-            <caption class="sr-only">Répartition des ressources entre ce qui est gardé et ce qui part au Marché</caption>
-            <thead>
-                <tr class="border-b border-ocre-500/30 text-left text-encre-500">
-                    <th scope="col" class="py-2 pr-4 font-medium">Ressource</th>
-                    <th scope="col" class="py-2 pr-4 font-medium">En réserve</th>
-                    <th scope="col" class="py-2 pr-4 font-medium">Cours</th>
-                    <th scope="col" class="py-2 pr-4 font-medium">Vous gardez</th>
-                    <th scope="col" class="py-2 font-medium">Part au Marché</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ligne in repartition %}
-                    <tr class="border-b border-ocre-500/15">
-                        <th scope="row" class="py-2 pr-4 text-left font-normal text-encre-900">
-                            <span class="flex items-center gap-2">
-                                {{ include('partie/_icone_ressource.html.twig', {ressource: ligne.ressource, taille: 40}) }}
-                                {{ ligne.ressource.libelle }}
-                            </span>
-                        </th>
-                        <td class="py-2 pr-4 text-encre-600" data-chiffres>{{ ligne.enReserve }}</td>
-                        <td class="py-2 pr-4 text-encre-600" data-chiffres>{{ ligne.prix }} deben</td>
-                        <td class="py-2 pr-4">
-                            {% if partie.estEnCours %}
-                                <form method="post" action="{{ path('app_partie_reserve', {id: partie.id}) }}"
-                                      class="flex items-baseline gap-2">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('reserve') }}">
-                                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
-                                    <input type="hidden" name="ressource" value="{{ ligne.ressource.value }}">
-                                    <label for="garde-{{ ligne.ressource.value }}" class="sr-only">
-                                        Unités de {{ ligne.ressource.libelle }} à garder
-                                    </label>
-                                    <input type="number" id="garde-{{ ligne.ressource.value }}" name="quantite"
-                                           value="{{ ligne.seuil is null ? ligne.enReserve : ligne.seuil }}" min="0"
-                                           class="w-24 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
-                                           data-chiffres>
-                                    <button type="submit"
-                                            class="rounded-sm border border-lapis-500/50 px-2 py-1 text-sm text-lapis-600 hover:bg-lapis-500/10">
-                                        Fixer
-                                    </button>
-                                    {% if ligne.seuil is not null %}
-                                        <button type="submit" name="retirer" value="1"
-                                                class="rounded-sm border border-ocre-500/40 px-2 py-1 text-sm text-encre-600 hover:bg-ocre-500/10">
-                                            Tout garder
-                                        </button>
-                                    {% endif %}
-                                </form>
-                            {% else %}
-                                <span data-chiffres>{{ ligne.seuil is null ? 'tout' : ligne.seuil }}</span>
-                            {% endif %}
-                        </td>
-                        <td class="py-2 {{ ligne.surplus > 0 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-                            {% if ligne.seuil is null %}
-                                rien
-                            {% elseif ligne.surplus > 0 %}
-                                {{ ligne.surplus }}
-                            {% else %}
-                                rien ne dépasse
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    {# Une carte par ressource : sa réserve en barre (ce qu'on garde en lapis, ce qui
+       part en terre cuite), et un curseur pour fixer le seuil. Le champ numérique reste
+       la source soumise ; la phrase dit en lettres combien partira. #}
+    <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
+        {% for ligne in repartition %}
+            {% set garde = ligne.seuil is null ? ligne.enReserve : min(ligne.seuil, ligne.enReserve) %}
+            {% set partGardee = ligne.enReserve > 0 ? (garde * 100 / ligne.enReserve)|round : 100 %}
+            <li class="carte-vivante flex flex-col gap-2 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+                <div class="flex items-center gap-3">
+                    {{ include('partie/_icone_ressource.html.twig', {ressource: ligne.ressource, taille: 52}) }}
+                    <div class="min-w-0 flex-1">
+                        <p class="font-display text-lg leading-tight text-encre-900">{{ ligne.ressource.libelle|capitalize }}</p>
+                        <p class="text-xs text-encre-500" data-chiffres>{{ ligne.enReserve }} en réserve</p>
+                    </div>
+                    <span class="inline-flex items-center gap-1 text-sm text-encre-600" data-chiffres
+                          data-infobulle="Le cours de base : ce que rapporte une unité vendue.">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 18}) }}
+                        {{ ligne.prix }}
+                    </span>
+                </div>
+
+                {# En cours de partie, la jauge du curseur dit déjà ce qu'on garde et ce qui part : la barre fixe la
+                   doublerait. Elle ne reste que sur une partie échouée, où il n'y a plus de curseur. #}
+                {% if not partie.estEnCours %}
+                    <div class="flex h-2.5 w-full overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                        <div class="h-full bg-lapis-500" style="width: {{ partGardee }}%"></div>
+                        <div class="h-full bg-terre-500" style="width: {{ 100 - partGardee }}%"></div>
+                    </div>
+                {% endif %}
+
+                {% if partie.estEnCours %}
+                    <form method="post" action="{{ path('app_partie_reserve', {id: partie.id}) }}"
+                          class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2"
+                          data-controller="curseur" data-curseur-mode-value="part" data-curseur-reserve-value="{{ ligne.enReserve }}"
+                          data-curseur-seuil-value="{{ ligne.enReserve }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('reserve') }}">
+                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                        <input type="hidden" name="ressource" value="{{ ligne.ressource.value }}">
+                        {# Le champ numérique doublait la jauge : la jauge seule se règle, au doigt comme au clavier
+                           (flèches). Le champ caché reste la valeur soumise. #}
+                        <input type="hidden" id="garde-{{ ligne.ressource.value }}" name="quantite"
+                               value="{{ ligne.seuil is null ? ligne.enReserve : ligne.seuil }}" min="0"
+                               data-curseur-target="champ">
+                        {% if ligne.enReserve > 0 %}
+                            <label for="garde-curseur-{{ ligne.ressource.value }}" class="flex basis-full items-baseline justify-between text-sm text-encre-600">
+                                <span>Je garde</span>
+                                <strong class="font-display text-xl font-normal text-encre-900" data-curseur-target="nombre" data-chiffres>{{ ligne.seuil is null ? ligne.enReserve : ligne.seuil }}</strong>
+                            </label>
+                            <input type="range" id="garde-curseur-{{ ligne.ressource.value }}" data-curseur-target="piste"
+                                   data-action="input->curseur#deplacer" class="curseur basis-full">
+                        {% endif %}
+                        <p class="min-w-0 flex-1 text-xs {{ ligne.surplus > 0 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres data-curseur-target="surplus">
+                            {% if ligne.seuil is null %}rien ne partira
+                            {% elseif ligne.surplus > 0 %}{{ ligne.surplus }} partiront au Marché
+                            {% else %}rien ne partira{% endif %}
+                        </p>
+                        {% if ligne.seuil is not null %}
+                            <button type="submit" name="retirer" value="1"
+                                    class="rounded-sm border border-ocre-500/40 px-3 py-1 text-sm text-encre-600 transition hover:bg-ocre-500/10">
+                                Tout garder
+                            </button>
+                        {% endif %}
+                        <button type="submit"
+                                class="rounded-sm border border-lapis-500/50 px-3 py-1 text-sm text-lapis-600 transition hover:bg-lapis-500/10">
+                            Fixer
+                        </button>
+                    </form>
+                {% else %}
+                    <p class="text-sm text-encre-600" data-chiffres>
+                        On garde {{ ligne.seuil is null ? 'tout' : ligne.seuil }} ·
+                        {{ ligne.surplus > 0 ? ligne.surplus ~ ' partent au Marché' : 'rien ne part' }}
+                    </p>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
 {% endif %}
     </div>
 

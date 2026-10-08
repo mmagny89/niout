@@ -1,17 +1,41 @@
 {% extends 'base.html.twig' %}
 
-{# Gabarit partagé des pages de compte : connexion, inscription, mot de passe. #}
+{# Gabarit partagé des pages de compte : connexion, inscription, mot de passe.
+
+   Une tablette et son décor : à gauche (sur grand écran seulement) la ville et son nom, à droite
+   le formulaire. Le décor est décoratif — rien de ce qu'il dit n'est nécessaire pour se connecter —
+   et disparaît sur téléphone, où le formulaire garde toute la place. Chaque page choisit son
+   pictogramme par le bloc `icone` (un nom d'usage, voir `partie/_pictogramme.html.twig`). #}
 
 {% block body %}
-    <section class="mx-auto w-full max-w-md px-5 py-14">
-        <h1 class="text-3xl text-encre-900">{% block titre_page %}{% endblock %}</h1>
+    <section class="mx-auto grid w-full max-w-4xl items-center gap-x-12 gap-y-8 px-5 py-14 lg:grid-cols-5">
+        <aside class="auth-decor hidden lg:col-span-2 lg:block" aria-hidden="true">
+            <img src="{{ asset('images/tuiles/ville.png') }}" alt="" class="auth-decor__ville mx-auto w-56 select-none">
+            <p class="mt-4 text-center font-display text-3xl text-terre-600">Niout</p>
+            <p class="mt-1 text-center text-sm text-encre-500">« la ville », en égyptien ancien.</p>
+            <ul class="mt-6 flex list-none justify-center gap-3 p-0">
+                <li>{{ include('partie/_pictogramme.html.twig', {nom: 'chantier', taille: 36}) }}</li>
+                <li>{{ include('partie/_pictogramme.html.twig', {nom: 'echange', taille: 36}) }}</li>
+                <li>{{ include('partie/_pictogramme.html.twig', {nom: 'enigme', taille: 36}) }}</li>
+                <li>{{ include('partie/_pictogramme.html.twig', {nom: 'faveur', taille: 36}) }}</li>
+            </ul>
+        </aside>
 
-        {% block intro %}{% endblock %}
+        <div class="auth-tablette rounded-sm border border-ocre-500/30 bg-sable-50 p-7 shadow-sm lg:col-span-3">
+            <div class="flex items-center gap-3">
+                {{ include('partie/_pictogramme.html.twig', {nom: block('icone')|trim, taille: 44}) }}
+                <h1 class="text-3xl text-encre-900">{% block titre_page %}{% endblock %}</h1>
+            </div>
 
-        <div class="mt-7">
-            {% block formulaire %}{% endblock %}
+            {% block intro %}{% endblock %}
+
+            <div class="mt-7">
+                {% block formulaire %}{% endblock %}
+            </div>
+
+            {% block dessous %}{% endblock %}
         </div>
-
-        {% block dessous %}{% endblock %}
     </section>
 {% endblock %}
+
+{% block icone %}pharaon{% endblock %}

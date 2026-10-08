@@ -4,7 +4,10 @@
 
 {% block body %}
     <section class="mx-auto w-full max-w-2xl px-5 py-14">
-        <h1 class="text-3xl text-encre-900">Mon compte</h1>
+        <div class="flex items-center gap-3">
+            {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 44}) }}
+            <h1 class="text-3xl text-encre-900">Mon compte</h1>
+        </div>
 
         {% if not user.verified %}
             <div role="status"
@@ -33,9 +36,9 @@
                 <dt class="text-sm text-encre-500">Adresse vérifiée</dt>
                 <dd class="text-sm">
                     {% if user.verified %}
-                        <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-lapis-600">Oui</span>
+                        <span class="signal signal--bon inline-flex">{{ include('partie/_pictogramme.html.twig', {nom: 'faveur', taille: 18}) }} Oui</span>
                     {% else %}
-                        <span class="rounded-sm bg-ocre-400/20 px-2 py-0.5 text-ocre-600">En attente</span>
+                        <span class="signal signal--neutre inline-flex">{{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 18}) }} En attente</span>
                     {% endif %}
                 </dd>
             </div>
@@ -47,7 +50,9 @@
             </div>
         </dl>
 
-        <div class="mt-8 rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-4">
+        <div class="carte-vivante mt-8 flex items-center gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 px-5 py-4">
+            <img src="{{ asset('images/tuiles/ville.png') }}" alt="" aria-hidden="true" class="w-20 shrink-0 select-none">
+            <div>
             <p class="text-sm text-encre-600">
                 {% if partiesEnCours > 0 %}
                     Vous menez {{ partiesEnCours }} partie{{ partiesEnCours > 1 ? 's' : '' }} en cours.
@@ -56,9 +61,11 @@
                 {% endif %}
             </p>
             <a href="{{ path('app_parties') }}"
-               class="mt-3 inline-block rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 no-underline hover:bg-terre-600">
+               class="bouton-offrande group mt-3 inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 no-underline hover:bg-terre-600">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 22, classe: 'bouton-offrande__image'}) }}
                 Mes parties
             </a>
+            </div>
         </div>
 
 
@@ -93,7 +100,8 @@
                     {{ form_row(formulaireDeMotDePasse.plainPassword.second) }}
 
                     <button type="submit"
-                            class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+                            class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 22, classe: 'bouton-offrande__image'}) }}
                         Changer le mot de passe
                     </button>
                 {{ form_end(formulaireDeMotDePasse) }}

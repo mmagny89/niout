@@ -783,10 +783,13 @@ class City
         return $this->consignesDeFabrication;
     }
 
-    public function consigneDeFabricationDe(TypeDeBatiment $batiment): ?ConsigneDeFabrication
+    /**
+     * La consigne que tient un poste (un travailleur) d'un atelier.
+     */
+    public function consigneDeFabricationDe(TypeDeBatiment $batiment, int $poste = 1): ?ConsigneDeFabrication
     {
         foreach ($this->consignesDeFabrication as $consigne) {
-            if ($consigne->getBatiment() === $batiment) {
+            if ($consigne->getBatiment() === $batiment && $consigne->getPoste() === $poste) {
                 return $consigne;
             }
         }
@@ -795,15 +798,31 @@ class City
     }
 
     /**
-     * Pose ou réoriente la consigne d'un atelier. Une seule par bâtiment — on
-     * réoriente le même atelier, on n'en empile pas les ordres.
+     * Toutes les consignes d'un atelier, par poste.
+     *
+     * @return list<ConsigneDeFabrication>
      */
-    public function consigner(Recette $recette, int $lots): ConsigneDeFabrication
+    public function consignesDeFabricationDe(TypeDeBatiment $batiment): array
     {
-        $consigne = $this->consigneDeFabricationDe($recette->batiment());
+        $consignes = array_values(array_filter(
+            $this->consignesDeFabrication->toArray(),
+            static fn (ConsigneDeFabrication $c): bool => $c->getBatiment() === $batiment,
+        ));
+        usort($consignes, static fn (ConsigneDeFabrication $a, ConsigneDeFabrication $b): int => $a->getPoste() <=> $b->getPoste());
+
+        return $consignes;
+    }
+
+    /**
+     * Pose ou réoriente la consigne d'un poste d'atelier. Une seule par poste — on
+     * réoriente le même travailleur, on n'empile pas ses ordres.
+     */
+    public function consigner(Recette $recette, int $lots, int $poste = 1): ConsigneDeFabrication
+    {
+        $consigne = $this->consigneDeFabricationDe($recette->batiment(), $poste);
 
         if (null === $consigne) {
-            $consigne = new ConsigneDeFabrication($this, $recette, $lots);
+            $consigne = new ConsigneDeFabrication($this, $recette, $lots, $poste);
             $this->consignesDeFabrication->add($consigne);
 
             return $consigne;
@@ -915,18 +934,34 @@ class City
     }
 
     /**
-     * Un atelier ne tient qu'un ordre à la fois : c'est un lieu, pas une file.
-     * L'Atelier et la Forge en ont chacun le leur.
+     * L'ordre que mène un poste (un travailleur) d'un atelier : chaque travailleur n'en tient
+     * qu'un à la fois, c'est un poste, pas une file. L'Atelier et la Forge ont chacun les leurs.
      */
-    public function ordreDeFabricationDe(TypeDeBatiment $batiment): ?OrdreDeFabrication
+    public function ordreDeFabricationDe(TypeDeBatiment $batiment, int $poste = 1): ?OrdreDeFabrication
     {
         foreach ($this->ordresDeFabrication as $ordre) {
-            if ($ordre->getBatiment() === $batiment) {
+            if ($ordre->getBatiment() === $batiment && $ordre->getPoste() === $poste) {
                 return $ordre;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Tous les ordres en cours d'un atelier, par poste.
+     *
+     * @return list<OrdreDeFabrication>
+     */
+    public function ordresDeFabricationDe(TypeDeBatiment $batiment): array
+    {
+        $ordres = array_values(array_filter(
+            $this->ordresDeFabrication->toArray(),
+            static fn (OrdreDeFabrication $o): bool => $o->getBatiment() === $batiment,
+        ));
+        usort($ordres, static fn (OrdreDeFabrication $a, OrdreDeFabrication $b): int => $a->getPoste() <=> $b->getPoste());
+
+        return $ordres;
     }
 
     /**
