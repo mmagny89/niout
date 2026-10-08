@@ -6,6 +6,7 @@ individuelles, nommees d'apres l'enumeration du jeu :
 - luxe.jpeg       (3x2)  -> app/assets/images/ressources/<ressource>.webp
 - craft.jpeg      (5x3)  -> app/assets/images/ressources/<ressource>.webp
 - dieux.jpeg      (4x2)  -> app/assets/images/dieux/<divinite>.webp
+- interface.jpeg  (4x4)  -> app/assets/images/interface/<nom>.webp  (pictogrammes de l'interface)
 
 Les ressources sont des objets poses sur une plaque, sur fond uni : fond retire par
 remplissage depuis les bords, **meme boite de decoupe pour toute une planche** — la
@@ -21,6 +22,7 @@ RACINE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SOURCES = os.path.join(RACINE, 'sources-sprites')
 RESSOURCES = os.path.join(RACINE, 'app/assets/images/ressources')
 DIEUX = os.path.join(RACINE, 'app/assets/images/dieux')
+INTERFACE = os.path.join(RACINE, 'app/assets/images/interface')
 MARQUE = (255, 0, 255)
 LARGEUR_MAX = 256
 
@@ -102,6 +104,43 @@ def decouper_dieux() -> None:
     print('dieux', len(DIVINITES))
 
 
+# Pictogrammes de l'interface, de gauche a droite et de haut en bas. Les noms disent
+# l'usage, pas le dessin : c'est ce que le gabarit demande (`icone_d_interface('deben')`).
+PICTOGRAMMES = [
+    'deben', 'quinzaine', 'prestige', 'faveur',
+    'habitants', 'chantier', 'amelioration', 'chef',
+    'expedition', 'troupe', 'echange', 'offrande',
+    'enigme', 'danger', 'fievre', 'pharaon',
+]
+# La planche n'occupe que le centre de l'image : marge a gauche/en haut et pas de la grille.
+INTERFACE_ORIGINE = (222, 44)
+INTERFACE_PAS = (237, 172)
+INTERFACE_LARGEUR_MAX = 192
+
+
+def decouper_interface() -> None:
+    """Meme boite de decoupe pour tous : un pictogramme garde la taille que lui a
+    donnee la planche, un petit (le deben) ne se met pas a la taille d'un grand."""
+    os.makedirs(INTERFACE, exist_ok=True)
+    planche = Image.open(os.path.join(SOURCES, 'interface.jpeg')).convert('RGB')
+    ox, oy = INTERFACE_ORIGINE
+    pw, ph = INTERFACE_PAS
+    icones = {}
+    for i, nom in enumerate(PICTOGRAMMES):
+        col, ligne = i % 4, i // 4
+        cellule = planche.crop((ox + col * pw, oy + ligne * ph, ox + (col + 1) * pw, oy + (ligne + 1) * ph))
+        icones[nom] = detourer(cellule, 28)
+    boites = [boite(i) for i in icones.values()]
+    cadre = (min(b[0] for b in boites), min(b[1] for b in boites), max(b[2] for b in boites), max(b[3] for b in boites))
+    for nom, im in icones.items():
+        im = im.crop(cadre)
+        if im.width > INTERFACE_LARGEUR_MAX:
+            im = im.resize((INTERFACE_LARGEUR_MAX, round(im.height * INTERFACE_LARGEUR_MAX / im.width)), Image.LANCZOS)
+        im.save(os.path.join(INTERFACE, nom + '.webp'), quality=92, method=6)
+    print('interface', len(icones), 'pictogrammes, cadre', cadre)
+
+
 if __name__ == '__main__':
     decouper_ressources()
     decouper_dieux()
+    decouper_interface()

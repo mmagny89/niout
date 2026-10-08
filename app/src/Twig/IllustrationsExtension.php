@@ -12,7 +12,9 @@ use Twig\Attribute\AsTwigFunction;
  *
  * - `image_de_ressource(r)` → `images/ressources/<valeur>.webp` — une `Ressource`,
  *   une `Recette` (leurs valeurs coïncident : `poterie`, `pain`…) ou une chaîne ;
- * - `image_de_divinite(d)` → `images/dieux/<valeur>.webp`.
+ * - `image_de_divinite(d)` → `images/dieux/<valeur>.webp` ;
+ * - `image_d_interface(nom)` → `images/interface/<nom>.webp` — les pictogrammes de
+ *   l'interface (deben, habitants, danger…), nommés d'après leur **usage**.
  *
  * **Une image manquante n'est pas une erreur** : la fonction rend `null` et le
  * gabarit s'en passe — le deben, le poisson, les dattes, les outils et les armes
@@ -37,6 +39,12 @@ final readonly class IllustrationsExtension
     public function imageDeDivinite(mixed $divinite): ?string
     {
         return $this->chemin('dieux', $divinite);
+    }
+
+    #[AsTwigFunction('image_d_interface')]
+    public function imageDInterface(mixed $nom): ?string
+    {
+        return $this->chemin('interface', $nom);
     }
 
     private function chemin(string $dossier, mixed $valeur): ?string

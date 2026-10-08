@@ -1,0 +1,9 @@
+{# Un pictogramme de l'interface (`app/assets/images/interface/`), décoratif : le
+   libellé est toujours écrit à côté. `nom` : l'usage (`deben`, `habitants`,
+   `danger`…) ; `taille` : largeur en pixels (22 par défaut) ; `classe` : classes
+   en plus (animation, par exemple). Sans image, rien n'est rendu et la ligne
+   reste juste. #}
+{% set image = image_d_interface(nom) %}
+{% if image %}<img src="{{ asset(image) }}" alt="" decoding="async"
+                   class="pictogramme inline-block shrink-0 select-none align-middle {{ classe|default('') }}"
+                   style="width: {{ taille|default(22) }}px; height: auto;">{% endif %}
