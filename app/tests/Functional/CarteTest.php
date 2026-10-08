@@ -88,6 +88,44 @@ final class CarteTest extends WebTestCase
     }
 
     /**
+     * Le détail d'une case range ce qu'on y fait en onglets — gisements, champs, envois —, **seulement
+     * ceux qui servent** : une case sous le brouillard n'a qu'une chose à offrir et pas de barre ;
+     * une terre cultivable a ses champs. Onglets et panneaux s'apparient par rang, dans le même ordre.
+     */
+    public function testLeDetailDUneCaseRangeSesActionsEnOngletsUtiles(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'case-onglets@example.com');
+        $partie = $this->lancer($joueur);
+
+        $zones = [];
+        foreach ($partie->getVille()->getZones() as $candidate) {
+            if (!$candidate->porteLaVille()) {
+                $zones[] = $candidate;
+            }
+        }
+        $fertile = $zones[0];
+        $fertile->definirTerrain(TypeDeTerrain::Fertile)->poserUnContenu(ContenuDeZone::ChampEligible)->decouvrir();
+        $brouillard = $zones[1];
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $fertile->getX(), $fertile->getY()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertResponseIsSuccessful();
+        $onglets = $crawler->filter('nav[aria-label="Sections de la case"] [role="tab"]')->each(static fn ($n): string => (string) $n->attr('aria-controls'));
+        $panneaux = $crawler->filter('[role="tabpanel"]')->each(static fn ($n): string => (string) $n->attr('id'));
+        self::assertNotEmpty($onglets, 'Une terre cultivable a des onglets.');
+        self::assertSame($onglets, $panneaux, 'Onglets et panneaux s\'apparient dans le même ordre.');
+        self::assertStringContainsString('champs', implode(' ', $onglets));
+        self::assertCount(1, $crawler->filter('[data-forme="feuille"]'), 'La forme est portée par le contenu.');
+        self::assertCount(0, $crawler->filter('turbo-frame#fenetre[data-forme]'), 'Turbo ne recopie pas les attributs d\'un cadre : la forme n\'y vit pas.');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $brouillard->getX(), $brouillard->getY()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $crawler->filter('[role="tablist"]'), 'Une seule chose à offrir : pas de barre d\'onglets.');
+        self::assertSelectorTextContains('turbo-frame#fenetre', 'Envoyer un éclaireur');
+    }
+
+    /**
      * Une case tenue par des brigands se repère **sur la carte**, avant même d'ouvrir son détail.
      */
     public function testUneCaseGardeeAUnRepereDeDanger(): void
