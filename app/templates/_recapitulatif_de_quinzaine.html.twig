@@ -1,0 +1,67 @@
+{# Le récapitulatif d'une quinzaine : ce qui a changé, d'un coup d'œil, puis le journal.
+
+   Il remplace la pile de messages d'une quinzaine — dix lignes d'égale importance ne
+   disent pas si le tour a été bon. Les **écarts** (bourse, vivres, habitants, matériaux,
+   renommée) sont en tête, en pastilles qui apparaissent l'une après l'autre ; le
+   **journal** est rangé par catégorie dessous, replié quand il est long.
+
+   Reçoit `recap` (voir `RecapitulatifDeQuinzaine::composer()`). Se ferme au geste, comme
+   tout message : rien ne s'efface tout seul. Les chiffres et le journal sont écrits en
+   toutes lettres — les pictogrammes et l'animation n'y ajoutent que du confort. #}
+{% set nombre = 0 %}
+{% for groupe in recap.groupes %}{% set nombre = nombre + groupe.textes|length %}{% endfor %}
+<section role="status" aria-label="Récapitulatif de la quinzaine" data-controller="flash"
+         class="recapitulatif pointer-events-auto w-full max-w-xl overflow-hidden rounded-sm border border-ocre-500/40 bg-sable-50 shadow-xl">
+    <header class="flex items-center gap-3 border-b border-ocre-500/25 bg-ocre-300/15 px-4 py-3">
+        {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 44, classe: 'recapitulatif__lune'}) }}
+        <div class="min-w-0 flex-1">
+            <h2 class="font-display text-xl leading-tight text-encre-900">Une quinzaine passe</h2>
+            <p class="text-sm text-encre-600">Nous voici en {{ recap.date }}.</p>
+        </div>
+        <button type="button" data-action="flash#fermer"
+                class="shrink-0 rounded-sm px-2 text-2xl leading-none text-encre-500 hover:text-terre-600"
+                aria-label="Fermer le récapitulatif">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </header>
+
+    <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
+        {% if recap.ecarts is not empty %}
+            <ul class="flex list-none flex-wrap gap-2 p-0" aria-label="Ce qui a changé">
+                {% for ecart in recap.ecarts %}
+                    <li class="case-vivante ecart {{ ecart.ecart > 0 ? 'ecart--hausse' : 'ecart--baisse' }}"
+                        style="--i: {{ loop.index0 + 3 }}"
+                        data-infobulle="{{ ecart.libelle }} : {{ ecart.valeur }} en tout, {{ ecart.ecart > 0 ? 'soit ' ~ ecart.ecart ~ ' de plus' : 'soit ' ~ (-ecart.ecart) ~ ' de moins' }} depuis la quinzaine dernière.">
+                        {{ include('partie/_pictogramme.html.twig', {nom: ecart.icone, taille: 30}) }}
+                        <span class="text-lg font-semibold" data-chiffres>{{ ecart.ecart > 0 ? '+' : '−' }}{{ ecart.ecart|abs }}</span>
+                        <span class="text-xs">{{ ecart.libelle }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-sm text-encre-600">Rien n'a bougé : ni la bourse, ni les greniers, ni la population.</p>
+        {% endif %}
+
+        {% if recap.groupes is not empty %}
+            <details class="mt-4 group" {{ nombre <= 6 ? 'open' }}>
+                <summary class="inline-flex list-none items-center gap-2 rounded-sm px-1 py-1 text-sm text-encre-600 hover:bg-ocre-300/20">
+                    <span aria-hidden="true" class="transition-transform group-open:rotate-90">▸</span>
+                    Le journal de la quinzaine ({{ nombre }} ligne{{ nombre > 1 ? 's' : '' }})
+                </summary>
+                <ul class="mt-2 flex list-none flex-col gap-3 p-0">
+                    {% for groupe in recap.groupes %}
+                        <li class="flex items-start gap-3">
+                            {{ include('partie/_pictogramme.html.twig', {nom: groupe.icone, taille: 28, classe: 'mt-0.5'}) }}
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-medium text-encre-900">{{ groupe.libelle }}</p>
+                                <ul class="mt-0.5 list-none space-y-1 p-0 text-sm text-encre-600">
+                                    {% for texte in groupe.textes %}<li>{{ texte }}</li>{% endfor %}
+                                </ul>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </details>
+        {% endif %}
+    </div>
+</section>

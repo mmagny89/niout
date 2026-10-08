@@ -47,6 +47,25 @@ final readonly class PassageDeCycle
      */
     public function passer(GameSave $partie): array
     {
+        return array_map(
+            static fn (array $evenement): string => $evenement['texte'],
+            $this->passerEnDetail($partie),
+        );
+    }
+
+    /**
+     * Comme `passer()`, mais chaque ligne dit d'où elle vient : le récapitulatif de la
+     * quinzaine les range et leur donne un pictogramme.
+     *
+     * @return list<array{categorie: CategorieDEvenement, texte: string}>
+     */
+    public function passerEnDetail(GameSave $partie): array
+    {
+        $de = static fn (CategorieDEvenement $categorie, array $messages): array => array_map(
+            static fn (string $texte): array => ['categorie' => $categorie, 'texte' => $texte],
+            array_values($messages),
+        );
+
         // La saison du cycle qu'on vient de vivre, pas celle du suivant : les
         // travaux, les trajets et les récoltes ont eu lieu pendant l'ancien.
         // **Sans Nil, il n'y a ni crue ni saison d'inondation** (doc 02) : la
@@ -70,24 +89,24 @@ final readonly class PassageDeCycle
         $subsistance = null;
 
         $evenements = [
-            ...$fievre,
-            ...$paie->messages,
-            ...$this->explorations->avancerDUnCycle($partie),
-            ...$this->chantiers->avancerDUnCycle($partie, $saison),
+            ...$de(CategorieDEvenement::Sante, $fievre),
+            ...$de(CategorieDEvenement::Bourse, $paie->messages),
+            ...$de(CategorieDEvenement::Expeditions, $this->explorations->avancerDUnCycle($partie)),
+            ...$de(CategorieDEvenement::Chantiers, $this->chantiers->avancerDUnCycle($partie, $saison)),
             // Les ateliers avancent avec les chantiers : même nature d'ouvrage,
             // et leurs pièces doivent être au stock avant que la ville ne mange
             // — le pain et la bière sont des vivres.
-            ...$this->fabrication->avancerDUnCycle($partie),
+            ...$de(CategorieDEvenement::Ateliers, $this->fabrication->avancerDUnCycle($partie)),
             // Les caravanes en chemin se rapprochent : ouvrir une route prend
             // le temps du trajet, comme une expédition.
-            ...$this->commerce->avancerDUnCycle($partie),
-            ...$this->recoltes->avancerDUnCycle($partie, $paie, $this->mecontentement->rendementEnCentiemes($partie)),
+            ...$de(CategorieDEvenement::Commerce, $this->commerce->avancerDUnCycle($partie)),
+            ...$de(CategorieDEvenement::Vivres, $this->recoltes->avancerDUnCycle($partie, $paie, $this->mecontentement->rendementEnCentiemes($partie))),
         ];
 
         // Après la récolte, jamais avant : la ville mange ce que la quinzaine
         // vient d'apporter.
         $subsistance = $this->subsistance->avancerDUnCycle($partie);
-        $evenements = [...$evenements, ...$subsistance['evenements']];
+        $evenements = [...$evenements, ...$de(CategorieDEvenement::Vivres, $subsistance['evenements'])];
 
         // Le jour de marché, une fois la ville nourrie : les habitants
         // achètent ce qu'on leur a laissé à l'étal. **Après la subsistance,
@@ -98,12 +117,12 @@ final readonly class PassageDeCycle
         // Il consomme le débouché de la quinzaine qui se solde, comme les
         // ventes faites à la main pendant celle-ci : c'est la même place, elle
         // ne se sature qu'une fois.
-        $evenements = [...$evenements, ...$this->marche->tenirLEtal($partie)];
+        $evenements = [...$evenements, ...$de(CategorieDEvenement::Commerce, $this->marche->tenirLEtal($partie))];
 
         // L'impôt du mois, une fois la quinzaine payée et nourrie : il
         // renfloue la caisse pour la suivante, il ne rembourse pas celle qui
         // se solde — sans quoi une paie impayée serait rattrapée après coup.
-        $evenements = [...$evenements, ...$this->impots->percevoir($partie)];
+        $evenements = [...$evenements, ...$de(CategorieDEvenement::Bourse, $this->impots->percevoir($partie))];
 
         // Les deux causes se rejoignent ici, et nulle part ailleurs : on ne
         // mange pas, ou l'on n'est pas payé. Le mécontentement pèse ensuite
@@ -113,20 +132,20 @@ final readonly class PassageDeCycle
         $this->mecontentement->enregistrer($partie, $subsistance['famine'], !$paie->toutEstPaye());
         $evenements = [
             ...$evenements,
-            ...$this->mecontentement->raconter($partie),
-            ...$this->departs->avancerDUnCycle($partie),
+            ...$de(CategorieDEvenement::Habitants, $this->mecontentement->raconter($partie)),
+            ...$de(CategorieDEvenement::Habitants, $this->departs->avancerDUnCycle($partie)),
             // Les dieux comptent les quinzaines depuis la dernière offrande.
             // Après le reste : ce qu'on a produit et mangé cette quinzaine ne
             // dépend pas d'eux, seule la suivante s'en ressentira.
-            ...$this->negligence->avancerDUnCycle($partie),
+            ...$de(CategorieDEvenement::Dieux, $this->negligence->avancerDUnCycle($partie)),
             // Puis ce que les dieux font d'eux-mêmes, une fois leur palier à
             // jour : bénédiction d'un dévoué, revers d'un hostile.
-            ...$this->providence->avancerDUnCycle($partie),
+            ...$de(CategorieDEvenement::Dieux, $this->providence->avancerDUnCycle($partie)),
             // Et ce que la renommée attire : un marchand qui vient disputer
             // une route (doc 08).
-            ...$this->rivaux->avancerDUnCycle($partie),
+            ...$de(CategorieDEvenement::Rivaux, $this->rivaux->avancerDUnCycle($partie)),
             // Et ce que le pharaon réclame pour ses propres chantiers.
-            ...$this->quetes->avancerDUnCycle($partie),
+            ...$de(CategorieDEvenement::Royaume, $this->quetes->avancerDUnCycle($partie)),
         ];
 
         $partie->avancerDUnCycle();
@@ -140,7 +159,7 @@ final readonly class PassageDeCycle
         // quinzaine qui s'ouvre qui voit le nouveau roi, pas celle qui se
         // solde sous l'ancien (doc 14, lot 11.1).
         foreach ($this->successions->avenementAuCycle($partie) as $annonce) {
-            $evenements[] = $annonce;
+            $evenements[] = ['categorie' => CategorieDEvenement::Royaume, 'texte' => $annonce];
         }
 
         // Tout ce qui se compte à l'année se résout ici, une fois la bascule
@@ -153,19 +172,19 @@ final readonly class PassageDeCycle
             // tirage, d'un cran, dans un sens ou dans l'autre (lot 6.3).
             $crue = EffetDeFaveur::crueInflechie($partie->getVille(), $this->crues->tirer());
             $partie->annoncerLaCrue($crue);
-            $evenements[] = \sprintf('La crue de cette année est %s. %s', $crue->libelle(), $crue->presage());
+            $evenements[] = ['categorie' => CategorieDEvenement::Calendrier, 'texte' => \sprintf('La crue de cette année est %s. %s', $crue->libelle(), $crue->presage())];
         }
 
         // Le bilan des habitants, lui, tombe partout : on naît et l'on meurt
         // au Sinaï comme au Delta. Le sortir du bloc de la crue est ce qui
         // évite qu'une région sans fleuve cesse de vieillir.
         if ($partie->dateDeJeu()->ouvreUneAnnee()) {
-            $evenements = [...$evenements, ...$this->demographie->bilanDeLAnnee($partie)];
+            $evenements = [...$evenements, ...$de(CategorieDEvenement::Habitants, $this->demographie->bilanDeLAnnee($partie))];
         }
 
         // En dernier : la mission peut s'être accomplie dans cette quinzaine,
         // et il faut que tout ce qui la mesure soit déjà à jour.
-        $evenements = [...$evenements, ...$this->achevement->verifier($partie)];
+        $evenements = [...$evenements, ...$de(CategorieDEvenement::Royaume, $this->achevement->verifier($partie))];
 
         $this->entityManager->flush();
 
