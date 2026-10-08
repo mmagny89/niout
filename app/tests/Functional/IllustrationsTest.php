@@ -120,4 +120,19 @@ final class IllustrationsTest extends WebTestCase
         self::assertNull($extension->imageDInterface('../../.env'));
         self::assertNull($extension->imageDInterface('inconnu'));
     }
+
+    /**
+     * Le sprite d'un bâtiment est celui de son palier : les planches n'en livrent que quatre, et un
+     * bâtiment de niveau cinq reprend le quatrième. Un type qui ne désigne aucun fichier ne rend rien.
+     */
+    public function testLeSpriteDUnBatimentSuitSonPalier(): void
+    {
+        $extension = static::getContainer()->get(IllustrationsExtension::class);
+
+        self::assertSame('images/ville/batiments/grenier_1.webp', $extension->imageDeBatiment(TypeDeBatiment::Grenier, 1));
+        self::assertSame('images/ville/batiments/grenier_4.webp', $extension->imageDeBatiment(TypeDeBatiment::Grenier, 5));
+        self::assertSame('images/ville/batiments/grenier_1.webp', $extension->imageDeBatiment('grenier', 0), 'Un niveau nul reprend le premier palier.');
+        self::assertNull($extension->imageDeBatiment('inconnu', 1));
+        self::assertNull($extension->imageDeBatiment('../../.env', 1));
+    }
 }

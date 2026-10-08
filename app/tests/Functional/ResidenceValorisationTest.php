@@ -71,6 +71,34 @@ final class ResidenceValorisationTest extends WebTestCase
     }
 
     /**
+     * Ce qu'il reste à bâtir se lit en cartes : le sprite du bâtiment, son coût en pastilles (avec les
+     * illustrations des ressources), et ce qu'on peut engager passe avant ce qui est bloqué.
+     */
+    public function testLesBatimentsABatirSontDesCartesAvecSpriteEtCoutEnPastilles(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'valorisation-a-batir@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
+        self::assertResponseIsSuccessful();
+
+        $cartes = $crawler->filter('#residence-section-batiments ul.grid')->last()->filter('li.carte-vivante');
+        self::assertGreaterThan(3, $cartes->count(), 'Une ville neuve a de quoi bâtir.');
+        self::assertCount($cartes->count(), $cartes->filter('img[src*="/images/ville/batiments/"]'), 'Chaque carte porte le sprite de son bâtiment.');
+        self::assertGreaterThan(0, $cartes->first()->filter('ul[aria-label="Ce que coûte le chantier"] li')->count());
+
+        // Réalisables d'abord : une fois un bloqué rencontré, plus aucun réalisable ne suit.
+        $boutons = $cartes->each(static fn ($carte): bool => $carte->filter('form[action$="/batir"]')->count() > 0);
+        $bloque = false;
+        foreach ($boutons as $realisable) {
+            if (!$realisable) {
+                $bloque = true;
+            }
+            self::assertFalse($bloque && $realisable, 'Ce qu\'on peut engager passe avant ce qui est bloqué.');
+        }
+    }
+
+    /**
      * Un bâtiment dressé n'est plus « à bâtir » : il porte son bouton
      * « Améliorer » sur sa propre carte.
      */
@@ -84,9 +112,10 @@ final class ResidenceValorisationTest extends WebTestCase
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
 
-        $dresses = $crawler->filter('#residence-section-batiments ul')->eq(0)->text();
-        $aBatir = $crawler->filter('#residence-section-batiments ul')->eq(1)->text();
+        $dresses = $crawler->filter('#residence-section-batiments ul.grid')->eq(0)->text();
+        $aBatir = $crawler->filter('#residence-section-batiments ul.grid')->eq(1)->text();
 
+        // Les listes de **cartes**, pas la rangée de pastilles du bilan qui les précède.
         self::assertStringContainsString('Grenier', $dresses);
         self::assertStringContainsString('Améliorer', $dresses);
         self::assertStringNotContainsString('Grenier', $aBatir, 'Déjà dressé : il ne reste pas à bâtir.');

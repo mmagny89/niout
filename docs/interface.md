@@ -732,3 +732,12 @@ forme : ce que fait le rôle (`RoleDExploration::mission()`), le bouton, puis le
 Cas essayés en local sur une vraie partie : case sous le brouillard, case gardée par des brigands,
 terre fertile vide (semis de deux cultures), case à fouiller, gisement épuisé, éclaireur et
 expédition armée envoyés.
+
+**Résidence, section Bâtiments** : `image_de_batiment(type, niveau)` (extension Twig) rend le sprite du
+palier (`min(niveau, 4)`), le même que sur la ville vue d'en haut. Les dressés montrent leur niveau en
+crans (losanges, autant que le bâtiment peut en atteindre) et leur rendement en jauge ; le coût, partagé
+avec « Améliorer » par `_offre_de_construction.html.twig`, est en pastilles — chaque ressource avec son
+illustration, plus la durée. **À bâtir : réalisables d'abord**, bloqués ensuite (grisés, motif en pastille
+rouge) : une liste qui commence par ce qui est bloqué cache ce qu'on vient chercher. Une ville qui a tout
+dressé le dit au lieu d'afficher une liste vide, et son bilan ne passe pas au rouge. Les tests désignent
+les listes de cartes par `ul.grid`, pas par leur rang (la rangée de pastilles du bilan les précède).

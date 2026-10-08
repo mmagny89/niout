@@ -111,6 +111,11 @@ la lecture de référence pour comprendre le code.
   culture (qu'on change sur place), l'étape de son cycle, qui y travaille — et un seul bouton pour
   semer. Chaque expédition est une carte (ce que fait le rôle, ce qu'elle coûte).
 
+- **La liste des bâtiments de la Résidence se lit d'un coup d'œil** : chaque bâtiment, dressé ou à
+  bâtir, montre son sprite ; le niveau est en crans, le rendement en jauge, et le coût du chantier en
+  pastilles avec l'illustration de chaque ressource. Un bilan (dressés, à engager, en attente) ouvre la
+  section, et ce qu'on peut engager passe avant ce qui est bloqué.
+
 ### Corrigé
 
 - **On ne propose plus d'envoyer un prospecteur sur la ville** : le bouton « ce sol pourrait rendre

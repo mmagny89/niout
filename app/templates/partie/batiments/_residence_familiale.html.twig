@@ -661,36 +661,68 @@
     </div>
 
 {{ sous.panneau('residence', 'batiments', false) }}
-<h3 class="mt-8 text-xl text-encre-900">Bâtiments dressés</h3>
+{% set offresNeuves = offres|filter(offre => not offre.estDejaDressé) %}
+{% set realisables = offresNeuves|filter(offre => offre.estRealisable)|length %}
+
+{# Le bilan en trois pastilles : ce qui est debout, ce qu'on peut engager maintenant, ce qui attend. #}
+<ul class="mt-6 flex list-none flex-wrap gap-2 p-0" data-chiffres>
+    <li class="signal signal--bon">{{ include('partie/_pictogramme.html.twig', {nom: 'chantier', taille: 20}) }} {{ batimentsDresses|length }} dressé{{ batimentsDresses|length > 1 ? 's' : '' }}</li>
+    {% if offresNeuves is not empty %}
+        {# Rouge seulement quand il reste à bâtir **et** que rien ne peut être engagé. #}
+        <li class="signal {{ realisables > 0 ? 'signal--neutre' : 'signal--mauvais' }}">{{ include('partie/_pictogramme.html.twig', {nom: 'amelioration', taille: 20}) }} {{ realisables }} à engager</li>
+        <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 20}) }} {{ offresNeuves|length - realisables }} en attente</li>
+    {% endif %}
+</ul>
+
+<h3 class="mt-6 text-xl text-encre-900">Bâtiments dressés</h3>
 <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
     {% for batiment in batimentsDresses %}
-        <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
-            <div class="flex flex-wrap items-baseline justify-between gap-3">
-                <h3 class="font-display text-lg text-encre-900">{{ batiment.type.libelle }}</h3>
-                <span class="text-sm text-encre-500" data-chiffres>
-                    Niveau {{ batiment.niveau }} sur {{ batiment.niveauMaxAtteignable }}
-                </span>
-            </div>
-            <p class="mt-2 text-sm text-encre-600">{{ batiment.type.fonction }}</p>
-
-            {# Une jauge, pas un recrutement : les ouvriers se puisent
-               dans le vivier d'actifs (doc 05), le joueur ne les
-               embauche pas un par un. #}
-            {% set effectif = effectifs[batiment.type.value] %}
-            <p class="mt-2 text-sm {{ effectif.rendement < 100 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-                {% if effectif.requis == 0 %}
-                    Sans chef : {{ effectif.rendement }} % de rendement.
-                {% else %}
-                    {{ effectif.affectes }} / {{ effectif.requis }} travailleurs ·
-                    {{ effectif.rendement }} % de rendement
+        {% set effectif = effectifs[batiment.type.value] %}
+        {% set sprite = image_de_batiment(batiment.type, batiment.niveau) %}
+        <li class="carte-vivante case-vivante flex flex-col rounded-sm border border-ocre-500/30 bg-sable-50 p-4" style="--i: {{ loop.index0 }}">
+            <div class="flex items-start gap-3">
+                {# Le sprite du palier, le même que sur la ville vue d'en haut. #}
+                {% if sprite %}
+                    <img src="{{ asset(sprite) }}" alt="" loading="lazy" decoding="async" class="w-24 shrink-0 select-none">
                 {% endif %}
-            </p>
+                <div class="min-w-0 flex-1">
+                    <h3 class="font-display text-lg leading-tight text-encre-900">{{ batiment.type.libelle }}</h3>
+                    {# Le niveau en crans : autant que le bâtiment peut en atteindre, allumés jusqu'au sien. #}
+                    <p class="mt-1 flex items-center gap-2 text-sm text-encre-500" data-chiffres
+                       data-infobulle="Niveau {{ batiment.niveau }} sur {{ batiment.niveauMaxAtteignable }}.">
+                        <span class="flex gap-0.5" aria-hidden="true">
+                            {% for cran in 1..batiment.niveauMaxAtteignable %}
+                                <span class="size-2.5 rotate-45 {{ cran <= batiment.niveau ? 'bg-terre-500' : 'border border-ocre-500/50' }}"></span>
+                            {% endfor %}
+                        </span>
+                        Niveau {{ batiment.niveau }} sur {{ batiment.niveauMaxAtteignable }}
+                    </p>
+                    <p class="mt-2 text-sm text-encre-600">{{ batiment.type.fonction }}</p>
+                </div>
+            </div>
 
-            {# Monter d'un niveau : le geste vit sur la carte du bâtiment, pas
-               dans « À bâtir », qui ne propose que ce qui n'existe pas encore. #}
+            {# Une jauge, pas un recrutement : les ouvriers se puisent dans le vivier d'actifs
+               (doc 05), le joueur ne les embauche pas un par un. #}
+            <div class="mt-3" data-chiffres>
+                <div class="h-2 w-full overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                    <div class="jauge h-full rounded-full {{ effectif.rendement < 100 ? 'bg-terre-600' : 'bg-linear-to-r from-lapis-500 to-lapis-400' }}"
+                         style="width: {{ min(100, effectif.rendement) }}%"></div>
+                </div>
+                <p class="mt-1 text-sm {{ effectif.rendement < 100 ? 'text-terre-600' : 'text-encre-500' }}">
+                    {% if effectif.requis == 0 %}
+                        Sans chef : {{ effectif.rendement }} % de rendement.
+                    {% else %}
+                        {{ effectif.affectes }} / {{ effectif.requis }} travailleurs ·
+                        {{ effectif.rendement }} % de rendement
+                    {% endif %}
+                </p>
+            </div>
+
+            {# Monter d'un niveau : le geste vit sur la carte du bâtiment, pas dans « À bâtir »,
+               qui ne propose que ce qui n'existe pas encore. #}
             {% set offre = offres|filter(o => o.type == batiment.type)|first %}
             {% if offre %}
-                <div class="mt-4 border-t border-ocre-500/20 pt-3">
+                <div class="mt-auto border-t border-ocre-500/20 pt-3">
                     {{ include('partie/batiments/_offre_de_construction.html.twig') }}
                 </div>
             {% endif %}
@@ -711,27 +743,45 @@
     {% endif %}
 </p>
 
-{# Ce qui est déjà dressé n'est plus « à bâtir » : sa montée de niveau vit sur
-   sa propre carte, plus haut (« Bâtiments dressés »). #}
-{% set offresNeuves = offres|filter(offre => not offre.estDejaDressé) %}
+{# Ce qui est déjà dressé n'est plus « à bâtir » : sa montée de niveau vit sur sa propre carte,
+   plus haut (« Bâtiments dressés »). Ce qu'on peut engager passe d'abord : une liste qui commence
+   par ce qui est bloqué cache ce qu'on est venu chercher. #}
+{% set ordonnees = offresNeuves|filter(o => o.estRealisable)|merge(offresNeuves|filter(o => not o.estRealisable)) %}
+{% if offresNeuves is empty %}
+    <p class="mt-4 flex items-center gap-3 rounded-sm border border-dashed border-ocre-500/50 px-4 py-4 text-sm text-encre-600">
+        {{ include('partie/_pictogramme.html.twig', {nom: 'faveur', taille: 36}) }}
+        Tout est dressé : il ne reste qu'à monter les niveaux, sur les cartes ci-dessus.
+    </p>
+{% endif %}
 <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
-    {% for offre in offresNeuves %}
-        <li class="flex flex-col rounded-sm border p-4
+    {% for offre in ordonnees %}
+        {% set sprite = image_de_batiment(offre.type, 1) %}
+        <li class="carte-vivante flex flex-col rounded-sm border p-4
                    {{ offre.estRealisable
                        ? 'border-ocre-500/30 bg-sable-50'
                        : 'border-ocre-500/20 bg-sable-50/40' }}">
-            <div class="flex flex-wrap items-baseline justify-between gap-3">
-                <h3 class="font-display text-lg {{ offre.estRealisable ? 'text-encre-900' : 'text-encre-500' }}">
-                    {{ offre.type.libelle }}
-                </h3>
-                <span class="text-xs uppercase tracking-wide text-encre-500">
-                    {{ offre.libelleDeLAction }}
-                </span>
+            <div class="flex items-start gap-3">
+                {% if sprite %}
+                    <img src="{{ asset(sprite) }}" alt="" loading="lazy" decoding="async"
+                         class="w-20 shrink-0 select-none {{ offre.estRealisable ? '' : 'opacity-50 grayscale' }}">
+                {% endif %}
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+                        <h3 class="font-display text-lg leading-tight {{ offre.estRealisable ? 'text-encre-900' : 'text-encre-500' }}">
+                            {{ offre.type.libelle }}
+                        </h3>
+                        <span class="text-xs uppercase tracking-wide text-encre-500">
+                            {{ offre.libelleDeLAction }}
+                        </span>
+                    </div>
+                    <p class="mt-1 text-sm text-encre-600">{{ offre.type.fonction }}</p>
+                </div>
             </div>
 
-            <p class="mt-2 text-sm text-encre-600">{{ offre.type.fonction }}</p>
-
-            {{ include('partie/batiments/_offre_de_construction.html.twig') }}
+            {# `mt-auto` : les coûts et le bouton se calent en bas de la carte, alignés d'une carte à l'autre. #}
+            <div class="mt-auto">
+                {{ include('partie/batiments/_offre_de_construction.html.twig') }}
+            </div>
         </li>
     {% endfor %}
 </ul>
