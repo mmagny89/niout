@@ -15,6 +15,8 @@
     materiaux: 'bg-ocre-600', precieux: 'bg-lapis-500', ouvrages: 'bg-or-400',
     autres: 'bg-encre-500'
 } %}
+{# Une famille de matériaux n'est pas une ressource : elle emprunte un pictogramme. #}
+{% set pictos = {materiaux: 'chantier', precieux: 'pharaon', ouvrages: 'amelioration'} %}
 <div class="mt-4">
     <div class="flex flex-wrap items-baseline justify-between gap-2 text-sm" data-chiffres>
         <span class="{{ vue.saturee ? 'text-terre-600' : 'text-encre-600' }}">
@@ -27,9 +29,14 @@
     <div class="mt-2 flex flex-wrap gap-1 rounded-sm border {{ vue.saturee ? 'border-terre-500/50' : 'border-ocre-500/30' }} bg-sable-50 p-2"
          role="img"
          aria-label="Réserve : {{ vue.occupation }} sur {{ vue.plafond }}, {{ vue.libre }} de libre">
+        {# Les cases se posent l'une après l'autre (`--i`, serré : soixante cases ne doivent
+           pas durer deux secondes). #}
+        {% set rang = 0 %}
         {% for groupe in vue.groupes %}
             {% for _ in 1..groupe.cases %}
-                <span class="h-4 w-4 rounded-xs {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}" aria-hidden="true"></span>
+                {% set rang = rang + 1 %}
+                <span class="case-vivante case-vivante--serree h-4 w-4 rounded-xs {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}"
+                      style="--i: {{ rang }}" aria-hidden="true"></span>
             {% endfor %}
         {% endfor %}
         {% set vides = vue.casesEnTout - vue.casesPleines %}
@@ -48,6 +55,11 @@
                 <li>
                     <span class="flex items-center gap-2">
                         <span class="inline-block h-3 w-3 rounded-xs {{ couleurs[groupe.cle] ?? 'bg-encre-500' }}" aria-hidden="true"></span>
+                        {% if image_de_ressource(groupe.cle) %}
+                            {{ include('partie/_icone_ressource.html.twig', {ressource: groupe.cle, taille: 30}) }}
+                        {% elseif pictos[groupe.cle] is defined %}
+                            {{ include('partie/_pictogramme.html.twig', {nom: pictos[groupe.cle], taille: 26}) }}
+                        {% endif %}
                         <span class="text-encre-900">{{ groupe.libelle }}</span>
                         <span class="text-encre-600">{{ groupe.quantite }}</span>
                     </span>

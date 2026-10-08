@@ -24,17 +24,15 @@
    d'écran, la phrase dessous dit la même chose. #}
 <h3 class="mt-8 text-xl text-encre-900">La place du jour</h3>
 
+{% import 'partie/batiments/_tuile_de_bord.html.twig' as tuiles %}
 <div class="mt-3">
-    <div class="flex flex-wrap gap-1 rounded-sm border border-ocre-500/30 bg-sable-50 p-2"
-         role="img"
-         aria-label="Débouché de la quinzaine : {{ jaugeDuMarche.vendu }} deben écoulés sur {{ jaugeDuMarche.plafond }}">
-        {% for _ in 1..jaugeDuMarche.casesEnTout %}
-            {% if loop.index <= jaugeDuMarche.casesVendues %}
-                <span class="h-4 w-4 rounded-xs bg-terre-400" aria-hidden="true"></span>
-            {% else %}
-                <span class="h-4 w-4 rounded-xs border border-dashed border-ocre-500/50" aria-hidden="true"></span>
-            {% endif %}
-        {% endfor %}
+    {# La place en jauge : pleine, il n'y a plus rien à écouler avant le prochain jour de
+       marché. Les chiffres sont écrits dessous et dans la tuile ; la jauge est décorative. #}
+    <div class="max-w-md">
+        {{ tuiles.tuile('echange', 'La place peut encore absorber', venteRestante ~ ' deben',
+            jaugeDuMarche.vendu, jaugeDuMarche.plafond, venteRestante == 0,
+            jaugeDuMarche.vendu ~ ' écoulés sur ' ~ jaugeDuMarche.plafond ~ ' cette quinzaine',
+            'Les gens de la ville et les voyageurs n\'achètent qu\'un montant par quinzaine. Pleine, la place rouvre au prochain jour de marché.') }}
     </div>
     <p class="mt-2 text-sm text-encre-600" data-chiffres>
         La place peut encore absorber
@@ -72,10 +70,11 @@
     </p>
     <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
         {% for lot in etal %}
-            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3">
+            <li class="carte-vivante rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3">
                 {% if partie.estEnCours %}
                     <form method="post" action="{{ path('app_partie_vendre', {id: partie.id}) }}"
-                          class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                          class="flex flex-wrap items-center gap-x-4 gap-y-2"
+                          data-controller="vente" data-vente-prix-value="{{ lot.prix }}" data-vente-max-value="{{ lot.maxVendable }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('vendre') }}">
                         <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                         <input type="hidden" name="ressource" value="{{ lot.ressource.value }}">
@@ -84,8 +83,11 @@
                             {{ include('partie/_icone_ressource.html.twig', {ressource: lot.ressource, taille: 44}) }}
                             {{ lot.ressource.libelle }}
                         </span>
-                        <span class="text-sm text-encre-500" data-chiffres>
-                            {{ lot.quantite }} en réserve · {{ lot.prix }} deben l'unité
+                        <span class="inline-flex items-center gap-1 text-sm text-encre-500" data-chiffres
+                              data-infobulle="{{ lot.quantite }} en réserve ; chaque unité se vend {{ lot.prix }} deben au prix que vous faites.">
+                            {{ lot.quantite }} en réserve ·
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 18}) }}
+                            {{ lot.prix }} l'unité
                         </span>
 
                         <span class="ml-auto flex items-center gap-2">
@@ -94,10 +96,19 @@
                             </label>
                             <input type="number" id="quantite-{{ lot.ressource.value }}" name="quantite"
                                    value="{{ max(1, lot.maxVendable) }}" min="1" max="{{ lot.quantite }}"
+                                   data-vente-target="quantite" data-action="input->vente#calculer"
                                    class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-2 text-sm text-encre-900"
                                    data-chiffres>
+                            <button type="button" data-action="vente#tout"
+                                    class="rounded-sm border border-ocre-500/40 px-2 py-2 text-xs text-encre-600 hover:bg-ocre-300/25"
+                                    data-infobulle="Remplit la plus grande quantité que la place absorbe encore.">
+                                Tout
+                            </button>
+                            <span class="min-w-20 text-right text-sm font-medium text-lapis-600" data-chiffres data-vente-target="gain"
+                                  data-infobulle="Ce que cette vente rapporterait. Le serveur plafonne selon la place restante."></span>
                             <button type="submit"
-                                    class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                    class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 20, classe: 'bouton-offrande__image'}) }}
                                 Écouler
                             </button>
                         </span>
@@ -147,16 +158,22 @@
 
     {% if partie.estEnCours %}
         <form method="post" action="{{ path('app_partie_train_de_vie', {id: partie.id}) }}"
-              class="mt-3 flex flex-wrap items-center gap-3">
+              class="mt-3 flex flex-wrap items-center gap-3"
+              data-controller="curseur" data-curseur-seuil-value="{{ margeQuiFache }}">
             <input type="hidden" name="_token" value="{{ csrf_token('train-de-vie') }}">
             <input type="hidden" name="onglet" value="{{ onglet.cle }}">
 
             <label for="marge" class="text-sm text-encre-600">Vos habitants paient</label>
             <input type="number" id="marge" name="marge" value="{{ ville.margeDuMarche }}"
                    min="{{ margeMinimale }}" max="{{ margeMaximale }}" step="5"
+                   data-curseur-target="champ" data-action="input->curseur#saisir"
                    class="w-24 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
                    data-chiffres>
-            <span class="text-sm text-encre-500">% du cours</span>
+            <span class="text-sm text-encre-500" data-curseur-target="valeur">% du cours</span>
+            {# Le curseur double le champ : lapis jusqu'au prix que la ville tolère, terre
+               cuite au-delà. Le champ reste la source, et le serveur borne. #}
+            <input type="range" aria-hidden="true" tabindex="-1" data-curseur-target="piste" data-action="input->curseur#deplacer"
+                   class="curseur basis-full max-w-md sm:basis-64">
 
             <button type="submit"
                     class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-lapis-600 hover:bg-lapis-500/10">

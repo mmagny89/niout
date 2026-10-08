@@ -16,6 +16,17 @@
 {{ sous.debut('port', partie.id, "Sections du Port", sections) }}
 {{ sous.panneau('port', 'peche', true) }}
 
+{# Le fleuve en bandeau : des vagues qui glissent, décoratives et éteintes si l'on a
+   demandé moins de mouvement. Le texte dessous dit tout ce qu'il y a à savoir. #}
+<div class="vagues mt-6 flex items-center gap-4 overflow-hidden rounded-sm border border-lapis-500/30 px-5 py-4"
+     data-infobulle="Le poisson est la seule ressource renouvelable : un banc se reconstitue d'une quinzaine à l'autre.">
+    {{ include('partie/_icone_ressource.html.twig', {ressource: 'poisson', taille: 64}) }}
+    <div>
+        <p class="font-display text-xl text-lapis-600">Les eaux poissonneuses</p>
+        <p class="text-sm text-encre-600">Une pêcherie ne s'épuise jamais.</p>
+    </div>
+</div>
+
 <p class="mt-6 max-w-4xl text-sm text-encre-500">
     Le niveau du Port élargit l'équipage d'une pêcherie et ce qu'elle rend.
     <strong class="text-encre-700">Le poisson ne s'épuise jamais</strong> : un
