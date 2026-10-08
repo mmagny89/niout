@@ -25,23 +25,23 @@
     <body class="{% block coque %}min-h-screen flex flex-col{% endblock %} bg-sable-100 text-encre-900 antialiased">
         {% block enTete %}
         <header class="border-b border-ocre-500/25 bg-sable-50">
-            <div class="mx-auto flex max-w-6xl items-baseline justify-between gap-4 px-5 py-4">
+            <div class="mx-auto flex max-w-6xl flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 py-4">
                 <a href="{{ path('app_accueil') }}"
                    class="flex items-baseline gap-2 font-display text-2xl tracking-wide text-terre-600 no-underline">
                     Niout
                     {# Le jeu est en bêta : il évolue, et les parties peuvent en pâtir. #}
                     <span class="rounded-sm border border-terre-500/50 px-1.5 py-0.5 font-sans text-[0.65rem] font-medium uppercase tracking-wider text-terre-600">Bêta</span>
                 </a>
-                <nav class="flex items-baseline gap-5 text-sm">
+                <nav class="flex flex-wrap items-baseline gap-x-5 gap-y-0 text-sm" aria-label="Navigation principale">
                     {% if app.user %}
                         {% if is_granted('ROLE_ADMIN') %}
-                            <a href="{{ path('app_admin') }}" class="text-encre-600 hover:text-terre-600">Administration</a>
+                            <a href="{{ path('app_admin') }}" class="inline-block py-1.5 text-encre-600 hover:text-terre-600">Administration</a>
                         {% endif %}
-                        <a href="{{ path('app_parties') }}" class="text-encre-700 hover:text-terre-600">Mes parties</a>
-                        <a href="{{ path('app_compte') }}" class="text-encre-600 hover:text-terre-600">Mon compte</a>
-                        <a href="{{ path('app_logout') }}" class="text-encre-600 hover:text-terre-600">Déconnexion</a>
+                        <a href="{{ path('app_parties') }}" class="inline-block py-1.5 text-encre-700 hover:text-terre-600">Mes parties</a>
+                        <a href="{{ path('app_compte') }}" class="inline-block py-1.5 text-encre-600 hover:text-terre-600">Mon compte</a>
+                        <a href="{{ path('app_logout') }}" class="inline-block py-1.5 text-encre-600 hover:text-terre-600">Déconnexion</a>
                     {% else %}
-                        <a href="{{ path('app_login') }}" class="text-encre-700 hover:text-terre-600">Connexion</a>
+                        <a href="{{ path('app_login') }}" class="inline-block py-1.5 text-encre-700 hover:text-terre-600">Connexion</a>
                         <a href="{{ path('app_register') }}"
                            class="rounded-sm bg-terre-500 px-3 py-1.5 font-medium text-sable-50 hover:bg-terre-600">
                             Créer un compte
@@ -102,7 +102,7 @@
                         { href: depot, texte: 'Code source' },
                     ] %}
                         <a href="{{ lien.href }}" target="_blank" rel="noopener"
-                           class="group inline-flex items-baseline gap-1 text-encre-500 hover:text-terre-600">
+                           class="group inline-flex items-baseline gap-1 py-1 text-encre-500 hover:text-terre-600">
                             {{ lien.texte }}
                             <svg class="size-3 shrink-0 self-center opacity-60" viewBox="0 0 20 20"
                                  fill="currentColor" aria-hidden="true">
