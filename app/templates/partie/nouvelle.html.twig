@@ -6,63 +6,87 @@
     <section class="mx-auto w-full max-w-5xl px-5 py-10">
         <h1 class="text-3xl text-encre-900">Commencer une partie</h1>
 
-        {# Deux colonnes dès que la place le permet : ce qu'on peut jouer à gauche,
-           le formulaire à droite. Un formulaire n'a pas de sous-onglets — ses
-           champs se remplissent d'un seul tenant. #}
-        <div class="mt-6 grid gap-6 lg:grid-cols-2">
-        <div class="grid content-start gap-4">
-            <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
-                <h2 class="text-base text-terre-600">Campagne</h2>
-                <p class="mt-2 text-sm text-encre-600">
-                    {% if campagneAchevee %}
-                        Les dix missions sont derrière vous. Vous pouvez rejouer
-                        celle que vous voulez.
-                    {% elseif legsEnDeben > 0 %}
-                        Le pharaon précédent vous lègue
-                        <span data-chiffres>{{ legsEnDeben }}</span> deben pour la suite.
-                    {% endif %}
-                    Dix missions dans l'ordre, à la difficulté croissante. Vous commencez
-                    à <strong>{{ premiereMission.ville }}</strong>, sur ordre de
-                    {{ premiereMission.pharaon }}.
-                </p>
-            </article>
-            <article class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
-                <h2 class="text-base text-terre-600">Aventure</h2>
-                <p class="mt-2 text-sm text-encre-600">
-                    <strong>{{ villeAventure }}</strong>, sur la longue durée, à travers
-                    plusieurs règnes. Vous réglez vous-même la difficulté et la taille
-                    de la carte.
-                </p>
-            </article>
-        </div>
-
-        </div>
-
-        <div {{ stimulus_controller('nouvelle-partie') }}>
+        <div class="mt-6" {{ stimulus_controller('nouvelle-partie') }}>
             {{ form_start(form) }}
                 {{ form_errors(form) }}
 
-                <div {{ stimulus_target('nouvelle-partie', 'mode') }}>
-                    {{ form_row(form.mode) }}
+                {# **Le choix du mode est le premier geste, et il se fait en voyant ce qu'on choisit** :
+                   deux cartes, chacune avec ce que le mode propose, plutôt qu'une liste de boutons
+                   radio sous deux paragraphes. Ce sont toujours les boutons radio du formulaire
+                   (champ `mode`, mêmes valeurs) — masqués à l'œil, atteints au clavier, et la carte
+                   cochée se dessine par `:has(:checked)`. #}
+                <fieldset {{ stimulus_target('nouvelle-partie', 'mode') }}>
+                    <legend class="mb-3 text-sm text-encre-500">{{ form.mode.vars.label }}</legend>
+                    {{ form_errors(form.mode) }}
+                    <div class="grid gap-4 md:grid-cols-2">
+                        {% for choix in form.mode %}
+                            {% set campagne = choix.vars.value == 'campagne' %}
+                            <label class="choix-mode carte-vivante flex cursor-pointer flex-col gap-2 rounded-sm border border-ocre-500/30 bg-sable-50 p-5"
+                                   for="{{ choix.vars.id }}">
+                                {{ form_widget(choix, {attr: {class: 'sr-only'}}) }}
+                                <span class="flex items-center gap-3">
+                                    {{ include('partie/_pictogramme.html.twig', {nom: campagne ? 'pharaon' : 'expedition', taille: 48}) }}
+                                    <span class="font-display text-xl text-terre-600">{{ choix.vars.label }}</span>
+                                    <span class="choix-mode__coche ml-auto" aria-hidden="true">✓</span>
+                                </span>
+                                <span class="text-sm text-encre-600">
+                                    {% if campagne %}
+                                        {% if campagneAchevee %}
+                                            Les dix missions sont derrière vous. Vous pouvez rejouer
+                                            celle que vous voulez.
+                                        {% elseif legsEnDeben > 0 %}
+                                            Le pharaon précédent vous lègue
+                                            <span data-chiffres>{{ legsEnDeben }}</span> deben pour la suite.
+                                        {% endif %}
+                                        Dix missions dans l'ordre, à la difficulté croissante. Vous commencez
+                                        à <strong>{{ premiereMission.ville }}</strong>, sur ordre de
+                                        {{ premiereMission.pharaon }}.
+                                    {% else %}
+                                        <strong>{{ villeAventure }}</strong>, sur la longue durée, à travers
+                                        plusieurs règnes. Vous réglez vous-même la difficulté et la taille
+                                        de la carte.
+                                    {% endif %}
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+
+                <div class="mt-6 max-w-xl">
+                    {{ form_row(form.nomDeFamille) }}
                 </div>
 
-                {{ form_row(form.nomDeFamille) }}
+                {% if form.mission is defined %}
+                    <div class="max-w-xl">{{ form_row(form.mission) }}</div>
+                {% endif %}
 
                 {# Réglages propres au mode Aventure. Sans JavaScript ils restent
                    visibles : le serveur les ignore simplement en campagne. #}
                 <fieldset class="mt-2 rounded-sm border border-ocre-500/30 bg-sable-50 p-5"
                           {{ stimulus_target('nouvelle-partie', 'reglagesAventure') }}>
                     <legend class="px-2 text-sm text-encre-500">Réglages du mode Aventure</legend>
-                    {{ form_row(form.difficulte) }}
-                    {{ form_row(form.tailleGrille) }}
+                    <div class="grid gap-x-8 md:grid-cols-2">
+                        <div>
+                            {{ form_row(form.difficulte, {attr: {'data-nouvelle-partie-target': 'difficulte', 'data-action': 'change->nouvelle-partie#reglages'}}) }}
+                            {# La difficulté en un coup d'œil : autant de dangers allumés que de crans. #}
+                            <p class="-mt-2 mb-4 flex items-center gap-1" aria-hidden="true" data-nouvelle-partie-target="danger"></p>
+                        </div>
+                        <div>
+                            {{ form_row(form.tailleGrille, {attr: {'data-nouvelle-partie-target': 'taille', 'data-action': 'change->nouvelle-partie#reglages'}}) }}
+                            {# L'aperçu du territoire : la grille choisie, en losanges. Décoratif. #}
+                            <div class="apercu-carte-cadre" aria-hidden="true">
+                                <div class="apercu-carte" data-nouvelle-partie-target="apercu"></div>
+                            </div>
+                        </div>
+                    </div>
                 </fieldset>
 
                 <button type="submit"
-                        class="mt-6 w-full rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+                        class="bouton-offrande group mt-6 inline-flex w-full items-center justify-center gap-2 rounded-sm bg-terre-500 px-4 py-3 font-medium text-sable-50 hover:bg-terre-600 md:w-auto md:px-10">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 26, classe: 'bouton-offrande__image'}) }}
                     Lancer la partie
                 </button>
             {{ form_end(form) }}
-        </div>
         </div>
 
         <p class="mt-6 text-sm text-encre-500">

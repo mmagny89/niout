@@ -77,7 +77,9 @@ final class GestionDesPartiesTest extends WebTestCase
 
         $crawler = $client->request('GET', '/');
 
-        $captures = $crawler->filter('main img');
+        // Les captures seulement : les pictogrammes décoratifs de la page (`alt=""`, le sens
+        // passe par le texte à côté) n'ont pas à être décrits.
+        $captures = $crawler->filter('main img[src*="/images/captures/"]');
         self::assertCount(3, $captures);
 
         $captures->each(function (Crawler $capture): void {

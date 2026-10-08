@@ -20,13 +20,20 @@
         {% import 'partie/_sous_onglets.html.twig' as sous %}
         {% set enCours = parties|filter(p => p.estEnCours) %}
         {% set closes = parties|filter(p => not p.estEnCours) %}
-        {% macro carte(partie, missionsParPartie) %}
-            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
-                    <div class="flex flex-wrap items-baseline justify-between gap-3">
+        {% macro carte(partie, missionsParPartie, rang) %}
+            <li class="carte-vivante case-vivante relative rounded-sm border border-ocre-500/30 bg-sable-50 p-5"
+                style="--i: {{ rang }}">
+                    {# La tuile de la ville, en filigrane : chaque partie a son visage. #}
+                    <span class="pointer-events-none absolute inset-0 overflow-hidden rounded-sm" aria-hidden="true">
+                        <img src="{{ asset('images/tuiles/ville.png') }}" alt=""
+                             class="partie-tuile absolute -right-6 -top-4 w-36 select-none opacity-90">
+                    </span>
+                    <div class="relative flex flex-wrap items-baseline justify-between gap-3 pr-28">
                         <h2 class="font-display text-xl text-encre-900">
                             {{ partie.ville.nom }}
                         </h2>
-                        <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-xs text-lapis-600">
+                        <span class="inline-flex items-center gap-1 rounded-full bg-lapis-500/10 py-0.5 pl-1 pr-2.5 text-xs text-lapis-600">
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 18}) }}
                             {{ partie.mode.libelle }}
                         </span>
                     </div>
@@ -36,24 +43,28 @@
                         · famille {{ partie.famille.nom }}
                     </p>
 
-                    <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-encre-600" data-chiffres>
-                        <div class="flex gap-1.5">
-                            <dt class="text-encre-500">Cycle</dt>
-                            <dd>{{ partie.cycle }}</dd>
+                    <dl class="relative mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-encre-600" data-chiffres>
+                        <div class="flex items-center gap-1.5" data-infobulle="Une quinzaine par cycle.">
+                            <dt class="sr-only">Cycle</dt>
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 24}) }}
+                            <dd><span class="text-encre-500">cycle</span> {{ partie.cycle }}</dd>
                         </div>
-                        <div class="flex gap-1.5">
-                            <dt class="text-encre-500">Deben</dt>
+                        <div class="flex items-center gap-1.5" data-infobulle="Deben en caisse.">
+                            <dt class="sr-only">Deben</dt>
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 24}) }}
                             <dd>{{ partie.ville.deben }}</dd>
                         </div>
-                        <div class="flex gap-1.5">
-                            <dt class="text-encre-500">Renommée</dt>
+                        <div class="flex items-center gap-1.5" data-infobulle="Renommée de la famille.">
+                            <dt class="sr-only">Renommée</dt>
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 24}) }}
                             <dd>{{ partie.famille.palierDeRenommee }}</dd>
                         </div>
                     </dl>
 
-                    <div class="mt-4 flex flex-wrap items-center gap-4">
+                    <div class="relative mt-4 flex flex-wrap items-center gap-4">
                         <a href="{{ path('app_partie_reprendre', {id: partie.id}) }}"
-                           class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 no-underline hover:bg-terre-600">
+                           class="bouton-offrande group relative inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 no-underline hover:bg-terre-600">
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 22, classe: 'bouton-offrande__image'}) }}
                             Reprendre
                         </a>
                         <a href="{{ path('app_partie_abandonner', {id: partie.id}) }}"
@@ -70,11 +81,14 @@
         ]) }}
         {{ sous.panneau('parties', 'encours', true) }}
             {% if enCours is empty %}
-                <p class="mt-4 text-sm text-encre-600">Aucune partie en cours. Le pharaon attend.</p>
+                <p class="mt-4 flex items-center gap-3 text-sm text-encre-600">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 48}) }}
+                    Aucune partie en cours. Le pharaon attend.
+                </p>
             {% else %}
                 <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 xl:grid-cols-3">
                     {% for partie in enCours %}
-                        {{ _self.carte(partie, missionsParPartie) }}
+                        {{ _self.carte(partie, missionsParPartie, loop.index0) }}
                     {% endfor %}
                 </ul>
             {% endif %}
@@ -86,7 +100,7 @@
             {% else %}
                 <ul class="mt-4 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 xl:grid-cols-3">
                     {% for partie in closes %}
-                        {{ _self.carte(partie, missionsParPartie) }}
+                        {{ _self.carte(partie, missionsParPartie, loop.index0) }}
                     {% endfor %}
                 </ul>
             {% endif %}
@@ -100,7 +114,8 @@
             </p>
         {% else %}
             <a href="{{ path('app_partie_nouvelle') }}"
-               class="mt-6 inline-block rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
+               class="bouton-offrande group mt-6 inline-flex items-center gap-2 rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 no-underline hover:bg-terre-600">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'chantier', taille: 24, classe: 'bouton-offrande__image'}) }}
                 Commencer une partie
             </a>
         {% endif %}
