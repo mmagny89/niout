@@ -23,7 +23,7 @@ use App\Entity\Employee;
  * que la règle promet, comme le double comptage retiré au lot 4.5.
  *
  * **Un mauvais chef reste meilleur que pas de chef.** Un bâtiment sans
- * personne tourne au plancher de 50 % ; le pire des chefs, une fois son
+ * chef, même au complet, plafonne à 50 % ; le pire des chefs, une fois son
  * équipe au complet, rend 98 % — presque neutre, jamais punitif. C'est ce qui
  * fait de l'embauche un pari sur le mieux, et non un risque de faire pire que
  * rien.

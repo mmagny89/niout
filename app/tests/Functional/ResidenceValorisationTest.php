@@ -66,7 +66,7 @@ final class ResidenceValorisationTest extends WebTestCase
         $client->request('GET', \sprintf('/partie/%d/ville?onglet=grenier', $partie->getId()));
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'Sans chef, ce bâtiment tourne à 50 %');
+        self::assertSelectorTextContains('body', 'Sans chef, ce bâtiment ne dépasse pas 50 %');
         self::assertSelectorTextContains('body', 'Spécialités possibles ici');
     }
 

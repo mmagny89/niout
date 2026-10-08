@@ -14,6 +14,13 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Une consigne par travailleur** : chaque travailleur d'un atelier ou d'une forge est un poste, avec son ouvrage et sa consigne
+  permanente — un bâtiment mène autant d'ordres de front que de travailleurs en poste (au moins un). L'écran montre une carte
+  par travailleur, libre ou à l'ouvrage.
+- **L'en-tête de chaque bâtiment dit toujours ses chefs et ses travailleurs**, même à zéro, avec leurs icônes.
+- **Les routes commerciales ont un visage** : chaque cité porte son pictogramme, la distance (avec sa piste), le volume d'un convoi et ce qu'elle
+  vend et achète en pastilles à illustration. Le prix d'un étal se règle à la jauge, entre le plancher et le plafond de la cité ; un ordre
+  posé montre son empressement en jauge.
 - **La pastille d'une fête mène au Temple**, s'il est bâti ; sinon elle ouvre la Résidence comme avant.
 - **Un nouvel appel « Mes parties » à l'accueil** : un cartouche à disque d'or, deux lignes et une flèche qui glisse au survol.
 - **« Ce que le pharaon attend » s'illustre** : chaque objectif de mission porte son dessin — deben,
@@ -127,6 +134,8 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **Le Marché dit les choses autrement qu'en phrases** : la place du jour tient en trois tuiles (ce qu'elle absorbe encore, les habitants,
+  le niveau du Marché) ; le prix qu'on fait se règle toujours à vue, à la jauge seule, avec le nombre en grand et le verdict de la ville.
 - **Les états des fiches d'exploitation sont des pastilles de même forme** (épuisée, jamais ouverte, sans un bras, extraction en cours),
   et les filons épuisés ne sont plus barrés : leur dessin se délave sur des hachures de place libre. Dans l'en-tête d'un bâtiment,
   un travailleur par poste remplace le rond bleu des bras en poste.
@@ -200,6 +209,9 @@ la lecture de référence pour comprendre le code.
 
 ### Modifié
 
+- **Un bâtiment réclame ses travailleurs, chef ou non** : sans personne, il ne fonctionne pas (0 %) ; avec trop peu de bras,
+  il tourne au ralenti ; au complet il atteint 50 % sans chef, 100 % avec. Les ateliers n'engagent plus rien sans travailleur, le
+  Marché ne vend plus, et les équipages de base se paient. Les champs, carrières et pêcheries ne changent pas.
 - **La barre de jeu tient sur une seule ligne** sur un écran large : les libellés des
   compteurs cèdent la place à leur pictogramme (le nom reste dans l'infobulle).
 

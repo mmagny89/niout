@@ -20,9 +20,11 @@ use Doctrine\ORM\Mapping as ORM;
  * l'essentiel du temps — et c'est là que se fabrique tout ce qui a de la
  * valeur.
  *
- * **Ce qu'elle ne change pas.** Un seul ordre à la fois et par bâtiment : la
- * consigne relance, elle ne parallélise pas. C'est ce qui donne son coût
- * d'opportunité à la fabrication, et l'automatiser ne doit pas le lever.
+ * **Une consigne par travailleur** (décision de la joueuse) : un bâtiment mène
+ * autant d'ordres de front que de travailleurs en poste, et chaque poste a sa
+ * consigne. Le coût d'opportunité reste *par travailleur* — tisser, c'est ne
+ * pas cuire avec ces mains-là —, et c'est le nombre de bras qui borne la
+ * production parallèle. La consigne relance, elle ne dépasse pas ses postes.
  *
  * **Elle ne force rien.** À la relance, l'ordre passe par les mêmes
  * vérifications qu'à la main — niveau du bâtiment, second déblocage, matières
@@ -37,7 +39,7 @@ use Doctrine\ORM\Mapping as ORM;
  * pas se résoudre en silence au profit de l'une des deux.
  */
 #[ORM\Entity(repositoryClass: ConsigneDeFabricationRepository::class)]
-#[ORM\UniqueConstraint(name: 'UNIQ_CONSIGNE_PAR_BATIMENT', columns: ['ville_id', 'batiment'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_CONSIGNE_PAR_POSTE', columns: ['ville_id', 'batiment', 'poste'])]
 class ConsigneDeFabrication
 {
     #[ORM\Id]
@@ -57,6 +59,12 @@ class ConsigneDeFabrication
     #[ORM\Column(enumType: TypeDeBatiment::class)]
     private TypeDeBatiment $batiment;
 
+    /**
+     * Le poste — le travailleur — que la consigne tient, de 1 à N : chacun a la sienne.
+     */
+    #[ORM\Column(options: ['default' => 1])]
+    private int $poste = 1;
+
     #[ORM\Column(enumType: Recette::class)]
     private Recette $recette;
 
@@ -72,9 +80,10 @@ class ConsigneDeFabrication
     #[ORM\Column]
     private bool $enAttenteDeMatieres = false;
 
-    public function __construct(City $ville, Recette $recette, int $lots)
+    public function __construct(City $ville, Recette $recette, int $lots, int $poste = 1)
     {
         $this->ville = $ville;
+        $this->poste = max(1, $poste);
         $this->recette = $recette;
         $this->batiment = $recette->batiment();
         $this->lots = max(1, $lots);
@@ -93,6 +102,11 @@ class ConsigneDeFabrication
     public function getBatiment(): TypeDeBatiment
     {
         return $this->batiment;
+    }
+
+    public function getPoste(): int
+    {
+        return $this->poste;
     }
 
     public function getRecette(): Recette

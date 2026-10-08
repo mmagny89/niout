@@ -31,32 +31,42 @@
             <span aria-hidden="true" class="font-medium text-encre-900">{{ niveau }}<span class="text-encre-500"> / {{ maximum }}</span></span>
         </li>
 
+        {# Les chefs et les travailleurs, **toujours** dits, même à zéro : le chef ouvre les postes, les travailleurs les
+           tiennent, et l'un sans l'autre explique le rendement. Chaque pastille a son icône — le chef n'est pas un
+           travailleur. #}
+        {% set direction = directions[onglet.type.value] ?? null %}
+        {% if direction %}
+            {% set enPoste = direction.chefs|length %}
+            {% set sansChef = enPoste == 0 %}
+            <li class="inline-flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-3.5
+                       {{ sansChef ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600' }}">
+                <span aria-hidden="true" class="flex items-center">
+                    {% for place in 1..max(direction.batiment.nombreDeChefs, 1) %}
+                        <span class="{{ place <= enPoste ? '' : 'opacity-35 grayscale' }}">{{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 18}) }}</span>
+                    {% endfor %}
+                </span>
+                <span>{{ enPoste }} / {{ direction.batiment.nombreDeChefs }} chef{{ direction.batiment.nombreDeChefs > 1 ? 's' : '' }}</span>
+            </li>
+        {% endif %}
+
         {% if effectif %}
-            {# Les bras en poste (pleins) et ceux qui manquent (creux), puis le rendement qui en découle. Sans chef,
-               aucun poste n'est ouvert : la pastille le dit, en terre cuite, avec ce que cela coûte. #}
+            {# Un travailleur par poste : plein pour un bras en poste, délavé pour un poste vide (au moins un, dessiné
+               délavé, quand aucun poste n'est ouvert). Puis le rendement qui en découle. #}
             {% set alerte = effectif.rendement < 100 %}
             <li class="inline-flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-3.5
                        {{ alerte ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600' }}">
-                {% if effectif.requis == 0 %}
-                    {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 18}) }}
-                    <span>Sans chef</span>
-                {% else %}
-                    <span class="sr-only">{{ effectif.affectes }} sur {{ effectif.requis }} travailleurs</span>
-                    {# Un travailleur par poste : plein pour un bras en poste, délavé pour un poste vide. Le chef a son
-                       icône dans la pastille « Sans chef », les travailleurs ont la leur. #}
-                    <span aria-hidden="true" class="flex items-center">
-                        {% if effectif.requis <= 8 %}
-                            {% for place in 1..effectif.requis %}
-                                <span class="{{ place <= effectif.affectes ? '' : 'opacity-35 grayscale' }}">{{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 18}) }}</span>
-                            {% endfor %}
-                        {% else %}
-                            {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 18}) }}
-                        {% endif %}
-                    </span>
-                    <span aria-hidden="true">{{ effectif.affectes }} / {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}</span>
-                {% endif %}
+                <span class="sr-only">{{ effectif.affectes }} sur {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}, {{ effectif.rendement }} % de rendement</span>
+                <span aria-hidden="true" class="flex items-center">
+                    {% if effectif.requis <= 8 %}
+                        {% for place in 1..max(effectif.requis, 1) %}
+                            <span class="{{ place <= effectif.affectes ? '' : 'opacity-35 grayscale' }}">{{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 18}) }}</span>
+                        {% endfor %}
+                    {% else %}
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 18}) }}
+                    {% endif %}
+                </span>
+                <span aria-hidden="true">{{ effectif.affectes }} / {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}</span>
                 <span aria-hidden="true" class="font-medium">· {{ effectif.rendement }} %</span>
-                <span class="sr-only">{{ effectif.requis == 0 ? 'Sans chef : ' : '' }}{{ effectif.rendement }} % de rendement</span>
                 <span aria-hidden="true" class="text-encre-500">de rendement</span>
             </li>
         {% endif %}

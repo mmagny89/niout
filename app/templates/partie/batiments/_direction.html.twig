@@ -18,34 +18,25 @@
             </span>
         </div>
 
-        {# **Un chef qui arrive ouvre des postes** : le joueur doit savoir, avant
-           de retenir un candidat, combien de bras ce bâtiment va réclamer et
-           s'il les a. Sans cela, embaucher faisait baisser le rendement
-           ailleurs sans que rien ne le dise. #}
+        {# **Les travailleurs d'abord, le chef ensuite** : un bâtiment réclame son équipage, chef ou non — personne,
+           et il ne fonctionne pas ; pas assez de bras, il tourne au ralenti. Le chef relève le plafond (50 % sans
+           lui, 100 % avec) et sa compétence se lit dans tout ce qu'il produit. #}
         {% set effectif = effectifs[onglet.type.value] ?? null %}
         {% if effectif and effectif.requis > 0 %}
             <p class="mt-2 text-sm {{ effectif.affectes < effectif.requis ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
                 Ce bâtiment réclame {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}
                 et en a {{ effectif.affectes }}.
-                {% if effectif.affectes < effectif.requis %}
+                {% if effectif.affectes == 0 %}
+                    Sans personne, il ne fonctionne pas — il vous reste {{ mainDoeuvre.oisifs }} bras sans ouvrage.
+                {% elseif effectif.affectes < effectif.requis %}
                     Il tourne à {{ effectif.rendement }} % faute de bras.
                 {% endif %}
             </p>
-        {% elseif direction.postesLibres > 0 %}
-            <p class="mt-2 text-sm text-encre-500" data-chiffres>
-                Sans chef, ce bâtiment ne réclame personne et tourne au plancher.
-                Un chef y ouvrirait {{ direction.batiment.type.travailleursDeBase }} poste{{ direction.batiment.type.travailleursDeBase > 1 ? 's' : '' }}
-                au niveau 1 — il vous reste {{ mainDoeuvre.oisifs }} bras sans ouvrage.
-            </p>
         {% endif %}
 
-        {# **Ce qu'un chef change ici**, dit avant qu'on embauche : sans cela,
-           l'annonce paraît une dépense de plus. Sans chef, le bâtiment tourne
-           au plancher ; avec un chef, il ouvre ses postes et sa direction
-           pèse sur tout ce qu'il produit. #}
         {% if direction.chefs is empty %}
             <p class="mt-3 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-4 py-3 text-sm text-encre-700" data-chiffres>
-                <strong class="font-medium">Sans chef, ce bâtiment tourne à {{ constant('App\\Game\\Effectifs::RENDEMENT_PLANCHER') }} %.</strong>
+                <strong class="font-medium">Sans chef, ce bâtiment ne dépasse pas {{ constant('App\\Game\\Effectifs::RENDEMENT_PLANCHER') }} %.</strong>
                 Un chef le fait travailler à plein, et sa compétence se lit dans
                 tout ce qu'il produit. Afficher une annonce ne coûte rien et ne
                 prend aucune quinzaine : c'est le chef que vous retenez qui se

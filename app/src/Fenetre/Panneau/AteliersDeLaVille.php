@@ -25,7 +25,7 @@ final readonly class AteliersDeLaVille
      * L'Atelier et la Forge partagent tout : un seul gabarit les rend, une
      * seule boucle les prépare.
      *
-     * @return array<string, array{type: TypeDeBatiment, niveau: int, lotsMaximum: int, recettes: list<array{recette: Recette, matieres: array<string, int>, realisable: bool, empechement: ?string}>, ordre: ?\App\Entity\OrdreDeFabrication, consigne: ?\App\Entity\ConsigneDeFabrication}>
+     * @return array<string, array{type: TypeDeBatiment, niveau: int, lotsMaximum: int, recettes: list<array{recette: Recette, matieres: array<string, int>, realisable: bool, empechement: ?string}>, postes: list<array{numero: int, ordre: ?\App\Entity\OrdreDeFabrication, consigne: ?\App\Entity\ConsigneDeFabrication}>}>
      */
     public function pour(GameSave $partie): array
     {
@@ -44,11 +44,38 @@ final readonly class AteliersDeLaVille
                 'niveau' => $batiment->getNiveau(),
                 'lotsMaximum' => Fabrication::lotsMaximum($batiment->getNiveau()),
                 'recettes' => $this->fabrication->offrePour($partie, $type),
-                'ordre' => $ville->ordreDeFabricationDe($type),
-                'consigne' => $ville->consigneDeFabricationDe($type),
+                'postes' => $this->postes($partie, $type),
             ];
         }
 
         return $ateliers;
+    }
+
+    /**
+     * Un poste par travailleur : chacun mène son ordre et tient sa consigne. On garde aussi les postes que la
+     * ville ne tient plus mais qui ont encore un ordre ou une consigne — ils vont à leur terme.
+     *
+     * @return list<array{numero: int, ordre: ?\App\Entity\OrdreDeFabrication, consigne: ?\App\Entity\ConsigneDeFabrication}>
+     */
+    private function postes(GameSave $partie, TypeDeBatiment $type): array
+    {
+        $ville = $partie->getVille();
+        $dernier = max([
+            Fabrication::postesDe($partie, $type),
+            ...array_map(static fn ($o): int => $o->getPoste(), $ville->ordresDeFabricationDe($type)),
+            ...array_map(static fn ($c): int => $c->getPoste(), $ville->consignesDeFabricationDe($type)),
+        ]);
+
+        $postes = [];
+
+        for ($numero = 1; $numero <= $dernier; ++$numero) {
+            $postes[] = [
+                'numero' => $numero,
+                'ordre' => $ville->ordreDeFabricationDe($type, $numero),
+                'consigne' => $ville->consigneDeFabricationDe($type, $numero),
+            ];
+        }
+
+        return $postes;
     }
 }

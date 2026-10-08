@@ -166,9 +166,13 @@ boutons s'alignent d'une carte à l'autre. **Ne pas replier une liste en grille
 quand l'ordre se lit de haut en bas** (un déroulé, un classement) : la grille
 s'adresse aux choses interchangeables.
 
-**L'Atelier et la Forge** mettent la **consigne permanente dans un repli**, un
-réglage qu'on pose une fois — ouvert d'office quand l'atelier est à l'arrêt
-faute de matières —, et les matières d'un lot en pastilles. **La Caserne** montre
+**L'Atelier et la Forge** rangent leur ouvrage **par travailleur** : une carte par
+poste (ouvrage en cours, ou « Libre »), puis les recettes, dont le formulaire
+propose le poste quand plusieurs sont libres ; la **consigne permanente** a sa
+section, une carte et un formulaire par travailleur. Les matières d'un lot sont
+en pastilles. **L'en-tête de chaque bâtiment** dit toujours ses chefs et ses
+travailleurs (« 1 / 1 chef », « 2 / 2 travailleurs · 100 % de rendement »),
+même à zéro, chacun avec son icône. **La Caserne** montre
 sa troupe en cases : un homme levé, une case pleine ; un blessé, terre cuite ;
 une place libre, des pointillés.
 

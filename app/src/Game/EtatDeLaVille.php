@@ -131,14 +131,14 @@ final readonly class EtatDeLaVille
                 'ton' => 'mauvais',
                 'icone' => 'habitants',
                 'titre' => \sprintf('Il vous manque %d bras', $bilan['manquants']),
-                'detail' => 'Les bâtiments sont servis avant le territoire, et chacun tourne à proportion de ce qu\'il a reçu. Faites venir du monde, ou renvoyez un chef dont vous ne pouvez pas tenir le bâtiment.',
+                'detail' => 'Les bâtiments sont servis avant le territoire, et chacun tourne à proportion de ce qu\'il a reçu — sans un seul travailleur, il ne fonctionne pas. Faites venir du monde, ou renvoyez un chef dont vous ne pouvez pas tenir le bâtiment.',
             ];
         } elseif ($bilan['oisifs'] > 0) {
             $signaux[] = [
                 'ton' => 'mauvais',
                 'icone' => 'chantier',
                 'titre' => \sprintf('%d bras sont sans ouvrage', $bilan['oisifs']),
-                'detail' => 'Ils mangent et ne produisent rien. Embauchez un chef quelque part — c\'est le chef qui recrute —, semez un champ ou ouvrez une carrière.',
+                'detail' => 'Ils mangent et ne produisent rien. Tous vos bâtiments ont déjà leur équipage : embauchez un chef quelque part pour monter son rendement, semez un champ ou ouvrez une carrière.',
             ];
         }
 
@@ -157,7 +157,7 @@ final readonly class EtatDeLaVille
                 'icone' => 'chef',
                 'titre' => \sprintf('%d bâtiment%s sans chef', \count($sansChef), \count($sansChef) > 1 ? 's' : ''),
                 'detail' => \sprintf(
-                    '%s : sans chef, un bâtiment ne tourne qu\'à %d %%, et c\'est le chef qui ouvre ses postes. Ouvrez l\'onglet du bâtiment et affichez une annonce — elle ne coûte rien.',
+                    '%s : sans chef, un bâtiment ne dépasse pas %d %%, même au complet de ses travailleurs. Ouvrez l\'onglet du bâtiment et affichez une annonce — elle ne coûte rien.',
                     implode(', ', $sansChef),
                     Effectifs::RENDEMENT_PLANCHER,
                 ),

@@ -136,4 +136,39 @@ final class EffectifsTest extends TestCase
 
         self::assertSame(Effectifs::RENDEMENT_PLEIN, $precedent);
     }
+
+    /**
+     * **Un bâtiment réclame ses travailleurs, chef ou non** : personne, il ne fonctionne pas ; pas assez de
+     * bras, un rendement réduit ; l'équipage complet, le plafond — 50 % sans chef, 100 % avec.
+     *
+     * @return iterable<string, array{int, int, bool, int}>
+     */
+    public static function rendementsDeBatiment(): iterable
+    {
+        yield 'personne, sans chef' => [0, 4, false, 0];
+        yield 'personne, avec chef' => [0, 4, true, 0];
+        yield 'un seul bras sur quatre, sans chef' => [1, 4, false, 31];
+        yield 'un seul bras sur quatre, avec chef' => [1, 4, true, 62];
+        yield 'la moitié des bras, sans chef' => [2, 4, false, 37];
+        yield 'équipage complet, sans chef' => [4, 4, false, 50];
+        yield 'équipage complet, avec chef' => [4, 4, true, 100];
+        yield 'plus de bras que de postes ne change rien' => [9, 4, true, 100];
+        yield 'rien à tenir' => [0, 0, false, 100];
+    }
+
+    #[DataProvider('rendementsDeBatiment')]
+    public function testLeRendementDUnBatimentSuitLesBrasEtLeChef(int $affectes, int $requis, bool $dirige, int $attendu): void
+    {
+        self::assertSame($attendu, Effectifs::rendementDuBatiment($affectes, $requis, $dirige));
+    }
+
+    public function testUnChefNeSuffitJamaisSansTravailleur(): void
+    {
+        self::assertSame(0, Effectifs::rendementDuBatiment(0, 3, true));
+        self::assertGreaterThan(
+            Effectifs::rendementDuBatiment(1, 3, false),
+            Effectifs::rendementDuBatiment(1, 3, true),
+            'Un chef relève le plafond.',
+        );
+    }
 }

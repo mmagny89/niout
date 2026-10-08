@@ -144,7 +144,8 @@ service, c'est la recette qui dit où elle se travaille. Quatre règles à ne pa
 défaire : les matières sont
 **débitées à l'engagement** — sans quoi on lancerait dix ordres avec les
 ressources d'un seul —, les pièces **n'entrent qu'à l'achèvement** (la règle
-des champs), **un seul ordre à la fois et par bâtiment** parce que c'est ce qui donne son
+des champs), **un seul ordre à la fois et par travailleur** (un bâtiment mène autant d'ordres
+de front que de travailleurs en poste, voir plus bas) parce que c'est ce qui donne son
 coût d'opportunité à la fabrication, et le rythme vient des bras par
 `EffetDeChef::qualiteDeDirection()`, jamais par un multiplicateur de plus.
 **Toute recette ajoutée doit tenir la marge de transformation** — le test s'y
@@ -601,8 +602,16 @@ revienne les relancer à la main. Sur une partie où l'on passe des quinzaines
 entières sur la carte, les deux dormaient l'essentiel du temps — et c'est là
 que se fabrique tout ce qui a de la valeur. Cinq règles :
 
-- **Un seul ordre à la fois reste la règle** : la consigne relance, elle ne
-  parallélise pas. C'est ce qui donne son coût d'opportunité à la fabrication.
+- **Une consigne par travailleur** (décision de la joueuse, 2026-10-08) : chaque
+  travailleur en poste est un *poste* numéroté, avec son ordre et sa consigne ;
+  le bâtiment mène autant d'ordres de front que de postes (`Fabrication::postesDe()` =
+  les bras affectés, au moins un : un atelier désert garde un poste, « rien ne
+  s'éteint faute d'employés »). **Un seul ordre à la fois par poste** reste la
+  règle — le coût d'opportunité est désormais *par travailleur* : tisser, c'est ne
+  pas cuire avec ces mains-là. Le nombre de bras borne donc la production
+  parallèle. Un ordre ou une consigne sur un poste que la ville ne tient plus
+  (bras repartis ailleurs) va à son terme, sans qu'on puisse en lancer un neuf.
+  L'unicité en base est par `(ville, bâtiment, poste)`.
 - **Elle ne force rien** : la relance passe par les mêmes vérifications qu'une
   commande à la main — niveau, second déblocage, matières. Elle épargne le
   clic, pas les règles.
@@ -734,18 +743,38 @@ Cinq pièges déjà payés, à ne pas refaire :
 
 ## Chefs, effectifs et recrutement
 
-**Ce sont les chefs qui recrutent** (`Effectifs`, doc 05). Un bâtiment sans
-chef ne réclame aucun travailleur, donc tourne au plancher : « sans chef, la
-moitié » n'est pas une règle à part, c'est un cas de la formule générale
-`0,5 + 0,5 × (réel / requis)`, comptée **en centièmes** parce qu'elle
-multiplie des ressources à chaque quinzaine. **Rien ne s'éteint faute
-d'employés** (décision de la joueuse) : embaucher est un investissement, pas
-une taxe. Un chef pas encore en poste ne réclame rien, et les chefs sortent du
-vivier de bras — ils ne s'encadrent pas eux-mêmes.
+**Un bâtiment réclame ses travailleurs, chef ou non** (`Effectifs`, décision de
+la joueuse du 2026-10-08, qui remplace le « rien ne s'éteint faute d'employés »
+du lot 4.5). L'équipage de base d'un bâtiment — `travailleursParChef(type, niveau)` —
+doit être là pour qu'il fonctionne, et **le chef recrute en plus** : chaque chef en
+poste réclame un équipage de plus, et c'est lui qui fait passer le plafond du
+demi au plein. Trois situations :
+
+- **personne** : le bâtiment **ne fonctionne pas** (0 %) ;
+- **pas assez de bras** : un rendement réduit, de la moitié du plafond (un seul bras)
+  jusqu'au plafond (équipage complet) ;
+- **le plafond** : **50 % sans chef en poste, 100 % avec**. Les bâtiments qu'aucun
+  chef ne dirige (Résidence, Quartier, Auberge : la famille les tient) n'ont pas de
+  plafond réduit.
+
+```
+rendement = plafond × (0,5 + 0,5 × réel / requis)   si réel > 0, sinon 0
+```
+
+Soit, sans chef : 0 % / environ 25 % (un bras) / 50 % (au complet) ; avec chef : 0 % /
+environ 50 % / 100 %. Compté **en centièmes** parce que cela multiplie des
+ressources à chaque quinzaine. Les conséquences à ne pas défaire : **un bâtiment sans
+travailleur n'engage rien** (`Fabrication` refuse l'ordre, l'ouvrage en cours
+n'avance plus, le Marché ne vend ni à la main ni tout seul) ; **les équipages de base se
+paient** (la paie suit les affectés, chef ou non) ; **les exploitations du territoire**
+— champs, carrières, pêcheries — **gardent l'ancienne règle** (`0,5 + 0,5 × réel / requis`,
+jamais zéro), puisqu'elles n'ont pas de chef. Un chef pas encore en poste ne réclame
+rien de plus, et les chefs sortent du vivier de bras — ils ne s'encadrent pas
+eux-mêmes.
 
 **Le chef doit se voir avant d'être payé** : la compétence reste chiffrée en
 interne et qualitative à l'écran (doc 03), jamais un pourcentage. L'annonce dit
-donc ce qu'on perd sans chef (le plancher de 50 %), liste les spécialités
+donc ce qu'on perd sans chef (le plafond de 50 %), liste les spécialités
 possibles du bâtiment avec leur effet, juge chaque candidat en mots
 (`Candidat::appreciation()`) et signale le plus compétent comme le moins cher
 quand cela départage. La Résidence compte les bâtiments encore sans chef parmi
@@ -755,7 +784,7 @@ ses signaux d'attention.
 compétence module la **qualité de direction** d'un bâtiment, aux côtés de son
 effectif, et c'est cette qualité qui pèse sur les productions. Deux invariants
 à ne pas défaire — **un mauvais chef reste meilleur que pas de chef** (98 %
-contre le plancher de 50 % d'un bâtiment désert), et **une spécialité sans
+contre le plafond de 50 % d'un bâtiment sans chef), et **une spécialité sans
 système d'accueil reste inerte et le dit** (`SpecialiteDeChef::agitDeja()`),
 promettre un bonus qui ne s'applique nulle part tromperait le joueur au moment
 même où il compare des candidats.
@@ -892,8 +921,10 @@ du doc 07 ajouteront leurs sources aux Phases 7 et 8.
 **Une épidémie couche des bras, elle ne tue personne** (`Epidemies`, doc 07) :
 elle retire une part des actifs pour quelques quinzaines, puis les rend. Elle
 passe par le **canal existant** — le rendement d'effectif —, jamais par un
-multiplicateur de plus : c'est ce qui laisse tenir le plancher de 50 % du
-lot 4.5 même en pleine fièvre, et c'est mesuré. Deux points à ne pas défaire :
+multiplicateur de plus : c'est ce qui la fait
+peser sur le rendement des bâtiments — **attention : depuis la règle du 2026-10-08, des bras
+couchés peuvent arrêter un bâtiment (0 %)**, ce que le plancher du lot 4.5 empêchait ; à
+revérifier au playtest. Deux points à ne pas défaire :
 elle couche **au moins une paire de bras** (20 % de quatre actifs fait zéro, et
 toute ville de début de partie aurait reçu un message sans conséquence), et
 **une offrande à Sekhmet l'abrège pendant qu'elle dure** — la déesse qui envoie

@@ -18,8 +18,8 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 /**
  * Le bilan de la main-d'œuvre : **embaucher un chef ouvre des postes**.
  *
- * Un bâtiment sans chef ne réclame personne et tourne au plancher ; un
- * bâtiment dirigé réclame ses travailleurs. Sans ce bilan, retenir un candidat
+ * Chaque bâtiment réclame son équipage, chef ou non, et un chef qui arrive
+ * en réclame un de plus. Sans ce bilan, retenir un candidat
  * faisait baisser le rendement ailleurs sans que rien ne le dise — les bras
  * servis à la Forge n'étaient plus au Grenier.
  */
@@ -190,7 +190,7 @@ final class MainDoeuvreTest extends WebTestCase
         // Il reste au moins une alerte — les bras oisifs —, donc l'écran nomme
         // la cause et le geste plutôt que de laisser deviner.
         self::assertSelectorTextContains('#panneau-residence_familiale', 'Ce qui demande votre attention');
-        self::assertSelectorTextContains('#panneau-residence_familiale', 'c\'est le chef qui recrute');
+        self::assertSelectorTextContains('#panneau-residence_familiale', 'embauchez un chef quelque part');
     }
 
     private function lancerConnecte(KernelBrowser $client, string $email): GameSave

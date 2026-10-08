@@ -10,6 +10,7 @@ use App\Entity\GameSave;
 use App\Entity\OrdreDeFabrication;
 use App\Entity\User;
 use App\Game\Candidat;
+use App\Game\Effectifs;
 use App\Game\EffetDeChef;
 use App\Game\Fabrication;
 use App\Game\FabricationImpossible;
@@ -125,9 +126,9 @@ final class FabricationTest extends KernelTestCase
     }
 
     /**
-     * **Les bras décident du rythme** (`EffetDeChef`) : un Atelier désert
-     * tourne au plancher de 50 % et met donc deux fois plus longtemps, sans
-     * jamais s'arrêter — « rien ne s'éteint faute d'employés ».
+     * **Les bras et le chef décident du rythme** (`EffetDeChef`) : un Atelier
+     * sans chef, même au complet, plafonne à 50 % et met donc deux fois plus
+     * longtemps qu'un Atelier dirigé.
      */
     public function testUnAtelierDesertMetDeuxFoisPlusDeTemps(): void
     {
@@ -136,8 +137,33 @@ final class FabricationTest extends KernelTestCase
         $desert = $this->quinzainesPourUnLot('atelier-desert@example.com', avecChef: false);
         $tenu = $this->quinzainesPourUnLot('atelier-tenu@example.com', avecChef: true);
 
-        self::assertGreaterThan($tenu, $desert, 'Un atelier sans personne doit être plus lent.');
-        self::assertGreaterThan(0, $tenu, 'Et il ne s\'arrête jamais tout à fait.');
+        self::assertGreaterThan($tenu, $desert, 'Un atelier sans chef doit être plus lent.');
+        self::assertGreaterThan(0, $tenu);
+    }
+
+    /**
+     * **Sans un seul travailleur, un bâtiment ne fonctionne pas** (décision de la joueuse) : on ne lui engage
+     * pas de matières, et l'ouvrage déjà commencé n'avance plus.
+     */
+    public function testSansAucunTravailleurLAtelierNeFonctionnePas(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('atelier-sans-bras@example.com');
+        $ville = $partie->getVille();
+
+        $this->fabrication()->lancer($partie, Recette::Tissus, 1);
+        $restantAvant = $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier)?->cyclesRestants();
+
+        // La ville perd tous ses actifs : personne ne tient plus l'Atelier.
+        $ville->laisserPartir($ville->getActifs(), 0);
+        self::assertSame(0, Effectifs::rendementDe($ville, TypeDeBatiment::Atelier, $partie->getCycle()));
+
+        $this->fabrication()->avancerDUnCycle($partie);
+        self::assertSame($restantAvant, $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier)?->cyclesRestants(), 'Rien n\'avance sans bras.');
+
+        $this->expectException(FabricationImpossible::class);
+        $this->expectExceptionMessage('aucun travailleur');
+        $this->fabrication()->lancer($partie, Recette::Papyrus, 1, 2);
     }
 
     /**
@@ -529,11 +555,10 @@ final class FabricationTest extends KernelTestCase
     }
 
     /**
-     * **Un seul ordre à la fois reste la règle** : la consigne relance, elle
-     * ne parallélise pas. C'est ce qui donne son coût d'opportunité à la
-     * fabrication, et l'automatiser ne doit pas le lever.
+     * **Une consigne relance, elle ne dépasse pas ses postes** : avec un seul
+     * travailleur, un seul ordre à la fois, consigne ou non.
      */
-    public function testLaConsigneNeParallelisePas(): void
+    public function testLaConsigneNeDepassePasSesPostes(): void
     {
         self::bootKernel();
         $partie = $this->villeAvecAtelier('consigne-serie@example.com');
@@ -549,10 +574,10 @@ final class FabricationTest extends KernelTestCase
     }
 
     /**
-     * Une seule consigne par bâtiment : la réorienter change la recette au
+     * Une seule consigne par poste : la réorienter change la recette au
      * lieu d'en empiler une seconde.
      */
-    public function testUneSeuleConsigneParBatiment(): void
+    public function testUneSeuleConsigneParPoste(): void
     {
         self::bootKernel();
         $partie = $this->villeAvecAtelier('consigne-unicite@example.com');
@@ -567,6 +592,85 @@ final class FabricationTest extends KernelTestCase
         self::assertNotNull($consigne);
         self::assertSame(Recette::Papyrus, $consigne->getRecette());
         self::assertSame(2, $consigne->getLots());
+    }
+
+    /**
+     * **Une consigne par travailleur** : un atelier tenu par deux travailleurs mène deux ordres de
+     * front, chacun avec sa consigne ; un troisième est refusé, faute de poste.
+     */
+    public function testChaqueTravailleurMeneSonPropreOrdre(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('postes@example.com');
+        $ville = $partie->getVille();
+        $this->engagerUnChefDejaEnPoste($partie, TypeDeBatiment::Atelier);
+
+        self::assertGreaterThanOrEqual(2, Fabrication::postesDe($partie, TypeDeBatiment::Atelier));
+
+        $this->fabrication()->lancer($partie, Recette::Tissus, 1, 1);
+        $this->fabrication()->lancer($partie, Recette::Poterie, 1, 2);
+
+        self::assertCount(2, $ville->ordresDeFabricationDe(TypeDeBatiment::Atelier));
+        self::assertSame(Recette::Tissus, $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier, 1)?->getRecette());
+        self::assertSame(Recette::Poterie, $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier, 2)?->getRecette());
+
+        $this->expectException(FabricationImpossible::class);
+        $this->fabrication()->lancer($partie, Recette::Tissus, 1, 1);
+    }
+
+    public function testUnPosteInexistantEstRefuse(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('poste-fantome@example.com');
+
+        $this->expectException(FabricationImpossible::class);
+        $this->expectExceptionMessage('pas de travailleur au poste');
+        // Un atelier ne tient jamais plus de postes que de travailleurs.
+        $this->fabrication()->lancer($partie, Recette::Tissus, 1, 99);
+    }
+
+    public function testChaquePosteRelanceSaPropreConsigne(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('postes-consignes@example.com');
+        $ville = $partie->getVille();
+        $this->engagerUnChefDejaEnPoste($partie, TypeDeBatiment::Atelier);
+
+        $ville->consigner(Recette::Tissus, 1, 1);
+        $ville->consigner(Recette::Poterie, 1, 2);
+
+        self::assertCount(2, $ville->getConsignesDeFabrication());
+
+        $this->fabrication()->avancerDUnCycle($partie);
+
+        self::assertSame(Recette::Tissus, $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier, 1)?->getRecette());
+        self::assertSame(Recette::Poterie, $ville->ordreDeFabricationDe(TypeDeBatiment::Atelier, 2)?->getRecette());
+
+        // Lever la consigne d'un poste laisse l'autre intacte.
+        $deuxieme = $ville->consigneDeFabricationDe(TypeDeBatiment::Atelier, 2);
+        self::assertNotNull($deuxieme);
+        $ville->leverLaConsigne($deuxieme);
+        self::assertNotNull($ville->consigneDeFabricationDe(TypeDeBatiment::Atelier, 1));
+        self::assertNull($ville->consigneDeFabricationDe(TypeDeBatiment::Atelier, 2));
+    }
+
+    private function engagerUnChefDejaEnPoste(GameSave $partie, TypeDeBatiment $type): void
+    {
+        $ville = $partie->getVille();
+        $ville->ajouterEmploye(new Employee(
+            $ville,
+            $type,
+            new Candidat(
+                competence: 60,
+                salaire: 8,
+                ancienneteProbable: 20,
+                traits: [],
+                specialite: SpecialiteDeChef::pour($type)[0],
+                actifsAmenes: 0,
+                inactifsAmenes: 0,
+            ),
+            $partie->getCycle() - 5,
+        ));
     }
 
     private function villeAvecAtelier(string $email, int $niveau = 4): GameSave

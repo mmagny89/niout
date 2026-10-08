@@ -409,7 +409,7 @@ final class PartieController extends AbstractController
                 throw $this->createNotFoundException('Bâtiment inconnu.');
             }
 
-            $consigne = $ville->consigneDeFabricationDe($type);
+            $consigne = $ville->consigneDeFabricationDe($type, max(1, $request->request->getInt('poste', 1)));
 
             if (null !== $consigne) {
                 $ville->leverLaConsigne($consigne);
@@ -440,7 +440,7 @@ final class PartieController extends AbstractController
 
         $lots = max(1, min($request->request->getInt('lots', 1), Fabrication::lotsMaximum($atelier->getNiveau())));
 
-        $ville->consigner($recette, $lots);
+        $ville->consigner($recette, $lots, max(1, $request->request->getInt('poste', 1)));
         $gestionnaire->flush();
 
         $this->addFlash('succes', \sprintf(
@@ -475,7 +475,7 @@ final class PartieController extends AbstractController
         }
 
         try {
-            $ordre = $fabrication->lancer($partie, $recette, $request->request->getInt('lots', 1));
+            $ordre = $fabrication->lancer($partie, $recette, $request->request->getInt('lots', 1), max(1, $request->request->getInt('poste', 1)));
             $this->addFlash('succes', \sprintf(
                 'L\'Atelier s\'attelle à %s : %d pièces dans %d quinzaine%s.',
                 mb_strtolower($recette->libelle()),

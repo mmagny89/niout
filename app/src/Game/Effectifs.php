@@ -18,19 +18,29 @@ use App\Entity\Zone;
  *   `Building::nombreDeChefs()`, avancé au lot 4.3.
  * - `travailleursParChef(niveau) = travailleursDeBase + arrondiInférieur((niveau - 1) / 3)`.
  *
- * **Ce sont les chefs qui recrutent** (doc 05). Un bâtiment sans chef ne
- * réclame donc aucun travailleur — et c'est ce qui donne sa définition au
- * demi-rendement : sans personne pour l'ouvrir, il tourne à moitié.
+ * **Un bâtiment réclame ses travailleurs, chef ou pas** (décision de la
+ * joueuse, 2026-10-08) : l'équipage de base d'un bâtiment — `travailleursParChef()`
+ * — doit être là pour qu'il fonctionne. Un chef en poste *recrute* en plus de
+ * lui, bâtiment par chef, et c'est lui qui fait passer le rendement du demi au
+ * plein. Trois situations, et un plafond que la direction décide :
  *
- * **Rien ne s'éteint faute d'employés** (décision de la joueuse) : le doc 01
- * ne parlait que de « capacité réduite », jamais de l'arrêt. Une partie sans
- * deben pour embaucher continue de tourner, au ralenti. Les employés cessent
- * ainsi d'être une taxe obligatoire pour devenir un investissement — c'est ce
- * qui rend la phase jouable.
+ * - **personne** : le bâtiment **ne fonctionne pas** (0 %) ;
+ * - **pas assez de bras** : il tourne au rendement réduit — au demi du plafond
+ *   quand il en a un seul, jusqu'au plafond quand il est au complet ;
+ * - **le plafond** : 50 % sans chef en poste, 100 % avec. Les bâtiments qu'aucun
+ *   chef ne dirige (Résidence, Quartier, Auberge : la famille les tient) n'ont
+ *   pas de plafond réduit.
  *
  * ```
- * rendement = 0,5 + 0,5 × (effectif réel / effectif requis)
+ * rendement = plafond × (0,5 + 0,5 × effectif réel / effectif requis)   si effectif > 0
+ * rendement = 0                                                          sinon
  * ```
+ *
+ * Cela remplace le « rien ne s'éteint faute d'employés » du lot 4.5, qui
+ * faisait tourner à moitié un bâtiment que personne ne tenait : un bâtiment
+ * désert est désormais un bâtiment arrêté, et c'est ce qui donne un poids aux
+ * bras. **Les exploitations du territoire** (champs, carrières, pêcheries) gardent leur
+ * ancienne règle, `rendementEnCentiemes()` : elles n'ont pas de chef.
  *
  * Compté **en centièmes**, jamais en flottants : c'est la règle du projet, et
  * elle importe ici plus qu'ailleurs — ce rendement multipliera des quantités
@@ -86,15 +96,15 @@ final readonly class Effectifs
     }
 
     /**
-     * Combien de travailleurs ce bâtiment réclame en tout : ce que chacun de
-     * ses chefs **en poste** encadre.
+     * Combien de travailleurs ce bâtiment réclame en tout : l'équipage de base
+     * que ses chefs **en poste** encadrent — **au moins un équipage**, chef ou non.
      *
      * Un chef embauché mais pas encore à l'ouvrage ne compte pas : il n'a rien
      * recruté tant qu'il n'a pas pris son poste (doc 05).
      */
     public static function travailleursRequis(Building $batiment, int $cycle): int
     {
-        return self::chefsEnPoste($batiment, $cycle)
+        return max(1, self::chefsEnPoste($batiment, $cycle))
             * self::travailleursParChef($batiment->getType(), $batiment->getNiveau());
     }
 
@@ -125,6 +135,30 @@ final readonly class Effectifs
             self::RENDEMENT_PLANCHER * min($affectes, $requis),
             $requis,
         );
+    }
+
+    /**
+     * Le rendement d'un **bâtiment**, en centièmes : rien sans travailleur, puis
+     * du demi du plafond (un seul bras) jusqu'au plafond (équipage complet) —
+     * 50 % sans chef en poste, 100 % avec (voir la note de tête).
+     *
+     * @param bool $dirige vrai quand un chef est en poste, ou qu'aucun chef ne
+     *                     peut diriger ce bâtiment (la famille le tient)
+     */
+    public static function rendementDuBatiment(int $affectes, int $requis, bool $dirige): int
+    {
+        if ($requis <= 0) {
+            return self::RENDEMENT_PLEIN;
+        }
+
+        if ($affectes <= 0) {
+            return 0;
+        }
+
+        $plafond = $dirige ? self::RENDEMENT_PLEIN : self::RENDEMENT_PLANCHER;
+        $facteur = self::RENDEMENT_PLANCHER + intdiv(self::RENDEMENT_PLANCHER * min($affectes, $requis), $requis);
+
+        return intdiv($plafond * $facteur, self::RENDEMENT_PLEIN);
     }
 
     /**
@@ -207,7 +241,12 @@ final readonly class Effectifs
                 'batiment' => $batiment,
                 'requis' => $requis,
                 'affectes' => $affectes,
-                'rendement' => self::rendementEnCentiemes($affectes, $requis),
+                'rendement' => self::rendementDuBatiment(
+                    $affectes,
+                    $requis,
+                    self::chefsEnPoste($batiment, $cycle) > 0
+                        || [] === SpecialiteDeChef::pour($batiment->getType()),
+                ),
             ];
         }
 
@@ -218,11 +257,10 @@ final readonly class Effectifs
      * Le bilan de la main-d'œuvre : combien de bras la ville a, combien de
      * postes elle a ouverts, et de quel côté penche l'écart.
      *
-     * **Embaucher un chef ouvre des postes** (`Effectifs`, doc 05) : un
-     * bâtiment sans chef ne réclame personne et tourne au plancher, un
-     * bâtiment dirigé réclame ses travailleurs. Le joueur qui retenait un
-     * candidat voyait donc son rendement baisser ailleurs sans comprendre
-     * pourquoi — les bras servis à la Forge n'étaient plus au Grenier. Ce
+     * **Chaque bâtiment réclame son équipage, et un chef qui arrive en réclame
+     * un de plus** (`Effectifs`, doc 05) : le joueur qui retenait un candidat
+     * voyait son rendement baisser ailleurs sans comprendre pourquoi — les
+     * bras servis à la Forge n'étaient plus au Grenier. Ce
      * bilan nomme les deux situations : **des bras oisifs** qu'aucun poste
      * n'emploie, ou **des postes vides** que personne ne tient.
      *
