@@ -30,10 +30,15 @@
                chercher son chemin dans l'en-tete pour retrouver ses parties. #}
             <div class="mt-7 flex flex-wrap items-center gap-4">
                 {% if app.user %}
-                    <a href="{{ path('app_parties') }}"
-                       class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-6 py-3 font-medium text-sable-50 no-underline hover:bg-terre-600">
-                        {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 24, classe: 'bouton-offrande__image'}) }}
-                        Mes parties
+                    <a href="{{ path('app_parties') }}" class="bouton-cartouche">
+                        <span class="bouton-cartouche__disque" aria-hidden="true">
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 32}) }}
+                        </span>
+                        <span>
+                            <span class="bouton-cartouche__titre">Mes parties</span>
+                            <span class="bouton-cartouche__sous-titre">Reprendre votre cité</span>
+                        </span>
+                        <span class="bouton-cartouche__fleche" aria-hidden="true">→</span>
                     </a>
                     <a href="{{ path('app_partie_nouvelle') }}" class="text-encre-700 hover:text-terre-600">
                         Commencer une nouvelle partie
