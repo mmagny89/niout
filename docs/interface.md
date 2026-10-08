@@ -741,3 +741,16 @@ illustration, plus la durée. **À bâtir : réalisables d'abord**, bloqués ens
 rouge) : une liste qui commence par ce qui est bloqué cache ce qu'on vient chercher. Une ville qui a tout
 dressé le dit au lieu d'afficher une liste vide, et son bilan ne passe pas au rouge. Les tests désignent
 les listes de cartes par `ul.grid`, pas par leur rang (la rangée de pastilles du bilan les précède).
+
+**Résidence : bâtiments fusionnés, Gouvernement, Mission.** Les bâtiments dressés et à bâtir partagent
+une seule carte (`_carte_de_batiment.html.twig`, `data-etat="dresse|a-batir|bloque"`) dans une seule
+liste : dressés d'abord, puis ce qu'on peut engager, puis ce qui est bloqué. Les tests lisent l'état de la
+carte, pas deux titres. **Le salaire** reprend `curseur_controller.js` avec deux paramètres de plus :
+`mauvais-en-bas` (la piste est terre cuite *sous* le seuil — un salaire trop bas mécontente — et lapis
+au-delà, l'inverse du prix du Marché) et un verdict en trois temps (`juste`, `genereux`) dont les trois
+textes sont rendus par le serveur dans `data-bas|milieu|haut`. **Les échéances** (`TravauxEnCours`) ne sont
+plus un tableau : une carte par échéance, pictogramme choisi par la catégorie (un ouvrage d'atelier, dont
+la catégorie est le nom du bâtiment, prend celui de l'amélioration par défaut). **Les chantiers** montrent
+leurs quatre étapes en frise reliée, l'explication de l'étape en cours dessous. **La Mission** reprend le
+`.decret` de la commande ; le score d'Aventure passe du tableau à des barres proportionnelles à la part de
+chaque grandeur, avec les mêmes chiffres écrits à côté.

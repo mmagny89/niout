@@ -111,6 +111,11 @@ la lecture de référence pour comprendre le code.
   culture (qu'on change sur place), l'étape de son cycle, qui y travaille — et un seul bouton pour
   semer. Chaque expédition est une carte (ce que fait le rôle, ce qu'elle coûte).
 
+- **Les bâtiments de la Résidence ne font plus qu'une liste** : dressés puis à bâtir, sur la même carte.
+  Le Gouvernement montre le salaire des bras en curseur (terre cuite sous l'usage, lapis au-delà, avec ce
+  que la ville en pense), les échéances en frise de cartes à pictogramme, et les chantiers avec leurs
+  quatre étapes reliées. La Mission est un décret : la mission en crans, les objectifs en jauges, la
+  requête du pharaon avec l'illustration de ce qu'il réclame, le règne en Aventure avec sa succession.
 - **La liste des bâtiments de la Résidence se lit d'un coup d'œil** : chaque bâtiment, dressé ou à
   bâtir, montre son sprite ; le niveau est en crans, le rendement en jauge, et le coût du chantier en
   pastilles avec l'illustration de chaque ressource. Un bilan (dressés, à engager, en attente) ouvre la
