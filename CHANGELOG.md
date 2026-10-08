@@ -106,7 +106,15 @@ la lecture de référence pour comprendre le code.
   côté sur grand écran. Chaque page a son dessin, ses boutons aussi, et « Mon compte » montre
   l'état de l'adresse en pastille et la ville de votre partie.
 
+- **Le détail d'une case se range en onglets** — gisements, champs, envois — et ne montre que
+  ceux qui servent. Chaque parcelle est une carte (culture, étape du cycle, travailleurs), chaque
+  expédition une carte (ce que fait le rôle, ce qu'elle coûte).
+
 ### Corrigé
+
+- **Le détail d'une case s'ouvrait parfois au centre au lieu de rester à droite** : la forme de la
+  fenêtre dépendait d'un attribut que Turbo ne recopie pas au chargement. Elle est décidée dès le
+  clic et confirmée par le contenu ; le cadre s'estompe pendant le chargement.
 
 - **Sur téléphone, les volets de la barre (vivres, habitants) restaient invisibles** : ils
   s'ouvraient dans la rangée des compteurs, qui défile et les rognait. Ils se posent maintenant sous

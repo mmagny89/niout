@@ -701,3 +701,19 @@ jamais nécessaire pour se connecter et disparaît sur téléphone. Chaque page 
 - **Les infobulles sont un complément, jamais le seul porteur** : le nom d'un compteur est lu autrement
   (`sr-only`), et les deux compteurs de la barre qui ne sont ni lien ni bouton portent `tabindex="0"` pour
   qu'on puisse en lire l'aide au clavier.
+
+**Le détail d'une case en onglets** (`fenetre/case.html.twig`) : ce que la case *est* — portrait, titre,
+pastilles, danger — reste au-dessus, toujours visible ; ce qu'on y *fait* se range en onglets
+**Gisements**, **Champs** et **Envoyer**, chacun seulement s'il sert (jamais d'onglet vide, et une case
+qui n'a qu'une chose à offrir n'a pas de barre). La section ouverte est retenue **par case**
+(`case-<x>-<y>`) : semer ou ouvrir une carrière recharge la fenêtre, et l'on ne doit pas retomber
+ailleurs. Les actions d'« Envoyer » sont des cartes : ce que fait le rôle (`RoleDExploration::mission()`),
+puis le coût en pastilles.
+
+**Piège payé : `data-forme` ne se pose jamais sur le `<turbo-frame>` lui-même.** Turbo remplace le
+*contenu* d'un cadre mais ne recopie pas ses attributs : posé sur le cadre, `data-forme="feuille"` n'existait
+que dans une page rendue côté serveur, et la feuille d'une case s'ouvrait **large et centrée** dès qu'on y
+cliquait. Il est posé sur un enfant ; `fenetre_controller.js` le lit à la connexion et à chaque
+`turbo:frame-load`, et le recopie sur le `<dialog>` (`data-forme`), que la CSS lit aussi — le lien dit
+d'avance la forme qu'il attend (`data-fenetre-forme`), car la fenêtre s'ouvre avant l'arrivée du contenu.
+Pendant le chargement, le cadre s'estompe (`[busy]`) : on ne lit pas un écran périmé.
