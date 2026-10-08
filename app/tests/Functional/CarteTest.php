@@ -132,6 +132,41 @@ final class CarteTest extends WebTestCase
     }
 
     /**
+     * Une expédition armée déjà partie vers une case gardée ne se propose plus une seconde fois : la
+     * case le dit, au lieu de laisser un bouton que le serveur refuserait.
+     */
+    public function testUneExpeditionArmeeDejaPartieNeSeProposePlus(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'brigands-en-route@example.com');
+        $partie = $this->lancer($joueur);
+        $ville = $partie->getVille();
+
+        $zone = null;
+        foreach ($ville->getZones() as $candidate) {
+            if (!$candidate->porteLaVille()) {
+                $zone = $candidate;
+                break;
+            }
+        }
+        self::assertInstanceOf(Zone::class, $zone);
+        $zone->decouvrir()->installerUneBande(4);
+        $ville->leverUnMedjay(new \App\Entity\Medjay($ville, \App\Game\SpecialisationMedjay::Fantassin));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+        $adresse = \sprintf('/partie/%d/case/%d-%d', $partie->getId(), $zone->getX(), $zone->getY());
+
+        $crawler = $client->request('GET', $adresse, [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertGreaterThan(0, $crawler->filter('input[name="role"][value="chef_expedition"]')->count(), 'Sans expédition, on peut en mener une.');
+
+        $ville->ajouterExpedition(new \App\Entity\Expedition($ville, $zone, \App\Game\RoleDExploration::ChefDExpedition, 2));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', $adresse, [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertCount(0, $crawler->filter('input[name="role"][value="chef_expedition"]'));
+        self::assertSelectorTextContains('turbo-frame#fenetre', 'Une expédition est déjà en route vers cette case');
+    }
+
+    /**
      * Une case tenue par des brigands se repère **sur la carte**, avant même d'ouvrir son détail.
      */
     public function testUneCaseGardeeAUnRepereDeDanger(): void
