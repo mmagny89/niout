@@ -92,14 +92,30 @@ final readonly class Stockage
 
     public static function plafondDesVivres(City $ville): int
     {
-        return self::RESERVE_DE_BASE_EN_VIVRES
+        $plafond = self::RESERVE_DE_BASE_EN_VIVRES
             + self::VIVRES_PAR_NIVEAU_DE_GRENIER * self::niveauDe($ville, TypeDeBatiment::Grenier);
+
+        return self::plafondAffiche($ville, $plafond, $ville->getNourriture());
     }
 
     public static function plafondDesMateriaux(City $ville): int
     {
-        return self::RESERVE_DE_BASE_EN_MATERIAUX
+        $plafond = self::RESERVE_DE_BASE_EN_MATERIAUX
             + self::MATERIAUX_PAR_NIVEAU_DENTREPOT * self::niveauDe($ville, TypeDeBatiment::Entrepot);
+
+        return self::plafondAffiche($ville, $plafond, $ville->getMateriaux());
+    }
+
+    /**
+     * **En mode d'essai, le plafond affiché suit le stock** : la partie n'a pas de réserve à
+     * ménager (`plafondPour()` ne retient rien à l'entrée), et un plafond de 550 sous un stock de
+     * plusieurs milliers ferait de chaque jauge une alerte permanente. On montre donc une marge
+     * de moitié — la réserve n'y paraît jamais saturée. Hors du mode, le plafond est celui des
+     * bâtiments, sans exception.
+     */
+    private static function plafondAffiche(City $ville, int $plafond, int $occupation): int
+    {
+        return $ville->estEnModeDivin() ? max($plafond, 2 * $occupation) : $plafond;
     }
 
     /**

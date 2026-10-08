@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Game;
 
+use App\Entity\City;
 use App\Entity\GameSave;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -23,10 +24,21 @@ use Doctrine\ORM\EntityManagerInterface;
 final readonly class ModeDivin
 {
     /**
-     * De quoi ne plus jamais compter. Un million est arbitraire et c'est le
-     * propos : le mode existe pour que la ressource cesse d'être la question.
+     * De chaque ressource, de quoi ne plus compter à l'échelle d'une partie d'essai : de quoi
+     * bâtir, fabriquer et commercer sans y repenser, **sans écraser tous les écrans**.
+     *
+     * Un million de chaque ressource faisait de toute jauge un bloc plein et de chaque
+     * réserve une alerte permanente — soixante mille cases au Grenier — alors que le mode existe
+     * pour *regarder* un système tourner, pas pour le noyer. Les plafonds d'affichage suivent
+     * d'ailleurs le stock en mode divin (`Stockage`), si bien que rien n'y paraît saturé.
      */
-    public const int RICHESSE = 1_000_000;
+    public const int RICHESSE = 200;
+
+    /**
+     * La bourse, elle, n'a aucun plafond ni aucune jauge : on peut la faire large sans rien
+     * écraser, et les routes lointaines coûtent cher.
+     */
+    public const int BOURSE = 50_000;
 
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -47,7 +59,7 @@ final readonly class ModeDivin
             // L'ordre compte : les plafonds ne tombent qu'une fois le mode
             // actif, et c'est ce qui laisse le million entrer.
             $partie->toutRemettreDAplomb();
-            $ville->crediterRessources($this->toutesLesRessources());
+            $ville->crediterRessources($this->toutesLesRessources($ville));
         }
 
         $this->entityManager->flush();
@@ -64,7 +76,7 @@ final readonly class ModeDivin
             return;
         }
 
-        $partie->getVille()->crediterRessources($this->toutesLesRessources());
+        $partie->getVille()->crediterRessources($this->toutesLesRessources($partie->getVille()));
         $this->entityManager->flush();
     }
 
@@ -99,17 +111,23 @@ final readonly class ModeDivin
     }
 
     /**
-     * Un million de chaque ressource, la monnaie comprise — mais ce qui est
-     * déjà là n'est pas remis à zéro : on ajoute de quoi atteindre le compte.
+     * De quoi **atteindre** le compte pour chaque ressource, la monnaie comprise : ce qui est
+     * déjà là n'est pas remis à zéro, et n'est pas non plus doublé — recombler une partie déjà
+     * riche ne lui ajoute rien.
      *
      * @return array<string, int>
      */
-    private function toutesLesRessources(): array
+    private function toutesLesRessources(City $ville): array
     {
         $don = [];
 
         foreach (Ressource::cases() as $ressource) {
-            $don[$ressource->value] = self::RICHESSE;
+            $cible = $ressource->estLaMonnaie() ? self::BOURSE : self::RICHESSE;
+            $manque = $cible - $ville->quantite($ressource);
+
+            if ($manque > 0) {
+                $don[$ressource->value] = $manque;
+            }
         }
 
         return $don;
