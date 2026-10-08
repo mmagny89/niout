@@ -8,6 +8,7 @@ use App\Entity\GameSave;
 use App\Game\AppelDHabitants;
 use App\Game\Effectifs;
 use App\Game\Maisonnees;
+use App\Game\PalierDeRenommee;
 use App\Game\Salaires;
 use App\Game\TypeDeBatiment;
 
@@ -43,6 +44,7 @@ final readonly class PanneauDuQuartierDHabitation implements FournisseurDePannea
             'coutDUnAppel' => $this->appels->cout($partie),
             // La renommée décide du prix d'un appel : elle se lit ici aussi.
             'palier' => $partie->getFamille()->palier(),
+            'paliers' => PalierDeRenommee::cases(),
         ];
     }
 }

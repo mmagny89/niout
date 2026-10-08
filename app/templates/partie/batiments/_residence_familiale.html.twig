@@ -481,9 +481,18 @@
 
             {% for ligne in objectifs %}
                 <li class="carte-vivante rounded-sm border px-4 py-3 {{ ligne.atteint ? 'border-lapis-500/50 bg-lapis-500/5' : 'border-ocre-500/30 bg-sable-50' }}">
-                    <div class="flex flex-wrap items-baseline justify-between gap-3">
-                        <span class="text-encre-900">{{ ligne.objectif.libelle }}</span>
-                        <span class="signal {{ ligne.atteint ? 'signal--bon' : 'signal--neutre' }}" data-chiffres>
+                    {# Chaque objectif porte le dessin de sa nature : le pictogramme de l'interface, ou — pour
+                       une ressource à rapporter — l'illustration de cette ressource. Décoratif : le libellé
+                       est écrit à côté. #}
+                    {% set pictogrammes = {richesse: 'deben', population: 'habitants', commerce: 'echange', infrastructure: 'amelioration', renommee: 'prestige'} %}
+                    <div class="flex items-center gap-3">
+                        {% if ligne.objectif.ressource %}
+                            {{ include('partie/_icone_ressource.html.twig', {ressource: ligne.objectif.ressource, taille: 36}) }}
+                        {% else %}
+                            {{ include('partie/_pictogramme.html.twig', {nom: pictogrammes[ligne.objectif.type.value] ?? 'echange', taille: 36}) }}
+                        {% endif %}
+                        <span class="min-w-0 flex-1 text-encre-900">{{ ligne.objectif.libelle }}</span>
+                        <span class="signal shrink-0 {{ ligne.atteint ? 'signal--bon' : 'signal--neutre' }}" data-chiffres>
                             {{ ligne.atteint ? '✓ ' : '' }}{{ ligne.avancement }} / {{ ligne.objectif.seuilMesure }}
                         </span>
                     </div>
@@ -573,13 +582,18 @@
             <input type="hidden" name="_token" value="{{ csrf_token('train-de-vie') }}">
             <input type="hidden" name="onglet" value="{{ onglet.cle }}">
 
-            <label for="salaire" class="text-sm text-encre-600">Un travailleur touche</label>
-            <input type="number" id="salaire" name="salaire" value="{{ ville.salaireDeBase }}"
-                   min="{{ salaireMinimal }}" max="{{ salaireMaximal }}"
-                   data-curseur-target="champ" data-action="input->curseur#saisir"
-                   class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
-                   data-chiffres>
-            <span class="text-sm text-encre-500" data-curseur-target="valeur">deben la quinzaine</span>
+            {# Le champ numérique doublait la jauge : la jauge seule se règle, au doigt comme au clavier
+               (flèches). Le champ caché reste la valeur soumise et la source du contrôleur. #}
+            <input type="hidden" id="salaire" name="salaire" value="{{ ville.salaireDeBase }}"
+                   min="{{ salaireMinimal }}" max="{{ salaireMaximal }}" data-curseur-target="champ">
+
+            <label for="salaire-curseur" class="text-sm text-encre-600">
+                Un travailleur touche <strong class="text-encre-900" data-curseur-target="nombre" data-chiffres>{{ ville.salaireDeBase }}</strong>
+                <span data-curseur-target="valeur">deben la quinzaine</span>
+            </label>
+
+            <input type="range" id="salaire-curseur" data-curseur-target="piste"
+                   data-action="input->curseur#deplacer" class="curseur w-full max-w-md sm:w-80">
 
             <button type="submit"
                     class="bouton-offrande group inline-flex items-center gap-2 rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-lapis-600 hover:bg-lapis-500/10">
@@ -587,8 +601,6 @@
                 Fixer le salaire
             </button>
 
-            <input type="range" aria-hidden="true" tabindex="-1" data-curseur-target="piste"
-                   data-action="input->curseur#deplacer" class="curseur basis-full max-w-md">
             <p class="basis-full text-sm" data-curseur-target="verdict" data-chiffres
                data-bas="La ville s'en plaint : c'est moins que l'usage."
                data-milieu="C'est l'usage : la ville ne dit rien."

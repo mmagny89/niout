@@ -29,13 +29,9 @@
 </div>
 {{ include('partie/batiments/_reserve_visuelle.html.twig', {vue: reserveDesMateriaux}) }}
 
-<p class="mt-4 max-w-4xl text-sm {{ ville.materiauxPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-    {{ ville.materiaux }} unités sur {{ ville.plafondDesMateriaux }}.
+<p class="mt-4 max-w-4xl text-sm text-encre-500">
     Les ressources d'une même réserve se partagent ce plafond : dix roseaux
     rangés, c'est dix de moins pour l'argile.
-    {% if ville.materiauxPresqueSatures %}
-        Au-delà, ce qui rentre se perd — écoulez, offrez, ou agrandissez.
-    {% endif %}
 </p>
     </div>
 
@@ -83,10 +79,14 @@
                     </span>
                 </div>
 
-                <div class="flex h-2.5 w-full overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
-                    <div class="jauge h-full bg-linear-to-r from-lapis-500 to-lapis-400" style="width: {{ partGardee }}%"></div>
-                    <div class="h-full bg-terre-500" style="width: {{ 100 - partGardee }}%"></div>
-                </div>
+                {# En cours de partie, la jauge du curseur dit déjà ce qu'on garde et ce qui part : la barre fixe la
+                   doublerait. Elle ne reste que sur une partie échouée, où il n'y a plus de curseur. #}
+                {% if not partie.estEnCours %}
+                    <div class="flex h-2.5 w-full overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                        <div class="h-full bg-lapis-500" style="width: {{ partGardee }}%"></div>
+                        <div class="h-full bg-terre-500" style="width: {{ 100 - partGardee }}%"></div>
+                    </div>
+                {% endif %}
 
                 {% if partie.estEnCours %}
                     <form method="post" action="{{ path('app_partie_reserve', {id: partie.id}) }}"
@@ -96,31 +96,34 @@
                         <input type="hidden" name="_token" value="{{ csrf_token('reserve') }}">
                         <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                         <input type="hidden" name="ressource" value="{{ ligne.ressource.value }}">
-                        <label for="garde-{{ ligne.ressource.value }}" class="text-sm text-encre-600">Je garde</label>
-                        <input type="number" id="garde-{{ ligne.ressource.value }}" name="quantite"
+                        {# Le champ numérique doublait la jauge : la jauge seule se règle, au doigt comme au clavier
+                           (flèches). Le champ caché reste la valeur soumise. #}
+                        <input type="hidden" id="garde-{{ ligne.ressource.value }}" name="quantite"
                                value="{{ ligne.seuil is null ? ligne.enReserve : ligne.seuil }}" min="0"
-                               data-curseur-target="champ" data-action="input->curseur#saisir"
-                               class="w-24 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-sm text-encre-900"
-                               data-chiffres>
-                        <button type="submit"
-                                class="rounded-sm border border-lapis-500/50 px-3 py-1 text-sm text-lapis-600 transition hover:bg-lapis-500/10">
-                            Fixer
-                        </button>
+                               data-curseur-target="champ">
+                        {% if ligne.enReserve > 0 %}
+                            <label for="garde-curseur-{{ ligne.ressource.value }}" class="flex basis-full items-baseline justify-between text-sm text-encre-600">
+                                <span>Je garde</span>
+                                <strong class="font-display text-xl font-normal text-encre-900" data-curseur-target="nombre" data-chiffres>{{ ligne.seuil is null ? ligne.enReserve : ligne.seuil }}</strong>
+                            </label>
+                            <input type="range" id="garde-curseur-{{ ligne.ressource.value }}" data-curseur-target="piste"
+                                   data-action="input->curseur#deplacer" class="curseur basis-full">
+                        {% endif %}
+                        <p class="min-w-0 flex-1 text-xs {{ ligne.surplus > 0 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres data-curseur-target="surplus">
+                            {% if ligne.seuil is null %}rien ne partira
+                            {% elseif ligne.surplus > 0 %}{{ ligne.surplus }} partiront au Marché
+                            {% else %}rien ne partira{% endif %}
+                        </p>
                         {% if ligne.seuil is not null %}
                             <button type="submit" name="retirer" value="1"
                                     class="rounded-sm border border-ocre-500/40 px-3 py-1 text-sm text-encre-600 transition hover:bg-ocre-500/10">
                                 Tout garder
                             </button>
                         {% endif %}
-                        {% if ligne.enReserve > 0 %}
-                            <input type="range" aria-hidden="true" tabindex="-1" data-curseur-target="piste"
-                                   data-action="input->curseur#deplacer" class="curseur basis-full">
-                        {% endif %}
-                        <p class="basis-full text-xs {{ ligne.surplus > 0 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres data-curseur-target="surplus">
-                            {% if ligne.seuil is null %}rien ne partira
-                            {% elseif ligne.surplus > 0 %}{{ ligne.surplus }} partiront au Marché
-                            {% else %}rien ne partira{% endif %}
-                        </p>
+                        <button type="submit"
+                                class="rounded-sm border border-lapis-500/50 px-3 py-1 text-sm text-lapis-600 transition hover:bg-lapis-500/10">
+                            Fixer
+                        </button>
                     </form>
                 {% else %}
                     <p class="text-sm text-encre-600" data-chiffres>

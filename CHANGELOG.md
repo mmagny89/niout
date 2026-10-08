@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **La pastille d'une fête mène au Temple**, s'il est bâti ; sinon elle ouvre la Résidence comme avant.
+- **Un nouvel appel « Mes parties » à l'accueil** : un cartouche à disque d'or, deux lignes et une flèche qui glisse au survol.
+- **« Ce que le pharaon attend » s'illustre** : chaque objectif de mission porte son dessin — deben,
+  habitants, échanges, amélioration, prestige, ou l'illustration de la ressource à rapporter.
 - **La barre de jeu prend des pictogrammes et du mouvement** : le deben, les réserves
   et les habitants sont des pastilles à pictogramme (le libellé reste lisible aux
   lecteurs d'écran), chaque signal de la ville porte le dessin de sa nature, et le
@@ -123,6 +127,41 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **Les états des fiches d'exploitation sont des pastilles de même forme** (épuisée, jamais ouverte, sans un bras, extraction en cours),
+  et les filons épuisés ne sont plus barrés : leur dessin se délave sur des hachures de place libre. Dans l'en-tête d'un bâtiment,
+  un travailleur par poste remplace le rond bleu des bras en poste.
+- **L'en-tête d'un bâtiment** : la fonction se lit à côté du titre, et les bras en poste deviennent une pastille (pastilles pleines et
+  creuses, rendement) à côté de celle du niveau. Dans les champs, « Produit » disparaît : la pastille d'étape suffit ; les filons
+  disent « Extraction en cours ». « Champ de orge » devient « Champ d'orge ».
+- **La répartition de l'Entrepôt se règle à la jauge seule** : plus de champ numérique ni de barre qui doublaient le curseur ;
+  le nombre gardé s'affiche en grand au-dessus, le surplus qui partira au Marché dessous, à côté des boutons.
+- **Les fiches de champs disent ce que disait le détail de la case** : l'étape de la culture (Semis, Récolte… avec son explication
+  au survol), l'équipage et le rendement. Dans l'Entrepôt, chaque famille de ressources se déplie en pastilles à pictogramme,
+  avec un filet pour sa part de la famille, au lieu d'une ligne de noms et de nombres.
+- **Les champs, carrières et pêcheries se lisent comme la réserve** : deux tuiles (équipages, ce qui ne rend rien), une barre qui
+  range les exploitations par état, et une fiche par exploitation avec ce qu'il reste à tirer. Le tableau « case par case »
+  et la phrase de comptage, qui redisaient la même chose, sont partis.
+- **La réserve du Grenier et de l'Entrepôt en jauge empilée** : une barre proportionnelle au plafond (un segment par
+  ressource, la place libre hachurée) et une fiche par ressource avec son pictogramme, sa quantité et sa part, à la place
+  de la grille de cases et de sa légende.
+- **Le Grenier et l'Entrepôt ne disent plus trois fois la même chose** : le total, la place libre et la ration de la ville
+  ne sont plus répétés sous les tuiles, au-dessus et sous la réserve en cases.
+- **« Faire venir du monde » se lit comme une échelle** : les cinq rangs de la famille en marches (celle où l'on se tient
+  est allumée, le prix de base d'un appel dessous), ce que cela vaut en citation dorée, et combien de points de
+  renommée il reste pour monter.
+- **Le Quartier d'habitation change de visage** : les maisonnées sont des maisons de briques crues à toit-terrasse,
+  porte cintrée et fenêtres, et leurs habitants — adultes, enfants, anciens à la canne, alités — ont une silhouette
+  plus lisible. Les places libres sont la même maison, estompée.
+- **Le niveau d'un bâtiment ne se confond plus avec la croix de fermeture** : il passe sous le titre, en pastille à crans
+  (« Niveau ◆◆◇◇◇ 2 / 5 »), et le titre laisse la place de la croix.
+- **Plus de défilement horizontal dans la Résidence** (tableau de bord et liste des bâtiments) : l'infobulle
+  invisible de la dernière tuile dépassait du panneau. Une infobulle n'occupe plus de place tant qu'on ne la lit pas.
+- **La saison ne se répète plus en tête des fenêtres** : sa phrase (« Chémou, la récolte — le fleuve est au plus bas… »)
+  doublait la date de la barre de jeu. Elle s'y lit désormais au survol de la date.
+- **Le salaire des bras se règle à la jauge seule** : le champ numérique doublait la jauge ; le nombre
+  s'affiche en clair dans la phrase et suit le curseur.
+- **Les signaux de la ville ne se répètent plus** : « 8 bâtiments sans chef », une fête en cours
+  s'affichaient dans la barre de jeu *et* en tête de chaque fenêtre de bâtiment. Ils ne restent que dans la barre.
 - **La barre de jeu sur téléphone** : une ombre apparaît du côté où la rangée des compteurs (ou des
   signaux) défile encore — avant, trois compteurs sur sept paraissaient être tout ce qu'on possédait ;
   la date tient sur deux lignes au lieu d'être tronquée, et ne perd plus la saison ni la crue ;

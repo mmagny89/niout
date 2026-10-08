@@ -1,31 +1,64 @@
-{# L'en-tête commun à tout panneau de bâtiment : son nom, son niveau, sa
-   fonction et ses bras.
+{# L'en-tête commun à tout panneau de bâtiment : son nom et sa fonction sur une même ligne, puis, en pastilles, son
+   niveau et ses bras.
 
-   Le même bandeau partout : le joueur apprend une fois où lire le niveau et
-   le rendement, puis le retrouve dans chaque onglet sans avoir à chercher. #}
-<div class="flex flex-wrap items-baseline justify-between gap-3">
+   Le même bandeau partout : le joueur apprend une fois où lire le niveau et le rendement, puis le retrouve
+   dans chaque onglet sans avoir à chercher.
+
+   **La fonction se tient à côté du titre** (elle passe dessous quand la place manque) : posée sur sa propre
+   ligne, elle séparait le titre de ses pastilles. Le titre garde la place de la croix de fermeture (44 px,
+   en haut à droite de la fenêtre) — à droite, le niveau se confondait avec elle. #}
+<div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 pr-12">
     <h2 id="fenetre-titre" class="text-2xl text-encre-900">{{ onglet.libelle }}</h2>
-    {% if onglet.batiment %}
-        <span class="text-sm text-encre-500" data-chiffres>
-            Niveau {{ onglet.batiment.niveau }} sur {{ onglet.batiment.niveauMaxAtteignable }}
-        </span>
-    {% endif %}
+    <p class="min-w-0 max-w-2xl flex-1 basis-64 text-sm text-encre-500">{{ onglet.type.fonction }}</p>
 </div>
 
-<p class="mt-2 max-w-4xl text-sm text-encre-600">{{ onglet.type.fonction }}</p>
-
 {% if onglet.batiment %}
-    {# Une jauge, pas un recrutement : les ouvriers se puisent dans le vivier
-       d'actifs (doc 05), le joueur ne les embauche pas un par un. #}
+    {% set niveau = onglet.batiment.niveau %}
+    {% set maximum = onglet.batiment.niveauMaxAtteignable %}
+    {# Une jauge, pas un recrutement : les ouvriers se puisent dans le vivier d'actifs (doc 05), le joueur ne
+       les embauche pas un par un. #}
     {% set effectif = effectifs[onglet.type.value] ?? null %}
-    {% if effectif %}
-        <p class="mt-2 text-sm {{ effectif.rendement < 100 ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-            {% if effectif.requis == 0 %}
-                Sans chef : {{ effectif.rendement }} % de rendement.
-            {% else %}
-                {{ effectif.affectes }} / {{ effectif.requis }} travailleurs ·
-                {{ effectif.rendement }} % de rendement
-            {% endif %}
-        </p>
-    {% endif %}
+    <ul class="mt-3 flex list-none flex-wrap items-center gap-2 p-0 text-xs" data-chiffres>
+        {# Le niveau se lit en crans. Le texte « Niveau N sur M » reste écrit pour les lecteurs d'écran. #}
+        <li class="inline-flex items-center gap-2 rounded-full border border-ocre-500/40 bg-ocre-500/10 py-1 pl-3 pr-3.5 text-encre-700">
+            <span class="sr-only">Niveau {{ niveau }} sur {{ maximum }}</span>
+            <span aria-hidden="true" class="font-medium uppercase tracking-wider text-encre-500">Niveau</span>
+            <span aria-hidden="true" class="flex gap-1">
+                {% for cran in 1..maximum %}
+                    <span class="size-2 rotate-45 {{ cran <= niveau ? 'bg-terre-500' : 'border border-ocre-500/60' }}"></span>
+                {% endfor %}
+            </span>
+            <span aria-hidden="true" class="font-medium text-encre-900">{{ niveau }}<span class="text-encre-500"> / {{ maximum }}</span></span>
+        </li>
+
+        {% if effectif %}
+            {# Les bras en poste (pleins) et ceux qui manquent (creux), puis le rendement qui en découle. Sans chef,
+               aucun poste n'est ouvert : la pastille le dit, en terre cuite, avec ce que cela coûte. #}
+            {% set alerte = effectif.rendement < 100 %}
+            <li class="inline-flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-3.5
+                       {{ alerte ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600' }}">
+                {% if effectif.requis == 0 %}
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 18}) }}
+                    <span>Sans chef</span>
+                {% else %}
+                    <span class="sr-only">{{ effectif.affectes }} sur {{ effectif.requis }} travailleurs</span>
+                    {# Un travailleur par poste : plein pour un bras en poste, délavé pour un poste vide. Le chef a son
+                       icône dans la pastille « Sans chef », les travailleurs ont la leur. #}
+                    <span aria-hidden="true" class="flex items-center">
+                        {% if effectif.requis <= 8 %}
+                            {% for place in 1..effectif.requis %}
+                                <span class="{{ place <= effectif.affectes ? '' : 'opacity-35 grayscale' }}">{{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 18}) }}</span>
+                            {% endfor %}
+                        {% else %}
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 18}) }}
+                        {% endif %}
+                    </span>
+                    <span aria-hidden="true">{{ effectif.affectes }} / {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}</span>
+                {% endif %}
+                <span aria-hidden="true" class="font-medium">· {{ effectif.rendement }} %</span>
+                <span class="sr-only">{{ effectif.requis == 0 ? 'Sans chef : ' : '' }}{{ effectif.rendement }} % de rendement</span>
+                <span aria-hidden="true" class="text-encre-500">de rendement</span>
+            </li>
+        {% endif %}
+    </ul>
 {% endif %}

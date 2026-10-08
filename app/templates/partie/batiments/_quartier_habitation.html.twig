@@ -24,22 +24,15 @@
         'deben par quinzaine · ' ~ ville.consommationDeNourriture ~ ' vivres de rations',
         'Ce que les équipes coûtent à chaque quinzaine. Si la caisse ne suit pas, celles qu\'on ne peut pas payer cessent le travail.') }}
 </div>
-<p class="mt-4 text-sm text-encre-500">
-    {{ ville.population }} habitants, dont {{ ville.actifs }} en âge de
-    travailler et {{ ville.inactifs }} à charge.
-    {{ ville.foyersOccupes }} maisonnées sur {{ ville.capaciteEnFoyers }} logées.
-    {{ brasDisponibles }} bras restent à placer dans les bâtiments.
-</p>
 {{ include('partie/batiments/_maisonnees.html.twig') }}
 
-<p class="mt-4 text-sm {{ masseSalariale > ville.deben ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-    Masse salariale : <strong class="font-medium">{{ masseSalariale }} deben</strong> par quinzaine,
-    pour {{ ville.consommationDeNourriture }} vivres de rations.
-    {% if masseSalariale > ville.deben %}
+{# Les chiffres de la masse salariale sont dans la tuile ; ne reste ici que ce qui n'y tient pas. #}
+{% if masseSalariale > ville.deben %}
+    <p class="mt-4 text-sm text-terre-600">
         Votre caisse ne suit plus : les équipes que vous ne pourrez pas
         payer cesseront le travail.
-    {% endif %}
-</p>
+    </p>
+{% endif %}
     </div>
 
 {{ sous.panneau('quartier', 'appel', false) }}
@@ -57,10 +50,35 @@
             {{ ville.deben < coutDUnAppel ? 'Bourse trop courte' : 'Bourse suffisante' }}
         </li>
     </ul>
-    <p class="text-sm text-encre-600">
-        Votre famille est <strong class="font-medium text-encre-900">{{ palier.libelle|lower }}</strong> :
-        {{ palier.attractivite }}
-    </p>
+    {# **Le rang de la famille se lit comme une échelle**, pas comme une phrase : cinq marches, celle où l'on
+       se tient allumée, ce qu'un appel coûte à chacune dessous. Le prix de base seulement — celui que la
+       renommée fixe ; le prix payé est dit plus bas. #}
+    {% set renommee = partie.famille.renommee %}
+    <ol class="grid list-none grid-cols-5 gap-1.5 p-0" aria-label="Rang de la famille et prix de base d'un appel" data-chiffres>
+        {% for rang in paliers %}
+            {% set atteint = rang.seuilDEntree <= renommee %}
+            {% set courant = rang == palier %}
+            <li class="rounded-sm border px-1.5 py-2 text-center {{ courant ? 'border-terre-500/60 bg-terre-500/10' : 'border-transparent' }}"
+                {{ courant ? 'aria-current="step"' }}>
+                <span class="block h-1.5 rounded-full {{ atteint ? 'bg-linear-to-r from-terre-500 to-or-400' : 'bg-ocre-500/20' }}" aria-hidden="true"></span>
+                <span class="mt-1.5 block text-xs {{ courant ? 'font-medium text-terre-600' : (atteint ? 'text-encre-700' : 'text-encre-500') }}">{{ rang.libelle }}</span>
+                <span class="mt-0.5 block text-xs text-encre-500">{{ rang.coutDAppel }} deben</span>
+            </li>
+        {% endfor %}
+    </ol>
+
+    <div class="mt-4 flex items-start gap-3 rounded-sm border-l-4 border-or-300 bg-or-300/10 px-4 py-3">
+        {{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 32}) }}
+        <div class="min-w-0 text-sm">
+            <p class="text-encre-900">{{ palier.attractivite }}</p>
+            {% if palier.suivant %}
+                <p class="mt-1 text-xs text-encre-500" data-chiffres>
+                    Encore {{ palier.suivant.seuilDEntree - renommee }} points de renommée pour être
+                    {{ palier.suivant.libelle|lower }} : un appel y coûte {{ palier.suivant.coutDAppel }} deben de base.
+                </p>
+            {% endif %}
+        </div>
+    </div>
 
     {% if ville.manqueDeLogements %}
         <p class="mt-3 text-sm text-encre-500">

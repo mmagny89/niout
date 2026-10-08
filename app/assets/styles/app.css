@@ -194,8 +194,18 @@
  * de la barre, et une infobulle centrée sortirait de l'écran. Le texte est **un
  * complément** — l'élément porte déjà son nom pour un lecteur d'écran —, et un conteneur
  * qui défile (`overflow`) la rognerait : on ne la pose pas dedans.
+ *
+ * **Hors de la mise en page tant qu'elle n'est pas lue** (`display: none`, pas seulement
+ * `opacity: 0`) : une infobulle invisible mais présente, large de dix-huit rem et posée au
+ * bord gauche d'un élément proche du bord droit, élargit la zone défilante de son panneau —
+ * c'est le défilement horizontal de la Résidence, dû à la dernière tuile du tableau de bord.
+ * Le fondu est donc une animation d'entrée et non une transition.
  */
 [data-infobulle] { position: relative; }
+/* L'élément dont on lit l'infobulle passe devant ses voisins : un voisin animé (`transform`) est son propre
+   contexte d'empilement, peint après, et recouvrirait l'infobulle — des tuiles passaient sous les maisons. */
+[data-infobulle]:hover,
+[data-infobulle]:focus-visible { z-index: 50; }
 [data-infobulle]::after {
     content: attr(data-infobulle);
     position: absolute;
@@ -215,20 +225,18 @@
     text-align: left;
     white-space: normal;
     box-shadow: 0 4px 12px rgb(43 32 22 / 0.3);
-    opacity: 0;
+    display: none;
     pointer-events: none;
-    transform: translateY(-3px);
-    transition: opacity 120ms, transform 120ms;
 }
 [data-infobulle]:hover::after,
 [data-infobulle]:focus-visible::after {
-    opacity: 1;
-    transform: none;
-    transition-delay: 250ms;
+    display: block;
+    animation: infobulle-entre 120ms ease-out 250ms both;
 }
+@keyframes infobulle-entre { from { opacity: 0; transform: translateY(-3px); } }
 @media (hover: none) {
     /* Au doigt, pas de survol : l'infobulle resterait collée après un toucher. */
-    [data-infobulle]:hover::after { opacity: 0; }
+    [data-infobulle]:hover:not(:focus-visible)::after { display: none; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -476,6 +484,9 @@
     }
     .maison { transition: transform 180ms; }
     .maison:hover { transform: translateY(-3px); }
+    /* Chaque maison est son propre contexte d'empilement (animation, transform) : sans cela, l'infobulle de
+       l'une passe sous la maison suivante, qui est peinte après. La maison lue passe devant ses voisines. */
+    .maison:hover, .maison:focus-within { z-index: 10; }
 }
 @media (prefers-reduced-motion: no-preference) {
     .salle__braise { animation: braise 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
@@ -715,5 +726,64 @@ turbo-frame#fenetre[busy] { opacity: 0.45; transition: opacity 120ms; }
             radial-gradient(farthest-side at 0 50%, rgb(43 32 22 / 0.22), transparent) left center / 0.6rem 100% no-repeat scroll,
             radial-gradient(farthest-side at 100% 50%, rgb(43 32 22 / 0.22), transparent) right center / 0.6rem 100% no-repeat scroll;
         background-color: var(--color-sable-50);
+    }
+}
+
+/* Le grand appel à l'action de l'accueil, en cartouche : un disque d'or porte le pictogramme, deux lignes
+   disent où l'on va, une flèche glisse au survol. Hors d'un simple bouton plein, il se lit comme l'entrée
+   de la cité. Les dimensions et le contexte d'empilement vivent ici : une classe Tailwind neuve n'existe
+   qu'après `tailwind:build`. */
+@layer components {
+    .bouton-cartouche {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.875rem;
+        padding: 0.5rem 1.5rem 0.5rem 0.5rem;
+        border-radius: 999px;
+        border: 1px solid color-mix(in srgb, var(--color-or-400) 70%, transparent);
+        background: linear-gradient(135deg, var(--color-terre-500), var(--color-terre-700));
+        color: var(--color-sable-50);
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgb(111 55 18 / 0.28), inset 0 1px 0 rgb(255 255 255 / 0.18);
+        transition: transform 180ms, box-shadow 180ms;
+    }
+    .bouton-cartouche:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgb(111 55 18 / 0.34), inset 0 1px 0 rgb(255 255 255 / 0.18);
+    }
+    .bouton-cartouche__disque {
+        display: grid;
+        place-items: center;
+        flex: none;
+        width: 3.25rem;
+        height: 3.25rem;
+        border-radius: 999px;
+        background: radial-gradient(circle at 35% 30%, var(--color-or-300), var(--color-or-500));
+        box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.25);
+    }
+    .bouton-cartouche__titre { display: block; font-family: var(--font-display); font-size: 1.25rem; line-height: 1.15; }
+    .bouton-cartouche__sous-titre { display: block; font-size: 0.75rem; opacity: 0.8; }
+    .bouton-cartouche__fleche { margin-left: 0.25rem; font-size: 1.25rem; transition: transform 180ms; }
+    .bouton-cartouche:hover .bouton-cartouche__fleche { transform: translateX(4px); }
+}
+
+/* La maison de briques crues du Quartier d'habitation. Les tracés vivent dans un `<symbol>` (une ville de
+   cent soixante maisons ne les répète pas) : leurs couleurs passent donc par ces classes, que `<use>`
+   hérite. Une maison libre est la même, estompée et sans ouverture : on voit la place qui reste. */
+@layer components {
+    .maison__toit { fill: var(--color-terre-400); stroke: var(--color-terre-600); stroke-width: 1; }
+    .maison__acrotere { fill: var(--color-terre-500); }
+    .maison__facade { fill: color-mix(in srgb, var(--color-ocre-500) 22%, var(--color-sable-50)); stroke: color-mix(in srgb, var(--color-ocre-500) 55%, transparent); stroke-width: 1; }
+    .maison__briques { fill: none; stroke: color-mix(in srgb, var(--color-ocre-500) 30%, transparent); stroke-width: 1; }
+    .maison__porte { fill: color-mix(in srgb, var(--color-terre-700) 45%, var(--color-sable-100)); }
+    .maison__ouverture { fill: color-mix(in srgb, var(--color-terre-700) 50%, var(--color-sable-100)); }
+    .maison-libre { opacity: 0.38; filter: grayscale(0.6); }
+    .maison-libre .maison__porte, .maison-libre .maison__ouverture { fill: transparent; }
+}
+
+/* La place libre d'une réserve : des hachures claires, pour qu'elle se lise comme un vide à remplir. */
+@layer components {
+    .reserve-libre {
+        background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--color-ocre-500) 22%, transparent) 6px 7px);
     }
 }

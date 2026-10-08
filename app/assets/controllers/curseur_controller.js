@@ -14,7 +14,7 @@ import { Controller } from '@hotwired/stimulus';
  *   la cible `surplus` dit en toutes lettres combien partira.
  */
 export default class extends Controller {
-    static targets = ['champ', 'piste', 'valeur', 'surplus', 'verdict'];
+    static targets = ['champ', 'piste', 'valeur', 'surplus', 'verdict', 'nombre'];
     static values = {
         seuil: Number,
         mode: { type: String, default: 'seuil' },
@@ -57,6 +57,9 @@ export default class extends Controller {
 
         this.pisteTarget.style.background = `linear-gradient(to right, ${avant} ${pourcent}%, ${apres} ${pourcent}%)`;
 
+        if (this.hasNombreTarget) {
+            this.nombreTarget.textContent = String(valeur);
+        }
         if (this.hasValeurTarget) {
             const mauvais = this.mauvaisEnBasValue ? valeur < this.seuilValue : valeur > this.seuilValue;
             this.valeurTarget.classList.toggle('text-terre-600', mauvais);

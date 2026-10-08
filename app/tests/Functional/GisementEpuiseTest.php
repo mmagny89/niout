@@ -105,7 +105,7 @@ final class GisementEpuiseTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('#panneau-entrepot', 'Vos carrières et vos mines');
         self::assertSelectorTextContains('#panneau-entrepot', 'en activité');
-        self::assertSelectorTextContains('#panneau-entrepot', 'Produit');
+        self::assertSelectorTextContains('#panneau-entrepot', 'Extraction en cours');
 
         $this->viderLeFilon($partie, $this->carriere($partie));
         static::getContainer()->get(EntityManagerInterface::class)->flush();

@@ -99,11 +99,11 @@ final class ResidenceValorisationTest extends WebTestCase
     }
 
     /**
-     * Le salaire des bras se règle au curseur, mais le champ numérique reste la source soumise : le
+     * Le salaire des bras se règle au seul curseur ; un champ caché reste la source soumise : le
      * curseur, le verdict et le champ vivent dans le même contrôleur (une cible hors de son contrôleur
      * n'est jamais trouvée, sans erreur), et le verdict arrive en trois textes déjà rendus.
      */
-    public function testLeSalaireDesBrasSeRegleAuCurseurSurUnChampSource(): void
+    public function testLeSalaireDesBrasSeRegleAuSeulCurseurSurUnChampCache(): void
     {
         $client = static::createClient();
         $partie = $this->partie($client, 'salaire-curseur@example.com');
@@ -114,8 +114,10 @@ final class ResidenceValorisationTest extends WebTestCase
         $formulaire = $crawler->filter('#residence-section-gouvernement form[data-controller="curseur"]');
         self::assertCount(1, $formulaire);
         self::assertSame('true', $formulaire->attr('data-curseur-mauvais-en-bas-value'), 'Un salaire trop bas est le mauvais côté.');
-        self::assertCount(1, $formulaire->filter('input#salaire[data-curseur-target="champ"][name="salaire"]'));
+        self::assertCount(1, $formulaire->filter('input[type="hidden"]#salaire[data-curseur-target="champ"][name="salaire"]'));
+        self::assertCount(0, $formulaire->filter('input[type="number"]'), 'La jauge ne se double pas d\'un champ numérique.');
         self::assertCount(1, $formulaire->filter('input[type="range"][data-curseur-target="piste"]'));
+        self::assertCount(1, $formulaire->filter('[data-curseur-target="nombre"]'));
         $verdict = $formulaire->filter('[data-curseur-target="verdict"]');
         self::assertCount(1, $verdict);
         foreach (['data-bas', 'data-milieu', 'data-haut'] as $attribut) {

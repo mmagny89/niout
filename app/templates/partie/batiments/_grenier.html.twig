@@ -28,16 +28,7 @@
 </div>
 {{ include('partie/batiments/_reserve_visuelle.html.twig', {vue: reserveDesVivres}) }}
 
-<p class="mt-4 max-w-4xl text-sm {{ ville.vivresPresqueSatures ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-    {{ ville.nourriture }} vivres sur {{ ville.plafondDesVivres }}.
-    La ville en mange {{ ville.consommationDeNourriture }} par quinzaine —
-    deux demi-rations par actif, une par bouche à charge.
-    {% if ville.vivresPresqueSatures %}
-        Le Grenier est presque plein : ce qui rentrerait au-delà se perd.
-    {% endif %}
-</p>
-
-<p class="mt-2 max-w-4xl text-sm text-encre-500">
+<p class="mt-4 max-w-4xl text-sm text-encre-500">
     Monter le Grenier, c'est conserver davantage <em>et</em> mieux moissonner :
     les champs du territoire sont gouvernés d'ici.
 </p>
