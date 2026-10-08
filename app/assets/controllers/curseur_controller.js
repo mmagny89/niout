@@ -67,8 +67,10 @@ export default class extends Controller {
         if (this.hasVerdictTarget) {
             const cle = valeur < this.justeValue ? 'bas' : (valeur >= this.genereuxValue ? 'haut' : 'milieu');
             this.verdictTarget.textContent = this.verdictTarget.dataset[cle] ?? '';
-            this.verdictTarget.classList.toggle('text-terre-600', cle === 'bas');
-            this.verdictTarget.classList.toggle('text-lapis-600', cle !== 'bas');
+            // Le mauvais côté est le bas pour un salaire, le haut pour un prix.
+            const mauvais = this.mauvaisEnBasValue ? cle === 'bas' : cle === 'haut';
+            this.verdictTarget.classList.toggle('text-terre-600', mauvais);
+            this.verdictTarget.classList.toggle('text-lapis-600', !mauvais);
         }
         if (this.hasSurplusTarget) {
             const part = Math.max(0, this.reserveValue - Math.max(0, valeur));
