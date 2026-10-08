@@ -9,6 +9,13 @@
 
     <div class="h-full overflow-y-auto" data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
     <article class="p-5 pr-12 md:p-6 md:pr-12">
+        {# La case en portrait : sa tuile, qui flotte doucement. La même image que sur la
+           carte — la fenêtre dit de quelle case on parle sans qu'on ait à relire les coordonnées. #}
+        <div class="case-portrait relative mx-auto mb-3 flex h-32 items-end justify-center" aria-hidden="true">
+            <img src="{{ asset('images/tuiles/' ~ (zoneDetaillee.porteLaVille ? 'ville' : (zoneDetaillee.estDecouverte ? zoneDetaillee.terrain.tuile : 'brouillard')) ~ '.png') }}"
+                 alt="" class="case-portrait__tuile h-auto w-52 select-none">
+        </div>
+
         <div class="flex flex-wrap items-baseline justify-between gap-3">
             <h2 id="fenetre-titre" class="font-display text-xl text-encre-900">
                 {% if zoneDetaillee.porteLaVille %}
@@ -59,6 +66,27 @@
             {% endif %}
         </p>
 
+        {# Ce que la case porte, en pastilles : on le lit avant le détail. #}
+        {% if zoneDetaillee.estDecouverte and not zoneDetaillee.porteLaVille %}
+            <ul class="mt-3 flex list-none flex-wrap gap-2 p-0">
+                {% if zoneDetaillee.estGardee %}
+                    <li class="signal signal--mauvais">{{ include('partie/_pictogramme.html.twig', {nom: 'danger', taille: 20}) }} Tenue par des brigands</li>
+                {% endif %}
+                {% if zoneDetaillee.contenu.value == 'evenement' and not zoneDetaillee.indiceRecueilli %}
+                    <li class="signal signal--bon">{{ include('partie/_pictogramme.html.twig', {nom: 'enigme', taille: 20}) }} Quelque chose s'y trame</li>
+                {% endif %}
+                {% for gisement in zoneDetaillee.gisements %}
+                    <li class="signal signal--neutre">
+                        {{ include('partie/_icone_ressource.html.twig', {ressource: gisement.ressource, taille: 24}) }}
+                        {{ gisement.ressource.libelle|capitalize }}
+                    </li>
+                {% endfor %}
+                {% if zoneDetaillee.porteUnChamp %}
+                    <li class="signal signal--neutre">{{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 20}) }} {{ zoneDetaillee.champs }} champ{{ zoneDetaillee.champs > 1 ? 's' : '' }}</li>
+                {% endif %}
+            </ul>
+        {% endif %}
+
         {# Le danger se dit **avant** qu'on tente d'exploiter : le
            découvrir par un refus serait le subir au lieu de le
            jouer (doc 02, doc 03). La défense montrée est celle que
@@ -103,7 +131,8 @@
                     {% endif %}
 
                     <button type="submit"
-                            class="rounded-sm border border-terre-500/50 px-3 py-1 text-sm text-encre-900 hover:bg-terre-500/10">
+                            class="bouton-offrande group inline-flex items-center gap-2 rounded-sm border border-terre-500/50 px-3 py-1.5 text-sm text-encre-900 hover:bg-terre-500/10">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 22, classe: 'bouton-offrande__image'}) }}
                         Y mener une expédition
                     </button>
                 </form>
@@ -123,7 +152,8 @@
                 <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
                 <input type="hidden" name="role" value="emissaire">
                 <button type="submit"
-                        class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                        class="bouton-offrande group inline-flex items-center gap-2 rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 22, classe: 'bouton-offrande__image'}) }}
                     Envoyer un émissaire
                 </button>
                 <span class="ml-3 text-sm text-encre-500" data-chiffres>
@@ -143,7 +173,8 @@
                 <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
                 <input type="hidden" name="role" value="prospecteur">
                 <button type="submit"
-                        class="rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                        class="bouton-offrande group inline-flex items-center gap-2 rounded-sm border border-lapis-500/50 px-4 py-2 text-sm text-encre-700 hover:bg-lapis-500/10">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 22, classe: 'bouton-offrande__image'}) }}
                     Envoyer un prospecteur
                 </button>
                 <span class="ml-3 text-sm text-encre-500" data-chiffres>
@@ -172,7 +203,8 @@
                 <input type="hidden" name="_token" value="{{ csrf_token('fouiller') }}">
                 <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
                 <button type="submit"
-                        class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'enigme', taille: 22, classe: 'bouton-offrande__image'}) }}
                     Fouiller les lieux
                 </button>
             </form>
@@ -201,7 +233,8 @@
                     <input type="hidden" name="_token" value="{{ csrf_token('explorer') }}">
                     <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
                     <button type="submit"
-                            class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                            class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 22, classe: 'bouton-offrande__image'}) }}
                         Envoyer un éclaireur
                     </button>
                     <span class="ml-3 text-sm text-encre-500" data-chiffres>
@@ -264,7 +297,8 @@
                                     <input type="hidden" name="zone" value="{{ zoneDetaillee.x }}-{{ zoneDetaillee.y }}">
                                     <input type="hidden" name="ressource" value="{{ gisement.ressource.value }}">
                                     <button type="submit"
-                                            class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                            class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                        {{ include('partie/_pictogramme.html.twig', {nom: 'chantier', taille: 22, classe: 'bouton-offrande__image'}) }}
                                         {{ estPoisson ? 'Jeter les filets' : 'Ouvrir une carrière' }}
                                     </button>
                                 </form>
@@ -315,7 +349,8 @@
                     </ul>
 
                     <button type="submit"
-                            class="mt-3 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                            class="bouton-offrande group mt-3 inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                        {{ include('partie/_pictogramme.html.twig', {nom: 'prestige', taille: 22, classe: 'bouton-offrande__image'}) }}
                         Semer cette terre
                     </button>
                 </form>

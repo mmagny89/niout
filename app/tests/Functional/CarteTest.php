@@ -34,6 +34,86 @@ final class CarteTest extends WebTestCase
     }
 
     /**
+     * Chaque case est un conteneur qui porte sa tuile ET sa zone cliquable : c'est ce qui
+     * permet à la tuile de se soulever (`:has()`) quand on survole **sa** zone. Une zone
+     * cliquable hors de son conteneur ne soulèverait rien, sans erreur visible.
+     */
+    public function testChaqueCaseRegroupeSaTuileEtSaZoneCliquable(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'case-iso@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        $cases = $crawler->filter('.case-iso');
+        self::assertCount(9, $cases);
+        $cases->each(static function ($case): void {
+            self::assertCount(1, $case->children()->filter('img.case-iso__tuile'));
+            self::assertCount(1, $case->children()->filter('a[aria-label]'));
+        });
+    }
+
+    /**
+     * Les conteneurs de cases sont des rectangles qui se recouvrent : ils doivent laisser passer
+     * les clics, et seul le losange du lien les capte. Sans cette règle, une case du premier plan
+     * interceptait les clics de sa voisine dans les coins — des zones où l'on ne pouvait plus
+     * cliquer. Aucun test fonctionnel n'exécute la CSS : on garde la règle elle-même.
+     */
+    public function testLesConteneursDeCasesLaissentPasserLesClics(): void
+    {
+        $css = (string) file_get_contents(\dirname(__DIR__, 2).'/assets/styles/app.css');
+
+        self::assertMatchesRegularExpression('/\.case-iso\s*\{\s*pointer-events:\s*none;\s*\}/', $css);
+        self::assertMatchesRegularExpression('/\.case-iso\s*>\s*a\s*\{\s*pointer-events:\s*auto;\s*\}/', $css);
+    }
+
+    /**
+     * **Accessibilité et mobile**, deux gardes que seul le source peut tenir (aucun test fonctionnel
+     * n'exécute la CSS ni ne mesure d'écran) :
+     * - un bloc final ramène toute animation et toute transition à l'instantané si l'on a demandé
+     *   moins de mouvement — il y avait quatorze transitions hors du garde ;
+     * - les volets de la barre sortent de la rangée qui défile (`fixed` sur téléphone, `absolute`
+     *   dès `md`) : dans la rangée, un volet s'ouvrait mais restait rogné, donc invisible.
+     */
+    public function testLeMouvementReduitEtLesVoletsMobilesSontGardes(): void
+    {
+        $css = (string) file_get_contents(\dirname(__DIR__, 2).'/assets/styles/app.css');
+        self::assertMatchesRegularExpression('/@media \(prefers-reduced-motion: reduce\)\s*\{[^@]*transition-duration:\s*0\.01ms\s*!important/s', $css);
+        self::assertMatchesRegularExpression('/@media \(prefers-reduced-motion: reduce\)\s*\{[^@]*animation-duration:\s*0\.01ms\s*!important/s', $css);
+
+        $barre = (string) file_get_contents(\dirname(__DIR__, 2).'/templates/partie/_barre.html.twig');
+        self::assertSame(2, substr_count($barre, 'fixed inset-x-3 top-28'), 'Les deux volets de la barre sortent de la rangée sur téléphone.');
+        self::assertSame(2, substr_count($barre, 'md:absolute'));
+    }
+
+    /**
+     * Une case tenue par des brigands se repère **sur la carte**, avant même d'ouvrir son détail.
+     */
+    public function testUneCaseGardeeAUnRepereDeDanger(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'repere-danger@example.com');
+        $partie = $this->lancer($joueur);
+
+        $zone = null;
+        foreach ($partie->getVille()->getZones() as $candidate) {
+            if (!$candidate->porteLaVille()) {
+                $zone = $candidate;
+                break;
+            }
+        }
+        self::assertInstanceOf(Zone::class, $zone);
+        $zone->decouvrir()->installerUneBande(5);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        self::assertCount(1, $crawler->filter('.repere--danger'));
+        self::assertStringContainsString('tenue par des brigands', (string) $crawler->filter('.case-iso a[aria-label*="brigands"]')->attr('aria-label'));
+    }
+
+    /**
      * Le détail d'une case semée affiche son étape (semis, pousse, récolte ou
      * repos) — la régression à surveiller est une erreur Twig si l'étape
      * n'est pas calculable.
