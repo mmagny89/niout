@@ -13,6 +13,16 @@
     {{- parent() -}}
 {% endblock %}
 
+{# **Les listes déroulantes** : le thème de Symfony porte ses propres classes, mais elles
+   vivent dans `vendor/`, que Tailwind ne scanne pas — elles ne sont donc jamais compilées, et
+   une liste s'affichait sans cadre ni fond, indiscernable d'un texte. On pose ici les classes du
+   projet, dans un gabarit que Tailwind lit. Le chevron est dessiné en fond : `appearance-none`
+   retire celui du navigateur, qui n'obéit à aucune couleur. #}
+{% block choice_widget_collapsed %}
+    {%- set attr = attr|merge({ class: (attr.class|default('') ~ ' liste-deroulante mt-1 block w-full cursor-pointer rounded-sm border border-ocre-500/40 bg-sable-50 py-2 pl-3 pr-9 text-encre-900 focus:border-lapis-500 focus:outline-none focus:ring-1 focus:ring-lapis-500')|trim }) -%}
+    {{- parent() -}}
+{% endblock %}
+
 {% block form_errors %}
     {%- if errors|length > 0 -%}
         <ul class="mt-1 list-none space-y-1 p-0 text-sm text-terre-600">
