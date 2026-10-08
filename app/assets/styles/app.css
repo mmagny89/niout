@@ -699,3 +699,21 @@ select.liste-deroulante {
 
 /* Le contenu de la fenêtre s'estompe pendant que le suivant charge : on ne lit pas un écran périmé. */
 turbo-frame#fenetre[busy] { opacity: 0.45; transition: opacity 120ms; }
+
+/*
+ * Une rangée qui défile le dit : une ombre apparaît du côté où il reste du contenu (barre de jeu sur
+ * téléphone). Sans elle, trois compteurs sur sept paraissaient être tout ce qu'on possède. Les deux
+ * premiers dégradés (`local`) recouvrent l'ombre quand on est au bout ; les deux autres (`scroll`)
+ * restent collés aux bords — d'où une ombre seulement là où il y a de quoi défiler. Au-delà de `md` la
+ * rangée ne défile plus et ne porte aucune ombre.
+ */
+@media (max-width: 767px) {
+    .defile-ombre {
+        background:
+            linear-gradient(to right, var(--color-sable-50) 30%, transparent) left center / 2rem 100% no-repeat local,
+            linear-gradient(to left, var(--color-sable-50) 30%, transparent) right center / 2rem 100% no-repeat local,
+            radial-gradient(farthest-side at 0 50%, rgb(43 32 22 / 0.22), transparent) left center / 0.6rem 100% no-repeat scroll,
+            radial-gradient(farthest-side at 100% 50%, rgb(43 32 22 / 0.22), transparent) right center / 0.6rem 100% no-repeat scroll;
+        background-color: var(--color-sable-50);
+    }
+}

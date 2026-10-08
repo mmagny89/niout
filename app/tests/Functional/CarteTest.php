@@ -167,6 +167,37 @@ final class CarteTest extends WebTestCase
     }
 
     /**
+     * **La barre de jeu sur téléphone** : les deux rangées qui défilent portent une ombre qui dit qu'il
+     * reste du contenu ; « Mes parties » ferme la rangée des compteurs sur téléphone et reprend sa place
+     * à côté du bouton de cycle dès `md` (un seul des deux est jamais visible) ; la date ne se tronque
+     * plus sur une ligne. Aucun test fonctionnel ne mesure un écran : on garde la structure.
+     */
+    public function testLaBarreSurTelephoneDitQuIlResteDuContenuEtGardeSaDate(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'barre-mobile@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+        self::assertResponseIsSuccessful();
+
+        self::assertGreaterThanOrEqual(1, $crawler->filter('header .defile-ombre')->count(), 'La rangée des compteurs défile et le dit.');
+
+        $liens = $crawler->filter(\sprintf('header a[href="/parties"]'));
+        self::assertCount(2, $liens, '« Mes parties » existe deux fois, une seule visible à la fois.');
+        $classes = $liens->each(static fn ($lien): string => (string) $lien->attr('class'));
+        self::assertCount(1, array_filter($classes, static fn (string $c): bool => str_contains($c, 'md:hidden')));
+        self::assertCount(1, array_filter($classes, static fn (string $c): bool => str_contains($c, 'hidden') && str_contains($c, 'md:inline-flex')));
+
+        $date = (string) $crawler->filter('header p.line-clamp-2')->attr('class');
+        self::assertStringContainsString('md:line-clamp-none', $date, 'Deux lignes sur téléphone, entière dès md.');
+        self::assertStringNotContainsString('truncate', $date);
+
+        $css = (string) file_get_contents(\dirname(__DIR__, 2).'/assets/styles/app.css');
+        self::assertMatchesRegularExpression('/@media \(max-width: 767px\)\s*\{\s*\.defile-ombre\s*\{/', $css);
+    }
+
+    /**
      * Une case tenue par des brigands se repère **sur la carte**, avant même d'ouvrir son détail.
      */
     public function testUneCaseGardeeAUnRepereDeDanger(): void

@@ -26,7 +26,7 @@
            `-mx-3 px-3` : la rangée qui défile mord sur la marge du parent,
            pour que le premier et le dernier compteur ne paraissent pas
            coupés au repos. #}
-        <div class="-mx-3 flex w-full flex-nowrap items-center gap-x-4 gap-y-2 overflow-x-auto px-3 text-sm
+        <div class="defile-ombre -mx-3 flex w-full flex-nowrap items-center gap-x-4 gap-y-2 overflow-x-auto px-3 text-sm
                     md:mx-0 md:w-auto md:flex-wrap md:overflow-visible md:px-0 xl:min-w-0 xl:flex-nowrap xl:gap-x-2">
             <a href="{{ path('app_partie_carte', {id: partie.id}) }}"
                class="shrink-0 font-display text-lg text-terre-600 no-underline">
@@ -142,10 +142,18 @@
                     {% endif %}
                 </div>
             </details>
+
+            {# Sur téléphone, « Mes parties » ferme la rangée des compteurs au lieu de prendre de la place à
+               côté du bouton de cycle : on y va rarement en cours de partie, et la date a besoin de la
+               largeur. Dès `md` le lien reprend sa place d'origine (celui-ci disparaît). #}
+            <a href="{{ path('app_parties') }}"
+               class="inline-flex shrink-0 items-center whitespace-nowrap rounded-sm px-2 py-1.5 text-sm text-encre-500 hover:text-terre-600 md:hidden">Mes parties</a>
         </div>
 
         <div class="flex w-full flex-nowrap items-center justify-between gap-3 md:w-auto md:justify-start xl:shrink-0">
-            <p class="min-w-0 truncate text-xs text-encre-600 md:overflow-visible md:text-sm xl:whitespace-nowrap">
+            {# Sur téléphone la date tient sur deux lignes au lieu d'être tronquée : « Khent-khéti, an 2 — C… » ne
+               disait ni la saison ni la crue, qui conditionnent la moisson. #}
+            <p class="min-w-0 line-clamp-2 text-xs leading-tight text-encre-600 md:line-clamp-none md:overflow-visible md:text-sm xl:whitespace-nowrap">
                 {{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 22}) }}
                 {{ partie.dateDeJeu.libelle }}
                 <span class="text-encre-500" data-chiffres>· cycle {{ partie.cycle }}</span>
@@ -165,7 +173,9 @@
                 {# Une fête qu'on n'a pas vue passer est une fête qui n'existe
                    pas : elle ne dure que deux à quatre quinzaines par an. #}
                 {% if partie.feteEnCours %}
-                    <span class="text-lapis-500" title="{{ partie.feteEnCours.description }}">
+                    {# Sur téléphone la fête n'est pas répétée dans la date : sa pastille, dans la rangée des
+                       signaux, la dit déjà, et la date a besoin de la place pour la saison et la crue. #}
+                    <span class="hidden text-lapis-500 md:inline" title="{{ partie.feteEnCours.description }}">
                         · {{ partie.feteEnCours.libelle }}
                     </span>
                 {% endif %}
@@ -174,7 +184,7 @@
             {{ actionHtml|raw }}
 
             <a href="{{ path('app_parties') }}"
-               class="shrink-0 whitespace-nowrap py-1.5 text-sm text-encre-500 hover:text-terre-600">Mes parties</a>
+               class="hidden shrink-0 whitespace-nowrap py-1.5 text-sm text-encre-500 hover:text-terre-600 md:inline-flex">Mes parties</a>
         </div>
     </div>
 
@@ -192,12 +202,12 @@
     {% if signaux is defined %}
         {% set expeditions = partie.ville.expeditions|length %}
         {% if signaux is not empty or expeditions > 0 %}
-            <ul class="flex list-none flex-nowrap items-center gap-2 overflow-x-auto border-t border-ocre-500/15 px-3 py-1.5 md:flex-wrap md:overflow-visible md:px-4">
+            <ul class="defile-ombre flex list-none flex-nowrap items-center gap-2 overflow-x-auto border-t border-ocre-500/15 px-3 py-1.5 md:flex-wrap md:overflow-visible md:px-4">
                 {% for signal in signaux %}
                     <li>
                         <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'}) }}"
                            data-turbo-frame="fenetre" data-infobulle="{{ signal.detail }}"
-                           class="signal group {{ signal.ton == 'mauvais' ? 'signal--mauvais' : 'signal--bon' }}">
+                           class="signal group min-h-8 md:min-h-0 {{ signal.ton == 'mauvais' ? 'signal--mauvais' : 'signal--bon' }}">
                             {{ include('partie/_pictogramme.html.twig', {nom: signal.icone, taille: 20, classe: 'signal__image'}) }}
                             {{ signal.titre }}
                         </a>
@@ -207,7 +217,7 @@
                     <li>
                         <a href="{{ path('app_partie_expeditions', {id: partie.id}) }}"
                            data-turbo-frame="fenetre" data-infobulle="Des expéditions sont parties : cliquez pour voir où elles en sont."
-                           class="signal signal--neutre group">
+                           class="signal signal--neutre group min-h-8 md:min-h-0">
                             {{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 20, classe: 'signal__image'}) }}
                             Expéditions en route <span data-chiffres>({{ expeditions }})</span>
                         </a>

@@ -754,3 +754,13 @@ la catégorie est le nom du bâtiment, prend celui de l'amélioration par défau
 leurs quatre étapes en frise reliée, l'explication de l'étape en cours dessous. **La Mission** reprend le
 `.decret` de la commande ; le score d'Aventure passe du tableau à des barres proportionnelles à la part de
 chaque grandeur, avec les mêmes chiffres écrits à côté.
+
+**Barre de jeu sur téléphone** (mesurée à 390 px, par iframe) : 141 px de haut pour trois rangées, contre 131
+avant — dix pixels de plus pour une date complète, un bouton de cycle à 44 px et des pastilles à 32 px
+(cibles de 26 à 33 px auparavant). `.defile-ombre` dit qu'une rangée défile : deux dégradés `local`
+recouvrent l'ombre quand on est au bout, deux dégradés `scroll` restent collés aux bords — l'ombre ne
+paraît que du côté où il reste du contenu. **« Mes parties » existe deux fois** : à la fin de la rangée des
+compteurs sur téléphone (`md:hidden`), à côté du bouton de cycle dès `md` (`hidden md:inline-flex`) —
+`display: none` retire l'autre de l'arbre d'accessibilité, un seul est jamais lu. La fête n'est pas répétée
+dans la date sur téléphone (sa pastille la dit) pour que la date tienne la saison et la crue, qui
+conditionnent la moisson.

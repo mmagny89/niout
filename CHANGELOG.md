@@ -123,6 +123,12 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **La barre de jeu sur téléphone** : une ombre apparaît du côté où la rangée des compteurs (ou des
+  signaux) défile encore — avant, trois compteurs sur sept paraissaient être tout ce qu'on possédait ;
+  la date tient sur deux lignes au lieu d'être tronquée, et ne perd plus la saison ni la crue ;
+  « Mes parties » ferme la rangée des compteurs au lieu de voler la place de la date ; le bouton de
+  cycle et les pastilles de signal atteignent 44 et 32 px de haut.
+
 - **On ne propose plus d'envoyer un prospecteur sur la ville** : le bouton « ce sol pourrait rendre
   argile, roseaux… » apparaissait sur la case de la ville, qui n'a jamais de gisement. Le serveur
   refuse maintenant ce départ comme l'écran ne le propose plus.
