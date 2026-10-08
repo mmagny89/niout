@@ -16,7 +16,8 @@ la lecture de référence pour comprendre le code.
 
 - **Une consigne par travailleur** : chaque travailleur d'un atelier ou d'une forge est un poste, avec son ouvrage et sa consigne
   permanente — un bâtiment mène autant d'ordres de front que de travailleurs en poste (au moins un). L'écran montre une carte
-  par travailleur, libre ou à l'ouvrage.
+  par travailleur, libre ou à l'ouvrage. On ne choisit pas son travailleur : l'ouvrage va au premier libre, et un travailleur sous
+  consigne permanente est réservé à elle.
 - **L'en-tête de chaque bâtiment dit toujours ses chefs et ses travailleurs**, même à zéro, avec leurs icônes.
 - **Les routes commerciales ont un visage** : chaque cité porte son pictogramme, la distance (avec sa piste), le volume d'un convoi et ce qu'elle
   vend et achète en pastilles à illustration. Le prix d'un étal se règle à la jauge, entre le plancher et le plafond de la cité ; un ordre

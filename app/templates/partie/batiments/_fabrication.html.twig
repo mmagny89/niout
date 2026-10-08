@@ -19,7 +19,8 @@
     {% set sections = sections|merge([{cle: 'direction', libelle: direction.chefs is empty ? 'Direction · vacante' : 'Direction'}]) %}
 {% endif %}
 {% if atelier %}
-{% set libres = atelier.postes|filter(p => not p.ordre) %}
+{# Un travailleur sous consigne permanente est réservé à elle : il n'est pas disponible pour un ordre à la main. #}
+{% set libres = atelier.postes|filter(p => not p.ordre and not p.consigne) %}
 {{ sous.debut('fabrication-' ~ onglet.type.value, partie.id, "Sections de l'atelier", sections) }}
 {{ sous.panneau('fabrication-' ~ onglet.type.value, 'ouvrage', true) }}
     <h3 class="mt-8 text-xl text-encre-900">À l'ouvrage</h3>
@@ -56,9 +57,10 @@
             {% else %}
                 <li class="rounded-sm border border-dashed border-ocre-500/50 bg-sable-50/50 px-4 py-3 text-encre-500">
                     <p class="flex items-center gap-1 text-xs">{{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 16, classe: 'opacity-50 grayscale'}) }} Travailleur {{ poste.numero }}</p>
-                    <p class="mt-1 font-display text-lg text-encre-600">Libre</p>
+                    <p class="mt-1 font-display text-lg text-encre-600">{{ poste.consigne ? 'Sous consigne' : 'Libre' }}</p>
                     <p class="text-xs">
                         {% if poste.consigne and poste.consigne.estEnAttenteDeMatieres %}<span class="text-terre-600">À l'arrêt, faute de matières pour {{ poste.consigne.recette.libelle }}.</span>
+                        {% elseif poste.consigne %}<span class="text-lapis-600">Sous consigne : {{ poste.consigne.recette.libelle }}, il s'y remet de lui-même.</span>
                         {% else %}Mettez-le à l'ouvrage ci-dessous.{% endif %}
                     </p>
                 </li>
@@ -68,13 +70,13 @@
 
     {% if libres is empty %}
         <p class="mt-3 max-w-4xl text-sm text-encre-500">
-            Tous vos travailleurs sont à l'ouvrage. Embauchez, ou attendez qu'un
-            poste se libère.
+            Tous vos travailleurs sont à l'ouvrage ou sous consigne permanente. Levez une
+            consigne, embauchez, ou attendez qu'un poste se libère.
         </p>
     {% else %}
         <h4 class="mt-6 text-sm font-medium uppercase tracking-wide text-encre-500">Mettre à l'ouvrage</h4>
         <p class="mt-2 max-w-4xl text-sm text-encre-500" data-chiffres>
-            Un lot consomme ses matières à l'engagement et rend plusieurs pièces
+            L'ouvrage va au premier travailleur libre. Un lot consomme ses matières à l'engagement et rend plusieurs pièces
             à l'achèvement. Jusqu'à {{ atelier.lotsMaximum }} à la fois ; les bras
             qui tiennent le bâtiment en décident le rythme.
         </p>
@@ -128,16 +130,6 @@
                             <input type="hidden" name="_token" value="{{ csrf_token('fabriquer') }}">
                             <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                             <input type="hidden" name="recette" value="{{ offre.recette.value }}">
-                            {# Quel travailleur s'y met : un seul libre, il n'y a rien à choisir. #}
-                            {% if libres|length > 1 %}
-                                <label for="poste-{{ offre.recette.value }}" class="text-sm text-encre-600">Travailleur</label>
-                                <select id="poste-{{ offre.recette.value }}" name="poste"
-                                        class="h-9 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 text-sm text-encre-900">
-                                    {% for poste in libres %}<option value="{{ poste.numero }}">n° {{ poste.numero }}</option>{% endfor %}
-                                </select>
-                            {% else %}
-                                <input type="hidden" name="poste" value="{{ (libres|first).numero }}">
-                            {% endif %}
 
                             <label for="lots-{{ offre.recette.value }}" class="text-sm text-encre-600">Lots</label>
                             <span class="inline-flex items-center">

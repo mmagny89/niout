@@ -72,11 +72,17 @@ final class FabricationTest extends KernelTestCase
      * **Un seul ouvrage à la fois** : c'est ce qui donne son coût
      * d'opportunité à la fabrication — tisser, c'est ne pas cuire.
      */
-    public function testLAtelierNeMenePasDeuxOuvragesDeFront(): void
+    public function testLAtelierNeMenePasPlusDOuvragesQueDeTravailleurs(): void
     {
         self::bootKernel();
         $partie = $this->villeAvecAtelier('un-seul@example.com');
-        $this->fabrication()->lancer($partie, Recette::Poterie, lots: 1);
+
+        // L'ouvrage va au premier travailleur libre, sans qu'on le choisisse : on remplit tous les postes.
+        for ($i = 0; $i < Fabrication::postesDe($partie, TypeDeBatiment::Atelier); ++$i) {
+            $this->fabrication()->lancer($partie, Recette::Poterie, lots: 1);
+        }
+
+        self::assertCount(Fabrication::postesDe($partie, TypeDeBatiment::Atelier), $partie->getVille()->ordresDeFabricationDe(TypeDeBatiment::Atelier));
 
         $this->expectException(FabricationImpossible::class);
         $this->expectExceptionMessageMatches('/déjà un ouvrage/');
@@ -555,22 +561,40 @@ final class FabricationTest extends KernelTestCase
     }
 
     /**
-     * **Une consigne relance, elle ne dépasse pas ses postes** : avec un seul
-     * travailleur, un seul ordre à la fois, consigne ou non.
+     * **Un travailleur sous consigne permanente est réservé à elle** : un ordre à la main va à un autre
+     * travailleur, et ne peut jamais prendre celui de la consigne.
      */
-    public function testLaConsigneNeDepassePasSesPostes(): void
+    public function testUnTravailleurSousConsigneNEstPlusDisponible(): void
     {
         self::bootKernel();
-        $partie = $this->villeAvecAtelier('consigne-serie@example.com');
+        $partie = $this->villeAvecAtelier('consigne-reserve@example.com');
         $ville = $partie->getVille();
 
-        $ville->consigner(Recette::Tissus, 1);
-        $this->fabrication()->lancer($partie, Recette::Tissus, 1);
+        $ville->consigner(Recette::Tissus, 1, 1);
+        $ordre = $this->fabrication()->lancer($partie, Recette::Tissus, 1);
 
-        for ($i = 0; $i < 5; ++$i) {
-            $this->fabrication()->avancerDUnCycle($partie);
-            self::assertLessThanOrEqual(1, $ville->getOrdresDeFabrication()->count());
+        self::assertSame(2, $ordre->getPoste(), 'L\'ordre à la main saute le travailleur sous consigne.');
+        self::assertNull($ville->ordreDeFabricationDe(TypeDeBatiment::Atelier, 1));
+
+        $this->expectException(FabricationImpossible::class);
+        $this->expectExceptionMessage('réservé à sa consigne');
+        $this->fabrication()->lancer($partie, Recette::Tissus, 1, 1);
+    }
+
+    public function testToutSousConsigneOuALOuvrageIlNYAPlusDeTravailleurLibre(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecAtelier('plus-de-libre@example.com');
+        $ville = $partie->getVille();
+        $postes = Fabrication::postesDe($partie, TypeDeBatiment::Atelier);
+
+        for ($poste = 1; $poste <= $postes; ++$poste) {
+            $ville->consigner(Recette::Poterie, 1, $poste);
         }
+
+        $this->expectException(FabricationImpossible::class);
+        $this->expectExceptionMessage('ont déjà un ouvrage');
+        $this->fabrication()->lancer($partie, Recette::Poterie, 1);
     }
 
     /**

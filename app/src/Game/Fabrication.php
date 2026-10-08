@@ -56,8 +56,23 @@ final readonly class Fabrication
      *
      * @throws FabricationImpossible
      */
-    public function lancer(GameSave $partie, Recette $recette, int $lots, int $poste = 1): OrdreDeFabrication
+    public function lancer(GameSave $partie, Recette $recette, int $lots, ?int $poste = null): OrdreDeFabrication
     {
+        $ville = $partie->getVille();
+        $type = $recette->batiment();
+
+        // Le joueur ne choisit pas son travailleur : l'ouvrage va au premier poste libre. Un travailleur sous
+        // consigne permanente est **réservé** à elle — il n'est pas disponible pour un ordre à la main.
+        $poste ??= $this->premierPosteLibre($partie, $type);
+
+        if (null === $poste) {
+            throw new FabricationImpossible(\sprintf('Tous les travailleurs de votre %s ont déjà un ouvrage en cours ou une consigne permanente.', $type->libelle()));
+        }
+
+        if (null !== $ville->consigneDeFabricationDe($type, $poste)) {
+            throw new FabricationImpossible(\sprintf('Ce travailleur de votre %s est réservé à sa consigne permanente.', $type->libelle()));
+        }
+
         $ordre = $this->engager($partie, $recette, $lots, $poste);
 
         $this->entityManager->persist($ordre);
@@ -164,6 +179,23 @@ final readonly class Fabrication
         }
 
         return $messages;
+    }
+
+    /**
+     * Le premier travailleur disponible : sans ouvrage en cours **et** sans consigne permanente (qui le
+     * réserve). Nul quand tous sont pris.
+     */
+    private function premierPosteLibre(GameSave $partie, TypeDeBatiment $type): ?int
+    {
+        $ville = $partie->getVille();
+
+        for ($poste = 1; $poste <= self::postesDe($partie, $type); ++$poste) {
+            if (null === $ville->ordreDeFabricationDe($type, $poste) && null === $ville->consigneDeFabricationDe($type, $poste)) {
+                return $poste;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -611,7 +611,10 @@ que se fabrique tout ce qui a de la valeur. Cinq règles :
   pas cuire avec ces mains-là. Le nombre de bras borne donc la production
   parallèle. Un ordre ou une consigne sur un poste que la ville ne tient plus
   (bras repartis ailleurs) va à son terme, sans qu'on puisse en lancer un neuf.
-  L'unicité en base est par `(ville, bâtiment, poste)`.
+  **Le joueur ne choisit pas son travailleur** : un ordre à la main va au premier poste
+  disponible (`Fabrication::lancer()`), et **un travailleur sous consigne permanente est
+  réservé à elle** — il n'est pas disponible pour un ordre manuel. L'unicité en base est par
+  `(ville, bâtiment, poste)`.
 - **Elle ne force rien** : la relance passe par les mêmes vérifications qu'une
   commande à la main — niveau, second déblocage, matières. Elle épargne le
   clic, pas les règles.

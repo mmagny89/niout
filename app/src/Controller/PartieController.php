@@ -475,7 +475,7 @@ final class PartieController extends AbstractController
         }
 
         try {
-            $ordre = $fabrication->lancer($partie, $recette, $request->request->getInt('lots', 1), max(1, $request->request->getInt('poste', 1)));
+            $ordre = $fabrication->lancer($partie, $recette, $request->request->getInt('lots', 1));
             $this->addFlash('succes', \sprintf(
                 'L\'Atelier s\'attelle à %s : %d pièces dans %d quinzaine%s.',
                 mb_strtolower($recette->libelle()),
