@@ -29,23 +29,31 @@
 {# La troupe en cases : un homme levé, une case pleine ; une place libre, une
    case en pointillés. Un blessé est signalé par une case terre cuite. Le
    dessin est masqué aux lecteurs d'écran, le texte dessus dit la même chose. #}
-<div class="mt-2 flex flex-wrap gap-1" aria-hidden="true">
+<div class="mt-3 flex flex-wrap gap-1.5" aria-hidden="true">
     {% for rang in 1..max(effectifMaximum, 1) %}
         {% set medjay = medjays[rang - 1] ?? null %}
-        {% if medjay and medjay.estDisponible(partie.cycle) %}
-            <span class="h-4 w-4 rounded-xs bg-lapis-500"></span>
-        {% elseif medjay %}
-            <span class="h-4 w-4 rounded-xs bg-terre-500"></span>
-        {% else %}
-            <span class="h-4 w-4 rounded-xs border border-dashed border-ocre-500/50"></span>
-        {% endif %}
+        {# Un écu par homme : levé, il est plein ; blessé, il vire à la terre
+           cuite et s'éteint ; une place libre n'est qu'un écu fantôme. Les
+           écus apparaissent l'un après l'autre (`--i`). #}
+        <span class="case-vivante" style="--i: {{ rang }}"
+              data-infobulle="{{ medjay ? medjay.specialisation.libelle ~ ', force ' ~ medjay.force ~ (medjay.estDisponible(partie.cycle) ? '' : ' — blessé') : 'Place libre' }}">
+            {% if medjay and medjay.estDisponible(partie.cycle) %}
+                {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 34}) }}
+            {% elseif medjay %}
+                {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 34, classe: 'sepia saturate-150 hue-rotate-[-20deg] opacity-60'}) }}
+            {% else %}
+                {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 34, classe: 'opacity-20 grayscale'}) }}
+            {% endif %}
+        </span>
     {% endfor %}
 </div>
 
 {% if medjays is not empty %}
     <ul class="mt-4 grid list-none grid-cols-1 gap-2 p-0 md:grid-cols-2 2xl:grid-cols-3">
         {% for medjay in medjays %}
-            <li class="rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3">
+            <li class="carte-vivante flex items-start gap-3 rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 36, classe: 'mt-0.5 ' ~ (medjay.estDisponible(partie.cycle) ? '' : 'sepia opacity-60')}) }}
+                <div>
                 <span class="text-encre-900">{{ medjay.specialisation.libelle }}</span>
                 <span class="text-sm text-encre-500" data-chiffres>
                     · force {{ medjay.force }}
@@ -57,6 +65,7 @@
                     </span>
                 {% endif %}
                 <p class="mt-1 text-sm text-encre-600">{{ medjay.specialisation.particularite }}</p>
+                </div>
             </li>
         {% endfor %}
     </ul>
@@ -73,10 +82,13 @@
 
 <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
     {% for ligne in offreDeLaCaserne %}
-        <li class="flex flex-col rounded-sm border p-4
+        <li class="carte-vivante flex flex-col rounded-sm border p-4
                    {{ ligne.ouverte ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
             <div class="flex flex-wrap items-baseline justify-between gap-3">
-                <h4 class="font-display text-lg text-encre-900">{{ ligne.specialisation.libelle }}</h4>
+                <h4 class="flex items-center gap-2 font-display text-lg text-encre-900">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 30, classe: ligne.ouverte ? '' : 'opacity-40 grayscale'}) }}
+                    {{ ligne.specialisation.libelle }}
+                </h4>
                 <span class="text-sm text-encre-500" data-chiffres>
                     {{ ligne.specialisation.coutDeRecrutement }} deben ·
                     {{ ligne.specialisation.entretienParQuinzaine }} par quinzaine ·
@@ -92,7 +104,8 @@
                     <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                     <input type="hidden" name="specialisation" value="{{ ligne.specialisation.value }}">
                     <button type="submit"
-                            class="rounded-sm border border-ocre-500/40 px-3 py-1 text-sm text-encre-700 hover:bg-ocre-500/10">
+                            class="rounded-sm border border-ocre-500/40 px-4 py-1.5 text-sm font-medium text-encre-700
+                                   transition hover:-translate-y-px hover:border-ocre-500 hover:bg-ocre-300/25 active:translate-y-0">
                         Lever
                     </button>
                 </form>

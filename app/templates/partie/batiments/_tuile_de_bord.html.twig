@@ -1,0 +1,27 @@
+{# Une tuile du tableau de bord de la Résidence : un pictogramme, un grand chiffre,
+   une jauge, une ligne de contexte.
+
+   `{{ tuile(icone, titre, valeur, jauge, plafond, alerte, detail, aide) }}` — `aide` : l'infobulle — `jauge` et `plafond`
+   donnent la part remplie (omis : pas de jauge) ; `alerte` passe la jauge et le chiffre en
+   terre cuite. **Une représentation de plus, pas un remplacement** : le chiffre est écrit en
+   toutes lettres dans la tuile, la jauge est `aria-hidden`, et les quatre tableaux dessous
+   gardent chaque valeur avec son intitulé. #}
+{% macro tuile(icone, titre, valeur, jauge, plafond, alerte, detail, aide) %}
+    {% set part = (jauge is not null and plafond is not null and plafond > 0) ? min(100, (jauge * 100 / plafond)|round) : null %}
+    <div {% if aide %}data-infobulle="{{ aide }}" tabindex="0"{% endif %}
+         class="carte-vivante flex flex-col gap-1 rounded-sm border px-4 py-3
+                {{ alerte ? 'border-terre-600/45 bg-terre-500/5' : 'border-ocre-500/30 bg-sable-50' }}">
+        <div class="flex items-center gap-2">
+            {{ include('partie/_pictogramme.html.twig', {nom: icone, taille: 34, classe: alerte ? 'tuile__image--alerte' : ''}) }}
+            <span class="text-sm text-encre-600">{{ titre }}</span>
+        </div>
+        <p class="font-display text-3xl leading-tight {{ alerte ? 'text-terre-600' : 'text-encre-900' }}" data-chiffres>{{ valeur }}</p>
+        {% if part is not null %}
+            <div class="h-2.5 w-full overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                <div class="jauge h-full rounded-full {{ alerte ? 'bg-terre-600' : 'bg-linear-to-r from-lapis-500 to-lapis-400' }}"
+                     style="width: {{ part }}%"></div>
+            </div>
+        {% endif %}
+        {% if detail %}<p class="text-xs text-encre-500" data-chiffres>{{ detail }}</p>{% endif %}
+    </div>
+{% endmacro %}

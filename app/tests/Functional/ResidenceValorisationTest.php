@@ -115,7 +115,7 @@ final class ResidenceValorisationTest extends WebTestCase
 
     /**
      * Le Marché propose d'emblée la quantité que la place absorbe, et montre sa
-     * place du jour en cases.
+     * place du jour en jauge.
      */
     public function testLeMarcheProposeLaQuantiteQueLaPlaceAbsorbe(): void
     {
@@ -130,10 +130,63 @@ final class ResidenceValorisationTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'La place du jour');
-        self::assertGreaterThan(0, $crawler->filter('[role="img"][aria-label^="Débouché de la quinzaine"]')->count());
+        // La place du jour est une tuile : son chiffre est écrit, la jauge est décorative.
+        self::assertSelectorTextContains('body', 'écoulés sur');
+        self::assertGreaterThan(0, $crawler->filter('[data-controller="vente"]')->count(), 'Chaque lot montre ce que sa vente rapporterait.');
 
         $quantite = (int) $crawler->filter('#quantite-poterie')->attr('value');
         self::assertGreaterThan(1, $quantite, 'Une place neuve absorbe plus d\'une poterie.');
+    }
+
+    /**
+     * L'Entrepôt range ses seuils en cartes à curseur : le champ numérique reste la source
+     * soumise (il marche sans JavaScript), le curseur le double.
+     */
+    public function testLEntrepotRepartitLesSeuilsEnCartesACurseur(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'entrepot-curseurs@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Entrepot));
+        $ville->crediterRessources([\App\Game\Ressource::Argile->value => 40]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=entrepot', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        $formulaire = $crawler->filter('form[data-controller="curseur"][data-curseur-mode-value="part"]')->reduce(
+            static fn ($n): bool => 1 === $n->filter('input#garde-argile')->count(),
+        );
+        self::assertCount(1, $formulaire, 'Chaque ressource en réserve a sa carte et son curseur.');
+        self::assertSame('0', $formulaire->filter('input#garde-argile')->attr('min'));
+        self::assertGreaterThan(0, $formulaire->filter('input[name="_token"]')->count(), 'Le formulaire reste soumis par le champ.');
+    }
+
+    /**
+     * Le contrôleur d'aperçu des lots est sur la carte de la recette, **au-dessus** de ce
+     * qu'il met à jour : une cible hors de son contrôleur n'est jamais trouvée, et rien ne
+     * le dit à l'écran. Aucun test fonctionnel n'exécute le JavaScript — la parade est
+     * cette assertion de structure.
+     */
+    public function testLApercuDesLotsEnglobeLesMatieresEtLeChamp(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'forge-lots@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Forge));
+        $ville->crediterRessources([\App\Game\Ressource::Cuivre->value => 50, \App\Game\Ressource::BoisLocal->value => 50]);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=forge', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        $cartes = $crawler->filter('li[data-controller="lots"]');
+        self::assertGreaterThan(0, $cartes->count());
+        $cartes->each(static function ($carte): void {
+            self::assertGreaterThan(0, $carte->filter('[data-lots-target="matiere"][data-base]')->count(), 'Les matières sont dans le contrôleur.');
+            self::assertGreaterThan(0, $carte->filter('input[data-lots-target="lots"]')->count());
+            self::assertGreaterThan(0, $carte->filter('form[action$="/fabriquer"]')->count());
+        });
     }
 
     /**

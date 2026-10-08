@@ -6,7 +6,34 @@
    ces trois bâtiments se lisaient de trois façons différentes. #}
 <h2 class="text-2xl text-encre-900">Le Temple {{ ville.avecPreposition }}</h2>
 
-<p class="mt-2 text-sm text-encre-500">
+{# Le Temple d'un coup d'œil : autant d'ankhs que de dieux qu'il peut porter, allumés
+   pour ceux qu'on honore, et ce que vaut une offrande. Décoratif (`aria-hidden`) :
+   les deux paragraphes dessous disent la même chose en lettres. #}
+<div class="mt-4 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3">
+    <div class="flex items-center gap-2" aria-hidden="true"
+         data-infobulle="Autant d'ankhs que de divinités que votre Temple peut porter au-dessus du neutre. Un ankh allumé : un dieu que vous honorez.">
+        <span class="text-sm text-encre-500">Dieux portés</span>
+        <span class="flex items-center gap-1">
+            {% for rang in 1..max(divinitesPortables, 1) %}
+                {{ include('partie/_pictogramme.html.twig', {
+                    nom: 'faveur', taille: 30,
+                    classe: 'case-vivante ' ~ (rang <= honorees|length ? 'case-vivante--allumee' : 'opacity-25 grayscale'),
+                }) }}
+            {% endfor %}
+        </span>
+    </div>
+    <div class="flex items-center gap-2 text-sm text-encre-700" aria-hidden="true" data-chiffres
+         data-infobulle="Ce que vaut une offrande : {{ debenParOffrande }} deben, ou leur valeur en marchandise, donnent {{ pointsParOffrande }} points de faveur.">
+        {{ include('partie/_pictogramme.html.twig', {nom: 'offrande', taille: 30}) }}
+        <span>{{ debenParOffrande }}</span>
+        {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 22}) }}
+        <span class="text-encre-500">=</span>
+        <span>{{ pointsParOffrande }}</span>
+        {{ include('partie/_pictogramme.html.twig', {nom: 'faveur', taille: 22}) }}
+    </div>
+</div>
+
+<p class="mt-3 text-sm text-encre-500">
     Un Temple de niveau <span data-chiffres>{{ niveauDuTemple }}</span> porte
     <span data-chiffres>{{ divinitesPortables }}</span> divinité{{ divinitesPortables > 1 ? 's' : '' }}
     au-dessus du neutre, et jusqu'à <span data-chiffres>{{ plafond }}</span> points de faveur.
@@ -21,7 +48,7 @@
 </p>
 {% if fete %}
     <p class="mt-4 rounded-sm border border-lapis-500/50 bg-lapis-500/5 px-5 py-3 text-sm text-encre-700">
-        <span class="font-display text-lg text-encre-900">{{ fete.libelle }}</span> —
+        {{ include('partie/_pictogramme.html.twig', {nom: 'offrande', taille: 28, classe: 'mr-2 -mt-1'}) }}<span class="font-display text-lg text-encre-900">{{ fete.libelle }}</span> —
         {{ fete.description }} Toute offrande à {{ fete.divinite.libelle }} vaut
         <span data-chiffres>{{ pointsDeFete }}</span> points de plus tant qu'elle dure.
     </p>
@@ -29,7 +56,7 @@
 
 <ul class="mt-6 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
     {% for dieu in pantheon %}
-        <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+        <li class="carte-vivante rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
             {# Le portrait du dieu, en tête de sa carte : la lecture du reste coule
                autour. Décoratif — le nom est écrit juste à côté. #}
             {% set portrait = image_de_divinite(dieu.divinite) %}
@@ -45,14 +72,15 @@
                              {{ dieu.palier.nuit
                                 ? 'border-terre-600/50 text-terre-600'
                                 : (dieu.palier.estAuDessusDuNeutre ? 'border-lapis-500/50 text-lapis-500' : 'border-ocre-500/40 text-encre-500') }}">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'faveur', taille: 18}) }}
                     {{ dieu.palier.libelle }} · <span data-chiffres>{{ dieu.faveur }}</span>
                 </span>
             </div>
 
             {# La jauge dit d'un coup d'œil ce qu'une colonne de chiffres
                dirait mal : où en est ce dieu, et où s'arrête le Temple. #}
-            <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
-                <div class="h-full {{ dieu.palier.nuit ? 'bg-terre-600' : 'bg-lapis-500' }}"
+            <div class="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-ocre-500/20">
+                <div class="jauge h-full rounded-full {{ dieu.palier.nuit ? 'bg-terre-600' : 'bg-linear-to-r from-lapis-500 to-lapis-400' }}"
                      style="width: {{ dieu.faveur }}%"></div>
             </div>
 
@@ -117,7 +145,8 @@
                         </select>
 
                         <button type="submit"
-                                class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                class="bouton-offrande group ml-auto inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                            {{ include('partie/_pictogramme.html.twig', {nom: 'offrande', taille: 22, classe: 'bouton-offrande__image'}) }}
                             Porter au Temple
                         </button>
                     </form>
