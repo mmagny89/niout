@@ -330,8 +330,11 @@ fait disparaître sans erreur — `IllustrationsTest` garde la correspondance.
 - `Twig\IllustrationsExtension` : `image_de_ressource(r)` accepte une `Ressource`, une
   `Recette` (leurs valeurs coïncident : `poterie`, `pain`…) ou une chaîne ;
   `image_de_divinite(d)`. **Une image manquante rend `null` et le gabarit s'en passe** :
-  le deben, le poisson, les dattes, la grauwacke, les outils et les armes n'ont pas encore
-  leur planche. La valeur est contrainte (`[a-z_]`) — elle finit dans un chemin de fichier.
+  toute ressource future sans planche s'affichera sans image. **Cinq planches sont des
+  FAUX icônes** — grauwacke, poisson, dattes, outils, armes : un emoji sur la plaque de
+  bois, produits par `outils/faux-icones.py` (le deben reprend le pictogramme de l'interface).
+  À remplacer par de vraies illustrations : les ajouter à `outils/decouper-icones.py`, puis
+  retirer l'entrée du script de faux. La valeur est contrainte (`[a-z_]`) — elle finit dans un chemin de fichier.
 - `partie/_icone_ressource.html.twig` rend l'icône, décorative (le nom est toujours écrit à
   côté), à la largeur demandée. Elle figure : dans les volets de la barre de jeu, au tableau
   de l'Entrepôt, aux lots du Marché, dans la dotation royale, aux gisements d'une case,
@@ -339,6 +342,23 @@ fait disparaître sans erreur — `IllustrationsTest` garde la correspondance.
   carte de chaque dieu au Temple.
 - Pour l'amulette, la planche donne deux variantes : on a gardé celle « incrustée de turquoise »
   (`bijoux`) ; les autres objets viennent de la deuxième rangée.
+
+## Pictogrammes et mouvement
+
+Une planche de seize pictogrammes (`sources-sprites/interface.jpeg`, découpée par
+`outils/decouper-icones.py` vers `app/assets/images/interface/<nom>.webp`). **Le nom dit
+l'usage, pas le dessin** (`deben`, `habitants`, `danger`, `echange`…) : le gabarit demande
+`partie/_pictogramme.html.twig` avec un usage, et changer de dessin ne touche aucun
+gabarit. Une image absente ne rend rien. `EtatDeLaVille` nomme l'`icone` de chaque signal.
+
+- **Le mouvement est décoratif et éteignable** : toute animation vit derrière
+  `prefers-reduced-motion: no-preference` (`app.css`). Le sens passe toujours par le texte.
+- **Les écarts des compteurs** (`compteurs_controller.js`) comparent la barre rechargée à
+  la précédente via `sessionStorage` ; sans stockage, l'effet disparaît et rien d'autre.
+- **Le cycle tourne tant que Turbo traite le formulaire** : sélecteur `form[aria-busy]`,
+  aucun JavaScript.
+- Chaque `.compteur` ou `.signal` est un composant nommé dans `app.css`, pas une pile
+  d'utilitaires : une classe de Tailwind neuve n'existe qu'après `tailwind:build`.
 
 ## Signaux, alertes et reprise d'onglet
 
@@ -512,3 +532,172 @@ une vraie transparence — par remplissage depuis les bords, et met **toutes les
 tuiles à la même échelle**. Les mettre chacune à l'échelle de sa propre boîte
 donnerait des losanges de tailles différentes et désalignerait la grille
 isométrique.
+
+**Séries et jauges animées** (`app.css`) : `.case-vivante` (un élément d'une série — ankh du
+Temple, écu de la Caserne — qui apparaît au rang `--i`, `--allumee` pour ce qui est actif),
+`.jauge` (remplissage de gauche à droite), `.carte-vivante` (soulèvement au survol). Même règle
+que le reste : derrière `prefers-reduced-motion`, jamais seul porteur du sens.
+
+**La barre de jeu tient sur une ligne à partir de `xl`** : les compteurs ne portent plus de
+libellé visible (pictogramme + chiffre, nom en infobulle et en `sr-only`) et le groupe de
+droite (date, cycle) ne se replie plus. Un libellé affiché le ferait déborder sur deux
+lignes, donc coûter de la hauteur au panneau ouvert. Les volets restent hors de tout
+`overflow` : un conteneur qui défile les rognerait.
+
+**La Résidence s'ouvre sur cinq tuiles** (`batiments/_tuile_de_bord.html.twig`, macro `tuile`) :
+un pictogramme, un grand chiffre, une jauge, une ligne de contexte. Elles ne portent aucune
+valeur que les tableaux n'aient pas, et les tableaux — dans un `<details>` — gardent chaque
+valeur sous son `<th scope="row">`.
+
+**Les infobulles** (`data-infobulle="…"`, CSS pur dans `app.css`) remplacent `title` là où le
+texte compte : stylées, retardées de 250 ms, affichées aussi au focus clavier. Elles se posent
+sous l'élément, alignées à son bord gauche — les compteurs sont à gauche de la barre, une
+infobulle centrée sortirait de l'écran. **Jamais dans un conteneur à `overflow`** : il la
+rognerait. Elles ne portent pas le nom de l'élément (déjà lu autrement) : c'est un complément.
+Au doigt (`hover: none`) elles ne s'affichent pas, pour ne pas rester collées après un toucher.
+
+**La fenêtre s'anime à l'ouverture** (`dialog[open]`, la feuille d'une case glisse depuis la
+droite, `turbo-frame#fenetre > *` fond à chaque changement de contenu). Pas d'animation de
+fermeture : `fenetre_controller.js` la ferme d'un coup, et la retarder compliquerait le retour
+du focus et de l'historique pour un gain décoratif.
+
+**Le récapitulatif de la quinzaine** remplace la pile de messages du cycle
+(`RecapitulatifDeQuinzaine`, `_recapitulatif_de_quinzaine.html.twig`, rendu par
+`_messages_de_jeu.html.twig` avant les autres messages). Deux choses : les **écarts**
+(deben, vivres, habitants, matériaux, renommée), calculés par deux photographies de l'état,
+avant et après — **jamais lus dans le texte du journal**, pour ne pas pouvoir diverger de ce
+que la ville possède —, et le **journal**, rangé par catégorie (`CategorieDEvenement`, qui
+porte aussi le pictogramme) et replié au-delà de six lignes. `PassageDeCycle::passerEnDetail()`
+dit d'où vient chaque ligne ; `passer()` garde son contrat de liste de textes. Le récapitulatif
+voyage en message flash (`quinzaine`), donc fait de scalaires et de tableaux, et se ferme au
+geste : rien ne s'efface tout seul. Une catégorie neuve s'ajoute à l'énumération avec son
+libellé et son pictogramme — `RecapitulatifDeQuinzaineTest` vérifie que le fichier existe.
+
+**Le Marché et le Grenier** : la place du jour est une tuile (`_tuile_de_bord`) et non plus des
+cases — pleine, elle vire à la terre cuite. Deux petits contrôleurs Stimulus, **tous deux
+décoratifs** (le formulaire marche sans) : `vente_controller.js` calcule `quantité × prix`, le
+même produit que `Marche::vendre()` qui reste seul juge du plafond ; `curseur_controller.js`
+double un champ numérique d'un curseur dont la piste change de couleur au seuil que la ville
+tolère. Le champ reste la source soumise. Le décalage d'apparition d'une série est **plafonné**
+(`min(var(--i), 40)`) : une réserve qui dépasse son plafond — possible avec une sauvegarde
+truquée — compterait des milliers de cases, et un délai non borné les laisserait invisibles.
+
+**L'Entrepôt répartit en cartes, plus en tableau** : un tableau de seuils obligeait à lire
+sept colonnes pour savoir ce qui part. Chaque ressource est une carte — barre garde/part,
+champ numérique (la source soumise), curseur en mode `part` (`curseur_controller.js`, la piste
+se partage à la position du curseur), et la phrase « N partiront au Marché » mise à jour en
+direct, texte vrai même sans JavaScript. Le **Port** porte un bandeau d'eau (`.vagues`,
+dégradé et deux rangées de vagues en SVG intégré — aucune requête réseau, aucun CDN).
+
+**La Forge et l'Atelier** (`_fabrication.html.twig`) : `lots_controller.js` multiplie les
+quantités d'**un** lot (`data-base`) et les pièces d'un lot par le nombre de lots saisi — la
+même arithmétique que `Fabrication::matieresPour()`, qui reste seule juge des bornes et des
+réserves. **Le contrôleur est posé sur la carte de la recette (`li`), jamais sur le formulaire** :
+les matières sont au-dessus du formulaire, et une cible hors de son contrôleur n'est jamais
+trouvée, sans erreur ni avertissement — défaut payé en écrivant ce lot, et que seule une
+assertion de structure peut garder (`testLApercuDesLotsEnglobeLesMatieresEtLeChamp`). Les icônes
+des matières viennent de `recette.ingredientsDunLot` (valeurs d'énumération), pas des libellés.
+
+**Maison des scribes** : la case d'une inscription se style **sur l'attribut** que
+`dechiffrage_controller.js` pose (`[data-signe]`) — le CSS suit l'état, le contrôleur n'a rien
+appris de plus. **Piège payé : ces règles vivent hors de toute couche CSS.** La case porte des
+utilitaires Tailwind (`border-dashed`, `bg-sable-100`) ; ceux-ci étant dans la couche `utilities`,
+ils l'emportent sur toute règle de `@layer components`, et la case se remplissait en gardant son
+pointillé. Seul du CSS **sans couche** passe devant. Les barres de progression natives
+(`<progress class="progression">`) sont restylées plutôt que remplacées : elles gardent leur
+sémantique et leur `aria-label`, et le navigateur ne les veut plus vertes.
+
+**Quartier d'habitation et Auberge** : les maisonnées gardent leur construction (formes pour les
+âges, couleur pour l'activité, description écrite), et gagnent seulement du mouvement — apparition
+décalée, léger balancement (`--r` décale chaque habitant), les alités battent comme une alerte.
+Les deux verrous de l'appel (« des maisons libres », « bourse suffisante ») reprennent le
+composant `.signal`, avec leur raison en infobulle. L'Auberge n'a toujours pas de logique propre :
+sa « salle » est un bandeau décoratif (`.salle`), la braise respire.
+
+**La carte : une case, un conteneur** (`.case-iso`). Chaque case regroupe sa tuile (qui ne capte
+aucun clic), un éventuel repère et la zone cliquable découpée au losange. Les conteneurs sont
+rendus dans l'ordre de profondeur, comme l'étaient les images : l'empilement n'a pas changé. Ce
+que le regroupement permet : `.case-iso:has(> a:hover) > .case-iso__tuile` soulève **la tuile de
+la zone survolée** — impossible quand la couche cliquable était séparée de toutes les images.
+`testChaqueCaseRegroupeSaTuileEtSaZoneCliquable` garde la structure. Les **repères** (un seul par
+case, par ordre d'urgence : brigands, indice à fouiller, gisement, champ) ne volent aucun clic
+(`pointer-events-none`) et sont aussi dits dans l'`aria-label` de la zone — le dessin est décoratif.
+Pas d'infobulle sur une case : le `clip-path` de la zone la rognerait. L'apparition décalée est
+plafonnée (`min(var(--i), 24)`) pour qu'une grande carte ne se fasse pas attendre.
+
+**Piège payé : un conteneur plus grand que sa zone cliquable vole les clics.** Les `.case-iso`
+sont des rectangles de 188 × 116 qui se recouvrent, alors que la zone cliquable est un losange
+(`clip-path`, qui exclut aussi les clics). Sans `pointer-events: none` sur le conteneur et
+`pointer-events: auto` sur son seul lien, la case du premier plan interceptait les clics de sa
+voisine dans les coins — mesuré : 34 points de test sur 63 tombaient sur le mauvais élément. Le
+défaut ne se voit qu'au doigt ou à la souris ; `testLesConteneursDeCasesLaissentPasserLesClics`
+garde la règle, et `document.elementFromPoint` sur les pointes du losange la vérifie en navigateur.
+
+**Accueil et parties** : `.revele` + `apparition_controller.js` font apparaître les blocs à
+l'entrée dans l'écran. **Le contenu n'en dépend jamais** : la CSS ne masque qu'avec
+`@media (scripting: enabled)` et sans demande de mouvement réduit. Une `{% endblock %}` remplacée
+au mauvais endroit avait glissé `</div>` dans le titre de l'onglet : le titre est maintenant testé.
+
+**Création d'une partie** : les deux modes sont des `<label class="choix-mode">` qui **enveloppent**
+les vrais boutons radio du formulaire (même champ, mêmes valeurs, masqués à l'œil par `sr-only`,
+atteints au clavier) ; la carte cochée se dessine par `:has(:checked)`, sans JavaScript.
+`nouvelle_partie_controller.js` ajoute, en amélioration progressive, les dangers allumés (un par cran
+au-dessus de zéro : le niveau 0 n'allume rien) et un aperçu de la grille — **rien de ce qu'il dessine
+n'est soumis**, les champs restent seule source. Transformation de l'aperçu : `scaleY() rotate()`, dans
+cet ordre — pivoter puis écraser donne le losange ; l'ordre inverse donne un rectangle penché.
+
+**Le thème de formulaire et `vendor/`** : Tailwind ne scanne que les gabarits du projet. Les classes
+que le thème Tailwind de Symfony pose lui-même (`tailwind_2_layout`) vivent dans `vendor/` et **ne sont
+jamais compilées** — une liste déroulante s'affichait sans cadre ni fond, sans le moindre message.
+`templates/form/theme.html.twig` repose donc les classes du projet sur chaque type de widget
+utilisé : champs simples, et `choice_widget_collapsed`. Tout nouveau type de widget (case à cocher,
+zone de texte) demande son propre bloc. `testLesListesDeroulantesPortentLeStyleDuProjet` garde les listes.
+
+**Le mode d'essai** (`ModeDivin`) donne `RICHESSE` (200) de chaque ressource et `BOURSE` (50 000) :
+de quoi ne plus compter à l'échelle d'une partie, sans noyer les jauges. Combler **atteint** le
+compte, il ne l'additionne pas. En mode d'essai, `Stockage::plafondDesVivres/Materiaux` suivent le
+stock (marge de moitié) : le plafond n'est pas appliqué à l'entrée de toute façon, et un plafond de
+550 sous un stock de plusieurs milliers ferait de chaque réserve une alerte permanente.
+
+**La commande du pharaon** (`fenetre/commande.html.twig`) : le texte d'ouverture est un `.decret`
+(papyrus, sceau) dont les lignes apparaissent à tour de rôle (`--i`). Les onglets, les identifiants
+et leurs panneaux sont **inchangés** — seule la mise en forme a bougé. Difficulté et carte sont
+dessinées **et** écrites (« 4 sur 9 », « 8 × 8 ») : le dessin est décoratif. **Troisième occurrence du
+même piège** : une règle écrite dans `@layer components` perd contre une règle sans couche. Le petit
+aperçu surcharge `.apercu-carte` (sans couche) : il est donc écrit sans couche, lui aussi. **Règle
+pratique : une surcharge d'une règle hors couche se pose hors couche.**
+
+**Les expéditions** (`fenetre/expeditions.html.twig`) : chaque expédition est une **piste**
+(`.piste`) — départ, ligne, marcheur, arrivée. Deux variables CSS portent la même donnée sous deux
+formes : `--part` (un pourcentage, qui remplit la ligne) et `--part-nombre` (un nombre de 0 à 1, que
+`calc()` sait multiplier pour placer le marcheur, ce qu'un pourcentage ne permet pas). Mesuré en
+navigateur : à `--part-nombre: 0.6`, le marcheur est à 60 % de la ligne. La phrase et les chiffres
+(« encore 4 cycles · 25 % ») disent la même chose en lettres ; la piste est `aria-hidden`.
+
+**Écrans de compte** (`auth/_layout.html.twig`) : une tablette (`.auth-tablette`) et, sur grand écran,
+un décor (`.auth-decor`, `aria-hidden`) — la ville, le nom du jeu, quatre pictogrammes. Le décor n'est
+jamais nécessaire pour se connecter et disparaît sur téléphone. Chaque page choisit son pictogramme par
+`{% block icone %}` (un nom d'usage) ; sans bloc, `pharaon`. Les formulaires, le jeton CSRF (attribut
+`data-controller="csrf-protection"`) et le contrôleur de force du mot de passe sont **inchangés**.
+
+## Accessibilité et mobile — ce qui a été mesuré, pas supposé
+
+- **Mouvement réduit** : chaque animation vit derrière `prefers-reduced-motion: no-preference`, **et** un
+  bloc final (`app.css`, `reduce`) ramène à l'instantané tout ce qui y échappe — les transitions s'écrivent
+  à côté des règles qu'elles décorent, il y en avait quatorze hors garde. Les états (infobulle visible,
+  carte cochée) restent ; seul le trajet disparaît. `compteurs_controller.js` et `apparition_controller.js`
+  testent aussi la préférence de leur côté.
+- **Contrastes** (calculés, WCAG) : le texte du jeu tient 4,5:1 partout sauf `text-ocre-600` sur sable
+  (3,67:1) — retiré des textes. Les signes éteints du déchiffrage et les dangers éteints de la création
+  d'une partie restent pâles **parce qu'ils sont décoratifs** : l'information y est aussi en lettres.
+- **Un conteneur qui défile rogne ses enfants positionnés.** Sur téléphone la rangée des compteurs est en
+  `overflow-x: auto` : un volet en `absolute` s'y ouvrait, mais invisible. Sur téléphone il est `fixed`, sous
+  la barre ; dès `md` il redevient `absolute`. Piège à garder en tête pour toute infobulle ou tout menu posé
+  dans une rangée défilante.
+- **Simuler un téléphone sans l'émuler** : un `<iframe>` de 390 px de large, même origine, fait réagir les
+  media queries à sa propre largeur (la fenêtre du navigateur, elle, ne se redimensionne pas toujours).
+  C'est la mesure qui a révélé le volet rogné ; `scrollX` sur le `window` de l'iframe dit si une page
+  déborde réellement.
+- **Les infobulles sont un complément, jamais le seul porteur** : le nom d'un compteur est lu autrement
+  (`sr-only`), et les deux compteurs de la barre qui ne sont ni lien ni bouton portent `tabindex="0"` pour
+  qu'on puisse en lire l'aide au clavier.

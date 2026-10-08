@@ -12,6 +12,127 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+### Ajouté
+
+- **La barre de jeu prend des pictogrammes et du mouvement** : le deben, les réserves
+  et les habitants sont des pastilles à pictogramme (le libellé reste lisible aux
+  lecteurs d'écran), chaque signal de la ville porte le dessin de sa nature, et le
+  bouton « Quinzaine suivante » tourne pendant que le temps passe. Un chiffre qui
+  bouge s'éclaire et dit de combien. Rien ne bouge pour qui a demandé moins de
+  mouvement à son système.
+- **Le Temple et la Caserne se lisent d'un coup d'œil** : le Temple montre autant d'ankhs
+  que de dieux qu'il peut porter, allumés pour ceux qu'on honore, et ce que vaut une
+  offrande ; les jauges de faveur se remplissent à l'ouverture. La Caserne aligne un écu
+  par homme (levé, blessé ou place libre) qui apparaît l'un après l'autre. Les cartes se
+  soulèvent au survol.
+- **La Résidence familiale s'ouvre sur cinq tuiles** — habitants, postes tenus, vivres,
+  bourse, renommée — avec leur jauge qui vire à la terre cuite quand quelque chose cloche ;
+  les quatre tableaux de chiffres restent dessous, repliés. Les alertes et les bonnes
+  nouvelles portent le dessin de leur nature.
+
+- **Des infobulles** sur les compteurs de la barre, les signaux, les tuiles de la Résidence,
+  le bandeau du Temple et les écus de la Caserne : elles disent ce que mesure le chiffre et
+  quoi faire quand il vire au rouge. Elles s'affichent aussi au clavier.
+- **La fenêtre s'ouvre en douceur** : un fondu qui monte, la feuille d'une case glisse depuis
+  la droite, et le contenu change en fondu d'un bâtiment à l'autre.
+
+- **Le récapitulatif de la quinzaine** : en passant le temps, une carte descend et dit ce qui
+  a changé — bourse, vivres, habitants, matériaux, renommée, en pastilles qui s'allument —
+  puis le journal rangé par catégorie (santé, commerce, dieux, royaume…), replié s'il est long.
+  Il remplace la pile de messages.
+- **Des illustrations de remplacement** pour la grauwacke, le poisson, les dattes, les outils
+  et les armes, et le deben reprend son pictogramme : plus de ligne sans image au Marché.
+  Les cinq premières sont provisoires.
+
+- **Le Marché montre ce que chaque vente rapporte** : un aperçu du gain qui suit la quantité
+  saisie, un bouton « Tout » qui remplit ce que la place absorbe encore, et la place du jour en
+  jauge. Le prix se règle aussi au curseur, dont la piste vire à la terre cuite au-delà de ce
+  que la ville tolère. Les lots portent leur illustration.
+- **Le Grenier s'ouvre sur deux tuiles** — vivres en réserve et ration par quinzaine —, et la
+  réserve en cases (Grenier et Entrepôt) montre l'illustration de chaque ressource dans sa
+  légende ; ses cases se posent l'une après l'autre.
+
+- **L'Entrepôt répartit ce qu'on garde en cartes à curseur** : chaque ressource a son
+  illustration, sa barre (lapis pour ce qu'on garde, terre cuite pour ce qui part), un curseur
+  qui double le champ, et la phrase « N partiront au Marché » qui suit en direct. La réserve
+  s'ouvre sur deux tuiles : matériaux et place libre.
+- **Le Port a son bandeau d'eau** : des vagues qui dérivent, éteintes si l'on a demandé moins
+  de mouvement.
+
+- **La Forge et l'Atelier montrent ce qu'un ordre coûte avant de l'engager** : chaque matière
+  d'un lot porte son illustration, et les quantités ainsi que les pièces attendues se
+  recalculent quand on ajoute ou retire des lots (boutons − et +). L'ouvrage en cours montre
+  l'objet qu'on fabrique et une barre rayée qui s'anime ; la consigne permanente fait tourner
+  les flèches du cycle, et s'éteint quand elle attend des matières.
+
+- **La Maison des scribes prend vie** : l'inscription à lire est gravée sur une plaque dorée,
+  les cases se dorent et se posent en rebondissant quand on y place un signe, et la clé de
+  lecture comme l'alphabet deviennent des tuiles de glyphes qui se redressent au survol, avec
+  leur code de Gardiner en infobulle et une jauge de progression. Les dossiers d'enquête
+  montrent leurs indices concordants en points, et les réponses d'exercice choisies s'éclairent.
+
+- **Le Quartier d'habitation s'ouvre sur trois tuiles** — maisonnées logées, bras à placer,
+  masse salariale. Ses maisons se posent une à une et se soulèvent au survol (la description de
+  la maisonnée en infobulle), et ses habitants se balancent à peine. « Faire venir du monde »
+  annonce les deux verrous — la place et la bourse — en pastilles avant qu'on s'engage.
+- **L'Auberge a sa salle** : une braise qui respire et un soir chaud, à côté des devinettes.
+
+- **La carte s'anime et se lit sans cliquer** : le territoire se déploie du fond vers l'avant,
+  la case survolée ou sélectionnée se soulève, et des repères flottent au-dessus des cases
+  reconnues — brigands (qui battent), quelque chose à fouiller, gisement, champ. Le détail d'une
+  case s'ouvre sur son portrait (la tuile, qui flotte), ses pastilles d'état et des boutons à
+  pictogramme.
+
+- **L'accueil et la liste des parties s'animent** : les blocs apparaissent en entrant à l'écran,
+  les activités et les deux modes de jeu ont leur pictogramme, et chaque partie porte la tuile de
+  sa ville, qui flotte, avec ses chiffres en pictogrammes (cycle, deben, renommée).
+
+- **Créer une partie se fait en voyant ce qu'on choisit** : Campagne et Aventure sont deux
+  cartes à cocher (la carte choisie s'entoure, avec sa coche), et en Aventure la difficulté
+  allume autant de dangers que de crans pendant que la taille de la carte dessine son territoire
+  en losanges.
+
+- **La commande du pharaon est un décret** : un papyrus doré, un sceau qui se pose, des lignes
+  qui se déroulent, et un bouton « Prendre mes fonctions » dont le halo invite. La dotation royale
+  apparaît tuile après tuile, et « La partie » montre la difficulté en signes allumés et la carte en
+  losanges à son échelle.
+
+- **Les expéditions en route se suivent sur une piste** : la case visée en miniature, le rôle en
+  pictogramme, et un marcheur qui avance de la ville vers la case, à la part du chemin que dit le
+  pourcentage. Sans expédition, la fenêtre dit quoi envoyer et où.
+
+- **Les écrans de compte ont une tablette et un décor** : connexion, inscription, mot de passe
+  oublié et nouveau mot de passe partagent une tablette à pictogramme, avec la ville qui flotte à
+  côté sur grand écran. Chaque page a son dessin, ses boutons aussi, et « Mon compte » montre
+  l'état de l'adresse en pastille et la ville de votre partie.
+
+### Corrigé
+
+- **Sur téléphone, les volets de la barre (vivres, habitants) restaient invisibles** : ils
+  s'ouvraient dans la rangée des compteurs, qui défile et les rognait. Ils se posent maintenant sous
+  la barre, sur la largeur de l'écran. Les signaux défilent sur une seule ligne, et l'en-tête public
+  passe à la ligne au lieu de déborder.
+- **Mouvement réduit** : à la demande du système, toutes les transitions et animations du jeu
+  s'arrêtent (il en restait quatorze qui échappaient au garde).
+- **Contrastes** : deux textes sous le seuil de 4,5:1 retrouvent une couleur lisible, et la zone de
+  toucher des liens de navigation et de pied de page atteint 24 px.
+
+- **Les listes déroulantes des formulaires étaient invisibles** (créer une partie, mission de
+  départ, difficulté, taille de la carte) : sans cadre ni fond, elles se confondaient avec du
+  texte. Elles ont maintenant un cadre et un chevron.
+- **Le mode d'essai n'écrase plus les écrans** : il donne 200 de chaque ressource (au lieu d'un
+  million) et une bourse de 50 000, et recombler une partie atteint ce compte sans l'additionner.
+  En mode d'essai les plafonds affichés suivent le stock : aucune réserve ne paraît saturée.
+
+- **Des zones de la carte ne répondaient plus au clic** : les conteneurs de cases, des
+  rectangles qui se recouvrent, interceptaient les clics des cases derrière eux dans les coins
+  que leur losange ne couvre pas. Ils laissent maintenant tout passer ; seul le losange capte.
+
+### Modifié
+
+- **La barre de jeu tient sur une seule ligne** sur un écran large : les libellés des
+  compteurs cèdent la place à leur pictogramme (le nom reste dans l'infobulle).
+
 ## [0.14.0] - 2026-10-04
 
 **La carte devient la seule page de jeu.** La ville, la commande du pharaon, le détail
