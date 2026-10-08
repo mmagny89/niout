@@ -21,16 +21,22 @@
     <h3 class="mt-8 text-xl text-encre-900">À l'ouvrage</h3>
 
     {% if atelier.ordre %}
-        <div class="mt-3 rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-4 py-3">
-            <div class="flex flex-wrap items-baseline justify-between gap-3">
-                <h3 class="font-display text-lg text-encre-900">{{ atelier.ordre.recette.libelle }}</h3>
-                <span class="text-sm text-encre-500" data-chiffres>
-                    encore {{ atelier.ordre.cyclesRestants }} quinzaine{{ atelier.ordre.cyclesRestants > 1 ? 's' : '' }}
-                </span>
+        {# L'ouvrage en cours : l'objet qui se fabrique « travaille » (il se balance), et la
+           barre s'anime tant qu'elle n'est pas pleine. Décoratif — l'avancement est écrit. #}
+        <div class="carte-vivante mt-3 rounded-sm border border-ocre-500/40 bg-ocre-300/10 px-4 py-4">
+            <div class="flex items-center gap-4">
+                {{ include('partie/_icone_ressource.html.twig', {ressource: atelier.ordre.recette, taille: 72}) }}
+                <div class="min-w-0 flex-1">
+                    <h3 class="font-display text-xl text-encre-900">{{ atelier.ordre.recette.libelle|capitalize }}</h3>
+                    <span class="text-sm text-encre-500" data-chiffres>
+                        encore {{ atelier.ordre.cyclesRestants }} quinzaine{{ atelier.ordre.cyclesRestants > 1 ? 's' : '' }}
+                        · {{ atelier.ordre.pourcentageDAvancement }} %
+                    </span>
+                </div>
             </div>
 
-            <div class="mt-3 h-1.5 w-full overflow-hidden rounded-sm bg-ocre-500/20">
-                <div class="h-full bg-terre-500" style="width: {{ atelier.ordre.pourcentageDAvancement }}%"></div>
+            <div class="mt-3 h-3 w-full overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                <div class="jauge jauge--ouvrage h-full rounded-full bg-terre-500" style="width: {{ atelier.ordre.pourcentageDAvancement }}%"></div>
             </div>
 
             <p class="mt-3 text-sm text-encre-500" data-chiffres>
@@ -48,12 +54,15 @@
 
         <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
             {% for offre in atelier.recettes %}
-                <li class="flex flex-col rounded-sm border p-4
-                           {{ offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}">
+                {# Le contrôleur est sur la carte, pas sur le formulaire : les matières d'un lot sont
+                   au-dessus de lui, et une cible hors du contrôleur n'est jamais trouvée. #}
+                <li class="carte-vivante flex flex-col rounded-sm border p-4
+                           {{ offre.realisable ? 'border-ocre-500/30 bg-sable-50' : 'border-ocre-500/20 bg-sable-50/40' }}"
+                    data-controller="lots" data-lots-pieces-value="{{ offre.recette.piecesDunLot }}">
                     <div class="flex flex-wrap items-baseline justify-between gap-3">
                         <h3 class="flex items-center gap-2 font-display text-lg {{ offre.realisable ? 'text-encre-900' : 'text-encre-500' }}">
-                            {{ include('partie/_icone_ressource.html.twig', {ressource: offre.recette, taille: 44}) }}
-                            {{ offre.recette.libelle }}
+                            {{ include('partie/_icone_ressource.html.twig', {ressource: offre.recette, taille: 56}) }}
+                            {{ offre.recette.libelle|capitalize }}
                         </h3>
                         <span class="text-sm text-encre-500" data-chiffres>
                             {{ offre.recette.piecesDunLot }} pièces le lot ·
@@ -61,10 +70,17 @@
                         </span>
                     </div>
 
-                    <p class="mt-2 flex flex-wrap items-center gap-1 text-sm text-encre-600" data-chiffres>
+                    {# Les matières d'un lot, avec leur illustration : `data-base` est la quantité
+                       d'**un** lot, que `lots_controller.js` multiplie par le nombre saisi. #}
+                    {% set valeurs = offre.recette.ingredientsDunLot|keys %}
+                    <p class="mt-2 flex flex-wrap items-center gap-1.5 text-sm text-encre-600" data-chiffres>
                         <span class="text-encre-500">Un lot :</span>
                         {% for libelle, quantite in offre.matieres %}
-                            <span class="rounded-sm bg-ocre-500/10 px-1.5 py-0.5">{{ quantite }} {{ libelle }}</span>
+                            <span class="inline-flex items-center gap-1 rounded-full bg-ocre-500/10 py-0.5 pl-1 pr-2.5"
+                                  data-lots-target="matiere" data-base="{{ quantite }}">
+                                {{ include('partie/_icone_ressource.html.twig', {ressource: valeurs[loop.index0], taille: 26}) }}
+                                <span><span data-quantite>{{ quantite }}</span> {{ libelle }}</span>
+                            </span>
                         {% endfor %}
                     </p>
 
@@ -87,13 +103,24 @@
                             <input type="hidden" name="recette" value="{{ offre.recette.value }}">
 
                             <label for="lots-{{ offre.recette.value }}" class="text-sm text-encre-600">Lots</label>
-                            <input type="number" id="lots-{{ offre.recette.value }}" name="lots"
-                                   value="1" min="1" max="{{ atelier.lotsMaximum }}"
-                                   class="w-20 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 py-2 text-sm text-encre-900"
-                                   data-chiffres>
+                            <span class="inline-flex items-center">
+                                <button type="button" data-action="lots#moins" aria-label="Un lot de moins" tabindex="-1"
+                                        class="size-9 rounded-l-sm border border-ocre-500/40 text-lg leading-none text-encre-600 hover:bg-ocre-300/25">&minus;</button>
+                                <input type="number" id="lots-{{ offre.recette.value }}" name="lots"
+                                       value="1" min="1" max="{{ atelier.lotsMaximum }}"
+                                       data-lots-target="lots" data-action="input->lots#calculer"
+                                       class="h-9 w-14 border-y border-ocre-500/40 bg-sable-50 px-1 text-center text-sm text-encre-900"
+                                       data-chiffres>
+                                <button type="button" data-action="lots#plus" aria-label="Un lot de plus" tabindex="-1"
+                                        class="size-9 rounded-r-sm border border-ocre-500/40 text-lg leading-none text-encre-600 hover:bg-ocre-300/25">+</button>
+                            </span>
+
+                            <span class="text-xs text-encre-500" data-chiffres data-lots-target="pieces"
+                                  data-infobulle="Les matières sont prélevées à l'engagement ; les pièces ne rentrent qu'à l'achèvement."></span>
 
                             <button type="submit"
-                                    class="ml-auto rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                    class="bouton-offrande group ml-auto inline-flex items-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                {{ include('partie/_pictogramme.html.twig', {nom: 'chantier', taille: 22, classe: 'bouton-offrande__image'}) }}
                                 Mettre à l'ouvrage
                             </button>
                         </form>
@@ -115,8 +142,11 @@
     </p>
 
     {% if atelier.consigne %}
-        <div class="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-2 rounded-sm border border-lapis-500/30 bg-lapis-500/5 px-4 py-3">
-            <span class="font-display text-encre-900">{{ atelier.consigne.recette.libelle }}</span>
+        <div class="carte-vivante mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-sm border border-lapis-500/30 bg-lapis-500/5 px-4 py-3">
+            {# Les flèches du cycle tournent doucement : la consigne se répète d'elle-même. #}
+            {{ include('partie/_pictogramme.html.twig', {nom: 'echange', taille: 30, classe: atelier.consigne.estEnAttenteDeMatieres ? 'opacity-40 grayscale' : 'consigne__image'}) }}
+            {{ include('partie/_icone_ressource.html.twig', {ressource: atelier.consigne.recette, taille: 40}) }}
+            <span class="font-display text-lg text-encre-900">{{ atelier.consigne.recette.libelle|capitalize }}</span>
             <span class="text-sm text-encre-500" data-chiffres>
                 {{ atelier.consigne.lots }} lot{{ atelier.consigne.lots > 1 ? 's' : '' }} à chaque fois
             </span>
