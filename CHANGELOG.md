@@ -12,6 +12,15 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+## [0.15.0] - 2026-10-08
+
+**Chaque bâtiment est revu, et la main-d'œuvre change de règle.** Les fenêtres disent chaque chose une
+seule fois — en tuiles, en jauges et en pastilles plutôt qu'en phrases — et tous les bâtiments ont été
+repris un à un : Résidence, Quartier, Grenier, Entrepôt, Marché, routes, Atelier et Forge, Temple, Maison
+des scribes, Auberge, onglet Direction. Surtout, **un bâtiment réclame désormais ses travailleurs, chef
+ou non** : sans personne il ne fonctionne pas, et un atelier mène autant d'ouvrages de front que de
+travailleurs.
+
 ### Ajouté
 
 - **Une consigne par travailleur** : chaque travailleur d'un atelier ou d'une forge est un poste, avec son ouvrage et sa consigne
@@ -483,7 +492,8 @@ au journal des phases.
 - Déploiement par clé SSH restreinte à un script unique (*forced command*),
   empreinte d'hôte épinglée.
 
-[Non publié]: https://github.com/mmagny89/niout/compare/v0.14.0...HEAD
+[Non publié]: https://github.com/mmagny89/niout/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/mmagny89/niout/releases/tag/v0.15.0
 [0.14.0]: https://github.com/mmagny89/niout/releases/tag/v0.14.0
 [0.13.0]: https://github.com/mmagny89/niout/releases/tag/v0.13.0
 [0.12.0]: https://github.com/mmagny89/niout/releases/tag/v0.12.0
