@@ -2,6 +2,30 @@
    qu'elle ouvre de la clé de lecture. #}
 {{ include('partie/batiments/_entete.html.twig') }}
 
+{# **Une carte de signe, pour la clé comme pour l'alphabet** : la plaque du glyphe en grand, le nom en titre, le code de
+   Gardiner en pastille, ce que le signe veut dire dessous, et — s'il y a lieu — le renvoi à l'autre table, en bandeau. #}
+{% macro carte(glyphe, titre, soustitre, code, texte, renvoi, infobulle) %}
+    <li class="carte-vivante signe-carte flex flex-col gap-3 rounded-sm border border-ocre-500/30 bg-sable-50 p-4"
+        data-infobulle="{{ infobulle }}">
+        <div class="flex items-center gap-4">
+            {# La plaque est plus large que le glyphe le plus large de la liste (avant-bras, vipère) : un signe qui déborde de son cadre trahit le dessin. #}
+            <span class="signe-plaque size-20 font-hieroglyphes text-4xl leading-none text-encre-900" aria-hidden="true">{{ glyphe }}</span>
+            <div class="min-w-0 flex-1">
+                <p class="font-display text-lg leading-tight text-encre-900">
+                    {{ titre }}{% if soustitre %} <span class="font-sans text-sm text-encre-500">— {{ soustitre }}</span>{% endif %}
+                </p>
+                <span class="mt-1 inline-block rounded-full border border-ocre-500/30 px-2 text-[11px] text-encre-500" data-chiffres>{{ code }}</span>
+            </div>
+        </div>
+        <p class="text-sm text-encre-600">{{ texte }}</p>
+        {# **Ce n'est pas un doublon, c'est la leçon** : un même dessin sert tantôt à montrer une chose, tantôt à noter un son. #}
+        {% if renvoi %}
+            <p class="mt-auto rounded-sm bg-lapis-500/5 px-2.5 py-1.5 text-xs text-lapis-600"><span aria-hidden="true">↔</span> {{ renvoi }}</p>
+        {% endif %}
+    </li>
+{% endmacro %}
+
+
 {% import 'partie/_sous_onglets.html.twig' as sous %}
 {% set direction = directions[onglet.type.value] ?? null %}
 {% set sections = [
@@ -229,72 +253,57 @@
     </div>
 
 {{ sous.panneau('scribes', 'cle', false) }}
-<h3 class="mt-8 text-xl text-encre-900">Clé de lecture</h3>
+<div class="mt-8 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+    <h3 class="text-xl text-encre-900">Clé de lecture</h3>
+    <span class="signal signal--bon" data-chiffres>{{ cleDeLecture|length }} / {{ signesEnTout }} signes lus</span>
+</div>
 <p class="mt-2 max-w-4xl text-sm text-encre-500">
-    Les signes que vos scribes savent lire, tirés de la liste de
-    Gardiner — la classification de référence des hiéroglyphes.
-    Chacun porte son vrai code et son vrai sens : ce que vous
-    apprenez ici est ce qu'un égyptologue lirait.
+    Les signes que vos scribes savent lire, tirés de la liste de Gardiner. Chacun porte son vrai code
+    et son vrai sens : ce que vous apprenez ici est ce qu'un égyptologue lirait.
 </p>
 
 {% if prochainSigne %}
-    <p class="mt-3 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
-        Monter la Maison des scribes ouvrirait le signe suivant :
-        <span class="font-hieroglyphes text-2xl align-middle">{{ prochainSigne.signe }}</span>
-        {{ prochainSigne.libelle|lower }} ({{ prochainSigne.codeDeGardiner }}).
+    <p class="mt-3 flex items-center gap-3 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
+        <span class="font-hieroglyphes text-3xl leading-none" aria-hidden="true">{{ prochainSigne.signe }}</span>
+        <span>Monter la Maison des scribes ouvrirait le signe suivant : {{ prochainSigne.libelle|lower }} ({{ prochainSigne.codeDeGardiner }}).</span>
     </p>
 {% endif %}
 
-<ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
+<ul class="mt-4 grid list-none gap-3 p-0 sm:grid-cols-2 xl:grid-cols-3">
     {% for symbole in cleDeLecture %}
-        <li class="carte-vivante signe-carte flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4"
-            data-infobulle="{{ symbole.codeDeGardiner }} — {{ symbole.libelle }}">
-            <span class="signe-plaque font-hieroglyphes text-4xl leading-none text-encre-900"
-                  aria-hidden="true">{{ symbole.signe }}</span>
-            <span>
-                <span class="block text-encre-900">{{ symbole.libelle }}</span>
-                <span class="block text-xs text-encre-500" data-chiffres>{{ symbole.codeDeGardiner }}</span>
-                <span class="mt-1 block text-sm text-encre-600">{{ symbole.sens }}</span>
-
-                {# **Ce n'est pas un doublon, c'est la leçon** : un même dessin
-                   sert tantôt à montrer une chose, tantôt à noter un son. #}
-                {% if symbole.sonDeLAlphabet %}
-                    <span class="mt-2 block text-xs text-lapis-500">
-                        Note aussi le son <strong>{{ symbole.sonDeLAlphabet.translitteration }}</strong>
-                        dans l'alphabet des scribes.
-                    </span>
-                {% endif %}
-            </span>
-        </li>
+        {% set renvoi %}{% if symbole.sonDeLAlphabet %}Note aussi le son <strong>{{ symbole.sonDeLAlphabet.translitteration }}</strong> dans l'alphabet des scribes.{% endif %}{% endset %}
+        {{ _self.carte(symbole.signe, symbole.libelle, null, symbole.codeDeGardiner, symbole.sens,
+            symbole.sonDeLAlphabet ? renvoi : null, symbole.codeDeGardiner ~ ' — ' ~ symbole.libelle) }}
     {% endfor %}
 </ul>
 
-{# **La stèle du pharaon** (doc 09). Chaque commanditaire en a laissé une, et
-   le document veut que les déchiffrages y fassent écho plutôt que d'inventer
-   de toutes pièces.
+{# **La stèle du pharaon** (doc 09). Chaque commanditaire en a laissé une, et le document veut que les déchiffrages y fassent
+   écho plutôt que d'inventer de toutes pièces.
 
-   Elle n'est **pas** l'inscription qu'on déchiffre : les dalles du jeu restent
-   des rébus — signes vrais, combinaisons inventées —, et la stèle est ce
-   qu'elles rappellent. Les confondre laisserait croire au joueur qu'il lit de
-   l'égyptien.
+   Elle n'est **pas** l'inscription qu'on déchiffre : les dalles du jeu restent des rébus — signes vrais, combinaisons
+   inventées —, et la stèle est ce qu'elles rappellent. Les confondre laisserait croire au joueur qu'il lit de l'égyptien.
 
-   Ce qui s'affiche est un **résumé**, jamais une traduction : le doc 09 le
-   demande deux fois, et cela vaut aussi pour les traductions anciennes. #}
+   Ce qui s'affiche est un **résumé**, jamais une traduction : le doc 09 le demande deux fois, et cela vaut aussi pour les
+   traductions anciennes. La mise en garde se replie : on la lit une fois. #}
 {% if stele %}
-    <h3 class="mt-10 text-xl text-encre-900">{{ stele.nom }}</h3>
-    <p class="mt-2 max-w-4xl text-sm text-encre-500">
-        {{ stele.lieu }}.
-    </p>
-
-    <div class="mt-3 rounded-sm border-l-4 border-or-300 bg-or-300/5 px-5 py-4">
-        <p class="text-sm text-encre-700">{{ stele.contenu }}</p>
-        <p class="mt-3 text-xs text-encre-500">
-            Résumé de ce que {{ stele.estUneStele ? 'la pierre' : 'le document' }} dit,
-            jamais une traduction. Les dalles que vos scribes déchiffrent ici en
-            reprennent l'esprit : leurs signes sont vrais, mais ce qu'ils forment
-            est un rébus, pas de l'égyptien.
-        </p>
-    </div>
+    <section class="mt-10 rounded-sm border border-or-300/60 bg-or-300/5 p-5">
+        <div class="flex items-start gap-4">
+            {{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 48}) }}
+            <div class="min-w-0 flex-1">
+                <h3 class="font-display text-xl leading-tight text-encre-900">{{ stele.nom }}</h3>
+                <p class="text-sm text-encre-500">{{ stele.lieu }}</p>
+                <p class="mt-3 text-sm text-encre-700">{{ stele.contenu }}</p>
+                <details class="mt-3 text-xs text-encre-500">
+                    <summary class="cursor-pointer text-encre-600">Un résumé, jamais une traduction</summary>
+                    <p class="mt-1">
+                        Ce qui s'affiche est un résumé de ce que {{ stele.estUneStele ? 'la pierre' : 'le document' }} dit, jamais une traduction. Les dalles que vos
+                        scribes déchiffrent ici en reprennent l'esprit : leurs signes sont vrais, mais ce qu'ils forment est un rébus,
+                        pas de l'égyptien.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </section>
 {% endif %}
     </div>
 
@@ -306,7 +315,10 @@
    « l'eau » dans la clé, et le son *n* ici. Le même glyphe paraît donc dans les
    deux tables, avec deux lectures — **ne pas dédupliquer**, c'est justement ce
    qui montre que l'écriture égyptienne est mixte. #}
-<h3 class="mt-10 text-xl text-encre-900">L'alphabet des scribes</h3>
+<div class="mt-8 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+    <h3 class="text-xl text-encre-900">L'alphabet des scribes</h3>
+    <span class="signal signal--bon" data-chiffres>{{ alphabet|length }} / {{ signesDeLAlphabetEnTout }} signes lus</span>
+</div>
 <p class="mt-2 max-w-4xl text-sm text-encre-500">
     Les vingt-quatre signes qui notent un <em>son</em>, et non une chose : la
     vraie porte d'entrée de la lecture hiéroglyphique, celle par laquelle on
@@ -323,9 +335,11 @@
 </p>
 </details>
 
+{# Deux cartes de front quand la place le permet : la leçon à faire, et le nom que vos scribes écrivent déjà. #}
+<div class="mt-4 grid gap-4 lg:grid-cols-2">
 {# La leçon fondatrice : écrire le nom du jeu. Elle se retente — remettre
    quatre signes dans l'ordre est un exercice, pas une devinette. #}
-<div class="mt-4 rounded-sm border border-lapis-500/40 bg-lapis-500/5 p-5">
+<div class="rounded-sm border border-lapis-500/40 bg-lapis-500/5 p-5">
     <div class="flex flex-wrap items-baseline justify-between gap-3">
         <h4 class="font-display text-lg text-encre-900">Écrire « Niout »</h4>
         {% if nioutDejaEcrite %}
@@ -397,7 +411,7 @@
    invisible jusqu'au niveau 6 ou 7 : les lettres d'un nom sont dispersées dans
    l'ordre des grammaires, et il faut presque tout l'alphabet pour en écrire un
    entier. #}
-<div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
+<div class="rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
     <h4 class="font-display text-lg text-encre-900">Votre nom, écrit par vos scribes</h4>
 
     {% if nomTranscrit.signes is empty %}
@@ -453,6 +467,7 @@
     </p>
     </details>
 </div>
+</div>
 
 {% if prochainSigneDeLAlphabet %}
     <p class="mt-4 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
@@ -466,30 +481,13 @@
 {% endif %}
 
 
-<ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
+<ul class="mt-4 grid list-none gap-3 p-0 sm:grid-cols-2 xl:grid-cols-3">
     {% for signe in alphabet %}
-        <li class="carte-vivante signe-carte flex gap-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-4"
-            data-infobulle="{{ signe.codeDeGardiner }} — le son {{ signe.translitteration }} ({{ signe.objet|lower }})">
-            <span class="signe-plaque font-hieroglyphes text-4xl leading-none text-encre-900"
-                  aria-hidden="true">{{ signe.signe }}</span>
-            <span>
-                <span class="block text-encre-900">
-                    {{ signe.translitteration }}
-                    <span class="text-sm text-encre-500">— {{ signe.son }}</span>
-                </span>
-                <span class="block text-xs text-encre-500" data-chiffres>{{ signe.codeDeGardiner }}</span>
-                <span class="mt-1 block text-sm text-encre-600">
-                    {{ signe.objet }}{% if signe.objetIncertain %} <span class="text-encre-500">(débattu)</span>{% endif %}
-                </span>
-
-                {% if signe.dessinDeLaCle %}
-                    <span class="mt-2 block text-xs text-lapis-500">
-                        Le même dessin sert de « {{ signe.dessinDeLaCle.libelle|lower }} »
-                        dans la clé de lecture.
-                    </span>
-                {% endif %}
-            </span>
-        </li>
+        {% set renvoi %}{% if signe.dessinDeLaCle %}Le même dessin sert de « {{ signe.dessinDeLaCle.libelle|lower }} » dans la clé de lecture.{% endif %}{% endset %}
+        {{ _self.carte(signe.signe, signe.translitteration, signe.son, signe.codeDeGardiner,
+            signe.objet ~ (signe.objetIncertain ? ' (débattu)' : ''),
+            signe.dessinDeLaCle ? renvoi : null,
+            signe.codeDeGardiner ~ ' — le son ' ~ signe.translitteration ~ ' (' ~ signe.objet|lower ~ ')') }}
     {% endfor %}
 </ul>
     </div>
@@ -502,11 +500,13 @@
 <div class="mt-4 grid gap-6 lg:grid-cols-2">
     <section aria-labelledby="exercice-sons-titre">
         <h3 id="exercice-sons-titre" class="text-xl text-encre-900">Sons et signes</h3>
-        <p class="mt-2 text-sm text-encre-500" data-chiffres>
-            {{ questionsDesSons }} questions sur les signes que vos scribes connaissent.
-            Une récompense à partir de {{ constant('App\\Game\\ExerciceDesSons::SEUIL_DE_REUSSITE') }}
-            bonnes réponses, une fois par quinzaine ; on peut recommencer, la série change.
-        </p>
+        <p class="mt-2 text-sm text-encre-500">Retrouvez ce que note chaque signe que vos scribes connaissent. La série change à chaque fois.</p>
+        <ul class="mt-2 flex list-none flex-wrap gap-2 p-0 text-xs" data-chiffres>
+            <li class="signal signal--neutre">{{ questionsDesSons }} questions</li>
+            <li class="signal signal--bon" data-infobulle="Une récompense à partir de {{ constant('App\\Game\\ExerciceDesSons::SEUIL_DE_REUSSITE') }} bonnes réponses, une fois par quinzaine ; on peut recommencer.">
+                dès {{ constant('App\\Game\\ExerciceDesSons::SEUIL_DE_REUSSITE') }} bonnes réponses : une récompense
+            </li>
+        </ul>
 
         {% if partie.estEnCours %}
             <form method="post" action="{{ path('app_partie_exercice_sons', {id: partie.id}) }}" class="mt-4">
@@ -526,10 +526,10 @@
                                 {% if question.glyphe %}
                                     <p class="text-center font-hieroglyphes text-4xl leading-none text-encre-900" aria-hidden="true">{{ question.glyphe }}</p>
                                 {% endif %}
-                                <div class="mt-2 grid gap-1">
+                                <div class="mt-2 grid grid-cols-2 gap-1.5">
                                     {% for option in question.options %}
-                                        <label class="flex cursor-pointer items-center gap-2 rounded-sm border border-transparent px-2 py-1 text-sm text-encre-700 transition hover:bg-ocre-300/20
-                                                 has-checked:border-lapis-500/50 has-checked:bg-lapis-500/10">
+                                        <label class="flex cursor-pointer items-center gap-2 rounded-sm border border-ocre-500/25 px-2 py-1.5 text-sm text-encre-700 transition hover:bg-ocre-300/20
+                                                 has-checked:border-lapis-500/60 has-checked:bg-lapis-500/10">
                                             <input type="radio" name="reponse[{{ rang }}]" value="{{ option.valeur }}" required>
                                             <span class="{{ option.glyphe ? 'font-hieroglyphes text-2xl leading-none' : '' }}">{{ option.libelle }}</span>
                                         </label>
@@ -554,9 +554,11 @@
             Un vrai nom de trône, signe par signe. Un cartouche mêle des
             <strong class="text-encre-700">sons</strong> à des
             <strong class="text-encre-700">mots entiers</strong> : dites ce que
-            chaque signe y fait. Une récompense si tout est juste, une fois par
-            quinzaine.
+            chaque signe y fait.
         </p>
+        <ul class="mt-2 flex list-none flex-wrap gap-2 p-0 text-xs">
+            <li class="signal signal--bon">tout juste : une récompense, une fois par quinzaine</li>
+        </ul>
 
         {% if lectureDeCartouche and partie.estEnCours %}
             <form method="post" action="{{ path('app_partie_lecture_cartouche', {id: partie.id}) }}" class="mt-4">
@@ -564,7 +566,7 @@
                 <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                 <input type="hidden" name="graine" value="{{ graineDeLecture }}">
 
-                <p class="rounded-sm border border-or-300/60 bg-or-300/5 px-4 py-3 text-center font-hieroglyphes text-4xl leading-none text-encre-900"
+                <p class="mx-auto w-fit max-w-full rounded-full border-2 border-or-400/70 bg-or-300/10 px-8 py-3 text-center font-hieroglyphes text-4xl leading-none text-encre-900"
                    aria-label="Cartouche de {{ lectureDeCartouche.cartouche.lecture }}">
                     <span aria-hidden="true">{{ lectureDeCartouche.cartouche.signes }}</span>
                 </p>

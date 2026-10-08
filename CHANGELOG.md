@@ -135,6 +135,9 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **Les trois sous-pages de la Maison des scribes sont refaites** : la clé de lecture et l'alphabet partagent une même carte de signe
+  (plaque en grand, nom, code de Gardiner en pastille, renvoi à l'autre table) ; l'alphabet pose la leçon « Niout » et votre nom côte à côte ;
+  la stèle du pharaon devient une carte à part ; les exercices ont des réponses en pastilles et un vrai cartouche.
 - **La Maison des scribes s'ouvre sur quatre tuiles** (érudition, signes appris, clé de lecture, alphabet) au lieu d'une section
   qui redisait le même compte. Les barres et les phrases de comptage de la clé et de l'alphabet sont parties.
 - **Les cartes de dieux du Temple** : portrait, nom, palier coiffant une jauge de faveur (hachurée au-delà de ce que le Temple
