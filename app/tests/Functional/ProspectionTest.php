@@ -147,6 +147,24 @@ final class ProspectionTest extends KernelTestCase
     }
 
     /**
+     * On ne prospecte pas la ville : le générateur n'y pose aucun gisement, et l'écran proposait
+     * pourtant d'y envoyer un prospecteur. L'écran et le serveur disent la même chose, parce que
+     * les deux passent par `filonsPossibles()`.
+     */
+    public function testOnNeProspectePasLaCaseDeLaVille(): void
+    {
+        self::bootKernel();
+        $partie = $this->lancerPartie('prospecter-la-ville@example.com');
+        $ville = $partie->getVille()->zoneDeLaVille();
+        self::assertInstanceOf(Zone::class, $ville);
+
+        self::assertSame([], $this->prospection()->filonsPossibles($partie, $ville));
+
+        $this->expectException(ExplorationImpossible::class);
+        $this->explorations()->envoyer($partie, $ville, RoleDExploration::Prospecteur);
+    }
+
+    /**
      * **Le rayon gratuit vaut pour la reconnaissance, pas pour le travail** :
      * sans quoi le joueur rouvrirait ses filons sous les murs de la ville sans
      * jamais rien engager, et l'épuisement cesserait de compter.
