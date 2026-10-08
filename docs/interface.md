@@ -717,3 +717,9 @@ cliquait. Il est posé sur un enfant ; `fenetre_controller.js` le lit à la conn
 `turbo:frame-load`, et le recopie sur le `<dialog>` (`data-forme`), que la CSS lit aussi — le lien dit
 d'avance la forme qu'il attend (`data-fenetre-forme`), car la fenêtre s'ouvre avant l'arrivée du contenu.
 Pendant le chargement, le cadre s'estompe (`[busy]`) : on ne lit pas un écran périmé.
+
+**Les champs d'une terre en une seule liste** : l'onglet « Champs » avait deux représentations des mêmes
+parcelles — des cartes d'état, puis le formulaire de semis. Elles sont fusionnées : une ligne par parcelle
+(culture en liste déroulante si l'on peut semer, en texte sinon ; étape en pastille dont l'explication est
+en infobulle ; équipage en points), un seul formulaire, un seul bouton. L'explication longue de la terre
+passe en infobulle. `testLeDetailDUneCaseRangeSesActionsEnOngletsUtiles` garde « une ligne par parcelle ».

@@ -116,6 +116,12 @@ final class CarteTest extends WebTestCase
         self::assertNotEmpty($onglets, 'Une terre cultivable a des onglets.');
         self::assertSame($onglets, $panneaux, 'Onglets et panneaux s\'apparient dans le même ordre.');
         self::assertStringContainsString('champs', implode(' ', $onglets));
+        // Une seule liste pour les champs : une ligne par parcelle, la culture se choisit sur place.
+        // Elles étaient deux (des cartes d'état, puis un formulaire qui répétait les mêmes parcelles).
+        $champs = $crawler->filter('[role="tabpanel"][id$="-section-champs"]');
+        self::assertCount(Zone::CHAMPS_MAX, $champs->filter('li'), 'Une ligne par parcelle, sans doublon.');
+        self::assertCount(Zone::CHAMPS_MAX, $champs->filter('select[name^="culture-"]'));
+        self::assertCount(1, $champs->filter('form[action$="/semer"]'));
         self::assertCount(1, $crawler->filter('[data-forme="feuille"]'), 'La forme est portée par le contenu.');
         self::assertCount(0, $crawler->filter('turbo-frame#fenetre[data-forme]'), 'Turbo ne recopie pas les attributs d\'un cadre : la forme n\'y vit pas.');
 

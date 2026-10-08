@@ -107,8 +107,9 @@ la lecture de référence pour comprendre le code.
   l'état de l'adresse en pastille et la ville de votre partie.
 
 - **Le détail d'une case se range en onglets** — gisements, champs, envois — et ne montre que
-  ceux qui servent. Chaque parcelle est une carte (culture, étape du cycle, travailleurs), chaque
-  expédition une carte (ce que fait le rôle, ce qu'elle coûte).
+  ceux qui servent. Les champs d'une terre tiennent en une seule liste — une ligne par parcelle : sa
+  culture (qu'on change sur place), l'étape de son cycle, qui y travaille — et un seul bouton pour
+  semer. Chaque expédition est une carte (ce que fait le rôle, ce qu'elle coûte).
 
 ### Corrigé
 
