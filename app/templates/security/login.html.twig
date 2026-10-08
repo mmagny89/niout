@@ -2,6 +2,7 @@
 
 {% block title %}Connexion — Niout{% endblock %}
 {% block titre_page %}Connexion{% endblock %}
+{% block icone %}faveur{% endblock %}
 
 {% block formulaire %}
     {# `role="alert"` et non un simple encadré : la page est rechargée après
@@ -68,7 +69,8 @@
                value="{{ csrf_token('authenticate') }}">
 
         <button type="submit"
-                class="w-full rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+                class="bouton-offrande group inline-flex w-full items-center justify-center gap-2 rounded-sm bg-terre-500 px-4 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+            {{ include('partie/_pictogramme.html.twig', {nom: 'faveur', taille: 22, classe: 'bouton-offrande__image'}) }}
             Se connecter
         </button>
     </form>
