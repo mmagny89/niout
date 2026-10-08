@@ -172,6 +172,27 @@ final readonly class EffetDeChef
     }
 
     /**
+     * Le **rendement total** de chaque bâtiment dressé, en centièmes — ce que montre son en-tête : ses travailleurs,
+     * le plafond que le chef ouvre (50 % sans lui, 100 % avec) et la compétence du chef, ensemble. C'est la même
+     * valeur que `qualiteDeDirection()` sans recette, calculée d'un coup pour toute la ville.
+     *
+     * @return array<string, int> indexé par la valeur du type de bâtiment
+     */
+    public static function qualitesDeDirection(City $ville, int $cycle): array
+    {
+        $qualites = [];
+
+        foreach (Effectifs::repartir($ville, $cycle) as $valeur => $ligne) {
+            $qualites[$valeur] = intdiv(
+                $ligne['rendement'] * self::facteurDesChefs($ville, $ligne['batiment']->getType(), $cycle),
+                Effectifs::RENDEMENT_PLEIN,
+            );
+        }
+
+        return $qualites;
+    }
+
+    /**
      * Le facteur apporté par les chefs en poste d'un bâtiment, spécialités
      * comprises. Cent — neutre — quand il n'y en a aucun.
      *

@@ -135,6 +135,12 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **L'en-tête d'un bâtiment ne se contredit plus quand un chef vient d'être embauché** : la pastille compte les chefs *en poste* et dit combien
+  arrivent (« 0 / 1 chef · 1 arrive »), et le rendement annonce celui de la quinzaine suivante (« 50 % → 100 % »).
+- **Le rendement a sa pastille, et c'est le rendement total** (travailleurs, plafond du chef et compétence ensemble) ; la pastille des travailleurs
+  ne dit plus que « 2 / 2 travailleurs ».
+- **L'onglet Direction de chaque bâtiment** ne redit plus l'en-tête : une carte par chef, ce qu'un chef changerait en une jauge quand il
+  n'y en a pas, les spécialités en pastilles, les candidats en cartes à pastilles.
 - **Le message d'erreur d'une action avait un fond transparent** : sa couleur (`terre-50`) n'existait pas dans le thème, et le texte se
   superposait au contenu. Les teintes claires `terre-50` et `terre-100` (pastille du bouton de quinzaine) sont définies.
 - **Une infobulle sans action montre le curseur d'aide « ? »** : on la lit, on ne clique pas. Les liens, boutons, champs et replis gardent leur curseur.

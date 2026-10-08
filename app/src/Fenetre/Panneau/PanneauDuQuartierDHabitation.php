@@ -7,6 +7,7 @@ namespace App\Fenetre\Panneau;
 use App\Entity\GameSave;
 use App\Game\AppelDHabitants;
 use App\Game\Effectifs;
+use App\Game\EffetDeChef;
 use App\Game\Maisonnees;
 use App\Game\PalierDeRenommee;
 use App\Game\Salaires;
@@ -40,6 +41,10 @@ final readonly class PanneauDuQuartierDHabitation implements FournisseurDePannea
             'libres' => $ville->foyersLibres(),
             'brasDisponibles' => Effectifs::brasDisponibles($ville, $partie->getCycle()),
             'effectifs' => Effectifs::repartir($ville, $partie->getCycle()),
+            // Le rendement total : travailleurs, plafond du chef et compétence ensemble (l'en-tête le montre à part).
+            'rendementsTotaux' => EffetDeChef::qualitesDeDirection($ville, $partie->getCycle()),
+            // Et celui de la quinzaine suivante : un chef embauché prend son poste à ce moment-là, et le plafond monte.
+            'rendementsProchains' => EffetDeChef::qualitesDeDirection($ville, $partie->getCycle() + 1),
             'masseSalariale' => $this->salaires->masseSalariale($ville, $partie->getCycle()),
             'coutDUnAppel' => $this->appels->cout($partie),
             // La renommée décide du prix d'un appel : elle se lit ici aussi.

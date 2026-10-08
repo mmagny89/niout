@@ -36,7 +36,10 @@
            travailleur. #}
         {% set direction = directions[onglet.type.value] ?? null %}
         {% if direction %}
-            {% set enPoste = direction.chefs|length %}
+            {# Un chef **embauché** n'est pas un chef **en poste** : tant qu'il n'a pas pris le sien, le plafond reste à 50 %.
+               La pastille compte ceux qui y sont, et dit combien arrivent. #}
+            {% set enPoste = direction.chefs|filter(c => c.estEnPoste(partie.cycle))|length %}
+            {% set quiArrivent = direction.chefs|length - enPoste %}
             {% set sansChef = enPoste == 0 %}
             <li class="inline-flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-3.5
                        {{ sansChef ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600' }}">
@@ -46,16 +49,21 @@
                     {% endfor %}
                 </span>
                 <span>{{ enPoste }} / {{ direction.batiment.nombreDeChefs }} chef{{ direction.batiment.nombreDeChefs > 1 ? 's' : '' }}</span>
+                {% if quiArrivent > 0 %}
+                    <span class="text-encre-500" data-infobulle="{{ quiArrivent }} chef{{ quiArrivent > 1 ? 's' : '' }} embauché{{ quiArrivent > 1 ? 's' : '' }} prend{{ quiArrivent > 1 ? 'nent' : '' }} son poste à la prochaine quinzaine.">
+                        · {{ quiArrivent }} arrive
+                    </span>
+                {% endif %}
             </li>
         {% endif %}
 
         {% if effectif %}
             {# Un travailleur par poste : plein pour un bras en poste, délavé pour un poste vide (au moins un, dessiné
-               délavé, quand aucun poste n'est ouvert). Puis le rendement qui en découle. #}
-            {% set alerte = effectif.rendement < 100 %}
+               délavé, quand aucun poste n'est ouvert). Teinte terre cuite s'il en manque. #}
+            {% set alerte = effectif.affectes < effectif.requis %}
             <li class="inline-flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-3.5
                        {{ alerte ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600' }}">
-                <span class="sr-only">{{ effectif.affectes }} sur {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}, {{ effectif.rendement }} % de rendement</span>
+                <span class="sr-only">{{ effectif.affectes }} sur {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}</span>
                 <span aria-hidden="true" class="flex items-center">
                     {% if effectif.requis <= 8 %}
                         {% for place in 1..max(effectif.requis, 1) %}
@@ -66,8 +74,25 @@
                     {% endif %}
                 </span>
                 <span aria-hidden="true">{{ effectif.affectes }} / {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}</span>
-                <span aria-hidden="true" class="font-medium">· {{ effectif.rendement }} %</span>
-                <span aria-hidden="true" class="text-encre-500">de rendement</span>
+            </li>
+        {% endif %}
+
+        {# **Le rendement a sa pastille**, et c'est le rendement *total* : ce que le bâtiment rend vraiment, ses travailleurs, le
+           plafond que le chef ouvre (50 % sans lui, 100 % avec) et la compétence du chef ensemble — pas le seul effet des bras. #}
+        {% set total = rendementsTotaux[onglet.type.value] ?? (effectif ? effectif.rendement : null) %}
+        {% set prochain = rendementsProchains[onglet.type.value] ?? total %}
+        {% if total is not null %}
+            <li class="inline-flex items-center gap-2 rounded-full border py-1 pl-2.5 pr-3.5
+                       {{ total < 100 ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : (total > 100 ? 'border-or-400/60 bg-or-300/15 text-encre-900' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600') }}"
+                data-infobulle="Ce que le bâtiment rend, tout compris : ses travailleurs, le plafond que le chef ouvre (50 % sans chef, 100 % avec) et sa compétence.{{ prochain != total ? ' À la prochaine quinzaine : ' ~ prochain ~ ' %.' : '' }}">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'amelioration', taille: 18}) }}
+                <span class="text-encre-500">Rendement</span>
+                <strong class="font-medium" data-chiffres>{{ total }} %</strong>
+                {% if prochain != total %}
+                    <span class="{{ prochain > total ? 'text-lapis-600' : 'text-terre-600' }}" data-chiffres>
+                        <span aria-hidden="true">→</span> {{ prochain }} %
+                    </span>
+                {% endif %}
             </li>
         {% endif %}
     </ul>

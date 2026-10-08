@@ -1,184 +1,202 @@
-{# La direction d'**un** bâtiment : qui le tient, quels postes restent, quelle
-   annonce est affichée.
+{# La direction d'**un** bâtiment : qui le tient, ce qu'un chef y changerait, qui postule.
 
-   Elle vit désormais dans le panneau du bâtiment concerné, et non dans un
-   onglet « Direction » commun : c'est au moment où l'on regarde sa Forge qu'on
-   veut savoir qui la dirige, pas au bout d'une liste de douze.
+   Elle vit dans le panneau du bâtiment concerné, et non dans un onglet « Direction » commun : c'est au moment où l'on
+   regarde sa Forge qu'on veut savoir qui la dirige, pas au bout d'une liste de douze.
 
-   Le doc 03 veut la compétence « chiffrée en interne, qualitative à
-   l'affichage » : ce gabarit n'imprime donc que des étoiles, jamais
-   `competence`. #}
+   **Ce que l'en-tête dit déjà n'est pas redit ici** : le nombre de chefs et de travailleurs, et leur rendement, sont
+   dans ses pastilles. Reste ce qui n'y tient pas — les chefs en poste, ce qu'un chef change, les candidats.
+
+   Le doc 03 veut la compétence « chiffrée en interne, qualitative à l'affichage » : ce gabarit n'imprime donc que des
+   étoiles, jamais `competence`. #}
 {% set direction = directions[onglet.type.value] ?? null %}
 {% if direction %}
-    <div class="mt-6 rounded-sm border border-ocre-500/30 bg-sable-50 p-5">
-        <div class="flex flex-wrap items-baseline justify-between gap-3">
-            <h3 class="font-display text-lg text-encre-900">Direction</h3>
-            <span class="text-xs uppercase tracking-wide text-encre-500" data-chiffres>
-                {{ direction.chefs|length }} / {{ direction.batiment.nombreDeChefs }} chef{{ direction.batiment.nombreDeChefs > 1 ? 's' : '' }}
-            </span>
-        </div>
+    {% macro etoiles(nombre) %}
+        <span class="whitespace-nowrap text-lg leading-none" aria-label="{{ nombre }} étoile{{ nombre > 1 ? 's' : '' }} sur 5">
+            <span class="text-or-500" aria-hidden="true">{{ '★★★★★'|slice(0, nombre) }}</span><span class="text-encre-500/30" aria-hidden="true">{{ '☆☆☆☆☆'|slice(0, 5 - nombre) }}</span>
+        </span>
+    {% endmacro %}
 
-        {# **Les travailleurs d'abord, le chef ensuite** : un bâtiment réclame son équipage, chef ou non — personne,
-           et il ne fonctionne pas ; pas assez de bras, il tourne au ralenti. Le chef relève le plafond (50 % sans
-           lui, 100 % avec) et sa compétence se lit dans tout ce qu'il produit. #}
-        {% set effectif = effectifs[onglet.type.value] ?? null %}
-        {% if effectif and effectif.requis > 0 %}
-            <p class="mt-2 text-sm {{ effectif.affectes < effectif.requis ? 'text-terre-600' : 'text-encre-500' }}" data-chiffres>
-                Ce bâtiment réclame {{ effectif.requis }} travailleur{{ effectif.requis > 1 ? 's' : '' }}
-                et en a {{ effectif.affectes }}.
-                {% if effectif.affectes == 0 %}
-                    Sans personne, il ne fonctionne pas — il vous reste {{ mainDoeuvre.oisifs }} bras sans ouvrage.
-                {% elseif effectif.affectes < effectif.requis %}
-                    Il tourne à {{ effectif.rendement }} % faute de bras.
-                {% endif %}
-            </p>
-        {% endif %}
-
-        {% if direction.chefs is empty %}
-            <p class="mt-3 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-4 py-3 text-sm text-encre-700" data-chiffres>
-                <strong class="font-medium">Sans chef, ce bâtiment ne dépasse pas {{ constant('App\\Game\\Effectifs::RENDEMENT_PLANCHER') }} %.</strong>
-                Un chef le fait travailler à plein, et sa compétence se lit dans
-                tout ce qu'il produit. Afficher une annonce ne coûte rien et ne
-                prend aucune quinzaine : c'est le chef que vous retenez qui se
-                paiera — et il s'installe avec les siens.
-            </p>
-        {% endif %}
-
-        {% if direction.specialitesPossibles is not empty %}
-            <details class="mt-3 text-sm text-encre-600">
-                <summary class="cursor-pointer text-encre-700">Spécialités possibles ici</summary>
-                <ul class="mt-2 list-none space-y-1 p-0">
-                    {% for specialite in direction.specialitesPossibles %}
-                        <li>
-                            <strong class="font-medium">{{ specialite.libelle }}</strong>
-                            — {{ specialite.description }}
-                            {% if not specialite.agitDeja %}<span class="text-encre-500">(sans effet pour l'instant)</span>{% endif %}
+    <div class="mt-6 space-y-6">
+        {# ---- Les chefs en poste : une carte par chef ---- #}
+        {% if direction.chefs is not empty %}
+            <section aria-label="Chefs en poste">
+                <ul class="grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2">
+                    {% for chef in direction.chefs %}
+                        <li class="carte-vivante rounded-sm border border-lapis-500/30 bg-lapis-500/5 p-4">
+                            <div class="flex items-start gap-3">
+                                {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 44}) }}
+                                <div class="min-w-0 flex-1">
+                                    {{ _self.etoiles(chef.etoiles) }}
+                                    <p class="mt-0.5 text-sm text-encre-700">
+                                        {% if chef.specialite %}
+                                            <strong class="font-medium">{{ chef.specialite.libelle }}</strong>
+                                            {% if chef.specialite.agitDeja %}
+                                                <span class="text-encre-500">— {{ chef.specialite.description }}</span>
+                                            {% else %}
+                                                <span class="text-encre-500">(sans effet pour l'instant)</span>
+                                            {% endif %}
+                                        {% else %}
+                                            Sans spécialité
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-3 flex flex-wrap items-center gap-2">
+                                <ul class="flex list-none flex-wrap items-center gap-2 p-0 text-xs" data-chiffres>
+                                    <li class="inline-flex items-center gap-1 rounded-full border border-ocre-500/30 bg-sable-50 px-2.5 py-0.5 text-encre-700">
+                                        {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 16}) }}{{ chef.salaire }} par quinzaine
+                                    </li>
+                                    {% if not chef.estEnPoste(partie.cycle) %}
+                                        <li class="rounded-full border border-ocre-500/40 px-2.5 py-0.5 text-encre-500">Prend son poste à la prochaine quinzaine</li>
+                                    {% endif %}
+                                </ul>
+                                {% if partie.estEnCours %}
+                                    <form method="post" action="{{ path('app_partie_renvoyer', {id: partie.id}) }}" class="ml-auto">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('renvoyer') }}">
+                                        <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                                        <input type="hidden" name="employe" value="{{ chef.id }}">
+                                        <button type="submit" class="rounded-sm border border-terre-500/40 px-3 py-1 text-sm text-terre-600 hover:bg-terre-500/10">
+                                            Renvoyer
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>
-            </details>
+            </section>
+        {% else %}
+            {# ---- Sans chef : ce qu'un chef changerait, en une jauge plutôt qu'en une phrase ---- #}
+            {% set plafond = constant('App\\Game\\Effectifs::RENDEMENT_PLANCHER') %}
+            <section class="rounded-sm border border-terre-500/40 bg-terre-500/5 p-4" data-chiffres>
+                <p class="flex items-center gap-2 text-encre-900">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 32, classe: 'opacity-70 grayscale'}) }}
+                    <strong class="font-medium">Sans chef, ce bâtiment ne dépasse pas {{ plafond }} %.</strong>
+                </p>
+                <div class="mt-3 flex h-3 overflow-hidden rounded-full border border-ocre-500/30 bg-sable-50" aria-hidden="true">
+                    <div class="h-full bg-terre-500" style="width: {{ plafond }}%"></div>
+                    <div class="reserve-libre h-full flex-1"></div>
+                </div>
+                <div class="mt-1 flex justify-between text-xs text-encre-500" aria-hidden="true">
+                    <span class="text-terre-600">{{ plafond }} % sans chef</span>
+                    <span class="text-lapis-600">100 % avec un chef</span>
+                </div>
+                <p class="mt-3 text-sm text-encre-600">
+                    Le chef recrute les siens, et sa compétence se lit dans tout ce qu'il produit. Afficher une annonce ne
+                    coûte rien et ne prend aucune quinzaine : c'est le chef que vous retenez qui se paiera.
+                </p>
+            </section>
         {% endif %}
 
-        {% for chef in direction.chefs %}
-            <div class="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-2 border-t border-ocre-500/20 pt-3">
-                <span class="text-encre-900" aria-label="{{ chef.etoiles }} étoile{{ chef.etoiles > 1 ? 's' : '' }} sur 5">
-                    {{ '★★★★★'|slice(0, chef.etoiles) }}{{ '☆☆☆☆☆'|slice(0, 5 - chef.etoiles) }}
-                </span>
-                <span class="text-sm text-encre-600">
-                    {% if chef.specialite %}
-                        {{ chef.specialite.libelle }}
-                        {% if chef.specialite.agitDeja %}
-                            <span class="text-encre-500">— {{ chef.specialite.description }}</span>
-                        {% else %}
-                            <span class="text-encre-500">(sans effet pour l'instant)</span>
-                        {% endif %}
-                    {% else %}
-                        Sans spécialité
-                    {% endif %}
-                </span>
-                <span class="text-sm text-encre-500" data-chiffres>{{ chef.salaire }} deben la quinzaine</span>
+        {# ---- Ce qu'on peut y chercher : des pastilles, pas un repli ---- #}
+        {% if direction.specialitesPossibles is not empty %}
+            <section aria-labelledby="specialites-{{ onglet.cle }}">
+                <h3 id="specialites-{{ onglet.cle }}" class="text-xs font-medium uppercase tracking-wide text-encre-500">Spécialités possibles ici</h3>
+                <ul class="mt-2 flex list-none flex-wrap gap-2 p-0">
+                    {% for specialite in direction.specialitesPossibles %}
+                        <li class="rounded-full border px-3 py-1 text-sm {{ specialite.agitDeja ? 'border-lapis-500/40 bg-lapis-500/5 text-encre-900' : 'border-ocre-500/30 text-encre-500' }}"
+                            data-infobulle="{{ specialite.description }}{{ specialite.agitDeja ? '' : ' (sans effet pour l\'instant)' }}">
+                            {{ specialite.libelle }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
 
-                {% if not chef.estEnPoste(partie.cycle) %}
-                    <span class="text-sm text-encre-500">Prend son poste à la prochaine quinzaine</span>
-                {% endif %}
+        {# ---- L'annonce et ses candidats ---- #}
+        {% if direction.offre %}
+            <section aria-labelledby="candidats-{{ onglet.cle }}">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <h3 id="candidats-{{ onglet.cle }}" class="text-xl text-encre-900">Candidats</h3>
+                    <span class="signal signal--neutre" data-chiffres>{{ direction.offre.candidats|length }} candidats se présentent</span>
+                </div>
+
+                <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
+                    {% for candidat in direction.offre.candidats %}
+                        <li class="carte-vivante flex flex-col gap-2 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                {{ _self.etoiles(candidat.etoiles) }}
+                                {% if loop.index0 == direction.rangDuPlusCompetent or loop.index0 == direction.rangDuMoinsCher %}
+                                    <span class="flex flex-wrap gap-1.5 text-[11px] uppercase tracking-wide">
+                                        {% if loop.index0 == direction.rangDuPlusCompetent %}
+                                            <span class="rounded-full bg-lapis-500/10 px-2 py-0.5 text-lapis-600">Le plus compétent</span>
+                                        {% endif %}
+                                        {% if loop.index0 == direction.rangDuMoinsCher %}
+                                            <span class="rounded-full bg-ocre-500/15 px-2 py-0.5 text-encre-700">Le moins cher</span>
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <ul class="flex list-none flex-wrap items-center gap-1.5 p-0 text-xs" data-chiffres>
+                                <li class="rounded-full border border-ocre-500/30 px-2.5 py-0.5 text-encre-700">
+                                    {% if candidat.specialite %}
+                                        {{ candidat.specialite.libelle }}{% if not candidat.specialite.agitDeja %} <span class="text-encre-500">(sans effet pour l'instant)</span>{% endif %}
+                                    {% else %}
+                                        Sans spécialité
+                                    {% endif %}
+                                </li>
+                                <li class="inline-flex items-center gap-1 rounded-full border border-ocre-500/30 bg-sable-50 px-2.5 py-0.5 text-encre-700"
+                                    data-infobulle="Ce qu'il coûte à chaque quinzaine.">
+                                    {{ include('partie/_pictogramme.html.twig', {nom: 'deben', taille: 16}) }}{{ candidat.salaire }}
+                                </li>
+                                <li class="inline-flex items-center gap-1 rounded-full border border-ocre-500/30 bg-sable-50 px-2.5 py-0.5 text-encre-700"
+                                    data-infobulle="Les personnes qui s'installent avec lui.">
+                                    {{ include('partie/_pictogramme.html.twig', {nom: 'habitants', taille: 16}) }}{{ candidat.personnesAmenees }} amenées
+                                </li>
+                            </ul>
+
+                            <p class="text-sm text-encre-700">{{ candidat.appreciation }}</p>
+                            <p class="text-xs text-encre-500">{{ candidat.esperanceDeService }}</p>
+
+                            {% if candidat.traits is not empty %}
+                                <ul class="flex list-none flex-wrap gap-1.5 p-0 text-xs">
+                                    {% for trait in candidat.traits %}
+                                        <li class="rounded-full border border-lapis-500/30 bg-lapis-500/5 px-2.5 py-0.5 text-lapis-600"
+                                            data-infobulle="{{ trait.description }}{{ trait.dortEnAttendantSaPhase ? ' (sans effet pour l\'instant)' : '' }}">
+                                            {{ trait.libelle }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+
+                            {% if partie.estEnCours %}
+                                <form method="post" action="{{ path('app_partie_embaucher', {id: partie.id}) }}" class="mt-auto pt-2">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('embaucher') }}">
+                                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                                    <input type="hidden" name="batiment" value="{{ direction.batiment.type.value }}">
+                                    <input type="hidden" name="rang" value="{{ loop.index0 }}">
+                                    <button type="submit"
+                                            class="bouton-offrande group inline-flex w-full items-center justify-center gap-2 rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                                        {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 22, classe: 'bouton-offrande__image'}) }}
+                                        Retenir ce candidat
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
 
                 {% if partie.estEnCours %}
-                    <form method="post" action="{{ path('app_partie_renvoyer', {id: partie.id}) }}" class="ml-auto">
-                        <input type="hidden" name="_token" value="{{ csrf_token('renvoyer') }}">
+                    <form method="post" action="{{ path('app_partie_embaucher', {id: partie.id}) }}" class="mt-3">
+                        <input type="hidden" name="_token" value="{{ csrf_token('embaucher') }}">
                         <input type="hidden" name="onglet" value="{{ onglet.cle }}">
-                        <input type="hidden" name="employe" value="{{ chef.id }}">
-                        <button type="submit" class="text-sm text-encre-500 underline hover:text-terre-600">
-                            Renvoyer
+                        <input type="hidden" name="batiment" value="{{ direction.batiment.type.value }}">
+                        <button type="submit" name="retirer" value="1"
+                                class="text-sm text-encre-500 underline hover:text-terre-600">
+                            Retirer l'annonce sans embaucher
                         </button>
                     </form>
                 {% endif %}
-            </div>
-        {% endfor %}
-
-        {% if direction.offre %}
-            <p class="mt-4 border-t border-ocre-500/20 pt-3 text-sm text-encre-500">
-                {{ direction.offre.candidats|length }} candidats se présentent.
-            </p>
-
-            <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
-                {% for candidat in direction.offre.candidats %}
-                    <li class="rounded-sm border border-ocre-500/20 bg-sable-50/60 p-4">
-                        <div class="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-                            <span class="text-encre-900" aria-label="{{ candidat.etoiles }} étoile{{ candidat.etoiles > 1 ? 's' : '' }} sur 5">
-                                {{ '★★★★★'|slice(0, candidat.etoiles) }}{{ '☆☆☆☆☆'|slice(0, 5 - candidat.etoiles) }}
-                            </span>
-                            <span class="text-sm text-encre-600">
-                                {% if candidat.specialite %}
-                                    {{ candidat.specialite.libelle }}
-                                    {% if not candidat.specialite.agitDeja %}
-                                        <span class="text-encre-500">(sans effet pour l'instant)</span>
-                                    {% endif %}
-                                {% else %}
-                                    Sans spécialité
-                                {% endif %}
-                            </span>
-                            <span class="text-sm text-encre-500" data-chiffres>
-                                {{ candidat.salaire }} deben · {{ candidat.personnesAmenees }} personnes amenées
-                            </span>
-                        </div>
-
-                        {% if loop.index0 == direction.rangDuPlusCompetent or loop.index0 == direction.rangDuMoinsCher %}
-                            <p class="mt-2 flex flex-wrap gap-2 text-xs uppercase tracking-wide">
-                                {% if loop.index0 == direction.rangDuPlusCompetent %}
-                                    <span class="rounded-sm bg-lapis-500/10 px-2 py-0.5 text-lapis-500">Le plus compétent</span>
-                                {% endif %}
-                                {% if loop.index0 == direction.rangDuMoinsCher %}
-                                    <span class="rounded-sm bg-ocre-500/10 px-2 py-0.5 text-encre-700">Le moins cher</span>
-                                {% endif %}
-                            </p>
-                        {% endif %}
-
-                        <p class="mt-2 text-sm text-encre-600">{{ candidat.appreciation }}</p>
-                        <p class="mt-1 text-sm text-encre-500">{{ candidat.esperanceDeService }}</p>
-
-                        {% for trait in candidat.traits %}
-                            <p class="mt-2 text-sm text-encre-600">
-                                <strong class="font-medium">{{ trait.libelle }}</strong> — {{ trait.description }}
-                                {% if trait.dortEnAttendantSaPhase %}
-                                    <span class="text-encre-500">(sans effet pour l'instant)</span>
-                                {% endif %}
-                            </p>
-                        {% endfor %}
-
-                        {% if partie.estEnCours %}
-                            <form method="post" action="{{ path('app_partie_embaucher', {id: partie.id}) }}" class="mt-3">
-                                <input type="hidden" name="_token" value="{{ csrf_token('embaucher') }}">
-                                <input type="hidden" name="onglet" value="{{ onglet.cle }}">
-                                <input type="hidden" name="batiment" value="{{ direction.batiment.type.value }}">
-                                <input type="hidden" name="rang" value="{{ loop.index0 }}">
-                                <button type="submit"
-                                        class="rounded-sm bg-terre-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-terre-600">
-                                    Retenir ce candidat
-                                </button>
-                            </form>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-
-            {% if partie.estEnCours %}
-                <form method="post" action="{{ path('app_partie_embaucher', {id: partie.id}) }}" class="mt-3">
-                    <input type="hidden" name="_token" value="{{ csrf_token('embaucher') }}">
-                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
-                    <input type="hidden" name="batiment" value="{{ direction.batiment.type.value }}">
-                    <button type="submit" name="retirer" value="1"
-                            class="text-sm text-encre-500 underline hover:text-terre-600">
-                        Retirer l'annonce sans embaucher
-                    </button>
-                </form>
-            {% endif %}
+            </section>
         {% elseif direction.postesLibres > 0 and partie.estEnCours %}
-            <form method="post" action="{{ path('app_partie_poster', {id: partie.id}) }}" class="mt-3">
+            <form method="post" action="{{ path('app_partie_poster', {id: partie.id}) }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('poster') }}">
                 <input type="hidden" name="onglet" value="{{ onglet.cle }}">
                 <input type="hidden" name="batiment" value="{{ direction.batiment.type.value }}">
                 <button type="submit"
-                        class="rounded-sm border border-ocre-500/40 px-4 py-2 text-sm text-encre-700 hover:bg-ocre-500/10">
+                        class="bouton-offrande group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-5 py-2.5 text-sm font-medium text-sable-50 hover:bg-terre-600">
+                    {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 24, classe: 'bouton-offrande__image'}) }}
                     Afficher une annonce
                 </button>
             </form>

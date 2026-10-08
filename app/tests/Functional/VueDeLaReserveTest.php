@@ -90,7 +90,7 @@ final class VueDeLaReserveTest extends WebTestCase
 
             self::assertResponseIsSuccessful();
             self::assertCount(1, $crawler->filter('[role="img"][aria-label^="Réserve :"]'), $lieu);
-            self::assertCount(1, $crawler->filter('.reserve-libre'), 'La place libre est la partie hachurée de la jauge : '.$lieu);
+            self::assertCount(1, $crawler->filter(\sprintf('#%s-section-reserve .reserve-libre', $lieu)), 'La place libre est la partie hachurée de la jauge : '.$lieu);
         }
     }
 

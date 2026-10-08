@@ -69,11 +69,24 @@ en haut à droite) — à droite, le niveau se confondait avec elle. Dessous, de
 
 - **le niveau**, en crans (« NIVEAU ◆◆◇◇◇ 2 / 5 »), avec le texte écrit pour les lecteurs d'écran ;
 - **les chefs** (« 0 / 1 chef »), un pictogramme de chef par place, toujours dits, même à zéro — sauf
-  pour les bâtiments qu'aucun chef ne dirige (Résidence, Quartier, Auberge) ;
-- **les travailleurs** (« 2 / 2 travailleurs · 50 % de rendement »), un pictogramme par poste, plein si le
-  poste est tenu et délavé s'il est vide ; terre cuite sous 100 %, lapis au plafond.
+  pour les bâtiments qu'aucun chef ne dirige (Résidence, Quartier, Auberge). **On compte les chefs en poste, pas
+  les chefs embauchés** : un chef pris à l'instant n'agit qu'à la quinzaine suivante, la pastille dit « · 1 arrive » ;
+- **les travailleurs** (« 2 / 2 travailleurs »), un pictogramme par poste, plein si le poste est tenu et délavé
+  s'il est vide ; terre cuite s'il en manque ;
+- **le rendement**, à part, et **total** (`EffetDeChef::qualitesDeDirection()`, fourni par `DirectionDesBatiments` et le
+  Quartier sous `rendementsTotaux`) : ce que le bâtiment rend vraiment — ses travailleurs, le plafond que le chef ouvre
+  (50 % sans, 100 % avec) et la compétence du chef ensemble, non le seul effet des bras. Terre cuite sous 100 %, lapis à 100,
+  doré au-delà ; **il annonce celui de la quinzaine suivante** quand il change (« 50 % → 100 % », `rendementsProchains`),
+  parce qu'un chef qui arrive relève le plafond sans que rien ne bouge d'ici là.
 
 **Une pastille dit une chose, une icône dit de qui il s'agit** : le chef n'est pas un travailleur.
+
+**L'onglet Direction ne redit pas l'en-tête** (`_direction.html.twig`) : ni le nombre de chefs, ni celui des
+travailleurs, ni le rendement — ils sont dans les pastilles. Il ne garde que ce qui n'y tient pas : une carte par
+**chef en poste** (étoiles, spécialité, salaire, « Renvoyer »), ou, sans chef, **ce qu'un chef changerait en une jauge**
+(le plafond à 50 % contre 100 %) ; les **spécialités possibles en pastilles** (infobulle pour leur effet, plus un repli) ;
+et les **candidats en cartes** — étoiles, « le plus compétent » / « le moins cher », spécialité, salaire et personnes amenées
+en pastilles à pictogramme, traits en pastilles, « Retenir ce candidat » en bas de carte.
 
 ## Infobulles
 
