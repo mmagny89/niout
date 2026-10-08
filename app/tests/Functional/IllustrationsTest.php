@@ -53,7 +53,7 @@ final class IllustrationsTest extends WebTestCase
     {
         $extension = static::getContainer()->get(IllustrationsExtension::class);
 
-        self::assertNull($extension->imageDeRessource(Ressource::Deben), 'Le deben n\'a pas de planche.');
+        self::assertSame('images/ressources/deben.webp', $extension->imageDeRessource(Ressource::Deben), 'Le deben reprend le pictogramme de l\'interface.');
         self::assertNull($extension->imageDeRessource(null));
         self::assertNull($extension->imageDeRessource('../../.env'), 'Une valeur qui finit dans un chemin est contrainte.');
         self::assertNull($extension->imageDeRessource('inconnue'));
@@ -102,5 +102,22 @@ final class IllustrationsTest extends WebTestCase
         $client->loginUser($user);
 
         return static::getContainer()->get(LanceurDePartie::class)->lancerCampagne($user, 'Nakht');
+    }
+
+    /**
+     * Les pictogrammes de l'interface sont nommés d'après leur usage, et `EtatDeLaVille`
+     * en cite par leur nom : un nom qui ne mène à aucun fichier ferait disparaître le
+     * dessin sans erreur.
+     */
+    public function testLesPictogrammesDeLInterfaceSontTousLa(): void
+    {
+        $extension = static::getContainer()->get(IllustrationsExtension::class);
+
+        foreach (['deben', 'quinzaine', 'prestige', 'faveur', 'habitants', 'chantier', 'amelioration', 'chef',
+            'expedition', 'troupe', 'echange', 'offrande', 'enigme', 'danger', 'fievre', 'pharaon'] as $nom) {
+            self::assertSame(\sprintf('images/interface/%s.webp', $nom), $extension->imageDInterface($nom), $nom);
+        }
+        self::assertNull($extension->imageDInterface('../../.env'));
+        self::assertNull($extension->imageDInterface('inconnu'));
     }
 }
