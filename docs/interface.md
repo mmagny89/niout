@@ -60,6 +60,37 @@ ressource « bois » ni ressource « pierre ».
 tuiles — la couche cliquable subit ainsi exactement la même transformation que
 l'image, et les losanges continuent de tomber juste.
 
+## L'en-tête d'un bâtiment
+
+**Le même bandeau partout** (`partie/batiments/_entete.html.twig`) : le joueur apprend une fois où lire le
+niveau et le rendement, puis les retrouve dans chaque onglet. **La fonction se tient à côté du titre**
+(elle passe dessous quand la place manque) ; **le titre garde la place de la croix de fermeture** (44 px,
+en haut à droite) — à droite, le niveau se confondait avec elle. Dessous, des **pastilles** :
+
+- **le niveau**, en crans (« NIVEAU ◆◆◇◇◇ 2 / 5 »), avec le texte écrit pour les lecteurs d'écran ;
+- **les chefs** (« 0 / 1 chef »), un pictogramme de chef par place, toujours dits, même à zéro — sauf
+  pour les bâtiments qu'aucun chef ne dirige (Résidence, Quartier, Auberge) ;
+- **les travailleurs** (« 2 / 2 travailleurs · 50 % de rendement »), un pictogramme par poste, plein si le
+  poste est tenu et délavé s'il est vide ; terre cuite sous 100 %, lapis au plafond.
+
+**Une pastille dit une chose, une icône dit de qui il s'agit** : le chef n'est pas un travailleur.
+
+## Infobulles
+
+`data-infobulle="…"` sur n'importe quel élément (`app.css`). **L'infobulle est hors de la mise en page tant
+qu'on ne la lit pas** (`display: none`, non un simple `opacity: 0`) : une infobulle invisible mais présente, large
+de dix-huit rem et posée au bord gauche d'un élément proche du bord droit, élargissait la zone défilante de son
+panneau — c'était le défilement horizontal de la Résidence. Le fondu est une **animation d'entrée**, non une
+transition. **L'élément lu passe devant ses voisins** (`z-index` au survol et au focus) : un voisin animé
+(`transform`) est son propre contexte d'empilement, peint après, et recouvrirait l'infobulle. Le panneau d'une
+fenêtre porte `overflow-x: hidden` en garde-fou : aucune animation ne doit y refaire un défilement horizontal.
+
+## L'accueil
+
+**L'appel « Mes parties » est un cartouche** (`.bouton-cartouche`) : un disque d'or porte le pictogramme, deux
+lignes disent où l'on va, une flèche glisse au survol. Les dimensions et le contexte d'empilement vivent dans
+`app.css`, non en utilitaires : une classe Tailwind neuve n'existe qu'après `tailwind:build`.
+
 ## L'écran de ville : un onglet, un bâtiment
 
 **Un onglet, un bâtiment** (décision de la joueuse, `ongletsDeLaVille()`,
@@ -88,13 +119,15 @@ annonce ainsi le domaine puis ce que le nombre mesure. **Ce qui cloche est dit
 en dessous, une seule fois** : une remarque accrochée à chaque ligne rendrait
 illisible ce que le tableau existe pour rendre lisible. Chaque alerte nomme la
 cause **et** le geste — un diagnostic sans remède se subit —, et une ville sans
-souci le dit plutôt que d'afficher une liste vide.
+souci le dit plutôt que d'afficher une liste vide. **Ce que le pharaon attend** illustre chaque
+objectif de son dessin (deben, habitants, échange, amélioration, prestige, ou l'illustration de la
+ressource à rapporter).
 
 **La Résidence se range en quatre sections** (`_residence_familiale.html.twig`),
 parce qu'un seul défilement de sept cents lignes ne laissait plus rien trouver :
 **Vue d'ensemble** (tableau de bord, écritures, alertes, bonnes nouvelles),
 **Mission** — ou **Règne** en Aventure : objectifs, score, succession —,
-**Gouvernement** (salaire des bras, ce qu'on attend, chantiers en cours) et
+**Gouvernement** (salaire des bras, réglé à la jauge, ce qu'on attend, chantiers en cours) et
 **Bâtiments** (dressés, à bâtir). Elles **réutilisent `onglets_controller.js`**,
 imbriqué dans l'onglet de la ville : mêmes panneaux masqués plutôt qu'absents,
 donc le contenu reste dans le document. Deux précautions : les identifiants
@@ -116,44 +149,79 @@ autant de maisons occupées que `Population::foyersPour()`, aucune au-delà de
 couleur** — jamais la couleur seule. Chaque maison porte une description écrite
 (`aria-label`), le dessin étant masqué aux lecteurs d'écran ; les symboles sont
 définis une fois (`<symbol>`/`<use>`), une ville pleine comptant plus de cent
-soixante maisons.
+soixante maisons. **Les maisons sont de briques crues** — toit-terrasse débordant, façade qui
+s'évase, porte cintrée, deux ouvertures — dans un seul symbole (`maison-egyptienne`) ; une place
+libre est la **même maison estompée** (`.maison-libre`), pour qu'on voie la place qui reste. La
+maison survolée passe devant ses voisines : chacune est son propre contexte d'empilement, et son
+infobulle serait sinon recouverte. **« Faire venir du monde » se lit comme une échelle** : les cinq
+rangs de la famille en marches (celle où l'on se tient allumée, le prix de base d'un appel dessous),
+puis l'attractivité en citation et ce qu'il reste de renommée pour monter. Les chiffres de la
+population sont dans les tuiles et ne sont pas redits en phrase.
 
-**Le Grenier et l'Entrepôt montrent leur réserve en cases** (`VueDeLaReserve`,
-`_reserve_visuelle.html.twig`) : ce qu'elle contient, et la place qu'il reste
-avant que le surplus ne se perde. Une **représentation**, rien n'en est
-persisté. Chaque case vaut un `pas` — le plus petit pas rond qui tienne la
-réserve en soixante cases au plus. **Les vivres se rangent ressource par
-ressource** (six au plus), **les matériaux par famille** (`FamilleDeRessource`),
-parce qu'une trentaine de teintes ne se distinguent plus ; le détail reste dans
-la légende. Les cases se comptent par arrondi au supérieur **sur le cumul** : un
-lot minuscule garde sa case, et le total n'excède pas l'occupation. Le dessin
-est masqué aux lecteurs d'écran, la légende dit la même chose en lettres, et la
-couleur n'est jamais seule.
+**Le Grenier et l'Entrepôt montrent leur réserve en jauge empilée** (`VueDeLaReserve`,
+`_reserve_visuelle.html.twig`) : ce qu'elle contient, et la place qu'il reste avant que le surplus
+ne se perde. Une **représentation**, rien n'en est persisté. **Une seule barre, proportionnelle au
+plafond** : chaque ressource (ou, à l'Entrepôt, chaque famille de `FamilleDeRessource`) en est un
+segment de sa largeur, la place libre est hachurée (`.reserve-libre`). Dessous, **une fiche par
+groupe** : pictogramme, nom, quantité en grand, part du plafond ; une famille de plusieurs
+ressources prend toute la largeur et se déplie en **pastilles à pictogramme** avec un filet pour sa
+part de la famille. Le total, la place libre et l'alerte de saturation sont dans les **tuiles** au-dessus
+et ne sont pas redits ; la couleur du cadre vire à la terre cuite quand c'est presque plein. Le
+dessin est masqué aux lecteurs d'écran, les fiches disent la même chose en lettres, et la couleur
+n'est jamais seule.
 
 **Simplifier un écran, c'est ranger sans rien retirer** (Marché, exploitations).
 Trois gestes, repris partout : **l'essentiel d'abord** — l'état et le geste
 courant en haut —, **les explications de fond dans un repli** (`<details>`), lues
-une fois et non relues à chaque visite, ouvert d'office quand le problème qu'elles
-expliquent se présente ; et **une valeur proposée par défaut** plutôt qu'un champ
+une fois et non relues à chaque visite ; **un réglage, lui, n'est jamais caché** — le prix du Marché
+était un repli, il est maintenant toujours à vue ; et **une valeur proposée par défaut** plutôt qu'un champ
 à remplir. Le Marché propose ainsi, pour chaque lot, la plus grande quantité que
 la place absorbe encore (`Marche::quantiteQueLaPlaceAbsorbe()`, la même formule
 que `vendre()` : une quantité calculée autrement serait refusée par le plafond
 qu'on vient d'annoncer). **Les exploitations** — champs au Grenier, carrières à
-l'Entrepôt, pêcheries au Port — se voient en tuiles : état en lettres, équipage
-en pastilles ; le tableau reste dessous, détail ouvert d'office s'il y a une
-ligne muette ou épuisée. Le contenu replié reste dans le document : les tests
+l'Entrepôt, pêcheries au Port — se voient en **deux tuiles** (travailleurs, ce qui ne rend rien), une
+**barre qui les range par état** (en activité, sans un bras, jamais ouverte, épuisée — chaque état nommé
+et compté dessous) et **une fiche par exploitation** : icône de ce qu'elle donne, étape de la culture (avec
+son explication à l'infobulle), travailleurs et rendement, état en **pastille de même forme pour tous**
+(teinte lapis, terre cuite ou ocre pointillé), ce qu'il reste à tirer. Un filon épuisé n'est **pas barré** :
+son dessin se délave sur les hachures d'une place libre. Le tableau « case par case » a disparu : il
+redisait les fiches. Le contenu replié reste dans le document : les tests
 et les lecteurs d'écran le lisent.
 
+**Un réglage se fait à la jauge seule** (`curseur_controller.js`) : le salaire des bras, la répartition
+de l'Entrepôt (ce qu'on garde de chaque ressource), le prix que fait le Marché, le prix d'un étal
+commercial. Un champ numérique doublait la jauge — deux contrôles pour une valeur — et laissait taper
+un prix hors fourchette. Le champ reste, **caché**, comme source soumise (il porte `min`, `max`, `step` :
+la jauge les lit) ; le nombre s'affiche en grand à côté du libellé (cible `nombre`), et un verdict
+en toutes lettres suit la jauge (cible `verdict`, du côté « mauvais » que dit `mauvais-en-bas`). La jauge
+n'existe qu'avec JavaScript : tout le jeu passe déjà par Stimulus et Turbo.
+
 **La Maison des scribes et les routes appliquent les mêmes gestes.** La Maison
-se range en trois sections (`scribes-section-*`, même contrôleur d'onglets
+se range en quatre sections (`scribes-section-*`, même contrôleur d'onglets
 imbriqué que la Résidence, même mémoire de la section ouverte) : **À lire et à
-résoudre** (ce qui attend une réponse), **Clé de lecture**, **Alphabet**. Les
-explications — pourquoi trois dessins se retrouvent dans les deux tables, la
-convention des musées —, ainsi que les inscriptions déjà lues, vont dans des
-replis. **Les routes** se rangent par état : ouvertes (celles où l'on agit
-chaque quinzaine), convois en chemin, à ouvrir. Une caravane se suit sur sa
-**piste** (`_piste_de_route.html.twig`) : une case par quinzaine de marche, aller
-et retour compris pour un convoi, le texte disant la même chose que le dessin.
+résoudre**, **Clé de lecture**, **Alphabet**, **Exercices**. Elle **s'ouvre sur quatre tuiles** —
+érudition (le rang et ce qu'il rapporte à l'impôt), signes appris, clé, alphabet — au lieu d'une
+section qui redisait le même compte ; la Résidence garde la sienne, où l'on gouverne. La clé et
+l'alphabet **partagent une carte de signe** (macro `carte` : plaque du glyphe, nom, code de Gardiner
+en pastille, sens, renvoi à l'autre table en bandeau) ; **la plaque est plus large que le glyphe le
+plus large** (avant-bras, vipère) — un signe qui déborde de son cadre trahit le dessin —, et
+l'alphabet pose la leçon « Niout » et le nom de la famille côte à côte. La stèle du pharaon est une
+carte à part, sa mise en garde (« un résumé, jamais une traduction ») repliée. Les exercices
+répondent en pastilles et lisent un vrai cartouche. **Les devinettes** (`_enigmes.html.twig`, partagé
+par l'Auberge, l'Oracle du Temple et les scribes) sont des cartes : provenance en pastille, énoncé en
+grand, réponses lettrées A à D sur deux colonnes. **Les routes** se rangent par état : ouvertes
+(celles où l'on agit chaque quinzaine), convois en chemin, à ouvrir. Chaque cité est une fiche : son
+pictogramme, sa distance (avec sa **piste** — `_piste_de_route.html.twig` : une case par quinzaine
+de marche, aller et retour compris pour un convoi) et le volume d'un convoi, ce qu'elle vend (↗) et
+achète (↙) en pastilles illustrées ; l'étal est une ligne par marchandise dont le prix se règle à la
+jauge, entre le plancher et le plafond de la cité, un ordre posé montrant son empressement en jauge.
+
+**Le Temple et le Marché disent leurs chiffres en tuiles, pas en phrases.** Le Temple : une bande
+d'ankhs (dieux portés, valeur d'une offrande, faveur maximale) remplace le titre et les deux paragraphes qui
+la redisaient ; chaque **dieu est une carte** — portrait, palier en pastille coiffant une jauge de faveur
+(hachurée au-delà de ce que le Temple porte), effet, badges (sa fête, « se détourne »), puis l'offrande sur une
+ligne. Le Marché : « la place du jour » tient en trois tuiles (ce qu'elle absorbe encore en jauge, les
+habitants, le niveau du Marché) ; le prix est réglé à la jauge, toujours à vue.
 
 **Des cartes, pas des bandeaux** : une liste de cartes occupant toute la
 largeur gaspille l'écran large et oblige à défiler. Les listes de cartes
@@ -167,12 +235,10 @@ quand l'ordre se lit de haut en bas** (un déroulé, un classement) : la grille
 s'adresse aux choses interchangeables.
 
 **L'Atelier et la Forge** rangent leur ouvrage **par travailleur** : une carte par
-poste (ouvrage en cours, ou « Libre »), puis les recettes, dont le formulaire
-propose le poste quand plusieurs sont libres ; la **consigne permanente** a sa
-section, une carte et un formulaire par travailleur. Les matières d'un lot sont
-en pastilles. **L'en-tête de chaque bâtiment** dit toujours ses chefs et ses
-travailleurs (« 1 / 1 chef », « 2 / 2 travailleurs · 100 % de rendement »),
-même à zéro, chacun avec son icône. **La Caserne** montre
+poste (ouvrage en cours, « Libre » ou « Sous consigne »), puis les recettes. **On ne choisit pas son
+travailleur** : l'ouvrage va au premier disponible, et **un travailleur sous consigne permanente est
+réservé à elle**. La **consigne permanente** a sa section, une carte et un formulaire par travailleur. Les matières d'un lot sont
+en pastilles.  **La Caserne** montre
 sa troupe en cases : un homme levé, une case pleine ; un blessé, terre cuite ;
 une place libre, des pointillés.
 
@@ -188,8 +254,7 @@ visible sans qu'elle occupe la hauteur du panneau. Ce qui se règle rarement (la
 répartition de l'Entrepôt, le prix du Marché, la consigne d'un atelier) a sa
 section plutôt que sa place en tête. `SousOngletsTest` contrôle toutes les barres
 d'un coup : onglets et panneaux dans le même ordre, un seul panneau ouvert,
-aucun identifiant en double. **L'Auberge n'en a pas** : une page courte n'a pas à
-payer un clic de plus.
+aucun identifiant en double.
 
 **Aucune page de bâtiment n'échappe aux sous-onglets**, la Résidence, la Maison
 des scribes et l'Auberge comprises : `SousOngletsTest` en compte douze et
@@ -276,8 +341,9 @@ regarde une case en cliquant ses voisines. Le contenu se déclare feuille par
 Les actions d'une case (éclaireur, carrière, semis, fouille) redirigent vers cette
 même fenêtre, comme celles de la ville. **Les signaux** (fièvre, disette, fête…) et
 les **expéditions en route** sont des pastilles dans la barre de jeu (`_barre.html.twig`,
-seulement là où `signaux` est connu) ; un signal ouvre la Résidence, la pastille
-d'expéditions ouvre `app_partie_expeditions`. Les anciennes adresses `carte?zone=x-y`
+seulement là où `signaux` est connu) ; un signal ouvre la Résidence — ou le bâtiment qui s'en occupe, quand il le nomme (clé `onglet` du
+signal : la pastille d'une fête mène au Temple s'il est bâti) —, la pastille d'expéditions ouvre
+`app_partie_expeditions`. Les anciennes adresses `carte?zone=x-y`
 ouvrent la fenêtre de la case : les liens d'avant restent valables. Les données de la
 case vivent dans `Fenetre\DetailDeCase`, plus dans le contrôleur de la carte.
 
@@ -419,13 +485,13 @@ listes construites séparément finiraient par diverger ; l'ordre est celui de
 `TypeDeBatiment`, stable d'un rendu à l'autre ; et c'est `Enigme::lieu()` qui
 décide où tombe une énigme, jamais l'écran.
 
-**Embaucher un chef ouvre des postes** (`Effectifs::bilan()`) : un bâtiment sans
-chef ne réclame personne et tourne au plancher, un bâtiment dirigé réclame ses
-travailleurs. Retenir un candidat faisait donc baisser le rendement ailleurs
-sans que rien ne le dise — les bras servis à la Forge n'étaient plus au Grenier.
-L'écran nomme désormais les deux situations, **des bras oisifs** ou **des postes
-vides**, qui ne peuvent pas coexister : la répartition sert jusqu'à épuisement,
-bâtiments d'abord, territoire ensuite.
+**Un bâtiment réclame ses travailleurs, chef ou non** (`Effectifs`, voir
+[`regles-du-jeu.md`](regles-du-jeu.md)) : sans personne il ne fonctionne pas (0 %), avec trop peu de bras
+il tourne au ralenti, au complet il atteint 50 % sans chef et 100 % avec. Un chef qui arrive en
+réclame un équipage de plus : retenir un candidat faisait baisser le rendement ailleurs sans que
+rien ne le dise — les bras servis à la Forge n'étaient plus au Grenier. L'écran nomme les deux
+situations (`Effectifs::bilan()`), **des bras oisifs** ou **des postes vides**, qui ne peuvent pas
+coexister : la répartition sert jusqu'à épuisement, bâtiments d'abord, territoire ensuite.
 
 **La Caserne montre la troupe et ce qui empêche d'en lever un de plus** (lot
 10.2) : l'effectif sur son plafond, l'entretien par quinzaine, les armes en
