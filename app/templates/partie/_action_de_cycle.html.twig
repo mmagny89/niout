@@ -32,9 +32,13 @@
             {% if vueDuCycle|default(null) %}
                 <input type="hidden" name="vue" value="{{ vueDuCycle }}">
             {% endif %}
+            {# L'écran ne change pas toujours à la soumission (la fenêtre reste
+               ouverte) : les flèches tournent tant que Turbo traite le cycle
+               (`aria-busy` posé par Turbo sur le formulaire), pour que le clic se voie. #}
             <button type="submit"
-                    class="whitespace-nowrap rounded-sm bg-lapis-500 px-3 py-2 text-sm font-medium
-                           text-sable-50 hover:bg-lapis-600 md:px-4 md:py-1.5">
+                    class="bouton-cycle group inline-flex items-center gap-2 whitespace-nowrap rounded-sm bg-lapis-500 px-3 py-2 text-sm
+                           font-medium text-sable-50 hover:bg-lapis-600 md:px-4 md:py-1.5">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'echange', taille: 22, classe: 'bouton-cycle__image'}) }}
                 Quinzaine suivante
             </button>
         </form>

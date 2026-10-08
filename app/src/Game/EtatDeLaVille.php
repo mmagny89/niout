@@ -44,7 +44,7 @@ final readonly class EtatDeLaVille
     /**
      * Tout ce que la ville a de notable, le bon comme le mauvais.
      *
-     * @return list<array{ton: string, titre: string, detail: string}>
+     * @return list<array{ton: string, icone: string, titre: string, detail: string}>
      */
     public function signaux(GameSave $partie): array
     {
@@ -52,7 +52,7 @@ final readonly class EtatDeLaVille
     }
 
     /**
-     * @return list<array{ton: string, titre: string, detail: string}>
+     * @return list<array{ton: string, icone: string, titre: string, detail: string}>
      */
     public function ennuis(GameSave $partie): array
     {
@@ -62,6 +62,7 @@ final readonly class EtatDeLaVille
         if ($ville->estFrappeeParUneEpidemie()) {
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'fievre',
                 'titre' => \sprintf('La fièvre couche %d bras', $ville->malades()),
                 'detail' => \sprintf(
                     'Encore %d quinzaine%s. Nul n\'en meurt, mais tout produit moins. Une offrande à Sekhmet, dont les prêtres soignent, en abrégerait le cours.',
@@ -76,6 +77,7 @@ final readonly class EtatDeLaVille
         if ($famine > 0) {
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'prestige',
                 'titre' => \sprintf('On ne mange pas à sa faim depuis %d quinzaine%s', $famine, $famine > 1 ? 's' : ''),
                 'detail' => \sprintf(
                     'Le mécontentement s\'installe à %d, la partie se perd à %d — c\'est la seule façon de perdre. Semez, pêchez, achetez.',
@@ -90,6 +92,7 @@ final readonly class EtatDeLaVille
         if ($colere > 0) {
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'danger',
                 'titre' => \sprintf('La ville est mécontente depuis %d quinzaine%s', $colere, $colere > 1 ? 's' : ''),
                 'detail' => 'On n\'y mange pas à sa faim, ou l\'on n\'y est pas payé. La production baisse, les départs s\'accélèrent. La colère retombe d\'un cran par quinzaine, aussi lentement qu\'elle est montée.',
             ];
@@ -100,6 +103,7 @@ final readonly class EtatDeLaVille
         if (null !== $autonomie && $autonomie < self::QUINZAINES_DE_VIVRES_INQUIETANTES) {
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'prestige',
                 'titre' => \sprintf('Vos vivres ne tiennent que %d quinzaine%s', $autonomie, $autonomie > 1 ? 's' : ''),
                 'detail' => 'Semez, jetez les filets, ou achetez avant que la disette ne commence à compter.',
             ];
@@ -108,6 +112,7 @@ final readonly class EtatDeLaVille
         if ($ville->manqueDeLogements()) {
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'habitants',
                 'titre' => 'Vos maisons sont pleines',
                 'detail' => \sprintf(
                     'Personne de plus ne s\'installera — ni une maisonnée appelée, ni celle d\'un chef —, et aucun enfant ne naîtra tant qu\'il n\'y aura pas de place. %s : chaque niveau loge %d maisonnées.',
@@ -124,12 +129,14 @@ final readonly class EtatDeLaVille
         if ($bilan['manquants'] > 0) {
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'habitants',
                 'titre' => \sprintf('Il vous manque %d bras', $bilan['manquants']),
                 'detail' => 'Les bâtiments sont servis avant le territoire, et chacun tourne à proportion de ce qu\'il a reçu. Faites venir du monde, ou renvoyez un chef dont vous ne pouvez pas tenir le bâtiment.',
             ];
         } elseif ($bilan['oisifs'] > 0) {
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'chantier',
                 'titre' => \sprintf('%d bras sont sans ouvrage', $bilan['oisifs']),
                 'detail' => 'Ils mangent et ne produisent rien. Embauchez un chef quelque part — c\'est le chef qui recrute —, semez un champ ou ouvrez une carrière.',
             ];
@@ -147,6 +154,7 @@ final readonly class EtatDeLaVille
             sort($sansChef);
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'chef',
                 'titre' => \sprintf('%d bâtiment%s sans chef', \count($sansChef), \count($sansChef) > 1 ? 's' : ''),
                 'detail' => \sprintf(
                     '%s : sans chef, un bâtiment ne tourne qu\'à %d %%, et c\'est le chef qui ouvre ses postes. Ouvrez l\'onglet du bâtiment et affichez une annonce — elle ne coûte rien.',
@@ -159,6 +167,7 @@ final readonly class EtatDeLaVille
         if ($ville->vivresPresqueSatures() || $ville->materiauxPresqueSatures()) {
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'danger',
                 'titre' => 'Vos réserves débordent bientôt',
                 'detail' => 'Ce qui rentrerait au-delà du plafond se perd, sans que rien ne le dise sur le moment. Écoulez au Marché, offrez au Temple, ou agrandissez le Grenier et l\'Entrepôt.',
             ];
@@ -169,6 +178,7 @@ final readonly class EtatDeLaVille
         if (null !== $rival) {
             $signaux[] = [
                 'ton' => 'mauvais',
+                'icone' => 'echange',
                 'titre' => \sprintf('%s vous dispute une route', $rival->getNom()),
                 'detail' => 'Il prend une part de ce qui passe et s\'en ira de lui-même. Vous pouvez aussi le payer, ou chercher sur quoi il tient.',
             ];
@@ -178,7 +188,7 @@ final readonly class EtatDeLaVille
     }
 
     /**
-     * @return list<array{ton: string, titre: string, detail: string}>
+     * @return list<array{ton: string, icone: string, titre: string, detail: string}>
      */
     public function bonnesNouvelles(GameSave $partie): array
     {
@@ -189,6 +199,7 @@ final readonly class EtatDeLaVille
         if (null !== $fete) {
             $signaux[] = [
                 'ton' => 'bon',
+                'icone' => 'offrande',
                 'titre' => $fete->libelle(),
                 'detail' => \sprintf(
                     '%s Toute offrande à %s vaut %d points de faveur de plus tant qu\'elle dure.',
@@ -207,6 +218,7 @@ final readonly class EtatDeLaVille
         if ($geographie->connaitLaCrue() && QualiteDeCrue::Forte === $partie->getCrue()) {
             $signaux[] = [
                 'ton' => 'bon',
+                'icone' => 'quinzaine',
                 'titre' => 'La crue est forte cette année',
                 'detail' => $partie->getCrue()->presage(),
             ];
@@ -226,6 +238,7 @@ final readonly class EtatDeLaVille
         if ([] !== $acquis) {
             $signaux[] = [
                 'ton' => 'bon',
+                'icone' => 'faveur',
                 'titre' => \sprintf('%d divinité%s vous %s acquise%s', \count($acquis), \count($acquis) > 1 ? 's' : '', \count($acquis) > 1 ? 'sont' : 'est', \count($acquis) > 1 ? 's' : ''),
                 'detail' => implode(', ', $acquis).'. Leurs effets courent tant que vous les entretenez ; cinq quinzaines sans offrande, et la faveur redescend.',
             ];
@@ -236,6 +249,7 @@ final readonly class EtatDeLaVille
         if ($palier->chanceDeMigrationSpontanee() > 0) {
             $signaux[] = [
                 'ton' => 'bon',
+                'icone' => 'pharaon',
                 'titre' => \sprintf('Votre famille est %s', mb_strtolower($palier->libelle())),
                 'detail' => $palier->attractivite(),
             ];
