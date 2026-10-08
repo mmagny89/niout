@@ -135,6 +135,8 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **L'Auberge et ses devinettes** : chaque devinette s'affiche en carte (énoncé en grand, d'où elle vient en pastille, réponses lettrées
+  A à D sur deux colonnes) — au Temple et chez les scribes aussi ; la salle tient en une seule carte.
 - **Les trois sous-pages de la Maison des scribes sont refaites** : la clé de lecture et l'alphabet partagent une même carte de signe
   (plaque en grand, nom, code de Gardiner en pastille, renvoi à l'autre table) ; l'alphabet pose la leçon « Niout » et votre nom côte à côte ;
   la stèle du pharaon devient une carte à part ; les exercices ont des réponses en pastilles et un vrai cartouche.
