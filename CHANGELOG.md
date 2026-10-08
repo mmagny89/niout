@@ -135,6 +135,11 @@ la lecture de référence pour comprendre le code.
 
 ### Corrigé
 
+- **La Maison des scribes s'ouvre sur quatre tuiles** (érudition, signes appris, clé de lecture, alphabet) au lieu d'une section
+  qui redisait le même compte. Les barres et les phrases de comptage de la clé et de l'alphabet sont parties.
+- **Les cartes de dieux du Temple** : portrait, nom, palier coiffant une jauge de faveur (hachurée au-delà de ce que le Temple
+  porte), effet, badges (fête, dieu qui se détourne), puis l'offrande sur une ligne. Les deux paragraphes et le titre qui redisaient
+  la bande des ankhs sont partis.
 - **Le Marché dit les choses autrement qu'en phrases** : la place du jour tient en trois tuiles (ce qu'elle absorbe encore, les habitants,
   le niveau du Marché) ; le prix qu'on fait se règle toujours à vue, à la jauge seule, avec le nombre en grand et le verdict de la ville.
 - **Les états des fiches d'exploitation sont des pastilles de même forme** (épuisée, jamais ouverte, sans un bras, extraction en cours),

@@ -15,13 +15,36 @@
 {% endif %}
 {{ sous.debut('scribes', partie.id, "Sections de la Maison des scribes", sections) }}
 {{ sous.panneau('scribes', 'afaire', true) }}
-{{ include('partie/_erudition.html.twig', {idSuffixe: 's'}) }}
+{# **Ce que la ville sait de l'écriture, en tuiles** (la section « Les écritures de votre ville » redisait trois fois le même
+   compte, sur sa barre, dans sa phrase et dans chaque onglet) : le rang d'érudition et ce qu'il rapporte, les signes appris,
+   la clé et l'alphabet. La Résidence garde sa section, où l'on gouverne ; ici, où l'on apprend, les chiffres suffisent. #}
+{% import 'partie/batiments/_tuile_de_bord.html.twig' as tuiles %}
+{% set suivantDeLErudition = erudition.suivant %}
+<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    {{ tuiles.tuile('prestige', 'Érudition', erudition.libelle, null, null, false,
+        'l\'impôt du mois rapporte ' ~ erudition.bonusDImpot ~ ' % de plus',
+        erudition.description) }}
+    {{ tuiles.tuile('enigme', 'Signes appris', nombreDeSignesAppris ~ ' / ' ~ totalDesSignes,
+        nombreDeSignesAppris, totalDesSignes, false,
+        suivantDeLErudition
+            ? 'encore ' ~ (suivantDeLErudition.seuilDEntree - nombreDeSignesAppris) ~ ' pour devenir ' ~ suivantDeLErudition.libelle|lower ~ ' (+' ~ (suivantDeLErudition.bonusDImpot - erudition.bonusDImpot) ~ ' % d\'impôt)'
+            : 'vos scribes lisent tout',
+        'Chaque niveau de la Maison des scribes, chaque inscription déchiffrée et chaque énigme résolue ouvrent de nouveaux signes.') }}
+    {{ tuiles.tuile('quinzaine', 'Clé de lecture', cleDeLecture|length ~ ' / ' ~ signesEnTout,
+        cleDeLecture|length, signesEnTout, false,
+        'les signes qui montrent une chose',
+        'Les signes de la liste de Gardiner que vos scribes savent lire : chacun porte son vrai code et son vrai sens.') }}
+    {{ tuiles.tuile('echange', 'Alphabet', alphabet|length ~ ' / ' ~ signesDeLAlphabetEnTout,
+        alphabet|length, signesDeLAlphabetEnTout, false,
+        'les signes qui notent un son',
+        'Les vingt-quatre signes qui notent un son, et non une chose : la vraie porte d\'entrée de la lecture hiéroglyphique.') }}
+</div>
 
 
         {# Le fil rouge d'abord : c'est ce que le roi attend, et un fil
    dont on ne sait pas ce qu'il demande n'est qu'une décoration. #}
 {% if filRouge %}
-    <div class="carte-vivante flex items-start gap-4 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-4">
+    <div class="carte-vivante mt-4 flex items-start gap-4 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-4">
         {{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 44}) }}
         <div>
             <h3 class="font-display text-lg text-encre-900">{{ filRouge.libelle }}</h3>
@@ -212,8 +235,6 @@
     Gardiner — la classification de référence des hiéroglyphes.
     Chacun porte son vrai code et son vrai sens : ce que vous
     apprenez ici est ce qu'un égyptologue lirait.
-    <span data-chiffres>{{ cleDeLecture|length }}</span> sur
-    <span data-chiffres>{{ signesEnTout }}</span>.
 </p>
 
 {% if prochainSigne %}
@@ -222,14 +243,7 @@
         <span class="font-hieroglyphes text-2xl align-middle">{{ prochainSigne.signe }}</span>
         {{ prochainSigne.libelle|lower }} ({{ prochainSigne.codeDeGardiner }}).
     </p>
-{% else %}
-    <p class="mt-3 text-sm text-encre-600">
-        Vos scribes lisent tout ce que cette clé contient.
-    </p>
 {% endif %}
-
-<progress class="progression mt-3 w-full max-w-md" max="{{ signesEnTout }}" value="{{ cleDeLecture|length }}"
-          aria-label="Signes de la clé lus : {{ cleDeLecture|length }} sur {{ signesEnTout }}"></progress>
 
 <ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
     {% for symbole in cleDeLecture %}
@@ -296,9 +310,7 @@
 <p class="mt-2 max-w-4xl text-sm text-encre-500">
     Les vingt-quatre signes qui notent un <em>son</em>, et non une chose : la
     vraie porte d'entrée de la lecture hiéroglyphique, celle par laquelle on
-    passe encore aujourd'hui. Vos scribes en savent
-    <span data-chiffres>{{ alphabet|length }}</span> sur
-    <span data-chiffres>{{ signesDeLAlphabetEnTout }}</span>.
+    passe encore aujourd'hui.
 </p>
 <details class="mt-2 text-sm text-encre-500">
     <summary class="cursor-pointer text-encre-700">Pourquoi trois dessins se retrouvent-ils dans les deux tables ?</summary>
@@ -453,8 +465,6 @@
     </p>
 {% endif %}
 
-<progress class="progression mt-3 w-full max-w-md" max="{{ signesDeLAlphabetEnTout }}" value="{{ alphabet|length }}"
-          aria-label="Signes de l'alphabet lus : {{ alphabet|length }} sur {{ signesDeLAlphabetEnTout }}"></progress>
 
 <ul class="mt-4 grid gap-3 list-none p-0 sm:grid-cols-2 lg:grid-cols-3">
     {% for signe in alphabet %}
