@@ -9,17 +9,20 @@
 
     <section class="h-full overflow-y-auto px-5 py-10 md:px-8"
              data-controller="retour-en-haut" data-action="scroll->retour-en-haut#defiler">
+        {# Le décret : un papyrus, un sceau, des lignes qui se déroulent l'une après l'autre. #}
+        <div class="decret relative rounded-sm border border-or-400/40 p-6 md:p-8">
+        <span class="decret__sceau absolute right-5 top-5" aria-hidden="true">{{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 72}) }}</span>
         {% if mission %}
-            <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+            <p class="case-vivante font-mono text-xs uppercase tracking-[0.18em] text-terre-500" style="--i: 0">
                 Mission {{ mission.numero }} sur 10 · {{ mission.region }}
             </p>
-            <h1 id="fenetre-titre" class="mt-4 text-4xl leading-tight text-encre-900">
+            <h1 id="fenetre-titre" class="case-vivante mt-4 pr-24 text-4xl leading-tight text-encre-900" style="--i: 2">
                 {{ mission.type.libelle }} {{ mission.ville }}
             </h1>
-            <p class="mt-5 text-lg text-encre-600">
+            <p class="case-vivante mt-5 text-lg text-encre-600" style="--i: 4">
                 {{ mission.pharaon }} vous confie cette tâche, {{ partie.famille.nom }}.
             </p>
-            <p class="mt-4 text-encre-600">{{ mission.contexte }}</p>
+            <p class="case-vivante mt-4 text-encre-600" style="--i: 6">{{ mission.contexte }}</p>
 
             {# **Le cartouche du pharaon**, en contexte plutôt qu'en exercice
                isolé (doc 10). C'est son nom de trône — celui qu'on proclamait au
@@ -31,23 +34,26 @@
                établi : un cartouche approximatif donné pour réel trahirait la
                règle qui veut que les hiéroglyphes du jeu soient vrais. #}
         {% else %}
-            <p class="font-mono text-xs uppercase tracking-[0.18em] text-terre-500">
+            <p class="case-vivante font-mono text-xs uppercase tracking-[0.18em] text-terre-500" style="--i: 0">
                 Mode Aventure
             </p>
-            <h1 id="fenetre-titre" class="mt-4 text-4xl leading-tight text-encre-900">
+            <h1 id="fenetre-titre" class="case-vivante mt-4 pr-24 text-4xl leading-tight text-encre-900" style="--i: 2">
                 {{ partie.ville.nom }}
             </h1>
-            <p class="mt-5 text-lg text-encre-600">
+            <p class="case-vivante mt-5 text-lg text-encre-600" style="--i: 4">
                 La capitale vous est ouverte, {{ partie.famille.nom }}. Aucun souverain ne
                 vous fixe de terme : les règnes se succéderont, la ville restera.
             </p>
         {% endif %}
+        </div>
 
         {# L'action principale reste sous les yeux : elle ne dépend d'aucun
            sous-onglet. #}
         <div class="mt-6 flex flex-wrap items-center gap-5">
+            {# Le bouton invite : un halo qui respire, éteint si l'on a demandé moins de mouvement. #}
             <button type="button" data-action="fenetre#fermer"
-                    class="rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+                    class="bouton-offrande bouton-invite group inline-flex items-center gap-2 rounded-sm bg-terre-500 px-5 py-2.5 font-medium text-sable-50 hover:bg-terre-600">
+                {{ include('partie/_pictogramme.html.twig', {nom: 'chantier', taille: 24, classe: 'bouton-offrande__image'}) }}
                 Prendre mes fonctions
             </button>
             <a href="{{ path('app_parties') }}" data-turbo-frame="_top" class="text-lapis-500">Retour à mes parties</a>
@@ -100,7 +106,7 @@
                « bois » ou une « pierre » génériques. #}
             <dl class="mt-4 grid grid-cols-2 gap-4 text-center sm:grid-cols-4" data-chiffres>
                 {% for ligne in partie.ville.stockAffichable %}
-                    <div>
+                    <div class="case-vivante carte-vivante rounded-sm border border-transparent p-2" style="--i: {{ loop.index0 }}">
                         <dt class="text-xs uppercase tracking-wide text-encre-500">
                             <span class="mb-1 block">{{ include('partie/_icone_ressource.html.twig', {ressource: ligne.ressource, taille: 64}) }}</span>
                             {{ ligne.ressource.libelle|capitalize }}
@@ -114,18 +120,28 @@
 
         {{ sous.panneau('commande', 'partie', false) }}
         <dl class="mt-4 divide-y divide-ocre-500/25 border-y border-ocre-500/25">
-            <div class="flex justify-between gap-4 py-3">
-                <dt class="text-sm text-encre-500">Difficulté</dt>
-                <dd class="text-sm text-encre-900" data-chiffres>{{ partie.ville.difficulte }} sur 9</dd>
+            <div class="flex items-center justify-between gap-4 py-3">
+                <dt class="flex items-center gap-2 text-sm text-encre-500">{{ include('partie/_pictogramme.html.twig', {nom: 'danger', taille: 24}) }} Difficulté</dt>
+                <dd class="flex items-center gap-3 text-sm text-encre-900" data-chiffres>
+                    {# Un signe par cran au-dessus de zéro, allumé jusqu'au niveau de la partie. #}
+                    <span class="flex items-center gap-1" aria-hidden="true">
+                        {% for cran in 1..9 %}<span class="{{ cran <= partie.ville.difficulte ? 'danger-allume' : 'danger-eteint' }}" {% if cran <= partie.ville.difficulte %}style="animation-delay: {{ cran * 60 }}ms"{% endif %}>▲</span>{% endfor %}
+                    </span>
+                    {{ partie.ville.difficulte }} sur 9
+                </dd>
             </div>
-            <div class="flex justify-between gap-4 py-3">
-                <dt class="text-sm text-encre-500">Carte</dt>
-                <dd class="text-sm text-encre-900" data-chiffres>
+            <div class="flex items-center justify-between gap-4 py-3">
+                <dt class="flex items-center gap-2 text-sm text-encre-500">{{ include('partie/_pictogramme.html.twig', {nom: 'expedition', taille: 24}) }} Carte</dt>
+                <dd class="flex items-center gap-3 text-sm text-encre-900" data-chiffres>
+                    {# Le territoire, en losanges : la grille de la partie, à son échelle. #}
+                    <span class="apercu-carte apercu-carte--petit" style="--cote: {{ partie.ville.tailleGrille }}" aria-hidden="true">
+                        {% for rang in 0..(partie.ville.tailleGrille * partie.ville.tailleGrille - 1) %}<span class="{{ ((rang // partie.ville.tailleGrille) + (rang % partie.ville.tailleGrille)) is even ? 'case-a' : 'case-b' }}"></span>{% endfor %}
+                    </span>
                     {{ partie.ville.tailleGrille }} × {{ partie.ville.tailleGrille }}
                 </dd>
             </div>
-            <div class="flex justify-between gap-4 py-3">
-                <dt class="text-sm text-encre-500">Cycle</dt>
+            <div class="flex items-center justify-between gap-4 py-3">
+                <dt class="flex items-center gap-2 text-sm text-encre-500">{{ include('partie/_pictogramme.html.twig', {nom: 'quinzaine', taille: 24}) }} Cycle</dt>
                 <dd class="text-sm text-encre-900" data-chiffres>{{ partie.cycle }}</dd>
             </div>
         </dl>

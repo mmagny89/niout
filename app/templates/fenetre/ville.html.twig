@@ -22,7 +22,7 @@
              aria-label="Bâtiments {{ ville.avecPreposition }}">
             <p class="hidden px-3 pt-3 text-xs font-medium uppercase tracking-wide text-encre-500 md:block">La cité</p>
 
-            <ul class="flex list-none gap-2 overflow-x-auto p-2 md:grid md:grid-cols-2 md:overflow-visible md:p-3">
+            <ul class="flex list-none gap-2 mr-12 overflow-x-auto p-2 md:mr-0 md:grid md:grid-cols-2 md:overflow-visible md:p-3">
                 {% for entree in rail %}
                     {% set type = entree.type %}
                     {% set actif = type.value == ongletActif %}

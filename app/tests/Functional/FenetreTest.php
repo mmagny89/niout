@@ -225,6 +225,29 @@ final class FenetreTest extends WebTestCase
         self::assertSelectorNotExists('turbo-frame#barre', 'Un cadre de fenêtre ne rend pas la barre.');
     }
 
+    /**
+     * Le décret porte la difficulté et la carte de la partie en dessin, **et** en lettres : le dessin
+     * est décoratif, ce que lit un lecteur d'écran est dans le texte à côté.
+     */
+    public function testLaCommandeDitLaDifficulteEtLaCarteEnLettres(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-commande-lettres@example.com');
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/commande', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(1, $crawler->filter('.decret'));
+        $partieTexte = $crawler->filter('#commande-section-partie')->text();
+        self::assertStringContainsString(\sprintf('%d sur 9', $partie->getVille()->getDifficulte()), $partieTexte);
+        self::assertStringContainsString(\sprintf('%1$d × %1$d', $partie->getVille()->getTailleGrille()), $partieTexte);
+        self::assertSame(
+            $partie->getVille()->getTailleGrille() ** 2,
+            $crawler->filter('.apercu-carte--petit > span')->count(),
+            'L\'aperçu a autant de cases que la grille.',
+        );
+    }
+
     public function testSansEnTeteDeCadreLaCommandeRendLaCarteOuverte(): void
     {
         $client = static::createClient();
@@ -288,6 +311,39 @@ final class FenetreTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('#fenetre-titre', 'Expéditions');
         self::assertSelectorTextContains('turbo-frame#fenetre', 'Aucune expédition en route');
+    }
+
+    /**
+     * Une expédition en route est une piste : sa part du chemin est dite en lettres (la piste est
+     * décorative), et le marcheur reçoit la même part, en nombre — `--part-nombre` place le marcheur
+     * sur la ligne, `--part` remplit celle-ci.
+     */
+    public function testUneExpeditionEnRouteSeLitEnLettresEtEnPiste(): void
+    {
+        $client = static::createClient();
+        $partie = $this->partie($client, 'fenetre-piste@example.com');
+        $ville = $partie->getVille();
+        $destination = null;
+        foreach ($ville->getZones() as $zone) {
+            if (!$zone->porteLaVille()) {
+                $destination = $zone;
+                break;
+            }
+        }
+        self::assertInstanceOf(\App\Entity\Zone::class, $destination);
+        $ville->ajouterExpedition(new \App\Entity\Expedition($ville, $destination, \App\Game\RoleDExploration::Eclaireur, 4));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/expeditions', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('turbo-frame#fenetre', 'Éclaireur vers la case');
+        self::assertSelectorTextContains('turbo-frame#fenetre', 'encore 4 cycles');
+        $piste = $crawler->filter('.piste');
+        self::assertCount(1, $piste);
+        self::assertStringContainsString('--part: 0%', (string) $piste->attr('style'));
+        self::assertStringContainsString('--part-nombre: 0', (string) $piste->attr('style'));
+        self::assertSame('true', $piste->attr('aria-hidden'), 'La piste est décorative.');
     }
 
     /**
