@@ -53,7 +53,7 @@ Le stack se lance sans `-f` : `COMPOSE_FILE` dans le `.env` racine chaîne déj�
   la même poignée de comptes.
 - Mot de passe d'un compte : `docker compose exec php php bin/console app:users:password <email>`
   (saisie masquée ; `--generer` pour en engendrer un et l'afficher une fois)
-- Observabilité (Ember) : `curl http://127.0.0.1:9191/metrics`
+- Métriques Caddy : `docker compose exec php curl -s http://127.0.0.1:2020/metrics`
 - Emails de développement : <http://localhost:8025> (Mailpit). **Rien ne sort de
   la machine** : le service retient tout ce que l'application envoie.
   Essai du transport :
@@ -156,7 +156,7 @@ Points à ne pas redécouvrir :
   masquée en conteneur et fausse hors conteneur.
 - Après un `composer require` qui dépose une recette Flex, rejouer
   `docker compose exec php neutralize-app-env`.
-- Ports fixes (80/443/5432/9191), jamais déduits de l'hôte. Pour faire tourner un autre
+- Ports fixes (80/443/5432), jamais déduits de l'hôte. Pour faire tourner un autre
   projet en parallèle, décaler les ports dans le `.env`.
 - Le stack a été généré par `.claude/scripts/setup-symfony.sh`. Un défaut trouvé dans un
   fichier issu de `.claude/resources/` se corrige **dans la ressource**, pas seulement
