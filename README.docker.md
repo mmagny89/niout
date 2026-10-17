@@ -1,7 +1,7 @@
 # niout — socle Docker
 
 Genere par `.claude/scripts/setup-symfony.sh` le 2026-08-27. Symfony sur
-FrankenPHP (Caddy integre, mode worker), PostgreSQL, observabilite via Ember.
+FrankenPHP (Caddy integre, mode worker), PostgreSQL, 
 Rendu Twig, styles TailwindCSS via AssetMapper (`symfonycasts/tailwind-bundle`,
 pas de Node cote PHP). Projet **non headless** : pas de front separe, pas de
 service Node.
@@ -42,7 +42,7 @@ Garder les anciens volumes jusqu'a la verification : ils sont le seul filet.
 | `.env` | Variables Docker Compose : `ENV`, versions, ports, UID/GID, `POSTGRES_*` |
 | `.env.staging.local.dist` / `.env.prod.local.dist` | Modeles de secrets, committes |
 | `.env.staging.local` / `.env.prod.local` | Secrets reels — jamais committes |
-| `compose.yml` | Socle : services `php`, `database`, `ember` |
+| `compose.yml` | Socle : services `php`, `database` |
 | `compose.dev.yml` / `compose.staging.yml` / `compose.prod.yml` | Overrides par environnement |
 | `docker/php/**` | Dockerfile, Caddyfile(s), scripts d'entrypoint/healthcheck/installation |
 | `outils/deployer.sh` | Deploiement d'un environnement, execute **sur le serveur** |
@@ -66,7 +66,7 @@ Reconstruire les styles apres modification des classes :
 docker compose exec php php bin/console tailwind:build --watch
 ```
 
-Toute commande utilise la **cle de service** (`php`, `database`, `ember`),
+Toute commande utilise la **cle de service** (`php`, `database`),
 jamais le `container_name` (conventions, section 2).
 
 ## Ports
@@ -77,7 +77,6 @@ jamais le `container_name` (conventions, section 2).
 | `HTTPS_PORT` | 443 | dev, staging |
 | `HTTP3_PORT` | 443/udp | dev, staging |
 | `POSTGRES_PORT` | 5432 | dev uniquement, sur `127.0.0.1` |
-| `EMBER_PORT` | 9191 | dev et, sur `127.0.0.1`, staging/prod |
 | `MAILPIT_PORT` | 8025 | dev uniquement, sur `127.0.0.1` — interface web de l'attrapeur d'emails ; son port SMTP (1025) reste interne |
 | `METRICS_PORT` | 2020 | **jamais publie** — metriques Caddy, joignables depuis le reseau seulement |
 
@@ -233,38 +232,8 @@ le message, pas qu'il est arrive. Le tableau de bord du fournisseur dit le reste
 
 ## Observabilite
 
-Deux sources, complementaires mais pas equivalentes.
-
-**Metriques Caddy — la source de verite.** Ecoute interne `:2020`, jamais
-publiee sur l'hote. Elle porte de vrais histogrammes etiquetes par code,
-handler et methode, donc des percentiles calculables. C'est elle qu'un
-Prometheus doit scruter :
+**Metriques Caddy.** Ecoute interne `:2020`, jamais publiee sur l'hote : un port ouvert exposerait la latence, les codes d'erreur et le volume de trafic du site. De vrais histogrammes, etiquetes par code et par handler, donc des percentiles calculables.
 
 ```sh
 docker compose exec php curl -s http://127.0.0.1:2020/metrics | head
 ```
-
-**Ember — outil de diagnostic.** Il n'ajoute qu'une metrique unique,
-`frankenphp_threads_total` : l'etat du pool de threads, mode de panne propre a
-FrankenPHP ou les requetes s'empilent pendant que le processeur parait calme.
-Aucun panneau de trafic ou de latence ne se batit sur ses metriques.
-
-Ce qu'il apporte reellement est son **interface**, qui ne s'obtient qu'en le
-lancant sans `--daemon`, dans un conteneur ephemere attache au meme socket :
-
-```sh
-docker compose run --rm -it ember --addr unix//run/caddy/admin.sock
-```
-
-Instantane complet pour un script, bien meilleur que de parser `/metrics` —
-il porte notamment la profondeur de file d'attente, absente de l'endpoint :
-
-```sh
-docker compose run --rm ember --addr unix//run/caddy/admin.sock --json --once
-```
-
-En dev, Ember demarre avec le reste du stack. En staging/prod :
-`--profile observability`.
-
-Cibles a declarer cote hote, dans le `prometheus.yml` : `niout-<env>-php:2020`
-et `niout-<env>-ember:9191`.

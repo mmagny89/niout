@@ -59,7 +59,7 @@ travail de cadrage restant est *technique*, pas du game design.
 | Données | Doctrine ORM, migrations versionnées, **PostgreSQL** |
 | Auth | `symfony/security-bundle`, entité `User`, hash argon2, `symfony/form` + validation. Vérification d'email et réinitialisation de mot de passe via `symfony/mailer` |
 | Assets | AssetMapper — même mécanisme que Tailwind, un seul système d'assets pour tout le projet |
-| Infra | Docker / FrankenPHP (mode worker) + Caddy intégré, Ember pour l'observabilité. Généré par `.claude/scripts/setup-symfony.sh` selon `.claude/rules/stack-conventions.md` |
+| Infra | Docker / FrankenPHP (mode worker) + Caddy intégré. Généré par `.claude/scripts/setup-symfony.sh` selon `.claude/rules/stack-conventions.md` |
 | Tests | PHPUnit : unitaire, intégration (`KernelTestCase`) et fonctionnel (`WebTestCase`), avec `dama/doctrine-test-bundle` pour l'isolation. Behat reste envisagé pour les scénarios de jeu, où la lisibilité Gherkin profite à la relecture fonctionnelle |
 
 **Pourquoi ce choix.** Le jeu n'a pas besoin de temps réel ni d'un état client
