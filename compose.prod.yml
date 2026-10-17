@@ -37,11 +37,6 @@ services:
       traefik.http.routers.niout-prod.tls.certresolver: letsencrypt
       traefik.http.services.niout-prod.loadbalancer.server.port: "80"
 
-  ember:
-    profiles: [observability]
-    ports:
-      - "127.0.0.1:${EMBER_PORT}:9191"
-
 networks:
   # Cree hors de tout stack et partage par tous les projets du VPS : Compose ne
   # doit ni le creer ni le detruire, d'ou `external`.
