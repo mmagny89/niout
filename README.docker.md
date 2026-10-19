@@ -144,23 +144,40 @@ l'acces au code — jamais une cle personnelle. Les acces se posent avec :
 ```sh
 sh outils/installer-deploiement.sh serveur          # une fois par machine
 sh outils/installer-deploiement.sh projet prod      # depuis le clone niout-prod
+sh outils/installer-deploiement.sh projet staging   # depuis le clone niout-staging
 ```
 
 Le script pose la *forced command* qui limite la cle confiee a GitHub au seul
 `outils/deployer.sh`. La cle privee ne s'affiche jamais au terminal.
 
-Quatre secrets GitHub sont a poser dans ce depot, sous leurs noms normatifs
-(conventions, section 22) :
+Quatre secrets GitHub par environnement sont a poser dans ce depot, sous leurs
+noms normatifs (conventions, §ci/qualite). La production garde les noms
+nus, la pre-production les prefixe de `STAGING_` :
 
-| Secret | Contenu |
+| Secret — production | Secret — pre-production | Contenu |
+|---|---|---|
+| `DEPLOIEMENT_HOTE` | `STAGING_DEPLOIEMENT_HOTE` | adresse du serveur |
+| `DEPLOIEMENT_UTILISATEUR` | `STAGING_DEPLOIEMENT_UTILISATEUR` | utilisateur de deploiement |
+| `DEPLOIEMENT_CLE_PRIVEE` | `STAGING_DEPLOIEMENT_CLE_PRIVEE` | cle privee dont la publique est dans `authorized_keys` |
+| `DEPLOIEMENT_KNOWN_HOSTS` | `STAGING_DEPLOIEMENT_KNOWN_HOSTS` | empreinte du serveur, epinglee |
+
+Chaque environnement a sa propre cle : la *forced command* fige `prod` ou
+`staging`, et les deux jeux ne sont pas interchangeables. Ils sont **propres a
+ce depot** : rien ne se partage avec un autre projet, sauf le compte machine qui
+lit les depots et le reseau Traefik.
+
+**Un deploiement ne part que si sa variable de depot vaut `oui`** (Settings →
+Secrets and variables → Actions → onglet Variables) :
+
+| Variable | Effet |
 |---|---|
-| `DEPLOIEMENT_HOTE` | adresse du serveur |
-| `DEPLOIEMENT_UTILISATEUR` | utilisateur de deploiement |
-| `DEPLOIEMENT_CLE_PRIVEE` | cle privee dont la publique est dans `authorized_keys` |
-| `DEPLOIEMENT_KNOWN_HOSTS` | empreinte du serveur, epinglee |
+| `DEPLOIEMENT_PROD` | un push sur `main` deploie la production |
+| `DEPLOIEMENT_STAGING` | un push sur `develop` deploie la pre-production |
 
-Ils sont **propres a ce depot** : rien ne se partage avec un autre projet,
-sauf le compte machine qui lit les depots et le reseau Traefik.
+Absente ou differente de `oui`, le job est ignore : la CI reste verte et rien
+n'est livre. C'est aussi l'interrupteur pour suspendre un deploiement sans
+toucher aux secrets. Tout le reste de ce qui se regle dans GitHub est dans
+`GITHUB.md`, a la racine.
 
 Deploiement manuel, a verifier **avant** le declenchement automatique :
 
