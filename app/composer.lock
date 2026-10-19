@@ -2640,16 +2640,16 @@
         },
         {
             "name": "symfony/doctrine-bridge",
-            "version": "v8.1.7",
+            "version": "v8.1.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/doctrine-bridge.git",
-                "reference": "d2e36cf2c46fed6f58c7d2e07e8b083d78cc3e8d"
+                "reference": "1ada49a9fd7484e39b6831472a62a2c3d61000dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/doctrine-bridge/zipball/d2e36cf2c46fed6f58c7d2e07e8b083d78cc3e8d",
-                "reference": "d2e36cf2c46fed6f58c7d2e07e8b083d78cc3e8d",
+                "url": "https://api.github.com/repos/symfony/doctrine-bridge/zipball/1ada49a9fd7484e39b6831472a62a2c3d61000dc",
+                "reference": "1ada49a9fd7484e39b6831472a62a2c3d61000dc",
                 "shasum": ""
             },
             "require": {
@@ -2721,7 +2721,7 @@
             "description": "Provides integration for Doctrine with various Symfony components",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/doctrine-bridge/tree/v8.1.7"
+                "source": "https://github.com/symfony/doctrine-bridge/tree/v8.1.9"
             },
             "funding": [
                 {
@@ -2741,7 +2741,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-30T18:34:12+00:00"
+            "time": "2026-10-13T17:38:22+00:00"
         },
         {
             "name": "symfony/doctrine-messenger",
@@ -8157,16 +8157,16 @@
         },
         {
             "name": "dama/doctrine-test-bundle",
-            "version": "v8.6.0",
+            "version": "v8.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dmaicher/doctrine-test-bundle.git",
-                "reference": "f7e3487643e685432f7e27c50cac64e9f8c515a4"
+                "reference": "c5de1ce3f29009312b97d311e569cf87cb3386c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dmaicher/doctrine-test-bundle/zipball/f7e3487643e685432f7e27c50cac64e9f8c515a4",
-                "reference": "f7e3487643e685432f7e27c50cac64e9f8c515a4",
+                "url": "https://api.github.com/repos/dmaicher/doctrine-test-bundle/zipball/c5de1ce3f29009312b97d311e569cf87cb3386c8",
+                "reference": "c5de1ce3f29009312b97d311e569cf87cb3386c8",
                 "shasum": ""
             },
             "require": {
@@ -8181,10 +8181,10 @@
                 "phpunit/phpunit": "<11.0"
             },
             "require-dev": {
-                "behat/behat": "^3.0",
-                "friendsofphp/php-cs-fixer": "^3.27",
+                "behat/behat": "^3.17 || ^4.0",
+                "php-cs-fixer/shim": "^3.95",
                 "phpstan/phpstan": "^2.0",
-                "phpunit/phpunit": "^11.5.41|| ^12.3.14",
+                "phpunit/phpunit": "^11.5.41 || ^12.3.14 || ^13.0",
                 "symfony/dotenv": "^6.4 || ^7.3 || ^8.0",
                 "symfony/process": "^6.4 || ^7.3 || ^8.0"
             },
@@ -8220,9 +8220,9 @@
             ],
             "support": {
                 "issues": "https://github.com/dmaicher/doctrine-test-bundle/issues",
-                "source": "https://github.com/dmaicher/doctrine-test-bundle/tree/v8.6.0"
+                "source": "https://github.com/dmaicher/doctrine-test-bundle/tree/v8.7.0"
             },
-            "time": "2026-01-21T07:39:44+00:00"
+            "time": "2026-10-08T06:56:07+00:00"
         },
         {
             "name": "ergebnis/agent-detector",
@@ -8791,11 +8791,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.2.16",
+            "version": "2.3.1",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/46a6d9060e5a7763adfcc21ebcb8b504ebdbcb92",
-                "reference": "46a6d9060e5a7763adfcc21ebcb8b504ebdbcb92",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/6155239b488e95d26d1ebd95c6b4bb294d7f09db",
+                "reference": "6155239b488e95d26d1ebd95c6b4bb294d7f09db",
                 "shasum": ""
             },
             "require": {
@@ -8851,7 +8851,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-25T09:31:51+00:00"
+            "time": "2026-10-08T21:09:11+00:00"
         },
         {
             "name": "phpstan/phpstan-doctrine",
@@ -8932,29 +8932,29 @@
         },
         {
             "name": "phpstan/phpstan-symfony",
-            "version": "2.0.20",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-symfony.git",
-                "reference": "53f1a6462dbe71fad36ce054caf5e1b725b740fd"
+                "reference": "1981b94f0dd3a5bb42268f6a7a0e8954ac76dc2e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/53f1a6462dbe71fad36ce054caf5e1b725b740fd",
-                "reference": "53f1a6462dbe71fad36ce054caf5e1b725b740fd",
+                "url": "https://api.github.com/repos/phpstan/phpstan-symfony/zipball/1981b94f0dd3a5bb42268f6a7a0e8954ac76dc2e",
+                "reference": "1981b94f0dd3a5bb42268f6a7a0e8954ac76dc2e",
                 "shasum": ""
             },
             "require": {
                 "ext-simplexml": "*",
                 "php": "^7.4 || ^8.0",
-                "phpstan/phpstan": "^2.1.13"
+                "phpstan/phpstan": "^2.3"
             },
             "conflict": {
                 "symfony/framework-bundle": "<3.0"
             },
             "require-dev": {
                 "php-parallel-lint/php-parallel-lint": "^1.2",
-                "phpstan/phpstan-phpunit": "^2.0.8",
+                "phpstan/phpstan-phpunit": "^2.0.13",
                 "phpstan/phpstan-strict-rules": "^2.0",
                 "phpunit/phpunit": "^9.6",
                 "psr/container": "1.1.2",
@@ -9000,9 +9000,9 @@
             ],
             "support": {
                 "issues": "https://github.com/phpstan/phpstan-symfony/issues",
-                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.0.20"
+                "source": "https://github.com/phpstan/phpstan-symfony/tree/2.1.0"
             },
-            "time": "2026-06-16T09:17:35+00:00"
+            "time": "2026-10-03T15:54:38+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -9389,16 +9389,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "13.4.0",
+            "version": "13.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "ef714df238ae4d050e74efaa23f7c428bd01034e"
+                "reference": "2180c47c4229e5da117ff248753370443c074f10"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ef714df238ae4d050e74efaa23f7c428bd01034e",
-                "reference": "ef714df238ae4d050e74efaa23f7c428bd01034e",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/2180c47c4229e5da117ff248753370443c074f10",
+                "reference": "2180c47c4229e5da117ff248753370443c074f10",
                 "shasum": ""
             },
             "require": {
@@ -9412,10 +9412,10 @@
                 "phar-io/manifest": "^2.0.4",
                 "phar-io/version": "^3.2.1",
                 "php": ">=8.4.1",
-                "phpunit/php-code-coverage": "^14.4",
+                "phpunit/php-code-coverage": "^14.4.1",
                 "phpunit/php-file-iterator": "^7.0.2",
                 "phpunit/php-invoker": "^7.0.0",
-                "phpunit/php-text-template": "^6.0.0",
+                "phpunit/php-text-template": "^6.0.1",
                 "phpunit/php-timer": "^9.0.0",
                 "sebastian/cli-parser": "^5.0.1",
                 "sebastian/comparator": "^8.4",
@@ -9428,7 +9428,7 @@
                 "sebastian/object-enumerator": "^8.1.0",
                 "sebastian/recursion-context": "^8.0.1",
                 "sebastian/type": "^7.0.2",
-                "sebastian/version": "^7.0.0",
+                "sebastian/version": "^7.0.1",
                 "staabm/side-effects-detector": "^1.0.5"
             },
             "bin": [
@@ -9469,7 +9469,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.4.0"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.4.3"
             },
             "funding": [
                 {
@@ -9477,7 +9477,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-10-02T03:20:44+00:00"
+            "time": "2026-10-16T05:56:47+00:00"
         },
         {
             "name": "react/cache",
@@ -11165,16 +11165,16 @@
         },
         {
             "name": "symfony/browser-kit",
-            "version": "v8.1.5",
+            "version": "v8.1.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/browser-kit.git",
-                "reference": "f6766c9fb232e72897d6d55cf8f6aec38db2dbbf"
+                "reference": "90f77a846d0772aaf3dec24456410d160d06e6d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/browser-kit/zipball/f6766c9fb232e72897d6d55cf8f6aec38db2dbbf",
-                "reference": "f6766c9fb232e72897d6d55cf8f6aec38db2dbbf",
+                "url": "https://api.github.com/repos/symfony/browser-kit/zipball/90f77a846d0772aaf3dec24456410d160d06e6d0",
+                "reference": "90f77a846d0772aaf3dec24456410d160d06e6d0",
                 "shasum": ""
             },
             "require": {
@@ -11213,7 +11213,7 @@
             "description": "Simulates the behavior of a web browser, allowing you to make requests, click on links and submit forms programmatically",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/browser-kit/tree/v8.1.5"
+                "source": "https://github.com/symfony/browser-kit/tree/v8.1.9"
             },
             "funding": [
                 {
@@ -11233,7 +11233,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-21T17:47:34+00:00"
+            "time": "2026-10-13T12:55:44+00:00"
         },
         {
             "name": "symfony/css-selector",
@@ -11551,16 +11551,16 @@
         },
         {
             "name": "symfony/web-profiler-bundle",
-            "version": "v8.1.8",
+            "version": "v8.1.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/web-profiler-bundle.git",
-                "reference": "bd30b3f8e2cafe758d71c2237dc09544e144402e"
+                "reference": "481a6d4b0b6bce7e83573576abcf01d9674cd934"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/web-profiler-bundle/zipball/bd30b3f8e2cafe758d71c2237dc09544e144402e",
-                "reference": "bd30b3f8e2cafe758d71c2237dc09544e144402e",
+                "url": "https://api.github.com/repos/symfony/web-profiler-bundle/zipball/481a6d4b0b6bce7e83573576abcf01d9674cd934",
+                "reference": "481a6d4b0b6bce7e83573576abcf01d9674cd934",
                 "shasum": ""
             },
             "require": {
@@ -11612,7 +11612,7 @@
                 "dev"
             ],
             "support": {
-                "source": "https://github.com/symfony/web-profiler-bundle/tree/v8.1.8"
+                "source": "https://github.com/symfony/web-profiler-bundle/tree/v8.1.9"
             },
             "funding": [
                 {
@@ -11632,7 +11632,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-28T19:13:15+00:00"
+            "time": "2026-10-07T15:50:48+00:00"
         },
         {
             "name": "theseer/tokenizer",
