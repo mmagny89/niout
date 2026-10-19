@@ -120,10 +120,17 @@ jobs:
   # Déploiement — uniquement sur push vers main, jamais sur une pull request,
   # et seulement une fois les quatre portes passées. `needs` porte les deux
   # jobs terminaux : lint et analyse-statique sont déjà leurs prérequis.
-  deploiement:
+  deploiement-prod:
     name: Déploiement en production
     needs: [audit-securite, tests]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Deux gardes cumulées, jamais une seule :
+    #   - la branche, et jamais une pull request : une PR d'un dépôt tiers
+    #     déploierait du code non relu ;
+    #   - la variable de dépôt DEPLOIEMENT_PROD, comparée à « oui ».
+    #     Absente, GitHub la rend comme une chaîne vide et le job est
+    #     ignoré : ne rien déployer est le défaut. Une variable plutôt
+    #     qu'un secret — elle se lit dans un `if:`, sans rien de confidentiel.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOIEMENT_PROD == 'oui'
     runs-on: ubuntu-latest
     # Deux déploiements simultanés visent le même dossier et le même stack sur
     # l'hôte : on attend son tour, on ne coupe jamais un déploiement en cours.
@@ -192,6 +199,91 @@ jobs:
         env:
           HOTE: ${{ secrets.DEPLOIEMENT_HOTE }}
           UTILISATEUR: ${{ secrets.DEPLOIEMENT_UTILISATEUR }}
+        run: |
+          ssh -i ~/.ssh/id_deploiement \
+              -o IdentitiesOnly=yes \
+              -o BatchMode=yes \
+              "$UTILISATEUR@$HOTE" deployer
+
+  deploiement-staging:
+    name: Déploiement en pré-production
+    needs: [audit-securite, tests]
+    # Deux gardes cumulées, jamais une seule :
+    #   - la branche, et jamais une pull request : une PR d'un dépôt tiers
+    #     déploierait du code non relu ;
+    #   - la variable de dépôt DEPLOIEMENT_STAGING, comparée à « oui ».
+    #     Absente, GitHub la rend comme une chaîne vide et le job est
+    #     ignoré : ne rien déployer est le défaut. Une variable plutôt
+    #     qu'un secret — elle se lit dans un `if:`, sans rien de confidentiel.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop' && vars.DEPLOIEMENT_STAGING == 'oui'
+    runs-on: ubuntu-latest
+    # Deux déploiements simultanés visent le même dossier et le même stack sur
+    # l'hôte : on attend son tour, on ne coupe jamais un déploiement en cours.
+    concurrency:
+      group: deploiement-${{ github.ref_name }}
+      cancel-in-progress: false
+    # Ce job ne fait pas de checkout : il n'a rien à lire du dépôt, et le
+    # working-directory `app` du haut de fichier n'existerait donc pas.
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      # GitHub remplace un secret absent par une chaîne vide, sans rien
+      # signaler : `ssh "@"` produit alors une page d'usage illisible au lieu
+      # d'une erreur. Quelques lignes évitent de chercher une heure.
+      # Défaut réel, payé au premier déclenchement.
+      - name: Contrôler la présence des secrets
+        env:
+          HOTE: ${{ secrets.STAGING_DEPLOIEMENT_HOTE }}
+          UTILISATEUR: ${{ secrets.STAGING_DEPLOIEMENT_UTILISATEUR }}
+          CLE: ${{ secrets.STAGING_DEPLOIEMENT_CLE_PRIVEE }}
+          EMPREINTES: ${{ secrets.STAGING_DEPLOIEMENT_KNOWN_HOSTS }}
+        run: |
+          manquants=""
+          [ -n "$HOTE" ]        || manquants="$manquants STAGING_DEPLOIEMENT_HOTE"
+          [ -n "$UTILISATEUR" ] || manquants="$manquants STAGING_DEPLOIEMENT_UTILISATEUR"
+          [ -n "$CLE" ]         || manquants="$manquants STAGING_DEPLOIEMENT_CLE_PRIVEE"
+          [ -n "$EMPREINTES" ]  || manquants="$manquants STAGING_DEPLOIEMENT_KNOWN_HOSTS"
+          if [ -n "$manquants" ]; then
+            echo "Secrets manquants :$manquants" >&2
+            echo "À définir dans Settings → Secrets and variables → Actions." >&2
+            exit 1
+          fi
+
+      # Les secrets passent par `env:` et jamais en interpolation directe dans
+      # `run:` — une valeur interpolée est recopiée telle quelle dans le script,
+      # donc interprétée par le shell.
+      - name: Préparer SSH
+        env:
+          HOTE: ${{ secrets.STAGING_DEPLOIEMENT_HOTE }}
+          CLE: ${{ secrets.STAGING_DEPLOIEMENT_CLE_PRIVEE }}
+          EMPREINTES: ${{ secrets.STAGING_DEPLOIEMENT_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$CLE" > ~/.ssh/id_deploiement
+          chmod 600 ~/.ssh/id_deploiement
+          # Empreinte épinglée, jamais StrictHostKeyChecking=no : ce serait
+          # accepter n'importe quel serveur se présentant à cette adresse.
+          printf '%s\n' "$EMPREINTES" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          # Une empreinte de serveur est publique : l'afficher ne divulgue rien
+          # et rend diagnosticable le « Host key verification failed », qui
+          # vient presque toujours d'une adresse discordante — known_hosts est
+          # indexé par l'adresse exacte de connexion, une IP et un nom de
+          # domaine y étant deux entrées distinctes.
+          echo "Adresse visée : $HOTE"
+          echo 'Entrées de known_hosts :'
+          ssh-keygen -lf ~/.ssh/known_hosts || echo 'known_hosts illisible ou vide'
+
+      # La logique de déploiement vit sur l'hôte, dans outils/deployer.sh : les
+      # chemins et les secrets ne quittent pas le serveur, et la clé confiée à
+      # GitHub est restreinte à ce seul script par une forced command dans
+      # authorized_keys. Celle-ci ignorant la commande envoyée par le client,
+      # le mot ci-dessous n'est qu'une trace lisible dans les journaux.
+      - name: Déclencher le déploiement
+        env:
+          HOTE: ${{ secrets.STAGING_DEPLOIEMENT_HOTE }}
+          UTILISATEUR: ${{ secrets.STAGING_DEPLOIEMENT_UTILISATEUR }}
         run: |
           ssh -i ~/.ssh/id_deploiement \
               -o IdentitiesOnly=yes \
