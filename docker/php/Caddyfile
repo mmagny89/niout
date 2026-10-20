@@ -56,8 +56,16 @@
 		-X-Powered-By
 	}
 
+	# Fichiers caches (.git, .env, .htaccess...) : jamais servis. /.well-known
+	# reste ouvert (validation de domaine, security.txt).
+	@caches {
+		path /.*
+		not path /.well-known/*
+	}
+
 	route {
 		respond /health 200
+		respond @caches 404
 		php_server
 	}
 }

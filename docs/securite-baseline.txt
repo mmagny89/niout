@@ -1,0 +1,11 @@
+# Constats acceptes de .claude/scripts/audit-securite.sh : une empreinte par ligne, puis la raison.
+# Accepter un constat est une decision : toute ligne porte sa justification.
+
+5a9421d2acbd  APP_SECRET : l'historique ne contient que des marqueurs (SECRET-RETIRE-DE-L-HISTORIQUE, '$ecretf0rt3st' de test, valeur vide). Aucun secret reel, deja revoque.
+697aab48fd6c  POSTGRES_PASSWORD : l'historique ne contient que le placeholder de recette !ChangeMe! et la valeur vide. Aucun secret reel.
+aacec54e1a95  |raw sur actionHtml (_barre) : rendu d'un include Twig, donc deja echappe par le serveur, sans donnee brute du joueur.
+131c1302d001  |raw sur fenetre (_fenetre) : HTML d'une sous-requete Symfony (OuvertureDeFenetre::rendre), produit par Twig donc echappe.
+72c2f07fef10  CompteController : la methode est sous #[IsGranted('ROLE_USER')] et ne modifie que l'utilisateur courant.
+c693aba7ad2c  PartieController : ROLE_USER sur la classe, voter VOIR/JOUER/SUPPRIMER sur chaque action. reprendre() ecrit sous VOIR (horodatage de reprise).
+87909f03ebb1  RegistrationController : inscription publique par nature (creation de son propre compte).
+372da9f9efab  ResetPasswordController : reinitialisation publique par nature, protegee par jeton signe et limitation de debit.
