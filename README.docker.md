@@ -126,7 +126,7 @@ docker compose -f compose.yml -f compose.staging.yml --env-file .env.staging.loc
 ### Production
 
 ```sh
-docker compose -f compose.yml -f compose.prod.yml --env-file .env.prod.local up -d --build --wait
+docker compose -f compose.yml -f compose.prod.yml --env-file .env.prod.local up -d --build --pull always --wait
 docker compose -f compose.yml -f compose.prod.yml --env-file .env.prod.local exec php php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
