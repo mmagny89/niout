@@ -12,6 +12,13 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+### Sécurité
+
+- **PHP 8.5.12** (correctifs de CVE-2026-109618 et CVE-2026-109619, exécution de code à distance) et FrankenPHP 1.13.2.
+  Le déploiement reconstruit désormais l'image avec `--pull always` : sans cela, un correctif PHP publié entre deux
+  déploiements n'arrivait jamais en production. Un contrôle hebdomadaire (`.github/workflows/php-correctif.yml`)
+  signale un PHP en retard sur le dernier correctif de sa branche.
+
 ## [0.15.0] - 2026-10-08
 
 **Chaque bâtiment est revu, et la main-d'œuvre change de règle.** Les fenêtres disent chaque chose une
