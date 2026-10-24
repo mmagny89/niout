@@ -129,11 +129,11 @@ final readonly class VueDeLaReserve
             $groupes[$cle]['lignes'][] = ['ressource' => $ressource, 'quantite' => $quantite];
         }
 
-        foreach ($groupes as &$groupe) {
-            usort($groupe['lignes'], static fn (array $a, array $b): int => $b['quantite'] <=> $a['quantite']);
+        foreach ($groupes as $cle => $groupe) {
+            $lignes = $groupe['lignes'];
+            usort($lignes, static fn (array $a, array $b): int => $b['quantite'] <=> $a['quantite']);
+            $groupes[$cle]['lignes'] = $lignes;
         }
-
-        unset($groupe);
 
         $groupes = array_values($groupes);
         usort($groupes, static fn (array $a, array $b): int => $b['quantite'] <=> $a['quantite']);
