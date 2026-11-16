@@ -256,6 +256,47 @@ final class CarteTest extends WebTestCase
     }
 
     /**
+     * Le travail se voit sur la carte : un champ semé, un gisement en extraction et un banc de poissons
+     * pêché posent chacun leur petit tableau animé sur leur case, et le nom accessible de la case le dit.
+     * Un gisement connu mais pas exploité n'en pose aucun.
+     */
+    public function testLeTravailSeVoitSurLesCasesQuiLePortent(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'activite@example.com');
+        $partie = $this->lancer($joueur);
+
+        $zones = [];
+        foreach ($partie->getVille()->getZones() as $candidate) {
+            if (!$candidate->porteLaVille() && \count($zones) < 4) {
+                $zones[] = $candidate;
+            }
+        }
+        self::assertCount(4, $zones);
+        [$champ, $mine, $peche, $repos] = $zones;
+
+        $champ->definirTerrain(TypeDeTerrain::Fertile)->poserUnContenu(ContenuDeZone::ChampEligible)->decouvrir()->semerLaParcelle(1, Culture::Ble);
+        $mine->decouvrir()->poserUnGisement(Ressource::Calcaire, 100);
+        $mine->gisementDe(Ressource::Calcaire)?->exploiter();
+        $peche->decouvrir()->poserUnGisement(Ressource::Poisson, 100);
+        $peche->gisementDe(Ressource::Poisson)?->exploiter();
+        $repos->decouvrir()->poserUnGisement(Ressource::Argile, 100);
+
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(3, $crawler->filter('.activite'));
+        self::assertCount(1, $crawler->filter('a[aria-label*="champs cultivés"]'));
+        self::assertCount(1, $crawler->filter('a[aria-label*="en extraction"]'));
+        self::assertCount(1, $crawler->filter('a[aria-label*="pêche en cours"]'));
+        self::assertCount(1, $crawler->filter('.activite__pioche'));
+        self::assertCount(1, $crawler->filter('.activite__pousse'));
+        self::assertCount(2, $crawler->filter('.activite__onde'));
+    }
+
+    /**
      * La case poissonneuse dit ce qui la bloque tant que le Port n'est pas
      * dressé, puis propose les filets une fois qu'il l'est. Le rendu réel est
      * la seule façon de vérifier la branche Twig qui distingue les deux.

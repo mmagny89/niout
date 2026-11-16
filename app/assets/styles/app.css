@@ -556,6 +556,28 @@
     @keyframes flotte { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 }
 
+/* Le travail sur une case du territoire (`_activite_de_case.html.twig`) : la pioche frappe, les éclats giclent au coup,
+   les pousses ondulent, les ondes de la pêche s'élargissent. Au repos sous `prefers-reduced-motion` : le tableau reste. */
+.activite { filter: drop-shadow(0 0 1px rgb(255 255 255 / 0.95)) drop-shadow(0 0 1px rgb(255 255 255 / 0.95)) drop-shadow(0 1px 1px rgb(43 32 22 / 0.4)); transition: transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.case-iso:has(> a:hover) > .activite,
+.case-iso--choisie > .activite { transform: translateY(-7px); }
+.activite__eclat, .activite__onde { opacity: 0; }
+.activite__pioche { transform-origin: 15% 90%; transform: rotate(-20deg); }
+.activite__pousse { transform-origin: 50% 100%; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .activite__pioche { animation: activite-pioche 0.9s ease-in infinite; animation-delay: var(--d, 0s); }
+    .activite__eclat { animation: activite-eclat 0.9s ease-out infinite; animation-delay: calc(var(--d, 0s) + var(--e, 0s)); }
+    .activite__pousse { animation: activite-ondule 2.6s ease-in-out infinite; animation-delay: var(--d, 0s); }
+    .activite__laboureur { transform-origin: 50% 100%; animation: activite-penche 2.2s ease-in-out infinite; animation-delay: var(--d, 0s); }
+    .activite__onde { animation: activite-onde 1.8s ease-out infinite; animation-delay: var(--e, 0s); }
+    @keyframes activite-pioche { 0%, 100% { transform: rotate(-55deg); } 55% { transform: rotate(30deg); } 62% { transform: rotate(24deg); } }
+    @keyframes activite-eclat { 0%, 52% { opacity: 0; transform: translate(0, 0) scale(0.6); } 58% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -10px) scale(1.2); } }
+    @keyframes activite-ondule { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(6deg); } }
+    @keyframes activite-penche { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(9deg); } }
+    @keyframes activite-onde { 0% { opacity: 0.9; transform: scale(0.3); } 100% { opacity: 0; transform: scale(1.5); } }
+}
+
 /* Le portrait d'une case, en tête de la feuille : la tuile pose son ombre et flotte. */
 .case-portrait::after {
     content: "";
