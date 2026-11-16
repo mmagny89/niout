@@ -392,6 +392,27 @@ WebP à fond transparent dans `app/assets/images/ville/{batiments,lots}/`. Le sp
 privé de son eau (bleu clair) : le fleuve est celui du plan. **Pour déplacer un lot**, changer
 ses coordonnées dans `EmplacementsDeLaVille` ; **pour remplacer un sprite**, relancer l'outil.
 
+**La ville est habitée** (`Fenetre\GensDeLaVille`, `RoleDeFigure`, `_figures_de_la_ville.html.twig`,
+`_symboles_de_figures.html.twig`, lot V1 de `plan-pnj-ville-vivante.md`). Un calque de silhouettes se pose **après**
+les sprites, dans le même conteneur et **dans les mêmes pourcentages du visuel** : de profil, à l'égyptienne, un objet
+en main par rôle (bâton, rouleau, lance, ballot, sac), coloriées par `currentColor` à partir de classes **écrites en
+toutes lettres dans le gabarit** pour que Tailwind les compile. Trois règles :
+
+- **Du décor pour qui voit.** Le calque est `aria-hidden`, ses liens sont `tabindex="-1"` : quarante liens avant
+  « Retour au territoire » seraient un piège au clavier. **La voie équivalente est le bouton « Les gens de la ville »**
+  (44 px de haut, toujours là), qui ouvre la liste — complète, sans plafond — et les fiches, dans une **feuille** à
+  droite qui laisse la ville visible. C'est elle qui sert le téléphone et les lecteurs d'écran.
+- **Cliquables dès `md` seulement.** Sous cette largeur une silhouette est trop petite pour 44 px et recouvrirait le
+  bâtiment qu'on voudrait toucher : elle est un `<span>` `pointer-events-none`. Le `z-index` de chaque silhouette est la
+  profondeur de ses pieds, rangée parmi celle des sprites — un bâtiment de devant cache quelqu'un de derrière.
+- **La géométrie est en ligne** (position, taille, rapport, retournement `scaleX(-1)`), comme celle des sprites : une
+  classe oubliée par la compilation ne doit pas écraser les gens sur une ligne.
+
+**Ce que le panneau dit de lui-même** : *« Image reconstituée — le jeu ne suit pas chaque habitant. »*, sous le bouton ; et
+les fiches de maison et de poste portent *« Représentatif »*. Mesuré au navigateur à 1728 px : 15 silhouettes dans le
+visuel, aucune hors de son cadre, aucune dans l'ordre de tabulation. **Le contrôle à 390 px n'a pas pu se faire** (la
+fenêtre de l'extension ne se redimensionne pas) : à refaire sur un téléphone.
+
 **Le rail est une liste dès `md`, des carrés sur téléphone** : une ligne par bâtiment — sprite à gauche, nom en entier
 (il était rogné dans un carré), niveau et rendement dessous quand il est sous 100 % —, la ligne active marquée d'un
 liseré à gauche, un ⚒ pour les travaux en cours.

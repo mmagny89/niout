@@ -746,6 +746,19 @@ Cinq pièges déjà payés, à ne pas refaire :
 
 ## Chefs, effectifs et recrutement
 
+**La ville habitée est une représentation, pas un état** (`Fenetre\GensDeLaVille`, lot V1 de
+`plan-pnj-ville-vivante.md`) : comme `Maisonnees`, elle ne persiste rien et ne tire rien au sort — la même ville
+donne les mêmes figures, ce qui évite qu'un rechargement recompose la ville sous les yeux du joueur. Elle **lit** les
+règles, elle n'en pose aucune : un chef se voit à son bâtiment **seulement s'il est en poste** (`Employee::estEnPoste()`),
+un Medjaÿ est debout à la Caserne s'il est disponible et couché au Quartier s'il est blessé, **un bâtiment à l'arrêt
+n'a aucun travailleur à l'écran** (`Effectifs::repartir()`, `affectes === 0`), des bras sans poste (`oisifs`) traînent au
+Marché, et un malade (`City::malades()`) se couche parmi les maisons. **Les désignés d'abord** : au plafond de 40
+silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **Seuls les chefs, les Medjaÿ, le chef de famille et le
+rival sont de vraies personnes** : les maisons et les travailleurs sont dits *représentatifs* — le jeu compte des
+habitants (`Population`), pas des individus. La liste « Les gens de la ville » est la voie équivalente du visuel, et
+une fiche dont la clé ne désigne rien **dans cette ville** (un chef d'une autre partie, une maison inexistante) rend
+une 404.
+
 **Un chef et un Medjaÿ portent un prénom, tiré une fois et gardé** (`Prenoms`, `Employee::prenom`,
 `Medjay::prenom`, décision de la joueuse du 2026-11-16, qui **remplace** « il n'a pas de nom »). La raison est
 double : un nom s'attache — c'est ce qui rend la ville habitée regardable —, et **un nom ne doit pas bouger sous
