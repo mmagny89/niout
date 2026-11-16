@@ -220,6 +220,7 @@ son attribut Stimulus. Aucun test fonctionnel ne les aurait vus.
 | **Les Medjaÿ répondent-ils aux rivaux commerciaux ?** | Ni le doc 03 ni le doc 08 ne le prévoient. L'enquête reste la seule réponse au rival. À rouvrir si le playtest montre que `Rivaux` manque d'une seconde issue |
 | **Les Medjaÿ partis en expédition couvrent-ils encore les routes ?** | Oui aujourd'hui : le jeu suit leur disponibilité, pas leur position. Les marquer absents demande une colonne, et rendrait une sortie plus coûteuse encore |
 | **Le bonus de renommée passif du niveau 4 de Résidence** | Promis par le doc 01, jamais chiffré, jamais implanté |
+| **Des PNJ qui vivent leur vie, observables dans un écran du monde** | Idée d'attractivité, cadrée mais non engagée : [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md), paliers [A](plan-pnj-palier-a.md), [B](plan-pnj-palier-b.md) et [C](plan-pnj-palier-c.md), et [le panneau visuel de la ville](plan-pnj-ville-vivante.md). Le palier à ouvrir en premier et le sort des PNJ entre parties sont à trancher (§ 8 du plan) |
 | **Les paramètres de lancement du doc 14** | Point de départ dans la succession et vitesse des règnes ne sont pas offerts. La taille de grille et la difficulté le sont déjà |
 
 **Trois effets de la règle des travailleurs (2026-10-08) n'ont pas été éprouvés** : le **début de
@@ -292,6 +293,21 @@ le calibrage du lot 4.6.
 | Poids du score d'Aventure | 10 par habitant, 1 par deben, 10 par point de renommée, 1 pour 10 deben échangés | `ScoreDAventure` |
 | Score converti en centièmes de réussite | 100 points pour un centième | `Successions::POINTS_PAR_CENTIEME` |
 | Couverture d'un Medjaÿ sur les routes | 15 % du risque | `Commerce::PROTECTION_PAR_MEDJAY` |
+| Amplitude de la conjoncture des marchés | ±20 points ; fond ±10, saison ±3, crue ±4 sur les vivres | `ConjonctureDeMarche::AMPLITUDE` |
+| Fenêtre et durée d'un événement de marché | 12 quinzaines, 1 fenêtre sur 2, 2 à 6 quinzaines (17 % des quinzaines mesurées) | `ConjonctureDeMarche::FENETRE` |
+| Poids des événements de marché | 12 points (disette, bonne récolte, besoin d'un ouvrage), 4 (foire) | `EvenementDeMarche::POIDS` |
+| Saturation d'une cité | +4 par convoi rentré, plafond 20, érosion d'un tiers par quinzaine | `EtatDePartenaire::SATURATION_PAR_CONVOI` |
+| Relation d'une cité | +2 par convoi, −1 par quinzaine vers l'acquis ; avantage `relation / 10`, jamais cumulé avec le carnet | `EtatDePartenaire::GAIN_PAR_CONVOI` |
+| Acquis de relation hérité de la lignée | plafonné à 50 | `Lignee::RELATION_ACQUISE_MAX` |
+| Sollicitations d'une cité | 1 fenêtre de 4 quinzaines sur 3 ; 10 à 30 unités ; offre à 110 %, demande à 140 % du cours ; 4 quinzaines pour répondre ; +3 de relation | `Sollicitations` |
+| Retard d'une rumeur | 2 quinzaines | `LeMonde::RETARD_DES_RUMEURS` |
+| Retour d'un rival (lassé / payé / démonté) | 8 / 12 / 30 quinzaines avant de pouvoir reparaître, une fois sur deux | `Rivaux::DELAI_APRES_*` |
+| Mémoire d'un accord payé | −25 % sur le suivant, 3 accords retenus au plus, +4 de relation | `Rivaux::RABAIS_PAR_ACCORD_PASSE` |
+| Chef voyageur : retour et gain | retour dès 12 quinzaines, 1 fois sur 2 ; +8 de compétence ; Négociateur : +2 de relation par quinzaine, 10 au plus | `ChefsVoyageurs` |
+| Droit de passage aux bandes | −40 % de risque, 6 quinzaines, 2 butins par bande tenue ; non cumulable | `ChefsDeBande::REDUCTION_DU_DROIT` |
+| Courtisan : humeur et présent | humeur ±5, présent 60 % + 2 points par point d'humeur (50 à 70 %) | `Cour::PRESENT_PAR_POINT_D_HUMEUR` |
+| Visages connus d'une lignée | 12 au plus ; 1 semé par partie, pas avant 10 quinzaines ; 3 accords retenus | `Lignee::VISAGES_MAX`, `Visages::DELAI_AVANT_DE_PARAITRE` |
+| Choix d'un rival parmi les deux meilleures routes | la deuxième 1 fois sur 3 | `DecisionDuRival::UNE_FOIS_SUR` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,

@@ -45,6 +45,7 @@ final readonly class DepartsNaturels
     public function __construct(
         private Mecontentement $mecontentement,
         private Randomizer $hasard = new Randomizer(),
+        private ?ChefsVoyageurs $voyageurs = null,
     ) {
     }
 
@@ -66,14 +67,23 @@ final readonly class DepartsNaturels
 
             $ville->laisserPartir($chef->getActifsAmenes(), $chef->getInactifsAmenes());
             $ville->retirerEmploye($chef);
+            // Il va quelque part : le lieu se déduit de la graine, la mémoire naît ici.
+            $destination = $this->voyageurs?->emmener($partie, $chef);
 
-            $evenements[] = \sprintf(
-                'Votre chef %s quitte son poste et emmène les siens.',
-                null !== $chef->getSpecialite()
-                    ? '('.mb_strtolower($chef->getSpecialite()->libelle()).')'
-                    : 'du '.mb_strtolower($chef->getType()->libelle()),
-            );
+            $designation = null !== $chef->getSpecialite()
+                ? '('.mb_strtolower($chef->getSpecialite()->libelle()).')'
+                : 'du '.mb_strtolower($chef->getType()->libelle());
+
+            $evenements[] = null !== $chef->getPrenom()
+                ? \sprintf('%s, votre chef %s, quitte son poste et emmène les siens.', $chef->getPrenom(), $designation)
+                : \sprintf('Votre chef %s quitte son poste et emmène les siens.', $designation);
+
+            if (null !== $destination) {
+                $evenements[\count($evenements) - 1] .= \sprintf(' Il rejoint %s.', $destination->nom);
+            }
         }
+
+        $this->voyageurs?->avancerDUnCycle($partie);
 
         return $evenements;
     }

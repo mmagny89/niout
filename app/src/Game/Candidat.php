@@ -38,6 +38,7 @@ final readonly class Candidat
         public ?SpecialiteDeChef $specialite,
         public int $actifsAmenes,
         public int $inactifsAmenes,
+        public ?string $prenom = null,
     ) {
     }
 
@@ -46,7 +47,7 @@ final readonly class Candidat
      * spécialité descendent à leur `value` : c'est ce qui rend la ligne
      * relisible après un changement de code, tant que les cas existent.
      *
-     * @return array{competence: int, salaire: int, anciennete: int, traits: list<string>, specialite: ?string, actifs: int, inactifs: int}
+     * @return array{competence: int, salaire: int, anciennete: int, traits: list<string>, specialite: ?string, actifs: int, inactifs: int, prenom: ?string}
      */
     public function enTableau(): array
     {
@@ -58,7 +59,27 @@ final readonly class Candidat
             'specialite' => $this->specialite?->value,
             'actifs' => $this->actifsAmenes,
             'inactifs' => $this->inactifsAmenes,
+            'prenom' => $this->prenom,
         ];
+    }
+
+    /**
+     * Le même candidat, avec son prénom. **Une offre se lit encore sans** : les
+     * annonces affichées avant le lot N n'ont pas la clé, et `depuisTableau()`
+     * l'accepte absente.
+     */
+    public function avecPrenom(string $prenom): self
+    {
+        return new self(
+            competence: $this->competence,
+            salaire: $this->salaire,
+            ancienneteProbable: $this->ancienneteProbable,
+            traits: $this->traits,
+            specialite: $this->specialite,
+            actifsAmenes: $this->actifsAmenes,
+            inactifsAmenes: $this->inactifsAmenes,
+            prenom: $prenom,
+        );
     }
 
     /**
@@ -88,6 +109,7 @@ final readonly class Candidat
             specialite: \is_string($ligne['specialite'] ?? null) ? SpecialiteDeChef::tryFrom($ligne['specialite']) : null,
             actifsAmenes: (int) ($ligne['actifs'] ?? 0),
             inactifsAmenes: (int) ($ligne['inactifs'] ?? 0),
+            prenom: \is_string($ligne['prenom'] ?? null) && '' !== $ligne['prenom'] ? $ligne['prenom'] : null,
         );
     }
 

@@ -89,7 +89,7 @@ final class VueDeLaVilleTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte?vue=ville', $partie->getId()));
         $id = $partie->getId();
 
-        $grenier = $crawler->filter(\sprintf('a[href="/partie/%d/ville?onglet=grenier"]', $id));
+        $grenier = $crawler->filter(\sprintf('a[href="/partie/%d/ville?onglet=grenier"][data-action*="fenetre#ouvrir"]', $id));
         self::assertCount(1, $grenier);
         // AssetMapper versionne les noms : `grenier_2-<empreinte>.webp`.
         self::assertStringContainsString('/batiments/grenier_2', (string) $grenier->filter('img')->attr('src'), 'Le palier suit le niveau.');

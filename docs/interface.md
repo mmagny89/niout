@@ -83,9 +83,9 @@ en haut à droite) — à droite, le niveau se confondait avec elle. Dessous, de
 
 **L'onglet Direction ne redit pas l'en-tête** (`_direction.html.twig`) : ni le nombre de chefs, ni celui des
 travailleurs, ni le rendement — ils sont dans les pastilles. Il ne garde que ce qui n'y tient pas : une carte par
-**chef en poste** (étoiles, spécialité, salaire, « Renvoyer »), ou, sans chef, **ce qu'un chef changerait en une jauge**
+**chef en poste** (**prénom**, étoiles, spécialité, salaire, « Renvoyer » ; le prénom d'abord, en `font-display` : qui est ce chef avant ce qu'il vaut, et **absent** pour un chef d'avant le lot N que la quinzaine suivante nomme), ou, sans chef, **ce qu'un chef changerait en une jauge**
 (le plafond à 50 % contre 100 %) ; les **spécialités possibles en pastilles** (infobulle pour leur effet, plus un repli) ;
-et les **candidats en cartes** — étoiles, « le plus compétent » / « le moins cher », spécialité, salaire et personnes amenées
+et les **candidats en cartes** — **prénom en tête** (on retient quelqu'un), étoiles, « le plus compétent » / « le moins cher », spécialité, salaire et personnes amenées
 en pastilles à pictogramme, traits en pastilles, « Retenir ce candidat » en bas de carte.
 
 ## Infobulles
@@ -391,6 +391,146 @@ blanc retiré par remplissage depuis les bords, quatre paliers recadrés sur un 
 WebP à fond transparent dans `app/assets/images/ville/{batiments,lots}/`. Le sprite du Port est
 privé de son eau (bleu clair) : le fleuve est celui du plan. **Pour déplacer un lot**, changer
 ses coordonnées dans `EmplacementsDeLaVille` ; **pour remplacer un sprite**, relancer l'outil.
+
+**La ville est habitée** (`Fenetre\GensDeLaVille`, `RoleDeFigure`, `_figures_de_la_ville.html.twig`,
+`_symboles_de_figures.html.twig`, lot V1 de `plan-pnj-ville-vivante.md`). Un calque de silhouettes se pose **après**
+les sprites, dans le même conteneur et **dans les mêmes pourcentages du visuel** : de profil, à l'égyptienne, un objet
+en main par rôle (bâton, rouleau, lance, ballot, sac), coloriées par `currentColor` à partir de classes **écrites en
+toutes lettres dans le gabarit** pour que Tailwind les compile. Trois règles :
+
+- **Du décor pour qui voit.** Le calque est `aria-hidden`, ses liens sont `tabindex="-1"` : quarante liens avant
+  « Retour au territoire » seraient un piège au clavier. **La voie équivalente est le bouton « Les gens de la ville »**
+  (44 px de haut, toujours là), qui ouvre la liste — complète, sans plafond — et les fiches, dans une **feuille** à
+  droite qui laisse la ville visible. C'est elle qui sert le téléphone et les lecteurs d'écran.
+- **Cliquables dès `md` seulement.** Sous cette largeur une silhouette est trop petite pour 44 px et recouvrirait le
+  bâtiment qu'on voudrait toucher : elle est un `<span>` `pointer-events-none`. Le `z-index` de chaque silhouette est la
+  profondeur de ses pieds, rangée parmi celle des sprites — un bâtiment de devant cache quelqu'un de derrière.
+- **La géométrie est en ligne** (position, taille, rapport, retournement `scaleX(-1)`), comme celle des sprites : une
+  classe oubliée par la compilation ne doit pas écraser les gens sur une ligne.
+
+**Rejouer la quinzaine passée** (lot V2, `_frise_de_la_quinzaine.html.twig`, `Game\Choregraphie`). La fenêtre porte, au-dessus de
+la liste, **une frise** : « Maintenant », puis un lien par jour de la quinzaine (15, ou 5 aux jours épagomènes), le jour de
+fête marqué d'une étoile ; choisi un jour, quatre liens de moment. **Sans JavaScript** : chaque lien recharge la ville sur
+ce jour (`?jour=4&moment=1`) en gardant la fenêtre ouverte par `ouvre`, d'où une page qui se recharge à chaque jour — la
+lecture animée est le lot suivant. La ville annonce *« Jour 4 de la quinzaine passée, le matin. Revenir à maintenant »*, et
+un jour hors de la quinzaine, ou une partie sans trace, retombe sur « maintenant » sans erreur. La fiche d'un chef, d'un
+Medjaÿ ou d'une maison porte **son journal, jour par jour**. Chaque lien de la frise fait **au moins 44 px**. **Les silhouettes
+se déplacent par saut**, jamais par une marche : le jeu n'a pas de chemins.
+
+**Le film de la quinzaine** (lot V3, `ville-vivante_controller.js`, `Fenetre\FilmDeLaVille`, `Game\ReseauDeRues`,
+`_film_de_la_ville.html.twig`, `_barre_de_lecture.html.twig`). **Le serveur décide de tout, le navigateur joue** : pour chaque
+silhouette, `FilmDeLaVille` donne une liste de points `[t, gauche, haut, visible, couchée, tourné]` — le lieu, le chemin par les
+rues, l'instant — et le contrôleur Stimulus n'en fait que des animations de l'API d'animation du navigateur (`left` et `top` en
+continu ; `opacity` et `transform` qui basculent d'un coup, par `steps(1, end)`). **Aucune règle ne vit dans le JavaScript.**
+Quatre choses à ne pas défaire :
+
+- **Rien n'est nécessaire à la page.** Le calque immobile reste la vérité sans JavaScript ; le calque du film et la barre sont
+  `hidden` d'emblée, et **le contrôleur ne les dévoile pas quand `prefers-reduced-motion: reduce`** : ni animation, ni commande
+  qui ne servirait pas. La frise de la fenêtre avance alors jour par jour. Vérifié en surchargeant `matchMedia`.
+- **Le temps** : 60 s pour 15 jours à la vitesse normale (4 s par jour) ; ×2 = 30 s, ×6 = 10 s. Un offset est `t / moments`.
+  Entre deux moments où l'on change de lieu, on **marche pendant les 40 premiers centièmes** du moment, puis on reste là.
+- **Politesse** : pause quand l'onglet n'est plus visible, et au clic sur une silhouette (qui ouvre sa fiche). Le suivi met l'une
+  en valeur (contour) et atténue les autres, sans rien déplacer.
+- **Cibles de 44 px** pour chaque commande de la barre, qui se replie sur deux lignes sous la largeur d'une ligne ; le curseur
+  porte un `aria-valuetext` (« Jour 4 sur 15, le matin »), le texte à côté est masqué aux lecteurs d'écran pour ne pas annoncer
+  chaque jour de la lecture.
+
+**Le déplacement du film** (`FilmDeLaVille::MARCHE` et `AVANCE`). Un trajet dure **un moment entier** et part une demi-unité avant le moment du nouveau lieu :
+à la **mi-moment** — là où le film s'arrête, où les bulles se posent (`+ 0,5`) — chacun est à sa place. Qui change de lieu à chaque moment ne s'arrête jamais ; qui reste est immobile.
+Le départ d'un trajet est l'arrivée du précédent : un seul point.
+
+**Le moment de la journée sur la ville** (`ville-vivante_controller.js`, cibles `ciel`, `moment`). Pendant le film, un voile (`mix-blend-mode: multiply`, blanc le matin, donc sans effet)
+prend la teinte du moment (aube rosée, après-midi dorée, soir bleuté) et une pastille dit le moment en toutes lettres ; la barre l'écrit aussi (« Jour 3 sur 15 · L'après-midi »).
+Hors du film, rien : la ville statique est celle d'à présent.
+
+**Le journal d'une fiche** (`Choregraphie::journal()` → `segments`, `fenetre/gens.html.twig`). Une carte par jour, **quatre cases** — aube, matin, après-midi, soir — teintées par la famille du geste
+(`GesteDeLaVille::famille()` : travail, foyer, sortie, repos, départ) ; le jour marquant a une étoile et un filet d'or ; toucher un jour montre la ville ce jour-là. Le texte en toutes lettres
+reste dans les cases : la couleur n'est qu'un repère. `journal()` garde ses `lignes` (texte) à côté des `segments` (structure).
+
+**La mission du pharaon dans l'en-tête** (`ResumeDeMission`, fonction Twig `resume_de_mission()`, `_barre.html.twig`). En tête de la rangée de
+pastilles, **toujours en campagne** : une pastille d'or (`ring-2 ring-or-400`) « Mission N/10 · a/b objectifs », complétée de « requête : N q. »
+quand une requête du pharaon est en cours — `signal--mauvais` à une quinzaine de l'échéance, avec le pictogramme qui pulse. C'est un volet
+`<details>` comme les compteurs (fixe sur téléphone, flottant dès `md`) : fil rouge, jauges des objectifs, requête, lien vers le décret complet
+(Résidence familiale). Absent en Aventure, et sur une partie achevée ou perdue. Le résumé ne pose aucune règle : tout est lu sur l'état.
+
+**Chantiers sur la ville vue d'en haut** (`VueDeLaVille` : `chantier`, `.chantier` dans `app.css`). Le lot d'un chantier porte un échafaudage SVG et
+trois pastilles de poussière animés (`chantier-tressaille`, `chantier-poussiere`), **seulement hors `prefers-reduced-motion`** — sans mouvement
+demandé, ils restent invisibles. Décor `aria-hidden` : la liste « Les gens de la ville » dit « Chantier : des maçons au travail, encore N
+quinzaines ». Les maçons sont des silhouettes (`fig-macon`, un maillet) au lot du chantier.
+
+**Passer la quinzaine amène à la ville** (`PartieController::retourDemande()`). Depuis la carte — territoire, fenêtre ouverte, case choisie —, le
+retour est `?vue=ville&film=1` : **`ouvre` et `zone` sont abandonnés** (une fenêtre masquerait le film), le film se joue à vitesse normale. Depuis
+un écran de bâtiment qui n'est pas une fenêtre (`retour=app_partie_ville`), on reste où l'on est. Les tests qui attendaient « la fenêtre se rouvre » attendent
+désormais l'inverse.
+
+**Le récapitulatif se replie sous `md`** (`flash_controller.js`, `_recapitulatif_de_quinzaine.html.twig`). Le corps porte
+`data-flash-target="corps"` ; un bouton « Détails / Replier » (`aria-expanded`, `aria-controls`, 44 px) ne s'affiche que sous `md`. Sans
+JavaScript il reste entier. La pile des messages flotte à 6 rem du haut, ce qui suppose une barre d'une rangée : sur téléphone le
+contrôleur la pose sous la barre mesurée (`getBoundingClientRect`), faute de quoi les pastilles recouvraient le titre. Vu à 606 px (le
+minimum de Chrome), pas à 390 px.
+
+**Le film se lance après la quinzaine.** Le formulaire de cycle depuis la ville vue d'en haut (`vue=ville`) revient sur `?vue=ville&film=1` ;
+la page porte alors `data-ville-vivante-lancer-value` et le contrôleur joue le film (`basculer()`), vitesse normale, puis **retire `film`
+de l'adresse** (`history.replaceState`) pour qu'un rechargement ne le rejoue pas. Le paramètre voyage dans l'adresse et non en message
+flash : un flash que la page n'afficherait pas resterait en attente et lancerait un film à contretemps. Jamais avec `jour=`, jamais
+sous `prefers-reduced-motion`, jamais si l'onglet est caché. **Non vérifié au navigateur** (la lecture elle-même est du JavaScript).
+
+**Les conversations** (lot V4a, `Dialogues`, `Choregraphie::paroles()`, bulles du film). Deux silhouettes **au même endroit au
+même moment**, dehors et à leurs affaires (poste, course, visite, Auberge, procession, ronde, maisons voisines), se parlent
+avec une chance sur quatre, **au plus trois fois par jour, jamais à l'aube**. Ni un alité, ni une silhouette qui joue un fait ne
+bavarde ; la procession, si. **Chaque réplique est un fait vrai ou une ambiance déclarée** (`Dialogues::nature()`) : les
+situations de fait ne sont proposées que si le fait est vrai cette quinzaine (la fièvre, un chantier, un convoi en route, le
+rival, la fête **le matin seulement**, un bras sans ouvrage — et celui qui s'en plaint est celui qui n'en a pas) ; la saison est
+toujours vraie. **Aucun chiffre** dans une réplique, **au plus 80 caractères**, **au moins quatre variantes** de chaque côté
+— trois gardes testés. Elles se composent à la lecture, la trace ne garde aucune phrase.
+**À l'écran** : une bulle par silhouette, **côte à côte** (celle qui est le plus à gauche parle vers la gauche), cachée d'emblée
+et **absente sous `md`**. Elles se montrent **toutes ensemble** quand la lecture est arrêtée sur le moment ; le curseur se pose
+sur **la première conversation du jour** s'il y en a une. Cocher **« Lire les conversations »** arrête la lecture pendant la
+lecture de chaque réplique (55 ms par caractère, entre 1,8 s et 4,5 s) : lire à 4 s par jour est impossible. **Le texte est
+aussi dans la fenêtre** — « Ce qu'on s'est dit », avec qui et où — et dans le journal de celui qui parle (« dit à … : « … » »).
+
+**La mémoire du dossier** (lot I4, `MemoireDuDossier`). Dans la carte de chaque enquête en cours : un encadré sable — la voix du chef des
+scribes (« *Hori* : « J'ai relu le dossier : 3 choses notées… » »), la liste numérotée **de tous les indices** dans l'ordre de la
+découverte, puis la question en italique. Même gabarit pour toute enquête ; texte seul, donc lisible au téléphone.
+
+**Les silhouettes de passage** (lot I2, `VisiteurDePassage`). Devant l'Auberge, un voyageur (bâton de marche) ; devant le Temple, un
+prêtre (disque solaire) — tant qu'une énigme de ce lieu est à jouer. Cliquables comme les autres figures dès `md`, et dites dans la
+liste « Les gens de la ville » à leur lieu. Leur fiche : « Une devinette, étranger ? » / « Une question pour qui sait écouter les
+dieux ? », le nombre de questions en suspens, et un lien vers le bâtiment. Absentes d'une quinzaine rejouée. **Pas de bulle** :
+le film ne les joue pas.
+
+**La voix des aides** (lots I1 et I5, `VoixDesAides`). Sous une devinette de la Maison des scribes, une ligne en italique quand
+l'Oraculaire est en poste : « *Hori l'oraculaire souffle : ce n'est pas « … »* » — la réponse écartée de la liste, jamais la
+bonne. En tête de la clé de lecture, une ligne par aide qui agit (« *Pia le déchiffreur vous a appris 2 signes de plus* », « *Thot
+vous éclaire : 1 signe de plus* »). Le message qui suit une réponse commence par « *Hori, chef de la Maison des scribes,
+l'explique :* » quand le chef a un prénom. Pas de bulle : tout est du texte, donc lisible au téléphone.
+
+**Les témoignages dits** (lot I3, `Choregraphie::paroles()`, dossier de la Maison des scribes). Un témoignage rapporté par
+l'émissaire se joue **l'après-midi du jour**, en bulles, avec le même mécanisme que les conversations, et se lit aussi au journal et
+dans « Ce qu'on s'est dit ». **Au dossier d'enquête**, il s'affiche « *Témoin* : « parole » » ; un indice de terrain garde son texte.
+**Même gabarit pour tous** : le ton de la ligne ne doit jamais trahir la nature de l'indice.
+
+**La variété des journées** (lot V3b, `Choregraphie`). Sans fait, une journée n'est plus « maison, travail » : l'**après-midi**, une
+course au Marché (25 % des cas pour un chef ou un travailleur), le scribe au Temple (40 %), la famille en visite au Temple
+(30 %), la ronde des Medjaÿ sur la place (40 %), un foyer non alité au Marché (25 %) ; le **soir**, un détour par l'Auberge (20 %).
+**Le matin reste le poste, l'aube reste chez soi.** Quatre garde-fous, tous testés : **on ne va pas où il n'y a rien** (la
+photographie nomme les bâtiments debout, `PhotoDeLaVille::batimentsDresses()` ; une trace d'avant ce champ n'en connaît aucun, donc
+aucun détour) ; **un fait prime sur la variété** (le jour où le chantier s'achève, le chef y est, quel que soit le tirage) ; un
+alité ne patrouille ni ne fait de course ; et **le tirage est stable** — un hachage de (partie, silhouette, jour, moment), jamais
+le hasard global. Les valeurs sont inventées, à calibrer. **Une ville bâtie de 27 silhouettes pèse environ 90 Ko de film non
+compressé** ; la réponse est compressée par Caddy (`encode zstd br gzip`).
+
+**Le réseau de rues** (`ReseauDeRues`) est **une donnée écrite à la main** : douze carrefours, aux croisements du treillis que
+forment les rues du visuel (deux familles de droites de pente ±½, espacées d'environ 181 et 183 px), reliés de proche en proche ;
+chaque lot a une porte, le carrefour le plus proche de son devant. **Les deux visuels portent le même plan, donc un seul
+réseau.** À chaque retouche de `ReseauDeRues` ou de `EmplacementsDeLaVille`, **regarder `/dev/reseau-de-rues`**, la page de
+contrôle (développement seulement, `#[When(env: 'dev')]` : la route n'existe ni en test ni en production) qui dessine le réseau
+par-dessus le visuel — une rue qui traverse un bâtiment ne se voit pas dans un test.
+
+**Ce que le panneau dit de lui-même** : *« Image reconstituée — le jeu ne suit pas chaque habitant. »*, sous le bouton ; et
+les fiches de maison et de poste portent *« Représentatif »*. Mesuré au navigateur à 1728 px : 15 silhouettes dans le
+visuel, aucune hors de son cadre, aucune dans l'ordre de tabulation. **Le contrôle à 390 px n'a pas pu se faire** (la
+fenêtre de l'extension ne se redimensionne pas) : à refaire sur un téléphone.
 
 **Le rail est une liste dès `md`, des carrés sur téléphone** : une ligne par bâtiment — sprite à gauche, nom en entier
 (il était rogné dans un carré), niveau et rendement dessous quand il est sous 100 % —, la ligne active marquée d'un

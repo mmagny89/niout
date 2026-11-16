@@ -21,6 +21,7 @@ final readonly class PanneauDeLEntrepot implements FournisseurDePanneau
         private Rivaux $rivaux,
         private EtalsDesRoutes $etals,
         private DirectionDesBatiments $direction,
+        private BandesDeLaRegion $bandes,
     ) {
     }
 
@@ -42,7 +43,13 @@ final readonly class PanneauDeLEntrepot implements FournisseurDePanneau
             // Le récapitulatif du territoire, rangé sous le bâtiment qui
             // gouverne chaque exploitation.
             'exploitations' => ExploitationsParGouvernant::pour($partie),
+            'bandes' => $this->bandes->pour($partie),
             'rival' => $ville->getRival(),
+            // L'information se mérite (`docs/plan-pnj-palier-b.md` § 8) : on voit ce qu'il fait, et
+            // l'on n'en comprend les raisons qu'avec les voyageurs de l'Auberge.
+            'raisonsDuRival' => null !== $ville->getRival() && null !== $ville->batimentDeType(TypeDeBatiment::Auberge)
+                ? $this->rivaux->raconter($ville->getRival())
+                : null,
             'prixDeLAccord' => $this->rivaux->prixDeLAccord($partie),
         ] + $this->direction->donnees($partie);
     }

@@ -23,6 +23,19 @@ enum RoleDExploration: string
     case ChefDExpedition = 'chef_expedition';
     case Prospecteur = 'prospecteur';
 
+    /**
+     * Le rôle dans une phrase : « l'éclaireur part… », « le prospecteur part… ».
+     */
+    public function avecArticle(): string
+    {
+        return match ($this) {
+            self::Eclaireur => 'l\'éclaireur',
+            self::Emissaire => 'l\'émissaire',
+            self::ChefDExpedition => 'le chef d\'expédition',
+            self::Prospecteur => 'le prospecteur',
+        };
+    }
+
     public function libelle(): string
     {
         return match ($this) {

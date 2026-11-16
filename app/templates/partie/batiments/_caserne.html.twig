@@ -36,7 +36,7 @@
            cuite et s'éteint ; une place libre n'est qu'un écu fantôme. Les
            écus apparaissent l'un après l'autre (`--i`). #}
         <span class="case-vivante" style="--i: {{ rang }}"
-              data-infobulle="{{ medjay ? medjay.specialisation.libelle ~ ', force ' ~ medjay.force ~ (medjay.estDisponible(partie.cycle) ? '' : ' — blessé') : 'Place libre' }}">
+              data-infobulle="{{ medjay ? (medjay.prenom ? medjay.prenom ~ ', ' : '') ~ medjay.specialisation.libelle ~ ', force ' ~ medjay.force ~ (medjay.estDisponible(partie.cycle) ? '' : ' — blessé') : 'Place libre' }}">
             {% if medjay and medjay.estDisponible(partie.cycle) %}
                 {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 34}) }}
             {% elseif medjay %}
@@ -54,7 +54,7 @@
             <li class="carte-vivante flex items-start gap-3 rounded-sm border border-ocre-500/30 bg-sable-50 px-4 py-3">
                 {{ include('partie/_pictogramme.html.twig', {nom: 'troupe', taille: 36, classe: 'mt-0.5 ' ~ (medjay.estDisponible(partie.cycle) ? '' : 'sepia opacity-60')}) }}
                 <div>
-                <span class="text-encre-900">{{ medjay.specialisation.libelle }}</span>
+                <span class="text-encre-900">{% if medjay.prenom %}{{ medjay.prenom }} — {% endif %}{{ medjay.specialisation.libelle }}</span>
                 <span class="text-sm text-encre-500" data-chiffres>
                     · force {{ medjay.force }}
                     {%- if medjay.experience > 0 %} (dont {{ medjay.experience }} % d'expérience){% endif %}

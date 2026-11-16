@@ -76,6 +76,7 @@
                    Les **repères** — brigands, indice à fouiller, gisement, champ — flottent au-dessus
                    des cases reconnues : on voit où il y a quelque chose avant de cliquer. Un seul par
                    case, par ordre d'urgence. `pointer-events-none` : ils ne volent aucun clic. #}
+                {{ include('partie/_symboles_de_figures.html.twig') }}
                 {% for zone in zones %}
                     {% set estSelectionnee = zoneDetaillee and zoneDetaillee.x == zone.x and zoneDetaillee.y == zone.y %}
                     {% set repere = null %}
@@ -86,6 +87,15 @@
                         {% elseif zone.porteUnChamp %}{% set repere = {icone: 'prestige', ton: 'champ', texte: 'des champs'} %}
                         {% endif %}
                     {% endif %}
+                    {# Ce qui s'y fait, pour de bon : un gisement en extraction, des parcelles semées. Hors la case de la ville. #}
+                    {% set exploites = (zone.estDecouverte and not zone.porteLaVille) ? zone.gisements|filter(g => g.estExploitee) : [] %}
+                    {% set peches = exploites|filter(g => 'poisson' == g.ressource.value)|length %}
+                    {% set extractions = exploites|length - peches %}
+                    {% set champs = (zone.estDecouverte and not zone.porteLaVille) ? zone.champs : 0 %}
+                    {% set activite = [] %}
+                    {% if extractions > 0 %}{% set activite = activite|merge(['en extraction']) %}{% endif %}
+                    {% if peches > 0 %}{% set activite = activite|merge(['pêche en cours']) %}{% endif %}
+                    {% if champs > 0 %}{% set activite = activite|merge(['champs cultivés']) %}{% endif %}
                     <div class="case-iso absolute {{ estSelectionnee ? 'case-iso--choisie' : '' }}"
                          style="left: {{ origineX + (zone.x - zone.y) * pas.x }}px;
                                 top: {{ (zone.x + zone.y) * pas.y }}px;
@@ -96,6 +106,10 @@
                              alt=""
                              class="case-iso__tuile pointer-events-none absolute left-0 top-0 select-none"
                              style="width: {{ cellule.largeur }}px;">
+
+                        {% if activite %}
+                            {{ include('partie/_activite_de_case.html.twig') }}
+                        {% endif %}
 
                         {% if repere %}
                             <span class="repere repere--{{ repere.ton }} pointer-events-none absolute"
@@ -117,7 +131,7 @@
                            {{ zone.porteLaVille ? 'title="Voir la ville" data-turbo-frame="_top"' : 'data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir" data-fenetre-forme="feuille"' }}
                            aria-label="{{ zone.porteLaVille
                                ? 'Voir la ville ' ~ ville.avecPreposition
-                               : 'Case ' ~ zone.x ~ ', ' ~ zone.y ~ ' — ' ~ (zone.estDecouverte ? zone.terrain.libelle ~ (repere ? ', ' ~ repere.texte : '') : 'inexplorée') }}"></a>
+                               : 'Case ' ~ zone.x ~ ', ' ~ zone.y ~ ' — ' ~ (zone.estDecouverte ? zone.terrain.libelle ~ (repere ? ', ' ~ repere.texte : '') ~ (activite ? ', ' ~ activite|join(', ') : '') : 'inexplorée') }}"></a>
                     </div>
                 {% endfor %}
                 </div>

@@ -12,6 +12,144 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Les messages de la partie sont de petites cartes**, comme le récapitulatif de la quinzaine : un pictogramme, un titre, un détail (« Une maisonnée
+  s'installe » / « 2 bras et 1 bouches de plus »). Le texte reste entier pour le lecteur d'écran.
+- **Le moment de la journée teinte toute la ville, fond compris.** Le soir et l'aube ne dessinent plus un rectangle coloré sur le fond de la page.
+
+- **Les messages de la partie se lisent mieux, et les liens ouvrent la bonne section.** Un message porte une icône et se range en deux temps (la
+  première phrase en titre, la suite dessous) ; l'envoi d'un éclaireur dit où il va (« L'éclaireur part en reconnaissance vers la case (2, 1). »)
+  et « au prochain cycle » plutôt que « dans 1 cycle ». Le décret de la barre ouvre la section Mission de la Résidence, « Il vous manque N bras »
+  son Gouvernement, « N bâtiments sans chef » le premier bâtiment concerné, « Voir les chantiers » la liste des Bâtiments (`?section=…`).
+
+- **La carte du territoire montre le travail.** Une case en extraction porte un ouvrier qui frappe la roche, des éclats à chaque coup ; un champ semé,
+  son laboureur et des pousses qui ondulent ; une pêche, un pêcheur et des ondes. Un homme par gisement ou parcelle, trois au plus à l'image ; le nom de
+  la case le dit aussi (« en extraction », « champs cultivés », « pêche en cours »). Immobile pour qui demande moins de mouvement.
+
+- **Le rejeu de la quinzaine se commande par icônes, et se parcourt jour par jour.** Lecture, pause, jour précédent et suivant, vitesses et retour
+  à maintenant sont des pictogrammes ; la vitesse « Rapide » est choisie d'office. Le curseur des jours ne revient plus au jour d'avant quand on le
+  déplace une seconde fois. Dans la fenêtre, chaque jour de la frise marque ce qu'il porte (événement, conversation, fête), avec des flèches de jour en jour, et une infobulle au survol qui en donne le détail.
+
+- **On reconnaît des visages d'une partie à l'autre.** Les marchands rivaux et les chefs partis que vous avez croisés entrent dans la mémoire de votre
+  lignée — douze au plus, le plus ancien cède. Une nouvelle partie en sème un seul, pas avant dix quinzaines : un marchand payé revient avec un accord de
+  mémoire, un chef parti peut se présenter à une annonce. Aucune rancune ne se transmet, et courtisans et chefs de bande ne survivent pas à leur partie.
+- **Le caractère d'un rival se lit.** Un économe s'installe deux fois sur trois où le marché paie, un ambitieux où votre commerce est le plus vivant ; ceux qui
+  n'ont pas de préférence se partagent les routes à parts égales.
+- **Correctif** : la première partie d'un compte ne peut plus créer sa lignée deux fois dans la même requête.
+- **Les requêtes du pharaon ont un courtisan.** Un titre — le vizir, le scribe royal, l'intendant du palais — porte chaque demande, sans nom propre. Il a une
+  humeur : servi, il devient bienveillant et le présent qui revient monte jusqu'à 70 % de la valeur livrée ; refusé, ou laissé sans réponse, il s'impatiente et
+  le présent descend jusqu'à 50 %. Rien d'autre ne change : une requête reste facultative, et son coût comme son rythme sont les mêmes. Chaque nouveau règne (ou
+  nouvelle mission) amène un autre courtisan, et l'ancien s'efface.
+- **Correctif** : deux convois pillés par la même bande dans une même quinzaine ne créent plus deux fois le même chef de bande.
+- **Le risque de pillage a un visage, et une troisième réponse.** Le panneau de l'Entrepôt montre avant l'engagement le risque qu'un convoi de retour soit
+  pillé, les chefs des bandes de la région (un nom par bande, déduit de la partie) et combien de vos convois chacun a inquiétés — leurs fiches sont aussi
+  dans « Le monde ». Aux Medjaÿ et à la Caserne s'ajoute un droit de passage : des deben, au prix de deux butins par bande, contre 40 % de risque en moins
+  pendant six quinzaines. Il réduit le risque sans l'éteindre, ne se cumule pas avec lui-même, et ne rien faire reste une décision.
+- **Un chef qui part va quelque part.** Il rejoint une cité de votre monde (« Il rejoint Byblos »), figure dans « Le monde » avec sa chronique, et un
+  Négociateur y rapproche la cité de votre famille (jusqu'à 10 points, pas davantage). Il peut revenir, au plus tôt douze quinzaines plus tard, parmi
+  les candidats d'une annonce de son bâtiment : même prénom, même spécialité, huit points de compétence de mieux — une seule fois. Il part toujours
+  de lui-même : aucune cité ne débauche vos chefs.
+- **Les personnes ont une fiche.** La fenêtre « Le monde » liste les marchands que vous avez croisés : leur caractère, les accords passés avec vous, où ils sont
+  (sur votre route, ou ailleurs jusqu'à quelle quinzaine), et leur chronique — que l'on peut isoler pour une seule personne. Ce qu'ils ont fait se lit
+  toujours ; pourquoi, seulement avec une Auberge.
+- **Un rival a un but, et il revient.** Le marchand rival choisit sa route : là où le marché paie et où votre commerce est le plus vivant, selon son
+  caractère (un économe pèse le marché, un ambitieux le prestige). Avec une Auberge, vous lisez pourquoi. Il garde le même nom d'une visite à l'autre : un
+  marchand que vous avez payé revient au plus tôt douze quinzaines plus tard, s'entend plus vite (un quart de rabais sur l'accord, jamais gratuit) et,
+  une fois payé, rapproche la cité qu'il se disputait. L'enquête l'écarte trente quinzaines, pas pour toujours. Ses bornes ne bougent pas : 10 à 20 %,
+  un seul à la fois, il se lasse seul.
+- **Les marchés lointains ont une conjoncture.** Chaque cité commerçante a ses bonnes et ses mauvaises quinzaines — un fond qui varie
+  doucement, la saison et la crue du fleuve sur les vivres, et parfois un événement de deux à six quinzaines (disette, bonne récolte,
+  foire, besoin d'un ouvrage). Elle élargit ou rogne la fourchette d'une route, de −20 à +20 points, sous le plafond de 40 qui borne déjà
+  la renommée et le Négociateur. Un convoi déjà parti n'en subit rien. 
+- **L'étal dit pourquoi.** Chaque ligne d'une route montre la conjoncture du moment, en signe, en chiffre et en mots (« +12 — Disette — Byblos »).
+  Vos propres caravanes comptent : une cité à qui vous avez beaucoup vendu en veut moins, puis oublie peu à peu ; et plus on y
+  mène de convois à bon port, mieux elle vous connaît — une relation qui passe d'une partie à l'autre, jusqu'à 50 points d'acquis.
+- **La fenêtre « Le monde ».** Une carte par cité atteignable (bouton « Le monde » sur la ville vue d'en haut) : sa relation, l'événement en
+  cours et ses marchandises les plus marquées. Ce qu'on en sait se mérite : une route ouverte dit tout, un Négociateur à l'Entrepôt montre aussi la
+  quinzaine suivante, l'Auberge (ou le Port, pour l'eau) fait entendre des rumeurs vieilles de deux quinzaines sur les routes fermées.
+- **Les cités vous écrivent.** Une cité dont la route est ouverte peut offrir une marchandise à 110 % du cours ou en réclamer une à 140 %, pour 10 à
+  30 unités, valable quatre quinzaines. Accepter la conclut et rapproche la cité ; décliner, ou ne rien répondre, ne coûte rien.
+- **Le monde ne triche pas.** Le banc d'essai en console vérifie aussi que la conjoncture n'élargit jamais la marge d'un aller-retour entre deux cités.
+- **« Au loin » dans le récapitulatif.** Quand un événement s'ouvre ou se termine chez une cité dont la route est ouverte, la quinzaine le dit.
+- **On nomme ceux qui n'ont pas de prénom.** La fiche d'un chef ou d'un Medjaÿ sans prénom propose six prénoms égyptiens libres, ou un champ pour
+  taper le sien (2 à 24 lettres, jamais un nom déjà porté dans la ville). Une seule fois : qui a un prénom ne se renomme pas. Les silhouettes
+  représentatives (maisons, postes, enfants) n'ont pas d'identité à nommer.
+- **Les enfants et les anciens se voient.** Dans le Quartier : au plus deux enfants (plus petits) et un ancien (une canne) par maison, qui jouent
+  dans les ruelles ou sur la place, ou se reposent et vont au Temple. Les enfants ne causent pas. Cliquables, dits représentatifs.
+- **« Sa quinzaine passée, jour par jour » se lit d'un regard.** Une carte par jour avec ses quatre moments — aube, matin, après-midi, soir —
+  teintés par ce que fait la personne (travail, foyer, sortie, repos), le jour marquant en or, et un clic qui montre la ville ce jour-là.
+- **Le film ne s'arrête plus.** Qui change de lieu à chaque moment marche sans pause : le trajet dure un moment entier, d'une mi-moment à l'autre.
+  Seul qui reste plusieurs moments au même endroit est immobile.
+- **Le moment de la journée se voit sur la ville.** Pendant le film, la ville se teinte (aube rosée, soir bleuté) et une pastille dit
+  « L'aube », « Le matin », « L'après-midi » ou « Le soir » ; la barre de lecture l'écrit aussi.
+- **Un chantier en cours se voit.** Sur la ville vue d'en haut, le lot d'un chantier (construction ou amélioration) porte un
+  échafaudage qui tressaille et de la poussière qui monte ; **trois maçons** y travaillent, matin et après-midi, tous les jours
+  qu'il dure — et dans le film de la quinzaine ils l'achèvent le jour dit, puis rentrent. Leur fiche dit ce qu'il reste à bâtir.
+- **Passer la quinzaine amène à la ville.** Depuis le territoire ou depuis une fenêtre (un bâtiment, une case), « Quinzaine
+  suivante » referme la fenêtre, passe sur la ville vue d'en haut et y joue le film : on voit la ville et ses habitants se
+  promener. (Depuis un écran de bâtiment qui n'est pas une fenêtre, on reste où l'on est.)
+- **La mission du pharaon ne se perd plus de vue.** Une pastille d'or est toujours en tête des pastilles de l'en-tête —
+  « Mission 3/10 · 2/4 objectifs » — et s'y ajoute « requête : 2 q. » quand le pharaon réclame quelque chose, en rouge à une
+  quinzaine de l'échéance. Un clic ouvre le décret : fil rouge, objectifs avec leurs jauges, requête et son délai.
+- **Le récapitulatif de quinzaine se replie sur téléphone.** Il recouvrait presque toute la ville — et le film qui démarre derrière.
+  Sous la largeur d'une tablette, seul son en-tête reste (« Une quinzaine passe », la date), avec un bouton « Détails » pour le
+  déplier ; il se pose aussi **sous la barre de jeu** telle qu'elle est, au lieu de passer dessous quand elle tient sur deux rangées.
+- **Passer la quinzaine joue son film.** Depuis la ville vue d'en haut, « Quinzaine suivante » lance tout seul le film de la quinzaine
+  qui vient de passer, à vitesse normale (60 s). On peut le mettre en pause, l'accélérer ou revenir à maintenant comme avant. Rien
+  ne se lance pour qui demande moins de mouvement, ni depuis la carte ou un onglet de bâtiment, ni en rechargeant la page.
+- **Le chef des scribes remet le dossier en ordre.** Sous les indices d'une enquête en cours (deux au moins), il dit « J'ai relu le
+  dossier : N choses notées, dans l'ordre où elles sont venues », les redonne **toutes**, dans l'ordre de la découverte, et
+  demande « Qu'en penses-tu ? » **sans y répondre**. Tout ou rien : il ne choisit jamais ce qu'il rappelle, sinon le choix dirait
+  quels indices comptent. Sans chef nommé ou sans assez d'indices, il se tait.
+- **Un voyageur à l'Auberge, un prêtre au Temple.** Quand une devinette (ou l'oracle) de ce lieu est encore à jouer, une silhouette de
+  passage se tient devant le bâtiment, avec une fiche qui invite (« Une devinette, étranger ? ») et mène au bâtiment. Elle s'en
+  va quand tout est joué. **Elle ne dit rien de l'énigme** : ni énoncé, ni réponse. C'est du décor, sans nom, que ne rejoue pas la
+  quinzaine passée.
+- **Les aides ont une voix.** À la Maison des scribes, l'Oraculaire en poste **souffle** sous la devinette quelle réponse
+  n'est pas la bonne (« Hori l'oraculaire souffle : ce n'est pas « … » ») ; la clé de lecture dit **qui a appris combien de
+  signes** (le Déchiffreur, Thot) ; et l'explication d'une énigme est **dite par le chef des scribes**, mot pour mot. Rien de
+  plus que ce que ces aides faisaient déjà : elles se taisent quand elles n'agissent pas, et ne donnent jamais la bonne réponse.
+- **Les témoignages se disent.** Quand l'émissaire rapporte un témoignage, **le chef de la Maison des scribes** (sinon la
+  famille) le répète l'après-midi du jour, **dans les mots du témoin**, et un autre lui répond — dans le film, en bulles ; au
+  journal, en toutes lettres. Au dossier d'enquête, un témoignage se lit « Le paysan : « … » » ; un indice de terrain garde sa
+  formule. **Rien n'est créé** : c'est le même indice, dit autrement, et sa nature (vrai, trompeur, à vérifier) reste cachée.
+- **Les gens se parlent.** Quand deux silhouettes se croisent au même endroit, elles échangent quelques mots : **une
+  bulle** au-dessus de chacune quand la lecture est arrêtée sur le moment (au curseur, ou en pause), et, si l'on coche
+  « Lire les conversations », **la lecture s'arrête d'elle-même** le temps de les lire. Ce qui se dit est **un fait vrai**
+  de la quinzaine — la fièvre, un chantier, un convoi en route, le marchand rival, un bras sans ouvrage, la saison, la
+  fête — **ou une ambiance déclarée**, sans chiffre ni indice. Le même texte se lit dans la fenêtre « Les gens de la
+  ville » (« Ce qu'on s'est dit »), dans la frise de chaque jour, et dans le journal de celui qui parle. Sous la largeur
+  d'un téléphone, les bulles n'existent pas : le texte suffit.
+- **Les journées ne sont plus « maison, travail ».** Dans une ville bâtie, le chef ou le travailleur fait parfois, l'après-midi,
+  **une course au Marché** ; le scribe porte un rouleau au Temple ; la famille y passe en visite ; la ronde des Medjaÿ traverse
+  la place ; les habitants non alités vont au Marché ; et, le soir, certains font un détour par l'Auberge. Le matin reste le poste.
+  On ne va jamais où il n'y a rien : sans Marché, Temple ou Auberge, la journée reste ce qu'elle était. C'est de la mise en
+  scène, dite routine : rien dans le jeu ne dit qu'on y va.
+- **Le film de la quinzaine passée se joue.** Sur la ville vue d'en haut, une barre de lecture lance la quinzaine en
+  animation : les gens quittent leur maison à l'aube, **marchent par les rues** jusqu'à leur poste, rentrent le soir, suivent
+  la procession un jour de fête ; le Medjaÿ blessé se couche, le chef parti disparaît. Trois vitesses (normale : 4 s par jour ;
+  rapide : la quinzaine en 30 s ; très rapide : 10 s), un curseur de jour, et « Suivre » pour mettre une silhouette en valeur.
+  Cliquer une silhouette met la lecture en pause et ouvre sa fiche. Qui demande moins de mouvement ne voit ni barre ni
+  animation : la frise de la fenêtre avance jour par jour.
+- **On peut rejouer la quinzaine qui vient de passer, jour après jour.** La fenêtre « Les gens de la ville » porte une
+  frise de ses 15 jours (5 pour les jours épagomènes), avec le jour de fête marqué, et quatre moments par jour — l'aube,
+  le matin, l'après-midi, le soir. Choisir un jour **recompose la ville vue d'en haut** : les chefs à leur poste le
+  matin, chez eux le soir, la procession un jour d'Opet, le Medjaÿ blessé couché, le convoi qui charge au Port. La
+  fiche de chacun donne **son journal, jour par jour**. Tout est dit **reconstitué** : le jour où les choses se passent
+  est une mise en scène, sans valeur de règle. Le jeu garde les trois dernières quinzaines pour cela, pas davantage.
+- **La ville vue d'en haut est habitée.** Le chef de famille à la Résidence, chaque chef en poste à son bâtiment, les
+  Medjaÿ à la Caserne (couchés au Quartier s'ils sont blessés), le marchand rival au Marché, quelques travailleurs à
+  chaque poste, des bras sans poste au Marché, des maisons au Quartier dont les malades sont couchés, et une pastille
+  « Aux champs ». Un bâtiment à l'arrêt n'a personne. Cliquer une silhouette ouvre sa fiche ; le bouton « Les gens de
+  la ville » ouvre la liste de qui est où — la même chose en toutes lettres, pour le téléphone et les lecteurs d'écran.
+  L'image est une reconstitution, et le dit : le jeu ne suit pas chaque habitant.
+- **Chaque chef et chaque Medjaÿ porte désormais un prénom**, tiré une fois et gardé. Il se lit à l'annonce
+  (on retient *quelqu'un*), sur la carte du chef, dans la Caserne et dans les messages — *« Hori, votre nouveau chef
+  (négociateur), s'installe avec les siens »*. Deux gens d'une même ville ne partagent jamais un prénom (la filiation
+  prend le relais quand le fonds est épuisé), et les Medjaÿ n'en reçoivent que d'hommes. Les chefs et les Medjaÿ des
+  parties en cours en reçoivent un à la prochaine quinzaine.
+
 ### Sécurité
 
 - **PHP 8.5.12** (correctifs de CVE-2026-109618 et CVE-2026-109619, exécution de code à distance) et FrankenPHP 1.13.2.

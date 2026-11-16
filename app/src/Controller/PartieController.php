@@ -12,6 +12,9 @@ use App\Entity\Zone;
 use App\Enum\GameMode;
 use App\Fenetre\BatimentsDeLaCite;
 use App\Fenetre\DetailDeCase;
+use App\Fenetre\FilmDeLaVille;
+use App\Fenetre\GensDeLaVille;
+use App\Fenetre\LeMonde;
 use App\Fenetre\OuvertureDeFenetre;
 use App\Fenetre\Panneau\PanneauxDeLaVille;
 use App\Fenetre\VueDeLaVille;
@@ -21,6 +24,7 @@ use App\Game\AppelImpossible;
 use App\Game\CartoucheRoyal;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
+use App\Game\ChefsDeBande;
 use App\Game\Commerce;
 use App\Game\CommerceImpossible;
 use App\Game\Culture;
@@ -55,10 +59,12 @@ use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\MissionFermee;
 use App\Game\ModeDivin;
+use App\Game\MomentDeLaJournee;
 use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\Prenoms;
 use App\Game\PrixDuMarche;
 use App\Game\Progression;
 use App\Game\QueteImpossible;
@@ -71,12 +77,15 @@ use App\Game\Ressource;
 use App\Game\Rivaux;
 use App\Game\RoleDExploration;
 use App\Game\SensDEchange;
+use App\Game\SollicitationImpossible;
+use App\Game\Sollicitations;
 use App\Game\SpecialisationMedjay;
 use App\Game\SuccessionFamiliale;
 use App\Game\SuccessionImpossible;
 use App\Game\Temple;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
+use App\Game\VoixDesAides;
 use App\Repository\GameSaveRepository;
 use App\Security\Voter\PartieVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -229,6 +238,153 @@ final class PartieController extends AbstractController
             // qu'il affiche (`App\Fenetre\Panneau`), plutôt que la fenêtre de
             // tous les préparer pour n'en rendre qu'un.
         ] + $panneaux->pour($ongletActif, $partie));
+    }
+
+    /**
+     * Les gens de la ville, en fenêtre : la liste de qui est où — la voie
+     * équivalente des silhouettes de la ville vue d'en haut —, et la fiche de
+     * celui qu'on a cliqué (`?cle=chef-12`).
+     *
+     * Une clé qui ne désigne rien **dans cette ville** — un chef d'une autre
+     * partie, une maison qui n'existe pas — rend une 404, jamais la fiche d'un
+     * autre.
+     */
+    #[Route('/{id}/ville/gens', name: 'app_partie_gens', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function gens(Request $request, GameSave $partie, GensDeLaVille $gens): Response
+    {
+        // Une fenêtre, pas une page (voir `ville()`).
+        if (!OuvertureDeFenetre::estUneRequeteDeCadre($request)) {
+            return $this->forward(self::class.'::carte', ['id' => $partie->getId()], ['ouvre' => $request->getRequestUri()]);
+        }
+
+        $cle = (string) $request->query->get('cle', '');
+        $fiche = '' === $cle ? null : ($gens->fiche($partie, $cle) ?? throw $this->createNotFoundException('Personne ne répond à ce nom.'));
+
+        $jour = $request->query->has('jour') ? $request->query->getInt('jour') : null;
+        $moment = $request->query->getInt('moment', 1);
+
+        return $this->render('fenetre/gens.html.twig', [
+            'partie' => $partie,
+            'ville' => $partie->getVille(),
+            'fiche' => $fiche,
+            'cle' => '' === $cle ? null : $cle,
+            // La quinzaine passée, à rejouer : sa frise, ses jours, ce qui s'y est passé.
+            'frise' => $gens->frise($partie),
+            'moments' => MomentDeLaJournee::cases(),
+        ] + $gens->pour($partie, $jour, $moment));
+    }
+
+    /**
+     * « Le monde » : une carte par cité atteignable, ce qu'on en sait selon ce qu'on a bâti, et les
+     * propositions qui attendent une réponse. Une fenêtre, pas une page.
+     */
+    #[Route('/{id}/ville/monde', name: 'app_partie_monde', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function monde(Request $request, GameSave $partie, LeMonde $monde): Response
+    {
+        if (!OuvertureDeFenetre::estUneRequeteDeCadre($request)) {
+            return $this->forward(self::class.'::carte', ['id' => $partie->getId()], ['ouvre' => $request->getRequestUri()]);
+        }
+
+        $personne = $request->query->has('personne') ? $request->query->getInt('personne') : null;
+
+        return $this->render('fenetre/monde.html.twig', ['partie' => $partie, 'ville' => $partie->getVille()] + $monde->pour($partie, $personne));
+    }
+
+    /**
+     * Répond à une proposition d'une cité : on accepte, ou on décline. Ne rien faire reste une réponse,
+     * qui ne passe par aucune route.
+     */
+    #[Route('/{id}/ville/monde/repondre', name: 'app_partie_monde_repondre', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function repondreAuMonde(Request $request, GameSave $partie, Sollicitations $sollicitations, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('sollicitation', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $sollicitation = null;
+
+        foreach ($sollicitations->enAttente($partie) as $candidate) {
+            if ($candidate->getId() === $request->request->getInt('sollicitation')) {
+                $sollicitation = $candidate;
+            }
+        }
+
+        if (null === $sollicitation) {
+            throw $this->createNotFoundException('Cette proposition n\'existe pas ou n\'est plus valable.');
+        }
+
+        try {
+            if ('accepter' === $request->request->get('reponse')) {
+                $sollicitations->accepter($partie, $sollicitation);
+                $this->addFlash('succes', 'Marché conclu.');
+            } else {
+                $sollicitations->refuser($partie, $sollicitation);
+                $this->addFlash('succes', 'Vous déclinez la proposition.');
+            }
+
+            $entityManager->flush();
+        } catch (SollicitationImpossible $e) {
+            $this->addFlash('erreur', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_monde', ['id' => $partie->getId()]);
+    }
+
+    /**
+     * Donne un prénom à un chef ou à un Medjaÿ qui n'en a pas : celui qu'on tape, ou l'un de ceux que l'Égypte
+     * ancienne portait (`Prenoms::propositions()`). **Une seule fois** : qui a un prénom ne se renomme pas — un
+     * nom donné n'est pas un champ de formulaire — et **jamais deux fois le même** dans la ville.
+     */
+    #[Route('/{id}/ville/gens/nommer', name: 'app_partie_gens_nommer', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function nommer(Request $request, GameSave $partie, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('nommer', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $cle = (string) $request->request->get('cle', '');
+        $ville = $partie->getVille();
+        $personne = null;
+
+        if (1 === preg_match('/^(chef|medjay)-(\d+)$/', $cle, $m)) {
+            $recherche = 'chef' === $m[1] ? $ville->getEmployes() : $ville->getMedjays();
+
+            foreach ($recherche as $candidat) {
+                if ((int) $m[2] === $candidat->getId()) {
+                    $personne = $candidat;
+                }
+            }
+        }
+
+        if (null === $personne) {
+            throw $this->createNotFoundException('Personne ne répond à ce nom.');
+        }
+
+        // Celui qu'on tape l'emporte sur celui qu'on a coché.
+        $saisi = trim((string) $request->request->get('prenom', ''));
+        $prenom = '' !== $saisi ? $saisi : trim((string) $request->request->get('choix', ''));
+
+        $erreur = match (true) {
+            null !== $personne->getPrenom() => \sprintf('%s a déjà un prénom.', $personne->getPrenom()),
+            '' === $prenom => 'Choisissez un prénom, ou tapez-en un.',
+            1 !== preg_match('/^\p{L}[\p{L}\' -]{1,23}$/u', $prenom) => 'Un prénom : des lettres, un tiret ou une apostrophe, de 2 à 24 signes.',
+            Prenoms::estPris($partie, $prenom) => \sprintf('%s est déjà porté dans la ville.', $prenom),
+            default => null,
+        };
+
+        if (null !== $erreur) {
+            $this->addFlash('erreur', $erreur);
+        } else {
+            $personne->donnerUnPrenom(mb_convert_case($prenom, \MB_CASE_TITLE));
+            $entityManager->flush();
+            $this->addFlash('succes', \sprintf('Désormais, on l\'appelle %s.', $personne->getPrenom()));
+        }
+
+        return $this->redirectToRoute('app_partie_gens', ['id' => $partie->getId(), 'cle' => $cle]);
     }
 
     /**
@@ -540,7 +696,7 @@ final class PartieController extends AbstractController
         }
 
         try {
-            $medjays->lever($partie, $specialisation);
+            $recrue = $medjays->lever($partie, $specialisation);
         } catch (MedjayImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
 
@@ -548,8 +704,10 @@ final class PartieController extends AbstractController
         }
 
         $this->addFlash('succes', \sprintf(
-            'Un %s rejoint votre troupe.',
-            mb_strtolower($specialisation->libelle()),
+            '%s rejoint votre troupe.',
+            null !== $recrue->getPrenom()
+                ? $recrue->getPrenom().', un '.mb_strtolower($specialisation->libelle()).','
+                : 'Un '.mb_strtolower($specialisation->libelle()),
         ));
 
         return $this->retourALaVille($request, $partie);
@@ -749,8 +907,9 @@ final class PartieController extends AbstractController
         try {
             $employe = $recrutements->embaucher($partie, $offre, $request->request->getInt('rang', -1));
             $this->addFlash('succes', \sprintf(
-                'Votre nouveau chef %s s\'installe avec les siens. Il prendra son poste à la prochaine quinzaine.',
-                null !== $employe->getSpecialite() ? '('.mb_strtolower($employe->getSpecialite()->libelle()).')' : '',
+                '%s s\'installe avec les siens. Il prendra son poste à la prochaine quinzaine.',
+                (null !== $employe->getPrenom() ? $employe->getPrenom().', v' : 'V').'otre nouveau chef'
+                    .(null !== $employe->getSpecialite() ? ' ('.mb_strtolower($employe->getSpecialite()->libelle()).')' : ''),
             ));
         } catch (RecrutementImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
@@ -782,8 +941,11 @@ final class PartieController extends AbstractController
             throw $this->createNotFoundException('Ce chef n\'est pas à votre service.');
         }
 
+        $prenom = $employe->getPrenom();
         $recrutements->renvoyer($employe);
-        $this->addFlash('succes', 'Le chef et les siens ont quitté la ville.');
+        $this->addFlash('succes', null !== $prenom
+            ? \sprintf('%s et les siens ont quitté la ville.', $prenom)
+            : 'Le chef et les siens ont quitté la ville.');
 
         return $this->retourALaVille($request, $partie);
     }
@@ -894,16 +1056,18 @@ final class PartieController extends AbstractController
             return $this->retourALaVille($request, $partie);
         }
 
+        $explication = VoixDesAides::explique($partie->getVille(), $verdict['explication']);
+
         $this->addFlash(
             $verdict['juste'] ? 'succes' : 'erreur',
             $verdict['juste']
                 ? \sprintf(
                     '%s Vous recevez %d deben%s.',
-                    $verdict['explication'],
+                    $explication,
                     $verdict['recompense'],
                     self::etLaRenommee($verdict['renommee']),
                 )
-                : \sprintf('Ce n\'était pas la réponse. %s', $verdict['explication']),
+                : \sprintf('Ce n\'était pas la réponse. %s', $explication),
         );
 
         return $this->retourALaVille($request, $partie);
@@ -1128,6 +1292,28 @@ final class PartieController extends AbstractController
     }
 
     /**
+     * Verse un droit de passage aux bandes : la troisième issue du risque de pillage, après l'escorte et le
+     * combat. Il rabat le risque pour quelques quinzaines, sans l'éteindre.
+     */
+    #[Route('/{id}/ville/droit-de-passage', name: 'app_partie_droit_de_passage', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function payerLeDroitDePassage(Request $request, GameSave $partie, ChefsDeBande $bandes, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('droit-de-passage', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        try {
+            $this->addFlash('succes', $bandes->payerLeDroit($partie));
+            $entityManager->flush();
+        } catch (CommerceImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->retourALaVille($request, $partie);
+    }
+
+    /**
      * Répond à une requête du pharaon : livrer, ou décliner.
      *
      * **Jamais obligatoire** (doc 09) : refuser coûte deux points de renommée
@@ -1224,11 +1410,16 @@ final class PartieController extends AbstractController
         GeographieDeLaPartie $geographies,
         OuvertureDeFenetre $fenetres,
         VueDeLaVille $vueDeLaVille,
+        GensDeLaVille $gensDeLaVille,
+        FilmDeLaVille $filmDeLaVille,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
         // La ville vue d'en haut remplace le territoire (`?vue=ville`).
         $enVille = 'ville' === $request->query->get('vue');
+        // Un jour de la quinzaine passée, à rejouer sur la ville (`?jour=4&moment=1`) : une
+        // reconstitution, que `GensDeLaVille` ignore si la trace n'a rien à rejouer.
+        $jourDemande = $request->query->has('jour') ? $request->query->getInt('jour') : null;
 
         $ancienne = $this->zoneDemandee($zones, $request->query->get('zone'));
         if (null !== $ancienne && !$request->query->has('ouvre')) {
@@ -1251,6 +1442,15 @@ final class PartieController extends AbstractController
             'zones' => $zones,
             'vue' => $enVille,
             'vueDeLaVille' => $enVille ? $vueDeLaVille->pour($partie) : null,
+            // Les silhouettes posées sur la ville vue d'en haut : une
+            // représentation, calculée à la volée (`GensDeLaVille`).
+            'gensDeLaVille' => $enVille ? $gensDeLaVille->pour($partie, $jourDemande, $request->query->getInt('moment', 1)) : null,
+            // Le film de la quinzaine passée : les points par où chaque silhouette passe, que
+            // le navigateur joue. Null sans trace — il n'y a rien à rejouer.
+            'filmDeLaVille' => $enVille ? $filmDeLaVille->pour($partie) : null,
+            // Revenu d'un passage de quinzaine : le film se lance tout seul (`film=1`). Jamais quand on
+            // regarde un jour précis, ni sans film.
+            'lancerLeFilm' => $enVille && 1 === $request->query->getInt('film') && null === $jourDemande,
             // La case dont la fenêtre est ouverte, pour la surligner.
             'zoneDetaillee' => $this->zoneDeLOuverture($zones, $chemin),
             // Les signaux et les expéditions en route se lisent dans la barre
@@ -1458,21 +1658,25 @@ final class PartieController extends AbstractController
 
         try {
             $expedition = $explorations->envoyer($partie, $destination, $role, $charriers);
+            $cycles = $expedition->getDureeEnCycles();
+            // Deux phrases : ce qui part et où, puis quand. Le gabarit des messages met la première en titre.
             $this->addFlash('succes', \sprintf(
-                '%s part%s. Il sera sur place dans %d cycle%s.',
-                $role->libelle(),
+                '%s part%s vers la case (%d, %d). %s',
+                ucfirst($role->avecArticle()),
                 match (true) {
-                    RoleDExploration::Emissaire === $role => '',
-                    RoleDExploration::Prospecteur === $role => ' sonder la case',
+                    RoleDExploration::Emissaire === $role => ' parler à ses gens',
+                    RoleDExploration::Prospecteur === $role => ' sonder le sol',
                     $expedition->getCharriers() > 0 => \sprintf(
-                        ' en armes, avec %d char(s) du pharaon',
+                        ' en armes, avec %d char%s du pharaon',
                         $expedition->getCharriers(),
+                        $expedition->getCharriers() > 1 ? 's' : '',
                     ),
                     RoleDExploration::ChefDExpedition === $role => ' en armes',
                     default => ' en reconnaissance',
                 },
-                $expedition->getDureeEnCycles(),
-                $expedition->getDureeEnCycles() > 1 ? 's' : '',
+                $destination->getX(),
+                $destination->getY(),
+                $cycles > 1 ? \sprintf('Il sera sur place dans %d cycles.', $cycles) : 'Il sera sur place au prochain cycle.',
             ));
         } catch (ExplorationImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
@@ -1535,7 +1739,7 @@ final class PartieController extends AbstractController
         // (écarts), puis le journal rangé par catégorie. Il voyage en message flash.
         $this->addFlash('quinzaine', $recapitulatif->composer($avant, $partie, $evenements));
 
-        return $this->retourDemande($request, $partie);
+        return $this->retourDemande($request, $partie, lancerLeFilm: true);
     }
 
     /**
@@ -1554,25 +1758,30 @@ final class PartieController extends AbstractController
      * le temps ne doit ni éjecter le joueur, ni lui faire retrouver sa place à
      * chaque cycle.
      */
-    private function retourDemande(Request $request, GameSave $partie): Response
+    private function retourDemande(Request $request, GameSave $partie, bool $lancerLeFilm = false): Response
     {
         $route = $this->routeDeRetour($request);
         $onglet = (string) $request->request->get('onglet', '');
         $zone = (string) $request->request->get('zone', '');
 
+        // **Une quinzaine passée depuis la carte — vue territoire, fenêtre ouverte ou ville vue d'en
+        // haut — se regarde sur la ville** : on y arrive, la fenêtre refermée, et le film de la
+        // quinzaine se joue à vitesse normale. Le territoire et la case choisie se retrouvent d'un
+        // geste. Le paramètre voyage dans l'adresse (et non en message flash) : un message que la page
+        // n'affiche pas resterait en attente et déclencherait un film à contretemps.
+        $enVille = $lancerLeFilm && 'app_partie_carte' === $route;
+
         return $this->redirectToRoute($route, array_filter([
             'id' => $partie->getId(),
             'onglet' => 'app_partie_ville' === $route && '' !== $onglet ? $onglet : null,
-            // La case détaillée survit à la quinzaine, comme l'onglet ouvert :
-            // on avance souvent le temps en surveillant une expédition, un
-            // champ ou une carrière, et repartir sur une carte sans sélection
-            // obligeait à retrouver sa case à chaque cycle.
-            'zone' => 'app_partie_carte' === $route && '' !== $zone ? $zone : null,
-            // La fenêtre ouverte survit à la quinzaine : la carte la valide de
-            // nouveau, rien n'est suivi sur parole.
-            'ouvre' => 'app_partie_carte' === $route && '' !== (string) $request->request->get('ouvre') ? (string) $request->request->get('ouvre') : null,
-            // La ville vue d'en haut aussi : on avance le temps en la regardant.
-            'vue' => 'app_partie_carte' === $route && 'ville' === $request->request->get('vue') ? 'ville' : null,
+            // La case détaillée survit à la quinzaine, comme l'onglet ouvert, sauf quand on passe à la ville.
+            'zone' => 'app_partie_carte' === $route && !$enVille && '' !== $zone ? $zone : null,
+            // La fenêtre ouverte survit à la quinzaine : la carte la valide de nouveau, rien n'est suivi
+            // sur parole. Sauf quand on passe à la ville : elle masquerait le film.
+            'ouvre' => 'app_partie_carte' === $route && !$enVille && '' !== (string) $request->request->get('ouvre') ? (string) $request->request->get('ouvre') : null,
+            // La ville vue d'en haut : celle qu'on regardait, ou celle où l'on arrive pour voir le film.
+            'vue' => 'app_partie_carte' === $route && ($enVille || 'ville' === $request->request->get('vue')) ? 'ville' : null,
+            'film' => $enVille ? 1 : null,
         ], static fn (mixed $valeur): bool => null !== $valeur));
     }
 

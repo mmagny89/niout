@@ -1,0 +1,76 @@
+{# Le film de la quinzaine passée, sur la ville vue d'en haut (`App\Fenetre\FilmDeLaVille`,
+   lot V3 de `plan-pnj-ville-vivante.md`).
+
+   **Un calque de plus, caché d'emblée.** Le calque des silhouettes immobiles
+   (`_figures_de_la_ville`) reste la vérité sans JavaScript, au mouvement réduit et au
+   lecteur d'écran. Celui-ci n'est qu'un décor de plus pour qui lance la lecture :
+   `ville-vivante_controller.js` le dévoile, cache l'autre, et **joue** les points que
+   le serveur a calculés — il ne décide ni de lieu, ni de geste, ni de chemin.
+
+   Chaque silhouette est posée à son premier point, puis déplacée par l'API d'animation
+   du navigateur (`left`, `top`, `opacity`, `transform`). Elle porte ses deux dessins —
+   debout, couchée — dont un seul se voit à la fois, comme la géométrie du calque
+   immobile : **en ligne**, en pourcentages du visuel.
+
+   Masqué aux lecteurs d'écran, hors de l'ordre de tabulation, comme l'autre. **Non
+   cliquable sous `md`** : trop petit pour 44 px. Cliquer une silhouette met la lecture
+   en pause et ouvre sa fiche, comme sur le calque immobile.
+
+   Les couleurs vivent ici, en classes entières, pour que Tailwind les compile. #}
+{% set couleurs = {
+    chef_de_famille: 'text-or-500',
+    chef: 'text-lapis-500',
+    medjay: 'text-terre-600',
+    rival: 'text-terre-400',
+    travailleur: 'text-encre-700',
+    sans_poste: 'text-encre-500',
+    foyer: 'text-ocre-600',
+    macon: 'text-terre-500',
+    enfant: 'text-lapis-400',
+    ancien: 'text-encre-500',
+    voyageur: 'text-lapis-600',
+    pretre: 'text-or-500',
+} %}
+
+<div aria-hidden="true" hidden data-ville-vivante-target="film">
+    {% for f in filmDeLaVille.figures %}
+        {% set depart = f.points[0] %}
+        <a href="{{ path('app_partie_gens', {id: partie.id, cle: f.cle}) }}" tabindex="-1"
+           title="{{ f.libelle }}"
+           data-ville-vivante-target="figure" data-index="{{ loop.index0 }}" data-cle="{{ f.cle }}"
+           data-turbo-frame="fenetre" data-action="click->ville-vivante#pause click->fenetre#ouvrir"
+           class="absolute hover:brightness-110 max-md:pointer-events-none"
+           style="left: {{ depart[1] }}%; top: {{ depart[2] }}%; width: {{ filmDeLaVille.largeur }}%; aspect-ratio: 1 / 2;
+                  opacity: {{ depart[3] }}; transform: {{ depart[5] ? 'scaleX(-1)' : 'none' }}; z-index: {{ (depart[2] * 7.68 + 60)|round }};">
+            <svg viewBox="0 0 20 40" focusable="false" fill="currentColor" class="{{ couleurs[f.role] }}" data-part="debout"
+                 style="display: block; width: 100%; height: 100%; opacity: {{ depart[4] ? 0 : 1 }}; filter: drop-shadow(0 0 1px rgb(255 255 255 / 0.9));">
+                <use href="#{{ f.symbole }}"/>
+            </svg>
+            <svg viewBox="0 0 40 20" focusable="false" fill="currentColor" class="{{ couleurs[f.role] }}" data-part="couchee"
+                 style="position: absolute; left: -50%; bottom: 0; width: 200%; height: 50%; opacity: {{ depart[4] ? 1 : 0 }}; filter: drop-shadow(0 0 1px rgb(255 255 255 / 0.9));">
+                <use href="#fig-couchee"/>
+            </svg>
+        </a>
+    {% endfor %}
+
+    {# Les bulles des conversations : cachées, posées au-dessus de celui qui parle. Le contrôleur
+       les montre quand la lecture est arrêtée sur le moment, ou — si on l'a demandé — en
+       s'arrêtant pour qu'on les lise. **Du décor** : le texte est aussi dans la fenêtre, et sous
+       `md` elles sont absentes, trop petites pour se lire. #}
+    {% for parole in filmDeLaVille.paroles %}
+        {% set rang = loop.index0 %}
+        {% for cote in ['a', 'b'] %}
+            {% set qui = parole[cote] %}
+            {# Les deux bulles s'écartent l'une de l'autre : celui qui est le plus à gauche parle vers la
+               gauche, l'autre vers la droite — deux silhouettes voisines ne cachent pas leurs mots. #}
+            {% set versLaGauche = (parole.a.x <= parole.b.x) == ('a' == cote) %}
+            <div data-ville-vivante-target="bulle" data-parole="{{ rang }}" data-cote="{{ cote }}"
+                 class="pointer-events-none absolute w-max max-w-[13rem] rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-xs
+                        leading-snug text-encre-900 shadow-sm max-md:hidden"
+                 style="left: {{ qui.x + filmDeLaVille.largeur / 2 }}%; top: {{ qui.y }}%; transform: translate({{ versLaGauche ? '-100%' : '0' }}, calc(-100% - 4px));
+                        opacity: 0; z-index: 3000;">
+                {{ 'a' == cote ? parole.texteA : parole.texteB }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>

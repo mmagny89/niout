@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Game;
 
 use App\Entity\GameSave;
+use App\Entity\Npc;
 use App\Entity\RivalCommercial;
 use Doctrine\ORM\EntityManagerInterface;
 use Random\Randomizer;
@@ -59,11 +60,28 @@ final readonly class Rivaux
     public const int PRIX_DE_LACCORD_PAR_RENOMMEE = 3;
     public const int PRIX_MINIMAL_DE_LACCORD = 40;
 
+    /**
+     * Combien de quinzaines un rival reste ailleurs avant de pouvoir reparaître (`docs/plan-pnj-palier-b.md`
+     * § 11) : lassé, payé, démonté. **Valeurs inventées.** Un rival démonté n'est pas mort — le jeu n'a pas
+     * de morts à l'écran — mais l'enquête est la plus longue des trois issues, et la plus payante.
+     */
+    public const int DELAI_APRES_LASSITUDE = 8;
+    public const int DELAI_APRES_UN_ACCORD = 12;
+    public const int DELAI_APRES_L_ENQUETE = 30;
+
+    /** Ce que la mémoire d'un accord passé rabat du prix du suivant, en centièmes. */
+    public const int RABAIS_PAR_ACCORD_PASSE = 25;
+
+    /** Ce qu'un accord laisse de relation avec la cité qu'il disputait : un marchand payé devient un contact. */
+    public const int RELATION_APRES_UN_ACCORD = 4;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CataloguePartenaires $partenaires = new CataloguePartenaires(),
         private Randomizer $hasard = new Randomizer(),
         private ?Successions $successions = null,
+        private ConjonctureDeMarche $conjoncture = new ConjonctureDeMarche(),
+        private ?EtatsDesCites $cites = null,
     ) {
     }
 
@@ -105,6 +123,8 @@ final readonly class Rivaux
             }
 
             $ville->chasserLeRival();
+            $this->memoire($partie, $rival)?->seLasser($partie->getCycle(), self::DELAI_APRES_LASSITUDE);
+            $this->memoire($partie, $rival)?->noter($partie->getCycle(), 'lasse', $rival->getPartenaire());
 
             return [\sprintf('%s se lasse et quitte votre route.', $rival->getNom())];
         }
@@ -142,10 +162,17 @@ final readonly class Rivaux
      */
     public function prixDeLAccord(GameSave $partie): int
     {
-        return max(
+        $plein = max(
             self::PRIX_MINIMAL_DE_LACCORD,
             $partie->getFamille()->getRenommee() * self::PRIX_DE_LACCORD_PAR_RENOMMEE,
         );
+
+        // Un marchand déjà payé s'entend plus volontiers : son souvenir rabat le prix, dans une borne
+        // (trois accords retenus au plus), jamais jusqu'à la gratuité.
+        $rival = $partie->getVille()->getRival();
+        $accords = null === $rival ? 0 : ($this->memoire($partie, $rival)?->getAccords() ?? 0);
+
+        return max(self::PRIX_MINIMAL_DE_LACCORD, intdiv($plein * (100 - self::RABAIS_PAR_ACCORD_PASSE * min(1, $accords)), 100));
     }
 
     /**
@@ -170,14 +197,22 @@ final readonly class Rivaux
         }
 
         $ville->chasserLeRival();
+        $this->memoire($partie, $rival)?->etrePaye($partie->getCycle(), self::DELAI_APRES_UN_ACCORD);
+        $this->memoire($partie, $rival)?->noter($partie->getCycle(), 'paye', $rival->getPartenaire());
+        $disputee = $this->partenaireDe($partie, $rival->getPartenaire());
+
+        if (null !== $disputee) {
+            $this->cites?->obtenir($partie, $disputee)->gagnerLaRelation(self::RELATION_APRES_UN_ACCORD);
+        }
+
         $this->entityManager->flush();
 
         return \sprintf('%s accepte vos %d deben et s\'écarte de votre route.', $rival->getNom(), $prix);
     }
 
     /**
-     * **L'enquête** : on le démonte, et il ne revient pas. La plus longue des
-     * trois issues, et la plus payante.
+     * **L'enquête** : on le démonte, et il ne revient pas avant longtemps
+     * (`DELAI_APRES_L_ENQUETE`). La plus longue des trois issues, et la plus payante.
      */
     public function neutraliserParLEnquete(GameSave $partie): ?string
     {
@@ -188,6 +223,8 @@ final readonly class Rivaux
         }
 
         $partie->getVille()->chasserLeRival();
+        $this->memoire($partie, $rival)?->etreDemonte($partie->getCycle(), self::DELAI_APRES_L_ENQUETE);
+        $this->memoire($partie, $rival)?->noter($partie->getCycle(), 'demonte', $rival->getPartenaire());
 
         return \sprintf('%s quitte la route sans demander son reste.', $rival->getNom());
     }
@@ -213,35 +250,161 @@ final readonly class Rivaux
             return [];
         }
 
-        $route = $routes[$this->hasard->getInt(0, \count($routes) - 1)];
-        $partenaire = $this->partenaireDe($partie, $route->getPartenaire());
+        $cycle = $partie->getCycle();
+        $revenant = $this->revenant($partie, $cycle);
+        $identite = $revenant?->getIdentite() ?? self::entier($partie->getGraine(), 'rival', $cycle);
+        $caractere = $revenant?->getCaractere() ?? self::caractere($identite);
+
+        $choix = DecisionDuRival::choisir($this->aspirations($partie, $routes, $cycle), $caractere, $identite)
+            ?? throw new \LogicException('Des routes ouvertes donnent toujours un choix.');
+
+        $partenaire = $this->partenaireDe($partie, $choix['cle']);
+        $nom = $revenant?->getNom() ?? $this->unNom($partie, $identite);
+
+        $memoire = $revenant ?? new Npc($partie, $identite, RoleDePnj::Rival, $nom, $caractere);
+
+        if (null === $revenant) {
+            $this->entityManager->persist($memoire);
+        }
+
+        $memoire->noter($cycle, null !== $revenant ? 'revient' : 'installe', $choix['cle']);
 
         $rival = new RivalCommercial(
             $ville,
-            $route->getPartenaire(),
-            $this->unNom(),
-            $this->hasard->getInt(self::MALUS_MINIMAL, self::MALUS_MAXIMAL),
-            $this->hasard->getInt(self::QUINZAINES_MINIMALES, self::QUINZAINES_MAXIMALES),
+            $choix['cle'],
+            $nom,
+            self::MALUS_MINIMAL + $identite % (self::MALUS_MAXIMAL - self::MALUS_MINIMAL + 1),
+            self::QUINZAINES_MINIMALES + intdiv($identite, 11) % (self::QUINZAINES_MAXIMALES - self::QUINZAINES_MINIMALES + 1),
+            $identite,
+            $choix['raisons'] + ['revenant' => null !== $revenant],
         );
         $ville->installerUnRival($rival);
         $this->entityManager->persist($rival);
 
         return [\sprintf(
-            '%s s\'installe sur votre route %s et vous prend %d %% de ce qui passe.',
+            '%s %s sur votre route %s et vous prend %d %% de ce qui passe.',
             $rival->getNom(),
+            null !== $revenant ? 'est de retour : il s\'installe' : 's\'installe',
             null !== $partenaire ? 'vers '.$partenaire->nom : 'commerciale',
             $rival->getMalusEnCentiemes(),
         )];
     }
 
     /**
+     * Ce que chaque route ouverte vaut à un marchand, de 0 à 100 : où le marché paie, où le commerce de la
+     * famille est le plus vivant.
+     *
+     * @param list<\App\Entity\RouteCommerciale> $routes
+     *
+     * @return list<array{cle: string, prosperite: int, prestige: int}>
+     */
+    private function aspirations(GameSave $partie, array $routes, int $cycle): array
+    {
+        $lignes = [];
+
+        foreach ($routes as $route) {
+            $partenaire = $this->partenaireDe($partie, $route->getPartenaire());
+            $ordres = $route->getOrdres();
+            $favorable = 0;
+
+            foreach ($ordres as $ordre) {
+                if (null !== $partenaire) {
+                    $favorable += max(0, $this->conjoncture->pour($partie, $partenaire, $ordre->getRessource(), $cycle)->points);
+                }
+            }
+
+            $lignes[] = [
+                'cle' => $route->getPartenaire(),
+                // 20 points de conjoncture par ordre posé = le meilleur marché possible.
+                'prosperite' => [] === $ordres->toArray() ? 0 : min(100, intdiv($favorable * 100, 20 * \count($ordres))),
+                'prestige' => min(100, 20 * \count($ordres) + 10 * \count($route->getConvois())),
+            ];
+        }
+
+        return $lignes;
+    }
+
+    /**
+     * Le marchand qu'on a déjà croisé et qui peut reparaître — **jamais avant son délai**. Une fois sur deux,
+     * et seulement s'il en existe un : le monde ne se limite pas à ceux qu'on connaît.
+     */
+    private function revenant(GameSave $partie, int $cycle): ?Npc
+    {
+        if (0 !== self::entier($partie->getGraine(), 'revenant', $cycle) % 2) {
+            return null;
+        }
+
+        foreach ($this->entityManager->getRepository(Npc::class)->findBy(['partie' => $partie, 'role' => RoleDePnj::Rival], ['id' => 'ASC']) as $connu) {
+            if ($connu->peutParaitre($cycle)) {
+                return $connu;
+            }
+        }
+
+        return null;
+    }
+
+    private function memoire(GameSave $partie, RivalCommercial $rival): ?Npc
+    {
+        return 0 === $rival->getIdentite()
+            ? null
+            : $this->entityManager->getRepository(Npc::class)->findOneBy(['partie' => $partie, 'role' => RoleDePnj::Rival, 'identite' => $rival->getIdentite()]);
+    }
+
+    /**
+     * Le caractère d'un marchand, déduit de sa graine : quatre des huit traits existants.
+     */
+    private static function caractere(int $identite): TraitDeCandidat
+    {
+        $traits = [TraitDeCandidat::Econome, TraitDeCandidat::Ambitieux, TraitDeCandidat::Fidele, TraitDeCandidat::Croyant];
+
+        return $traits[intdiv($identite, 5) % \count($traits)];
+    }
+
+    /**
+     * Le « pourquoi » de sa route, en une phrase — rendue **à l'affichage** depuis les clés stockées.
+     */
+    public function raconter(RivalCommercial $rival): string
+    {
+        $r = $rival->getRaisons();
+        $caractere = TraitDeCandidat::tryFrom((string) ($r['caractere'] ?? ''));
+
+        $motifs = [];
+
+        if ((int) ($r['prosperite'] ?? 0) >= 30) {
+            $motifs[] = 'le marché y paie bien';
+        }
+
+        if ((int) ($r['prestige'] ?? 0) >= 30) {
+            $motifs[] = 'votre commerce y est vivant';
+        }
+
+        return \sprintf(
+            '%s a choisi cette route : %s%s.',
+            $rival->getNom(),
+            [] === $motifs ? 'c\'est la moins mauvaise qu\'il ait trouvée' : implode(' et ', $motifs),
+            null !== $caractere ? ' — et il est '.mb_strtolower($caractere->libelle()) : '',
+        ).(true === ($r['revenant'] ?? false) ? ' Vous le connaissez déjà.' : '');
+    }
+
+    /**
      * Des noms attestés au Nouvel Empire, portés par des gens ordinaires —
      * scribes, contremaîtres, marchands de Deir el-Médineh.
      */
-    private function unNom(): string
+    private function unNom(GameSave $partie, int $identite): string
     {
         $noms = ['Panehsy', 'Hori', 'Ipouy', 'Nakhtmin', 'Khâemouaset', 'Ramosé', 'Ounnefer', 'Pentaour'];
 
-        return $noms[$this->hasard->getInt(0, \count($noms) - 1)].' le marchand';
+        // On ne croise pas deux « Hori » dans la même ville : un nom que porte
+        // déjà un chef ou un Medjaÿ est écarté, sauf s'ils le sont tous.
+        $bases = array_map(static fn (string $nom): string => explode(',', $nom)[0], Prenoms::pris($partie));
+        $libres = array_values(array_diff($noms, $bases));
+        $noms = [] === $libres ? $noms : $libres;
+
+        return $noms[$identite % \count($noms)].' le marchand';
+    }
+
+    private static function entier(int|string ...$parties): int
+    {
+        return (int) hexdec(substr(md5(implode('|', $parties)), 0, 7));
     }
 }

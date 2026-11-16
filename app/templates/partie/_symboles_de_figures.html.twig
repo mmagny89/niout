@@ -1,0 +1,98 @@
+{# Les silhouettes de la ville habitée : de profil, à l'égyptienne — la façon dont
+   le Nouvel Empire se peignait lui-même —, un objet en main qui dit ce qu'on fait.
+
+   **Une seule fois par page** : un `<svg>` sans taille qui porte les `<symbol>`, que
+   chaque silhouette reprend par `<use>`. Elles se colorent par `currentColor` : la
+   couleur vient du gabarit qui les pose, donc du thème, jamais d'ici.
+
+   Un corps commun (`fig-corps`), des accessoires par rôle. Debout, une silhouette
+   tient dans 20 × 40 ; couchée, dans 40 × 20.
+
+   Masqué aux lecteurs d'écran : le dessin est décor, la liste « Les gens de la
+   ville » dit tout ce qu'il montre. #}
+<svg width="0" height="0" style="position: absolute;" aria-hidden="true" focusable="false">
+    <defs>
+        <g id="fig-corps">
+            <circle cx="10" cy="5" r="3.6"/>
+            <path d="M13 4.2 L15.4 5.6 L13 6.4 Z"/>
+            <path d="M7.5 9.5 H12.5 L11.8 22 H8.2 Z"/>
+            <path d="M8 21.5 H12.6 L14.4 28 H7 Z"/>
+            <path d="M8 28 H10 L9.6 38.6 H7.2 Z"/>
+            <path d="M10.6 28 H12.8 L14.4 38.2 H12 Z"/>
+            <path d="M11.4 10.4 L15.2 17 L14.2 17.8 L10.4 12.2 Z"/>
+        </g>
+    </defs>
+
+    <symbol id="fig-habitant" viewBox="0 0 20 40"><use href="#fig-corps"/></symbol>
+
+    {# Le chef de famille : un bâton de commandement. #}
+    <symbol id="fig-chef-de-famille" viewBox="0 0 20 40">
+        <use href="#fig-corps"/>
+        <path d="M16.2 4 H17.4 V39 H16.2 Z"/>
+        <circle cx="16.8" cy="3.6" r="1.5"/>
+    </symbol>
+
+    {# Un chef de bâtiment : un rouleau de papyrus à la main. #}
+    <symbol id="fig-chef" viewBox="0 0 20 40">
+        <use href="#fig-corps"/>
+        <rect x="14" y="14.5" width="4.4" height="8" rx="1.1"/>
+    </symbol>
+
+    {# Un Medjaÿ : une lance. #}
+    <symbol id="fig-medjay" viewBox="0 0 20 40">
+        <use href="#fig-corps"/>
+        <path d="M16.8 0.6 L18.4 6 H15.2 Z"/>
+        <path d="M16.2 5.5 H17.4 V39 H16.2 Z"/>
+    </symbol>
+
+    {# Un enfant : la même silhouette, plus petite, au pied de la case. #}
+    <symbol id="fig-enfant" viewBox="0 0 20 40">
+        <g transform="translate(3.8 15.2) scale(0.62)"><use href="#fig-corps"/></g>
+    </symbol>
+
+    {# Un ancien : une canne, que l'on tient devant soi. #}
+    <symbol id="fig-ancien" viewBox="0 0 20 40">
+        <use href="#fig-corps"/>
+        <path d="M2.6 15 Q3.6 13.6 5 14.6 L4.6 16 H4.2 V39 H3 V16.4 Q2.4 16.2 2.6 15 Z"/>
+    </symbol>
+
+    {# Un maçon : un maillet, levé à hauteur d'épaule. #}
+    <symbol id="fig-macon" viewBox="0 0 20 40">
+        <use href="#fig-corps"/>
+        <path d="M15.2 12 H16.6 V25 H15.2 Z"/>
+        <rect x="12.6" y="9.6" width="6" height="3.4" rx="0.8"/>
+    </symbol>
+
+    {# Un voyageur : un bâton de marche, plus haut que lui. #}
+    <symbol id="fig-voyageur" viewBox="0 0 20 40">
+        <use href="#fig-corps"/>
+        <path d="M2.4 1 H4.4 V39 H2.4 Z"/>
+        <circle cx="3.4" cy="1.6" r="2"/>
+    </symbol>
+
+    {# Un prêtre : le disque solaire au-dessus de la tête. #}
+    <symbol id="fig-pretre" viewBox="0 0 20 40">
+        <use href="#fig-corps"/>
+        <circle cx="10" cy="0.2" r="3.4"/>
+    </symbol>
+
+    {# Le marchand rival : un ballot sur le dos. #}
+    <symbol id="fig-rival" viewBox="0 0 20 40">
+        <use href="#fig-corps"/>
+        <circle cx="5.2" cy="15.2" r="4.4"/>
+    </symbol>
+
+    {# Un travailleur : un sac sur l'épaule. #}
+    <symbol id="fig-travailleur" viewBox="0 0 20 40">
+        <use href="#fig-corps"/>
+        <ellipse cx="6.4" cy="11.6" rx="3.8" ry="2.7"/>
+    </symbol>
+
+    {# Une personne couchée — un malade, un blessé. Deux fois plus large que haute. #}
+    <symbol id="fig-couchee" viewBox="0 0 40 20">
+        <circle cx="5.6" cy="12.6" r="3.6"/>
+        <path d="M9 10.6 H22.6 L24.4 16.2 H9 Z"/>
+        <path d="M23.4 11.4 H37.8 L38.6 15.8 H23.4 Z"/>
+        <path d="M10 9.6 L16 6.8 L17 8 L11.4 11 Z"/>
+    </symbol>
+</svg>

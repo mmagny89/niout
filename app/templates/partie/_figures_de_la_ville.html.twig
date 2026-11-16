@@ -1,0 +1,59 @@
+{# Les gens de la ville, posés sur la ville vue d'en haut (`App\Fenetre\GensDeLaVille`).
+
+   **Du décor, pour qui voit** : ce calque est masqué aux lecteurs d'écran, et la
+   liste « Les gens de la ville » (le bouton, en haut à gauche) dit tout ce qu'il
+   montre. Il se range donc **hors de l'ordre de tabulation** : quarante liens
+   avant « Retour au territoire » seraient un piège au clavier.
+
+   **Tout est en pourcentages du visuel**, comme les sprites, et la géométrie est
+   posée **en ligne** (position, taille, rapport, retournement) : une classe
+   oubliée par la compilation de la CSS ne doit pas pouvoir écraser les gens sur
+   une ligne.
+
+   **Cliquables dès `md`** seulement : sous cette largeur, une silhouette est trop
+   petite pour 44 px et recouvrirait le bâtiment qu'on voudrait toucher — le
+   bouton et la liste font le reste.
+
+   Ce calque n'a pas de contexte d'empilement propre : le `z-index` de chaque
+   silhouette (la profondeur de ses pieds) se range parmi ceux des sprites, pour
+   qu'un bâtiment de devant cache quelqu'un de derrière.
+
+   Les couleurs vivent ici, en classes entières, pour que Tailwind les compile. #}
+{% set couleurs = {
+    chef_de_famille: 'text-or-500',
+    chef: 'text-lapis-500',
+    medjay: 'text-terre-600',
+    rival: 'text-terre-400',
+    travailleur: 'text-encre-700',
+    sans_poste: 'text-encre-500',
+    foyer: 'text-ocre-600',
+    macon: 'text-terre-500',
+    enfant: 'text-lapis-400',
+    ancien: 'text-encre-500',
+    voyageur: 'text-lapis-600',
+    pretre: 'text-or-500',
+} %}
+
+{% macro dessin(f, couleur) %}
+    <svg viewBox="{{ f.couchee ? '0 0 40 20' : '0 0 20 40' }}" focusable="false"
+         fill="currentColor" class="{{ couleur }}"
+         style="display: block; width: 100%; height: 100%; {{ f.miroir ? 'transform: scaleX(-1); ' }}filter: drop-shadow(0 0 1px rgb(255 255 255 / 0.9));">
+        <use href="#{{ f.role.symbole(f.couchee) }}"/>
+    </svg>
+{% endmacro %}
+
+<div aria-hidden="true" data-ville-vivante-target="statique">
+    {% for f in gensDeLaVille.figures %}
+        {% set geometrie = 'left: ' ~ f.gauche ~ '%; top: ' ~ f.haut ~ '%; width: ' ~ f.largeur ~ '%; aspect-ratio: ' ~ f.rapport ~ '; z-index: ' ~ f.profondeur ~ ';' %}
+        <a href="{{ path('app_partie_gens', {id: partie.id, cle: f.cle}) }}" tabindex="-1"
+           title="{{ f.libelle }}"
+           data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"
+           class="absolute hidden hover:brightness-110 md:block"
+           style="{{ geometrie }}">
+            {{ _self.dessin(f, couleurs[f.role.value]) }}
+        </a>
+        <span class="pointer-events-none absolute md:hidden" style="{{ geometrie }}">
+            {{ _self.dessin(f, couleurs[f.role.value]) }}
+        </span>
+    {% endfor %}
+</div>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Game;
 
 use App\Entity\GameSave;
+use App\Entity\Npc;
 use App\Entity\PresentRoyal;
 use App\Entity\QueteDeChantier;
 use Doctrine\ORM\EntityManagerInterface;
@@ -79,6 +80,7 @@ final readonly class QuetesDeChantier
         private Successions $successions,
         private GeographieDeLaPartie $geographies,
         private Randomizer $hasard = new Randomizer(),
+        private ?Cour $cour = null,
     ) {
     }
 
@@ -104,6 +106,7 @@ final readonly class QuetesDeChantier
             $ville->retirerLaQueteDeChantier();
             $partie->getFamille()->ajusterRenommee(-self::RENOMMEE_PERDUE);
             $this->entityManager->remove($quete);
+            $this->decevoirLeCourtisan($partie);
 
             return [...$messages, \sprintf(
                 'Le délai est passé : la pierre pour %s n\'est jamais partie. On le remarque.',
@@ -172,6 +175,8 @@ final readonly class QuetesDeChantier
         }
 
         $partie->getFamille()->ajusterRenommee(self::RENOMMEE_GAGNEE);
+        $courtisan = $this->courtisan($partie);
+
         $divinite = $quete->getChantier()->divinite();
 
         if (null !== $divinite) {
@@ -184,7 +189,12 @@ final readonly class QuetesDeChantier
             ));
         }
 
-        $annonce = $this->preparerLePresent($partie, $quete);
+        // Le présent se règle sur l'humeur **d'avant** : être servi ne rend pas le palais généreux le jour même.
+        $annonce = $this->preparerLePresent($partie, $quete, $courtisan);
+
+        if (null !== $courtisan) {
+            $this->cour?->honorer($courtisan, $partie->getCycle());
+        }
 
         $ville->retirerLaQueteDeChantier();
         $this->entityManager->remove($quete);
@@ -212,14 +222,16 @@ final readonly class QuetesDeChantier
      *
      * @return string ce qu'on en annonce au joueur, à joindre au récit
      */
-    private function preparerLePresent(GameSave $partie, QueteDeChantier $quete): string
+    private function preparerLePresent(GameSave $partie, QueteDeChantier $quete, ?Npc $courtisan = null): string
     {
         $ville = $partie->getVille();
         $chantier = $quete->getChantier()->libelle();
         $annonces = [];
 
         $valeur = (PrixDuMarche::pour($quete->getRessource()) ?? 0) * $quete->getQuantite();
-        $deben = intdiv($valeur * self::PRESENT_EN_CENTIEMES, 100);
+        // L'humeur du courtisan module le présent, dans des bornes (50 à 70 %) : un impatient récompense un peu
+        // moins, il ne punit rien.
+        $deben = intdiv($valeur * (null === $courtisan ? self::PRESENT_EN_CENTIEMES : Cour::presentEnCentiemes($courtisan)), 100);
 
         if ($deben > 0) {
             $ville->attendreUnPresentRoyal(new PresentRoyal(
@@ -303,6 +315,7 @@ final readonly class QuetesDeChantier
 
         $ville->retirerLaQueteDeChantier();
         $partie->getFamille()->ajusterRenommee(-self::RENOMMEE_PERDUE);
+        $this->decevoirLeCourtisan($partie);
         $this->entityManager->remove($quete);
         $this->entityManager->flush();
 
@@ -374,13 +387,40 @@ final readonly class QuetesDeChantier
         $partie->getVille()->recevoirUneQuete($quete);
         $this->entityManager->persist($quete);
 
+        $courtisan = $this->courtisan($partie);
+
         return [\sprintf(
-            '%s réclame %d %s pour %s. Vous avez %d quinzaines.',
+            '%s%s réclame %d %s pour %s. Vous avez %d quinzaines.',
+            null === $courtisan ? '' : Cour::prefaceDe($courtisan),
             $pharaon,
             $quantite,
             $ressource->libelle(),
             $chantier->libelle(),
             self::DELAI_EN_QUINZAINES,
         )];
+    }
+
+    /**
+     * Le rang du règne (Aventure) ou le numéro de la mission (Campagne) : ce qui fait changer de courtisan.
+     */
+    private function rang(GameSave $partie): ?int
+    {
+        return $partie->estCampagne() ? $partie->getMission() : $this->successions->rangEnCours($partie);
+    }
+
+    private function courtisan(GameSave $partie): ?Npc
+    {
+        $rang = $this->rang($partie);
+
+        return null === $this->cour || null === $rang ? null : $this->cour->obtenir($partie, $rang);
+    }
+
+    private function decevoirLeCourtisan(GameSave $partie): void
+    {
+        $courtisan = $this->courtisan($partie);
+
+        if (null !== $courtisan) {
+            $this->cour?->decevoir($courtisan, $partie->getCycle());
+        }
     }
 }

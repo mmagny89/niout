@@ -8,13 +8,14 @@ use App\Entity\GameSave;
 use App\Game\Enigme;
 use App\Game\Enigmes;
 use App\Game\TypeDeBatiment;
+use App\Game\VoixDesAides;
 
 /**
  * Les énigmes qu'on entend dans un bâtiment.
  */
 final readonly class EnigmesDuLieu
 {
-    public function __construct(private Enigmes $enigmes)
+    public function __construct(private Enigmes $enigmes, private VoixDesAides $voix)
     {
     }
 
@@ -25,7 +26,7 @@ final readonly class EnigmesDuLieu
      * déchiffrage : la bonne réponse est toujours la première du catalogue, et
      * se lirait sinon dans la source de la page.
      *
-     * @return list<array{enigme: Enigme, propositions: list<string>}>
+     * @return list<array{enigme: Enigme, propositions: list<string>, souffle: ?string}>
      */
     public function pour(GameSave $partie, TypeDeBatiment $lieu): array
     {
@@ -33,6 +34,7 @@ final readonly class EnigmesDuLieu
             fn (Enigme $enigme): array => [
                 'enigme' => $enigme,
                 'propositions' => Melange::liste($this->enigmes->propositionsMontrees($partie, $enigme)),
+                'souffle' => $this->voix->souffle($partie, $enigme),
             ],
             array_filter(
                 $this->enigmes->disponibles($partie),

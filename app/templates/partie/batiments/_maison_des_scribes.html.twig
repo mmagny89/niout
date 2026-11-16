@@ -201,13 +201,32 @@
                 <ul class="mt-3 space-y-2 list-none p-0">
                     {% for indice in dossier.indices %}
                         <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-l-2 border-ocre-500/40 pl-3 text-sm">
-                            <span class="text-encre-700">{{ indice.texte }}</span>
+                            {# Un témoignage se lit **dit par son témoin**, à la première personne — le même texte, rien
+                               de plus, **sur le même ton pour tous** : le ton ne doit jamais trahir la nature (doc 10). #}
+                            {% if indice.parole %}
+                                <span class="text-encre-700"><span class="font-medium text-encre-900">{{ indice.temoin }}</span> : « {{ indice.parole }} »</span>
+                            {% else %}
+                                <span class="text-encre-700">{{ indice.texte }}</span>
+                            {% endif %}
                             <span class="text-xs text-encre-500">
                                 {{ indice.source.libelle }} · {{ indice.nature.libelleAffiche|lower }}
                             </span>
                         </li>
                     {% endfor %}
                 </ul>
+
+                {# **Tout nommer, ou rien** : le chef remet le dossier en ordre sans choisir ce qu'il rappelle, et sans y répondre. #}
+                {% if entree.memoire %}
+                    <div class="mt-3 rounded-sm bg-sable-100 px-4 py-3 text-sm text-encre-600">
+                        <p><span class="font-medium text-encre-900">{{ entree.memoire.voix }}</span> : « {{ entree.memoire.constat }} »</p>
+                        <ol class="mt-2 list-decimal space-y-1 pl-5">
+                            {% for ligne in entree.memoire.lignes %}
+                                <li>{{ ligne }}</li>
+                            {% endfor %}
+                        </ol>
+                        <p class="mt-2 italic">{{ entree.memoire.question }}</p>
+                    </div>
+                {% endif %}
 
                 {% if dossier.statut.value != 'en_cours' %}
                     <p class="mt-3 text-sm {{ dossier.statut.value == 'resolue' ? 'text-lapis-500' : 'text-terre-600' }}">
@@ -261,6 +280,10 @@
     Les signes que vos scribes savent lire, tirés de la liste de Gardiner. Chacun porte son vrai code
     et son vrai sens : ce que vous apprenez ici est ce qu'un égyptologue lirait.
 </p>
+
+{% for ligne in signesAppris %}
+    <p class="mt-2 text-sm italic text-encre-600">{{ ligne }}</p>
+{% endfor %}
 
 {% if prochainSigne %}
     <p class="mt-3 flex items-center gap-3 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">

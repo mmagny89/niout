@@ -35,6 +35,9 @@ final readonly class Commerce
         private CataloguePartenaires $partenaires,
         private EntityManagerInterface $entityManager,
         private CarnetDeContacts $carnet,
+        private ConjonctureDeMarche $conjoncture,
+        private EtatsDesCites $cites,
+        private ChefsDeBande $bandes,
         private GameSaveRepository $parties,
         private Medjays $medjays,
         private Successions $successions,
@@ -179,7 +182,15 @@ final readonly class Commerce
         $garnison = \count($this->medjays->disponibles($partie));
         $couverture = min(100, self::PROTECTION_PAR_MEDJAY * $garnison);
 
-        return $risque - intdiv($risque * $couverture, 100);
+        $risque -= intdiv($risque * $couverture, 100);
+
+        // Le droit de passage est la troisième issue, après l'escorte et le combat : il rabat le risque, sans
+        // jamais l'éteindre.
+        if ($this->bandes->droitActif($partie)) {
+            $risque -= intdiv($risque * ChefsDeBande::REDUCTION_DU_DROIT, 100);
+        }
+
+        return $risque;
     }
 
     /**
@@ -290,7 +301,7 @@ final readonly class Commerce
      * conseillé et l'empressement qu'il produit — de quoi que l'écran montre
      * au joueur l'effet de son prix **avant** qu'il ne le pose.
      *
-     * @return list<array{ressource: Ressource, sens: SensDEchange, ordre: ?OrdreCommercial, plancher: int, plafond: int, empressement: int}>
+     * @return list<array{monde: int, cause: string, ressource: Ressource, sens: SensDEchange, ordre: ?OrdreCommercial, plancher: int, plafond: int, empressement: int}>
      */
     public function etalDe(GameSave $partie, RouteCommerciale $route): array
     {
@@ -308,7 +319,7 @@ final readonly class Commerce
             foreach ($ressources as $ressource) {
                 // Le carnet fait un prix sur ce que ses régions portent :
                 // l'avantage se compte donc marchandise par marchandise.
-                $avantage = $this->avantageDeNegoce($partie, $ressource);
+                $avantage = $this->avantageDeNegoce($partie, $ressource, $partenaire);
                 $cours = PrixDuMarche::pour($ressource) ?? 1;
                 $ordre = $route->ordrePour($ressource);
 
@@ -316,7 +327,12 @@ final readonly class Commerce
                     ? [$cours, $partenaire->prixMaximumALaVente($ressource, $avantage) ?? $cours]
                     : [$partenaire->prixMinimumALAchat($ressource, $avantage) ?? $cours, intdiv($cours * PartenaireCommercial::PRIX_GENEREUX_A_LACHAT, 100)];
 
+                $monde = $this->conjoncture->pour($partie, $partenaire, $ressource);
+                $saturation = $this->cites->de($partie, $partenaire)?->saturationDe($ressource) ?? 0;
+
                 $etal[] = [
+                    'monde' => $monde->points - $saturation,
+                    'cause' => $this->causeDuMarche($monde, $saturation, $partenaire),
                     'ressource' => $ressource,
                     'sens' => $sens,
                     'ordre' => $ordre,
@@ -370,6 +386,11 @@ final readonly class Commerce
             ];
         }
 
+        // La saturation s'érode et la relation retombe : en fin de quinzaine, après les retours.
+        foreach ($this->cites->tous($partie) as $etat) {
+            $etat->laisserPasserUneQuinzaine();
+        }
+
         return $messages;
     }
 
@@ -394,12 +415,14 @@ final readonly class Commerce
             // entier — marchandise ou deben, selon le sens : on ne pille pas à
             // moitié.
             if ($this->hasard->getInt(1, 100) <= $this->risqueDePillage($partie)) {
+                $pillard = $this->bandes->attribuerUnPillage($partie, $convoi->getId() ?? 0);
                 $messages[] = \sprintf(
-                    'Votre %s de %s a été pillé en chemin : %d %s perdus. Des Medjaÿ sur les routes y auraient veillé.',
+                    'Votre %s de %s a été pillé en chemin : %d %s perdus. Des Medjaÿ sur les routes y auraient veillé.%s',
                     $route->getRoute()->convoi(),
                     $nom,
                     $convoi->getQuantite(),
                     $convoi->getRessource()->libelle(),
+                    null === $pillard ? '' : \sprintf(' C\'est le fait de %s.', $pillard),
                 );
 
                 $route->retirerConvoi($convoi);
@@ -412,6 +435,11 @@ final readonly class Commerce
             // volume échangé de la mission (lot 8.1), et pas au départ, où la
             // marchandise n'était qu'engagée.
             $ville->compterUnEchange($convoi->valeur());
+
+            // Le seul point par où un échange est acquis : la cité en retient la marchandise et la famille.
+            if (null !== ($partenaireDuConvoi = $this->partenaireDe($partie, $route->getPartenaire()))) {
+                $this->cites->obtenir($partie, $partenaireDuConvoi)->enregistrerUnRetour($convoi->getRessource());
+            }
 
             if (SensDEchange::Vendre === $convoi->getSens()) {
                 $ville->crediterRessources([Ressource::Deben->value => $convoi->valeur()]);
@@ -484,7 +512,7 @@ final readonly class Commerce
             $ressource = $ordre->getRessource();
             // Marchandise par marchandise : le carnet ne fait un prix que sur
             // ce que ses régions portent.
-            $avantage = $this->avantageDeNegoce($partie, $ressource);
+            $avantage = $this->avantageDeNegoce($partie, $ressource, $partenaire);
             $enPlace = $route->convoiPour($ressource);
 
             // Un seul convoi en chemin par ressource : la caravane doit
@@ -618,6 +646,59 @@ final readonly class Commerce
     }
 
     /**
+     * « Au loin » : ce qui change chez les cités dont la route est ouverte — un événement qui
+     * s'ouvre cette quinzaine, ou qui vient de s'achever. **Déduit, jamais lu dans un texte
+     * stocké** : la conjoncture se recalcule, donc le fait se retrouve. Trois lignes au plus.
+     *
+     * Appelée **avant** que le compteur n'avance : la quinzaine qui s'ouvre est `getCycle() + 1`.
+     *
+     * @return list<string>
+     */
+    public function nouvellesDuMonde(GameSave $partie): array
+    {
+        $cycle = $partie->getCycle() + 1;
+        $nouvelles = [];
+
+        foreach ($partie->getVille()->getRoutesCommerciales() as $route) {
+            $partenaire = $this->partenaireDe($partie, $route->getPartenaire());
+
+            if (!$route->estOuverte() || null === $partenaire) {
+                continue;
+            }
+
+            $maintenant = $this->conjoncture->evenementEnCours($partie->getGraine(), $partenaire->cle, $cycle);
+            $avant = $this->conjoncture->evenementEnCours($partie->getGraine(), $partenaire->cle, $cycle - 1);
+
+            if (null !== $maintenant && $maintenant !== $avant) {
+                $nouvelles[] = \sprintf('%s : la conjoncture change sur la route.', $maintenant->cause($partenaire));
+            } elseif (null === $maintenant && null !== $avant) {
+                $nouvelles[] = \sprintf('%s est terminé(e) : le marché de %s retrouve son cours.', $avant->libelle(), $partenaire->nom);
+            }
+        }
+
+        return \array_slice($nouvelles, 0, 3);
+    }
+
+    /**
+     * Le « pourquoi » d'une conjoncture, en une phrase : l'événement qui court s'il y en a un,
+     * sinon la tendance du marché ; et ce que nos propres convois ont saturé.
+     */
+    private function causeDuMarche(Conjoncture $monde, int $saturation, PartenaireCommercial $partenaire): string
+    {
+        $cause = null !== $monde->evenement
+            ? $monde->evenement->cause($partenaire)
+            : match (true) {
+                $monde->points >= 5 => \sprintf('Marché porteur — %s', $partenaire->nom),
+                $monde->points <= -5 => \sprintf('Marché lourd — %s', $partenaire->nom),
+                default => \sprintf('Marché calme — %s', $partenaire->nom),
+            };
+
+        return $saturation > 0
+            ? \sprintf('%s ; vos caravanes en ont déjà beaucoup apporté (−%d)', $cause, $saturation)
+            : $cause;
+    }
+
+    /**
      * Tout ce qui élargit la fourchette d'un partenaire : le Négociateur et la
      * réputation de la famille, plafonnés ensemble (`AvantageDeNegoce`).
      *
@@ -629,17 +710,36 @@ final readonly class Commerce
      * `$ressource` n'est renseignée que là où l'on parle d'une marchandise
      * précise : le carnet fait un prix sur ce que sa région porte, pas sur tout.
      */
-    public function avantageDeNegoce(GameSave $partie, ?Ressource $ressource = null): int
+    public function avantageDeNegoce(GameSave $partie, ?Ressource $ressource = null, ?PartenaireCommercial $partenaire = null): int
     {
         $autres = $this->avantageDuNegociateur($partie->getVille(), $partie->getCycle());
+        $monde = 0;
 
         // Le carnet ne joue que sur les ressources des régions servies : sans
         // ressource nommée, on parle de l'avantage général et le carnet se tait.
         if (null !== $ressource) {
-            $autres += $this->carnet->avantageSur($partie, $ressource);
+            $contacts = $this->carnet->avantageSur($partie, $ressource);
+            $relation = 0;
+
+            // Le monde est signé, et propre à une cité et à une marchandise : il ne joue que là
+            // où l'on nomme les deux.
+            if (null !== $partenaire) {
+                $monde = $this->conjoncture->pour($partie, $partenaire, $ressource)->points;
+                $etat = $this->cites->de($partie, $partenaire);
+
+                if (null !== $etat) {
+                    // La saturation rogne le monde ; la relation prolonge le carnet.
+                    $monde -= $etat->saturationDe($ressource);
+                    $relation = intdiv($etat->getRelation(), 10);
+                }
+            }
+
+            // Pas de double compte : pour une même cité et une même marchandise, c'est le plus
+            // grand des deux avantages qui s'applique, pas leur somme.
+            $autres += max($contacts, $relation);
         }
 
-        return AvantageDeNegoce::total($partie->getFamille()->getRenommee(), $autres);
+        return AvantageDeNegoce::total($partie->getFamille()->getRenommee(), $autres, $monde);
     }
 
     /**

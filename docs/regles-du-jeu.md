@@ -746,6 +746,109 @@ Cinq pièges déjà payés, à ne pas refaire :
 
 ## Chefs, effectifs et recrutement
 
+**La ville habitée est une représentation, pas un état** (`Fenetre\GensDeLaVille`, lot V1 de
+`plan-pnj-ville-vivante.md`) : comme `Maisonnees`, elle ne persiste rien et ne tire rien au sort — la même ville
+donne les mêmes figures, ce qui évite qu'un rechargement recompose la ville sous les yeux du joueur. Elle **lit** les
+règles, elle n'en pose aucune : un chef se voit à son bâtiment **seulement s'il est en poste** (`Employee::estEnPoste()`),
+un Medjaÿ est debout à la Caserne s'il est disponible et couché au Quartier s'il est blessé, **un bâtiment à l'arrêt
+n'a aucun travailleur à l'écran** (`Effectifs::repartir()`, `affectes === 0`), des bras sans poste (`oisifs`) traînent au
+Marché, et un malade (`City::malades()`) se couche parmi les maisons. **Les désignés d'abord** : au plafond de 40
+silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **Un dialogue dit un fait vrai, ou se déclare ambiance** (`Dialogues`, lot V4a) : c'est la règle qui permet de l'écrire sans mentir au
+joueur. Une réplique de situation n'est choisie que si le fait est vrai dans la quinzaine ; une réplique d'ambiance ne dit rien
+du jeu. **Aucune réplique ne donne un chiffre, un prix, un lieu de gisement ni une réponse d'énigme** : ce qu'elle porte, le jeu le
+sait déjà et le montre ailleurs. Écrire de nouvelles répliques, c'est enrichir `Dialogues::catalogue()`, jamais composer du texte à la
+volée ; les garde-fous sont dans `DialoguesTest`. **Ce lot ne touche ni aux enquêtes ni aux énigmes.**
+
+**Les enfants et les anciens** (`RoleDeFigure::Enfant` et `Ancien`, `PhotoDeLaVille::ENFANTS_PAR_MAISON` et `ANCIENS_PAR_MAISON`). Ils viennent de `Maisonnees` (le jeu
+compte `City::getEnfants()` et `getAnciens()`) : au plus deux enfants et un ancien par maison montrée, **entrelacés maison après maison** pour qu'aucun
+âge ne disparaisse quand un lot est plein. Un enfant joue (`GesteDeLaVille::Joue`), parfois sur la place du Marché ; il **ne cause jamais** — la
+sélection des conversations l'écarte par son rôle. Un ancien reste autour des maisons et va l'après-midi au Temple. Tous deux suivent la procession.
+Représentatifs, comme les maisons. Un lot accueille douze silhouettes au plus (`ANCRAGES`).
+
+**Nommer** (`PartieController::nommer()`, `Prenoms::propositions()`). Seuls les chefs et les Medjaÿ ont une identité qui dure : sans prénom, leur fiche en
+propose. **Une seule fois** (un nom donné ne se reprend pas), **jamais deux fois le même** (`Prenoms::estPris()`, casse et filiation ignorées), et le prénom
+saisi n'est fait que de lettres, tiret et apostrophe. Les silhouettes représentatives ne se nomment pas : plusieurs partagent la même clé, et le jeu ne les suit pas.
+
+**Les maçons d'un chantier** (`RoleDeFigure::Macon`, `PhotoDeLaVille::MACONS_PAR_CHANTIER`). Tout chantier en cours (construction ou amélioration)
+pose trois maçons dans la photographie, **sur le lot du type de bâtiment** même s'il n'est pas encore dressé (`GensDeLaVille::lotsDresses()`
+l'inclut tant qu'un chantier le vise). Ils travaillent le matin et l'après-midi, **sans course ni détour** (testé sur 40 graines) ; le jour
+où le fait `ChantierAcheve` tombe, ils l'achèvent ; ensuite ils rentrent. Comme les travailleurs de poste, c'est du décor **représentatif** :
+le jeu compte l'avancement du chantier, pas ses ouvriers un à un. Un rôle neuf doit avoir sa couleur dans **les deux** gabarits de
+silhouettes (la ville et le film), sans quoi la page lève une 500 (`ChantiersAnimesTest`).
+
+**La mémoire du dossier : tout nommer, ou rien** (lot I4, `MemoireDuDossier`). Le chef de la Maison des scribes remet sous les yeux
+les indices d'un dossier **en cours** : **chacun**, dans l'ordre où il a été versé, avec la phrase même du dossier, puis la
+question fixe « Qu'en penses-tu ? ». **Choisir ce qu'on rappelle trahirait la nature** (ne citer que les concordants dirait
+tout) : la phrase d'introduction et la question sont donc **identiques pour tout dossier**, seul le nombre change, et aucun mot de
+jugement n'y entre. Elle ne répond pas, ne crée rien (le dossier est identique avant et après), et se tait avec moins de deux
+indices, sur un dossier clos, ou sans chef nommé. `MemoireDuDossierTest` rejoue toutes les paires d'indices de chaque enquête.
+
+**Les silhouettes de passage** (lot I2, `VisiteurDePassage`, `RoleDeFigure::Voyageur` et `Pretre`). Le doc 10 veut que le lieu décide
+d'où se dit une énigme : un voyageur se tient à l'Auberge, un prêtre au Temple, **seulement tant qu'une énigme de ce lieu est
+jouable** (bâtiment debout, énigme non tentée — `Enigme::disponiblesPour()`). La Maison des scribes n'a pas la sienne. **Ce n'est
+pas une personne de la ville** : sans nom ni mémoire, jamais dans la photographie, donc jamais dans le film ni la trace ;
+elles s'ajoutent au plafond de silhouettes et ne se voient que dans la ville d'à présent. Leur fiche **invite et renvoie vers
+l'énigme existante**, rien de plus : jamais l'énoncé, la réponse ni l'explication (testé).
+
+**Les aides parlent sans rien ajouter** (lots I1 et I5, `VoixDesAides`). L'Oraculaire, le Déchiffreur et Thot agissaient sans
+visage ; ils en ont un. **Chaque phrase se calcule depuis la source de l'effet** : `Enigmes::propositionsEcartees()` décide
+ce que l'Oraculaire écarte, l'écran retire ces propositions **et** la voix les nomme — deux lectures d'une même liste, jamais deux
+logiques ; le nombre de signes dits est celui que compte la clé. **Une aide qui n'agit pas ne parle pas** (le doc 10 : ce sont des
+spécialités de chef, pas un conseil gratuit), et la bonne réponse n'est jamais nommée. **L'explication d'une énigme est dite
+telle quelle** par le chef de la Maison des scribes (s'il a un prénom), juste ou faux : le contenu est celui de l'énigme.
+`EffetDeChef::chefDeSpecialite()` donne le chef qui agit — le même que celui que `chefSpecialise()` compte.
+
+**Un témoignage se dit sans changer de nature** (lot I3, `Indice::temoin()`/`parole()`, `TypeDeFait::TemoignageRecueilli`). Les 16
+indices de source « témoignage » portent un témoin et une parole à la première personne ; les indices de terrain n'en ont pas.
+**La parole reprend le texte de l'indice sans rien y ajouter** — ni mot de nature (vrai, faux, trompeur), ni chiffre, ni ton
+différent d'un témoin à l'autre : `IndiceTest` le vérifie, et vérifie que la parole reste fidèle au texte (doc 10 : la nature
+reste « à vérifier »). **La mise en scène ne crée aucun indice** : l'indice est versé au dossier par l'émissaire, comme avant ;
+la trace garde seulement sa valeur (`details['indice']`), jamais le texte. Le fait se déduit de deux photographies
+(`DifferenceDeQuinzaine`, clé `temoignages`, absente des traces d'avant). Il se joue l'après-midi, entre le chef de la Maison des
+scribes (sinon la famille) et un autre ; ces deux-là ne bavardent pas ce moment-là ; personne à qui le dire, ou un indice de
+terrain, ne met rien en scène — le dossier suffit.
+
+**La variété d'une journée est de la routine, pas un fait** (`Choregraphie`, lot V3b) : une course au Marché, une visite au
+Temple, un détour par l'Auberge ne correspondent à aucune règle du jeu — personne ne « va au Marché » dans l'état —, et le
+journal les dit « routine ». C'est ce qui les distingue des scènes de fait, qui illustrent ce qui s'est réellement passé et
+qui **priment toujours** sur elles. Elles n'existent que **là où le bâtiment est debout**.
+
+**Le film de la quinzaine ajoute les chemins, pas des règles** (`FilmDeLaVille`, `ReseauDeRues`) : la chorégraphie dit où est
+chacun à chaque moment ; le film y ajoute **le trajet par les rues** entre la porte d'un lot et celle d'un autre, et en fait une
+liste de points datés. Une silhouette **garde sa place dans un lot** pour toute la quinzaine — sans cela, l'arrivée de l'une
+décalerait les autres. Le film n'est jamais stocké : il se recalcule, identique, à partir de la trace. Il pèse environ 90 Ko non
+compressé pour 27 silhouettes dans une ville bâtie ; la réponse est compressée.
+
+**La quinzaine passée se rejoue, et c'est une reconstitution**
+(`Choregraphie`, `PhotoDeLaVille`, `DifferenceDeQuinzaine`, `TraceDeQuinzaine`). Le jeu **garde**, pour les trois dernières
+quinzaines, la photographie de la ville au début (`InstantaneDeQuinzaine`) et les faits (`FaitDeMonde`) ; il **ne garde aucune
+scène** — la chorégraphie se recalcule, identique à chaque lecture. Cinq règles, dont dépend la confiance qu'on lui doit :
+**une scène illustre un fait, elle n'en crée pas** (sans fait, une routine de métier) ; **le jour n'a aucune valeur
+mécanique** — qu'un convoi parte le quatrième ou le neuvième jour est une mise en scène, stable et sans conséquence ; **l'ordre
+du cycle est respecté** (un convoi repart après être rentré, un chantier s'achève le dernier jour) ; on ne montre **pas** ce que
+le jeu ne tient pas ; **le film est identique** à chaque lecture. **Les faits se déduisent de deux photographies**, avant et
+après, **jamais d'un texte du journal** : un chantier disparu s'est achevé, un convoi qui repart a un retour plus lointain,
+un chef qui n'est plus en poste est parti — comme les écarts du récapitulatif. **Seuls les chefs, les Medjaÿ, le chef de
+famille et le
+rival sont de vraies personnes** : les maisons et les travailleurs sont dits *représentatifs* — le jeu compte des
+habitants (`Population`), pas des individus. La liste « Les gens de la ville » est la voie équivalente du visuel, et
+une fiche dont la clé ne désigne rien **dans cette ville** (un chef d'une autre partie, une maison inexistante) rend
+une 404.
+
+**Un chef et un Medjaÿ portent un prénom, tiré une fois et gardé** (`Prenoms`, `Employee::prenom`,
+`Medjay::prenom`, décision de la joueuse du 2026-11-16, qui **remplace** « il n'a pas de nom »). La raison est
+double : un nom s'attache — c'est ce qui rend la ville habitée regardable —, et **un nom ne doit pas bouger sous
+les yeux du joueur**. D'où le choix de **le stocker** plutôt que de le déduire : déduit du rang, il se décalerait
+dès qu'un chef plus ancien part ; déduit de l'identifiant, il ne garantirait pas l'unicité avec si peu de
+prénoms. **Un prénom n'est porté qu'une fois dans une ville** (chefs, Medjaÿ, chef de famille, candidats d'une
+annonce ouverte, rival) ; fonds épuisé, on ajoute la **filiation** (« Hori, fils de Sennedjem »), qui est la
+manière dont les Égyptiens se distinguaient. Les Medjaÿ tirent dans le fonds **masculin**. Le fonds des gens
+**exclut les hauts fonctionnaires identifiés** de `PrenomEgyptien` (un chef de grenier ne doit pas laisser entendre
+qu'il *est* Rekhmirê) ; ils restent réservés aux héritiers, **dont l'ordre ne bouge pas** — `selonLaGraine()`
+indexe `tous()`. Les chefs d'avant le lot n'en ont pas : `Prenoms::completer()`, **idempotent**, leur en donne un
+au passage de quinzaine, et le gabarit se rabat d'ici là sur la désignation par bâtiment. Une annonce se lit encore
+sans la clé `prenom`.
+
 **Un bâtiment réclame ses travailleurs, chef ou non** (`Effectifs`, décision de
 la joueuse du 2026-10-08, qui remplace le « rien ne s'éteint faute d'employés »
 du lot 4.5). L'équipage de base d'un bâtiment — `travailleursParChef(type, niveau)` —

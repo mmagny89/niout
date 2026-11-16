@@ -17,8 +17,15 @@
    eux, ils passaient au-dessus de la fenêtre (`z-30`) — le Temple s'ouvrait
    *sous* les sprites de la ville. En ligne, comme le rapport du visuel : pas
    de dépendance à la compilation de la CSS. #}
+{% set libelles = {lecture: 'Rejouer la quinzaine', pause: 'Pause', reprendre: 'Reprendre'} %}
 <div class="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden bg-sable-100 p-2 md:p-4"
-     style="container-type: size; isolation: isolate;">
+     style="container-type: size; isolation: isolate;"
+     {% if filmDeLaVille %}
+         data-controller="ville-vivante"
+         data-ville-vivante-film-value="{{ filmDeLaVille|json_encode }}"
+         data-ville-vivante-libelles-value="{{ libelles|json_encode }}"
+         {% if lancerLeFilm|default(false) %}data-ville-vivante-lancer-value="true"{% endif %}
+     {% endif %}>
     {# Le rapport du visuel est posé **en ligne** et non par une classe Tailwind :
        c'est lui qui donne sa hauteur au conteneur, dont tous les enfants sont
        en `absolute`. Une classe oubliée par la compilation de la CSS le ferait
@@ -26,10 +33,31 @@
     {# `container-type: size` sur le parent, `cqw` / `cqh` ici : le visuel occupe la
        plus grande place qui garde son rapport, sans jamais le déformer — les
        sprites, en pourcentages de ce conteneur, restent calés sur lui. #}
+    {# **La teinte du moment couvre tout le conteneur, pas seulement le visuel.** Posée sur l'image seule, elle dessinait
+       un rectangle bleuté (le soir) ou rosé (l'aube) sur le fond de la page, qui, lui, ne change pas : le bord du
+       visuel se voyait comme un cadre. Sur tout le conteneur, le fond suit le ciel et la ville s'y fond. Sous les
+       boutons (`z-[1000]`), au-dessus des silhouettes (`z-index` jusqu'à 768). #}
+    {% if filmDeLaVille %}
+    <div hidden data-ville-vivante-target="ciel" aria-hidden="true"
+                 class="pointer-events-none absolute inset-0 z-[900]"
+                 style="mix-blend-mode: multiply; background-color: rgb(255 255 255); transition: background-color 900ms linear;"></div>
+    {% endif %}
     <div class="relative" style="aspect-ratio: 1376 / 768; width: min(100cqw, 100cqh * 1376 / 768);">
         <img src="{{ asset(vueDeLaVille.visuel) }}" alt=""
              width="1376" height="768"
              class="pointer-events-none absolute inset-0 size-full select-none object-contain">
+
+        {# Le moment de la journée, **sur la ville** quand le film joue : une teinte (aube rosée, soir bleuté — fondue
+           par `multiply`, donc sans effet sur le matin) et une pastille qui le dit en toutes lettres. Au-dessus des
+           silhouettes (leur `z-index` monte à 768), sous les boutons (`z-[1000]`). Décor : `aria-hidden`, le curseur
+           de la barre porte déjà le moment dans son `aria-valuetext`. #}
+        {% if filmDeLaVille %}
+            <p hidden data-ville-vivante-target="moment" aria-hidden="true"
+               class="pointer-events-none absolute left-1/2 top-2 z-[950] flex -translate-x-1/2 items-center gap-2 rounded-full border border-ocre-500/30 bg-sable-50/90 px-3 py-1 text-sm text-encre-800 shadow-sm">
+                <span data-ville-vivante-target="momentPastille" class="size-2.5 rounded-full" style="background-color: #f6d365;"></span>
+                <span data-ville-vivante-target="momentTexte">Matin</span>
+            </p>
+        {% endif %}
 
         {% for e in vueDeLaVille.emplacements %}
             {% if e.decor %}
@@ -53,15 +81,79 @@
                    style="left: {{ e.gauche }}%; top: {{ e.haut }}%; width: {{ e.largeur }}%; z-index: {{ e.profondeur }};">
                     <img src="{{ asset(e.sprite) }}" alt="" loading="lazy" decoding="async"
                          class="block w-full select-none">
+                    {# Un chantier en cours : un échafaudage, de la poussière qui monte, un coup de maillet. Pur décor
+                       (`aria-hidden`), immobile sous `prefers-reduced-motion` ; ce qu'il dit est au texte de la liste. #}
+                    {% if e.chantier %}
+                        <span class="chantier pointer-events-none absolute inset-x-[18%] bottom-[8%] block" aria-hidden="true" style="height: 62%;">
+                            <svg viewBox="0 0 100 70" class="size-full" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color: rgb(120 72 36);">
+                                <path d="M10 68 V12 M90 68 V12 M10 24 H90 M10 46 H90 M10 68 L50 24 L90 68 M10 24 L50 46 L90 24"/>
+                            </svg>
+                            <span class="chantier__poussiere" style="left: 22%; --d: 0s;"></span>
+                            <span class="chantier__poussiere" style="left: 48%; --d: 0.7s;"></span>
+                            <span class="chantier__poussiere" style="left: 70%; --d: 1.4s;"></span>
+                        </span>
+                    {% endif %}
                 </a>
             {% endif %}
         {% endfor %}
+
+        {# Les gens de la ville : des silhouettes devant leur bâtiment, du décor pour
+           qui voit — la liste du bouton ci-dessous dit tout, sans image. #}
+        {% if gensDeLaVille %}
+            {{ include('partie/_symboles_de_figures.html.twig') }}
+            {{ include('partie/_figures_de_la_ville.html.twig') }}
+            {# Le film de la quinzaine passée : un calque caché, que le contrôleur dévoile. #}
+            {% if filmDeLaVille %}
+                {{ include('partie/_film_de_la_ville.html.twig') }}
+            {% endif %}
+        {% endif %}
     </div>
 
-    <div class="pointer-events-none absolute left-2 top-2 flex items-center gap-2 rounded-sm border border-ocre-500/30
+    <div class="pointer-events-none absolute left-2 top-2 z-[1000] flex items-center gap-2 rounded-sm border border-ocre-500/30
                 bg-sable-50/90 px-2.5 py-1.5 text-sm shadow-sm md:left-4 md:top-4 md:px-3 md:py-2">
         <h1 class="font-display text-sm text-encre-900 md:text-base">{{ ville.nom }}</h1>
     </div>
+
+    {% if gensDeLaVille %}
+        {# La voie de téléphone et de lecteur d'écran, et celle de tout le monde pour
+           lire la ville : 44 px de haut, toujours là. La mention dit ce que
+           l'image est — une reconstitution, le jeu ne suit pas chaque habitant. #}
+        <div class="absolute left-2 top-14 z-[1000] flex max-w-[15rem] flex-col items-start gap-1 md:left-4 md:top-[4.5rem]">
+            <a href="{{ path('app_partie_gens', {id: partie.id}) }}"
+               data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"
+               class="inline-flex min-h-11 items-center rounded-sm border border-ocre-500/30 bg-sable-50/90 px-3 py-2 text-sm
+                      text-lapis-500 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+                Les gens de la ville
+            </a>
+            <a href="{{ path('app_partie_monde', {id: partie.id}) }}"
+               data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"
+               class="inline-flex min-h-11 items-center rounded-sm border border-ocre-500/30 bg-sable-50/90 px-3 py-2 text-sm
+                      text-lapis-500 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+                Le monde
+            </a>
+            <p class="pointer-events-none rounded-sm bg-sable-50/95 px-2 py-0.5 text-xs text-encre-600">
+                Image reconstituée — le jeu ne suit pas chaque habitant.
+            </p>
+            {% if gensDeLaVille.jour %}
+                <p class="rounded-sm border border-terre-500/40 bg-sable-50/90 px-2 py-1 text-xs text-encre-700" role="status">
+                    Jour {{ gensDeLaVille.jour }} de la quinzaine passée, {{ gensDeLaVille.momentLibelle|lower }}.
+                    <a href="{{ path('app_partie_carte', {id: partie.id, vue: 'ville'}) }}" data-turbo-frame="_top"
+                       class="text-lapis-500 underline underline-offset-2">Revenir à maintenant</a>
+                </p>
+            {% endif %}
+        </div>
+
+        {% if filmDeLaVille %}
+            {{ include('partie/_barre_de_lecture.html.twig', {libelles: libelles, jourInitial: gensDeLaVille.jour ?? 1}) }}
+        {% endif %}
+
+        {% if gensDeLaVille.auxChamps > 0 %}
+            <p class="pointer-events-none absolute bottom-2 left-2 z-[1000] rounded-sm border border-ocre-500/30 bg-sable-50/90 px-2.5 py-1.5 text-sm
+                      text-encre-700 shadow-sm md:bottom-4 md:left-4">
+                Aux champs : {{ gensDeLaVille.auxChamps }}
+            </p>
+        {% endif %}
+    {% endif %}
 
     <a href="{{ path('app_partie_carte', {id: partie.id}) }}" data-turbo-frame="_top"
        class="absolute right-2 top-2 z-[1000] rounded-sm border border-ocre-500/30 bg-sable-50/90 px-3 py-2 text-sm

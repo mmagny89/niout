@@ -423,7 +423,7 @@ final class FenetreTest extends WebTestCase
         self::assertSame('app_partie_carte', $crawler->filter('turbo-frame#barre input[name="retour"]')->attr('value'));
     }
 
-    public function testLaQuinzaineRouvreLaFenetreOuElleEtait(): void
+    public function testLaQuinzaineRefermeLaFenetreEtMeneALaVille(): void
     {
         $client = static::createClient();
         $partie = $this->partie($client, 'fenetre-cycle@example.com');
@@ -439,10 +439,12 @@ final class FenetreTest extends WebTestCase
             'ouvre' => $cite,
         ]);
 
+        // La fenêtre masquerait la ville et ses habitants : on la referme, et le film se joue.
         self::assertResponseRedirects();
         $lieu = (string) $client->getResponse()->headers->get('Location');
-        self::assertStringContainsString('ouvre=', $lieu);
-        self::assertStringContainsString('ouvre='.$cite, urldecode($lieu));
+        self::assertStringNotContainsString('ouvre=', $lieu);
+        self::assertStringContainsString('vue=ville', $lieu);
+        self::assertStringContainsString('film=1', $lieu);
     }
 
     public function testUnAutreJoueurNeVoitPasLaFenetre(): void

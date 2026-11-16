@@ -10,17 +10,28 @@
         {% endfor %}
         {% for type, style in typesDeFlash %}
             {% for message in app.flashes(type) %}
+                {# Un message est une petite carte, comme le récapitulatif de la quinzaine : un pictogramme, un titre, un détail.
+                   Le texte reste entier (la liaison est en `sr-only`) : seul l'œil voit deux étages (`MessagesDeJeuExtension`). #}
+                {% set carte = message_de_jeu(message, type) %}
                 <div role="{{ style == 'bad' ? 'alert' : 'status' }}" data-controller="flash"
-                     class="pointer-events-auto flex w-full max-w-xl items-start gap-3 rounded-sm border-l-4 px-4 py-3 text-sm shadow-lg
-                            {{ style == 'bad'
-                                ? 'border-terre-500 bg-terre-50 text-terre-700'
-                                : 'border-lapis-500 bg-sable-50 text-lapis-600' }}">
-                    <span class="flex-1">{{ message }}</span>
-                    <button type="button" data-action="flash#fermer"
-                            class="shrink-0 rounded-sm px-2 text-lg leading-none text-encre-500 hover:text-terre-600"
-                            aria-label="Fermer ce message">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                     class="message-de-jeu pointer-events-auto w-full max-w-xl overflow-hidden rounded-sm border bg-sable-50 shadow-xl
+                            {{ style == 'bad' ? 'border-terre-500/50' : 'border-ocre-500/40' }}">
+                    <div class="flex items-center gap-3 px-4 py-3 {{ style == 'bad' ? 'bg-terre-500/10' : 'bg-ocre-300/15' }}">
+                        {{ include('partie/_pictogramme.html.twig', {nom: carte.icone, taille: 40}) }}
+                        <p class="min-w-0 flex-1">
+                            {#- Aucun blanc entre les trois : le texte lu redonne le message d'origine, à la lettre. -#}
+                            <span class="block font-display text-lg leading-tight text-encre-900">{{ carte.titre }}</span>
+                            {%- if carte.detail -%}
+                                <span class="sr-only">{{ carte.liaison }}</span>
+                                {%- if carte.detail %}<span class="mt-0.5 block text-sm text-encre-600">{{ carte.detail }}</span>{% endif -%}
+                            {%- endif %}
+                        </p>
+                        <button type="button" data-action="flash#fermer"
+                                class="shrink-0 rounded-sm px-2 text-2xl leading-none text-encre-500 hover:text-terre-600 max-md:min-h-11 max-md:min-w-11"
+                                aria-label="Fermer ce message">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
                 </div>
             {% endfor %}
         {% endfor %}

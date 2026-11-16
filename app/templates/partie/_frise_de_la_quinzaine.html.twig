@@ -1,0 +1,172 @@
+{# La frise de la quinzaine passée : ses jours, ses fêtes, ce qui s'y est passé
+   (`App\Game\Choregraphie`, lot V2 de `plan-pnj-ville-vivante.md`).
+
+   **Une reconstitution, et elle le dit** : le jeu résout une quinzaine d'un bloc ;
+   le jour où un convoi part est une mise en scène, stable mais **sans valeur de
+   règle**. On n'en tire rien sur les règles.
+
+   **Sans JavaScript** : chaque jour est un lien qui recharge la ville sur ce jour
+   (`?jour=4&moment=1`) en gardant la fenêtre ouverte (`ouvre`). Un lien, un
+   `aria-current`, 44 px — rien d'autre. La lecture animée est un autre lot.
+
+   Variables : `frise` (la quinzaine, ou null), `jour` (le jour affiché, ou null pour
+   « maintenant »), `moment`, `cle` (la fiche ouverte, ou null), `moments`. #}
+{% if frise %}
+    {% import 'partie/_icones_de_lecture.html.twig' as icones %}
+    {% macro adresse(partie, jour, moment, cle) %}
+        {{- path('app_partie_carte', {
+            id: partie.id, vue: 'ville', jour: jour, moment: moment,
+            ouvre: path('app_partie_gens', {id: partie.id, jour: jour, moment: moment, cle: cle}),
+        }) -}}
+    {% endmacro %}
+
+    <section class="mt-6" aria-labelledby="frise-titre">
+        <h3 id="frise-titre" class="text-xs font-medium uppercase tracking-wide text-encre-500">La quinzaine passée, jour par jour</h3>
+        <p class="mt-1 text-sm text-encre-600">
+            Une reconstitution : le jeu résout une quinzaine d'un bloc, et le jour où les choses se passent est une mise en scène,
+            sans valeur de règle.
+        </p>
+
+        <ol class="mt-3 flex list-none flex-wrap gap-1.5 p-0" data-chiffres>
+            <li>
+                <a href="{{ path('app_partie_carte', {id: partie.id, vue: 'ville', ouvre: path('app_partie_gens', {id: partie.id, cle: cle})}) }}"
+                   data-turbo-frame="_top" {{ null == jour ? 'aria-current="true"' }}
+                   class="inline-flex min-h-11 items-center rounded-sm border px-3 text-sm
+                          {{ null == jour ? 'border-terre-500 bg-ocre-300/40 text-encre-900' : 'border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20' }}
+                          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+                    Maintenant
+                </a>
+            </li>
+            {% for j in 1..frise.jours %}
+                {# Le détail du jour, en vraie infobulle (`infobulle_controller.js`) : ce qui s'y est passé, puis où l'on a parlé.
+                   Elle se montre au survol **et au focus clavier**, et le lien la désigne (`aria-describedby`) : même texte pour le lecteur d'écran. #}
+                {# Le jour de fête est déjà marqué par ★ : son seul « événement » est la fête, pas un second point. #}
+                {% set autres_evenements = (frise.evenements[j] ?? [])|length - (j == frise.jourDeFete ? 1 : 0) > 0 %}
+                <li data-controller="infobulle">
+                    <span id="detail-jour-{{ j }}" role="tooltip" hidden data-infobulle-target="contenu"
+                          class="pointer-events-none w-max max-w-64 rounded-sm border border-ocre-500/40 bg-encre-900 px-3 py-2 text-left text-xs leading-snug text-sable-50 shadow-md">
+                        <strong class="block text-sm font-medium">Jour {{ j }}{% if j == frise.jourDeFete %} · <span class="text-or-500">★ {{ frise.fete }}</span>{% endif %}</strong>
+                        {% if frise.evenements[j] is defined %}
+                            <ul class="mt-1 list-disc space-y-0.5 pl-4">
+                                {% for phrase in frise.evenements[j] %}<li>{{ phrase }}</li>{% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if frise.conversations[j] is defined %}
+                            <ul class="mt-1 list-none space-y-0.5 p-0 text-sable-200">
+                                {% for conversation in frise.conversations[j] %}
+                                    <li>Conversation : {{ conversation.moment|lower }}, {{ conversation.lieu|lower }}{{ 'ambiance' == conversation.nature ? ' (ambiance)' : '' }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if frise.evenements[j] is not defined and frise.conversations[j] is not defined %}
+                            <span class="mt-1 block text-sable-200">Un jour ordinaire : chacun à son métier.</span>
+                        {% endif %}
+                    </span>
+                    <a href="{{ _self.adresse(partie, j, moment, cle) }}" data-turbo-frame="_top"
+                       {{ j == jour ? 'aria-current="true"' }}
+                       aria-describedby="detail-jour-{{ j }}"
+                       data-infobulle-target="ancre"
+                       data-action="mouseenter->infobulle#montrer mouseleave->infobulle#cacher focus->infobulle#montrer blur->infobulle#cacher keydown.esc->infobulle#cacher"
+                       aria-label="Jour {{ j }}{{ j == frise.jourDeFete ? ', jour de fête' : '' }}{{ autres_evenements ? ', des événements' : '' }}{{ frise.conversations[j] is defined ? ', des conversations' : '' }}"
+                       class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm border px-2 text-sm
+                              {{ j == jour ? 'border-terre-500 bg-ocre-300/40 text-encre-900' : 'border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20' }}
+                              focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+                        <span class="flex flex-col items-center leading-none">
+                            <span>{{ j }}{% if j == frise.jourDeFete %}<span aria-hidden="true" class="ml-0.5 text-or-500">★</span>{% endif %}</span>
+                            {# Ce que le jour porte : un point pour ce qui s'y est passé, un second pour ce qui s'y est dit. #}
+                            <span aria-hidden="true" class="mt-1 flex h-1.5 gap-0.5">
+                                {% if autres_evenements %}<span class="size-1.5 rotate-45 bg-terre-500"></span>{% endif %}
+                                {% if frise.conversations[j] is defined %}<span class="size-1.5 rounded-full border border-lapis-500"></span>{% endif %}
+                            </span>
+                        </span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ol>
+        <p class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-encre-500" aria-hidden="true">
+            <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rotate-45 bg-terre-500"></span>un événement</span>
+            <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full border border-lapis-500"></span>une conversation</span>
+            <span class="inline-flex items-center gap-1.5"><span class="text-or-500">★</span>jour de fête</span>
+        </p>
+
+        {% if jour %}
+            {% set couleurs = ['#f4a261', '#f6d365', '#f0a030', '#4b5fa8'] %}
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                {% set precedent = jour > 1 ? jour - 1 : null %}
+                {% set suivant = jour < frise.jours ? jour + 1 : null %}
+                {% set bouton = 'inline-flex size-11 items-center justify-center rounded-sm border border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20
+                                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500' %}
+                {% if precedent %}
+                    <a href="{{ _self.adresse(partie, precedent, moment, cle) }}" data-turbo-frame="_top" aria-label="Revenir au jour précédent" title="Jour précédent" class="{{ bouton }}">
+                        {{ icones.icone('jour-precedent') }}
+                    </a>
+                {% else %}
+                    <span class="{{ bouton }} opacity-40" aria-hidden="true">{{ icones.icone('jour-precedent') }}</span>
+                {% endif %}
+
+                {% if suivant %}
+                    <a href="{{ _self.adresse(partie, suivant, moment, cle) }}" data-turbo-frame="_top" aria-label="Passer au jour suivant" title="Jour suivant" class="{{ bouton }}">
+                        {{ icones.icone('jour-suivant') }}
+                    </a>
+                {% else %}
+                    <span class="{{ bouton }} opacity-40" aria-hidden="true">{{ icones.icone('jour-suivant') }}</span>
+                {% endif %}
+                <ol class="flex list-none flex-wrap gap-1.5 p-0" aria-label="Moment de la journée">
+                    {% for m in moments %}
+                        <li>
+                            <a href="{{ _self.adresse(partie, jour, m.value, cle) }}" data-turbo-frame="_top"
+                               {{ m.value == moment ? 'aria-current="true"' }}
+                               class="inline-flex min-h-11 items-center gap-2 rounded-sm border px-3 text-sm
+                                      {{ m.value == moment ? 'border-terre-500 bg-ocre-300/40 text-encre-900' : 'border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20' }}
+                                      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+                                <span aria-hidden="true" class="size-2.5 rounded-full" style="background-color: {{ couleurs[m.value] ?? '#999' }}"></span>
+                                {{ m.libelle }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ol>
+
+            </div>
+
+            <div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-3 text-sm" role="status">
+                <p class="font-medium text-encre-900">Jour {{ jour }} sur {{ frise.jours }}</p>
+                {% if frise.evenements[jour] is defined %}
+                    <ul class="mt-1.5 list-disc space-y-1 pl-5 text-encre-700">
+                        {% for phrase in frise.evenements[jour] %}
+                            <li>{{ phrase }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="mt-1 text-encre-600">Un jour ordinaire : chacun à son métier.</p>
+                {% endif %}
+
+                {# Les conversations du jour, en texte : **les mêmes que les bulles** de la ville, pour qui
+                   ne les voit pas — téléphone, lecteur d'écran. Un fait dit vrai, ou une ambiance déclarée. #}
+                {% if frise.conversations[jour] is defined %}
+                    <p class="mt-3 text-xs font-medium uppercase tracking-wide text-encre-500">Ce qu'on s'est dit</p>
+                    <ul class="mt-1 list-none space-y-2 p-0">
+                        {% for conversation in frise.conversations[jour] %}
+                            <li class="text-encre-700">
+                                <span class="text-encre-500">{{ conversation.moment }}, {{ conversation.lieu|lower }}{{ 'ambiance' == conversation.nature ? ' (ambiance)' : '' }} :</span>
+                                {% for ligne in conversation.lignes %}
+                                    <br><span class="font-medium text-encre-900">{{ ligne.qui }}</span> — « {{ ligne.texte }} »
+                                {% endfor %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if frise.enCours is not empty %}
+            <div class="mt-3 text-sm text-encre-700">
+                <p class="text-xs font-medium uppercase tracking-wide text-encre-500">Pendant toute la quinzaine</p>
+                <ul class="mt-1 list-disc space-y-1 pl-5">
+                    {% for phrase in frise.enCours %}
+                        <li>{{ phrase }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </section>
+{% endif %}

@@ -17,6 +17,9 @@
    retomber sur la première section. Tout le contenu reste dans le document,
    seulement masqué.
 
+   **Un lien peut viser une section** : `path('app_partie_ville', {onglet: 'residence_familiale', section: 'mission'})`.
+   La section demandée l'emporte sur la mémoire ; une clé inconnue de la barre est ignorée.
+
    Le cinquième argument de `debut` (`retenir`, vrai par défaut) coupe la mémoire :
    la carte l'éteint, car cliquer une case recharge la page et doit rouvrir le
    détail de cette case, pas le dernier onglet regardé.
@@ -25,7 +28,11 @@
    test de structure des onglets de la ville ne regarde que `panneau-*`. #}
 
 {% macro debut(prefixe, partieId, libelle, sections, retenir = true) %}
+{# La section demandée par l'adresse (`?section=mission`) : lue ici, jamais affichée telle quelle — le contrôleur
+   la confronte aux onglets réellement rendus. Un tableau (`section[]=…`) ou une chaîne vide ne demandent rien. #}
+{% set demandee = app.request.query.all['section'] ?? '' %}
 <div data-controller="onglets"
+     {% if demandee is not iterable and demandee != '' %}data-onglets-demande-value="{{ demandee }}"{% endif %}
      {% if retenir %}data-onglets-memoire-value="{{ prefixe }}-{{ partieId }}"{% endif %}
      data-onglets-actif-class="border-terre-500 text-terre-600"
      data-onglets-inactif-class="border-transparent text-encre-500">
