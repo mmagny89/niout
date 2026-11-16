@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Le chef des scribes remet le dossier en ordre.** Sous les indices d'une enquête en cours (deux au moins), il dit « J'ai relu le
+  dossier : N choses notées, dans l'ordre où elles sont venues », les redonne **toutes**, dans l'ordre de la découverte, et
+  demande « Qu'en penses-tu ? » **sans y répondre**. Tout ou rien : il ne choisit jamais ce qu'il rappelle, sinon le choix dirait
+  quels indices comptent. Sans chef nommé ou sans assez d'indices, il se tait.
 - **Un voyageur à l'Auberge, un prêtre au Temple.** Quand une devinette (ou l'oracle) de ce lieu est encore à jouer, une silhouette de
   passage se tient devant le bâtiment, avec une fiche qui invite (« Une devinette, étranger ? ») et mène au bâtiment. Elle s'en
   va quand tout est joué. **Elle ne dit rien de l'énigme** : ni énoncé, ni réponse. C'est du décor, sans nom, que ne rejoue pas la

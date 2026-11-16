@@ -759,6 +759,13 @@ du jeu. **Aucune réplique ne donne un chiffre, un prix, un lieu de gisement ni 
 sait déjà et le montre ailleurs. Écrire de nouvelles répliques, c'est enrichir `Dialogues::catalogue()`, jamais composer du texte à la
 volée ; les garde-fous sont dans `DialoguesTest`. **Ce lot ne touche ni aux enquêtes ni aux énigmes.**
 
+**La mémoire du dossier : tout nommer, ou rien** (lot I4, `MemoireDuDossier`). Le chef de la Maison des scribes remet sous les yeux
+les indices d'un dossier **en cours** : **chacun**, dans l'ordre où il a été versé, avec la phrase même du dossier, puis la
+question fixe « Qu'en penses-tu ? ». **Choisir ce qu'on rappelle trahirait la nature** (ne citer que les concordants dirait
+tout) : la phrase d'introduction et la question sont donc **identiques pour tout dossier**, seul le nombre change, et aucun mot de
+jugement n'y entre. Elle ne répond pas, ne crée rien (le dossier est identique avant et après), et se tait avec moins de deux
+indices, sur un dossier clos, ou sans chef nommé. `MemoireDuDossierTest` rejoue toutes les paires d'indices de chaque enquête.
+
 **Les silhouettes de passage** (lot I2, `VisiteurDePassage`, `RoleDeFigure::Voyageur` et `Pretre`). Le doc 10 veut que le lieu décide
 d'où se dit une énigme : un voyageur se tient à l'Auberge, un prêtre au Temple, **seulement tant qu'une énigme de ce lieu est
 jouable** (bâtiment debout, énigme non tentée — `Enigme::disponiblesPour()`). La Maison des scribes n'a pas la sienne. **Ce n'est
