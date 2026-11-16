@@ -139,3 +139,14 @@ test d'écran ne le voie.
 - **Verrous tenus** : `IndiceTest` (aucun mot de nature, aucun chiffre, fidélité au texte) ; la trace ne garde que la valeur de l'indice.
 - **Piège payé** : la première parole du charpentier s'écartait du texte (un seul mot commun) — c'est le test de fidélité qui l'a vu.
 - **Reste** : I1 et I5 (voix des aides), I2 (voyageur, prêtre), I4 (mémoire du dossier, en dernier).
+
+### Lots I1 et I5 — la voix des aides (2026-11-16, dans `develop`)
+
+- **I1** : `VoixDesAides` (`souffle()`, `signesAppris()`). `Enigmes::propositionsEcartees()` est l'unique source de ce que
+  l'Oraculaire écarte ; `propositionsMontrees()` en est dérivée, la voix la nomme. `EffetDeChef::chefDeSpecialite()` donne le chef
+  qui agit, et `chefSpecialise()` s'y appuie : l'aide nommée est celle qui agit.
+- **I5** : l'explication est précédée de la voix du chef des scribes, **sans l'altérer** (testé : texte identique sans chef ou sans prénom).
+  Faute d'I2, le « personnage qui a posé l'énigme » est le chef des scribes, quel que soit le lieu de l'énigme.
+- **Écart au cadrage** : la voix n'est pas au journal de la quinzaine, seulement dans la fenêtre — l'aide agit à l'affichage, pas
+  pendant la quinzaine, donc rien à y rejouer.
+- **Verrous tenus** : identité de la liste écartée / montrée, la bonne réponse jamais nommée, silence sans aide, gabarit unique.
