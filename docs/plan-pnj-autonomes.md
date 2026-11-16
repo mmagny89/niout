@@ -44,7 +44,7 @@ sans lire la raison, c'est repayer.
 - **Un PNJ rogne, il ne détruit rien.** Reprise de la règle des rivaux : un
   effet sur le joueur est **borné, lisible, et a une réponse** — y compris
   « ne rien faire », qui reste une décision. Jamais de bâtiment perdu, de
-  stock vidé ni de travailleur tué par un PNJ.
+  stock vidé ni de travailleur tué par un PNJ. Il peut en revanche **suspendre une capacité** (une route que la guerre ferme), dans des bornes écrites — `plan-pnj-palier-a.md` § 4.4.
 - **Des malades, jamais des morts** (ligne du projet, `Epidemies`). Un PNJ ne
   « meurt » pas à l'écran : son héritier prend la suite, comme la famille du
   joueur (`SuccessionFamiliale`).
@@ -124,6 +124,8 @@ mêmes règles.
 **Le palier A est cadré en détail dans [`plan-pnj-palier-a.md`](plan-pnj-palier-a.md)**
 (choisi le 2026-11-16). On y découvre que A n'a pas besoin du score d'utilité :
 c'est un monde qui subit et réagit, les agents viennent avec B.
+Le palier B est cadré dans [`plan-pnj-palier-b.md`](plan-pnj-palier-b.md), le palier C
+dans [`plan-pnj-palier-c.md`](plan-pnj-palier-c.md).
 
 **On commence par A, on prouve que le joueur regarde, puis on monte.** C'est la
 seule marche qui ressemble à une « civilisation autonome » ; la bâtir avant de
@@ -221,7 +223,7 @@ d'engager le suivant. Aucune télémétrie n'est envisagée (RGPD).
 | Question | Enjeu | Penchant |
 |---|---|---|
 | **Quel palier d'abord ?** | A seul est peu cher et prouve l'idée | A, puis B ; C seulement si le playtest le réclame |
-| **Les PNJ survivent-ils aux parties ?** (sur `Lignee`) | Retrouver un rival de mission en mission est très fort, mais c'est une entité qui référence le joueur : **aucune cascade ne l'emporte**, il faut l'ajouter à `SuppressionDeCompte` | Non au départ ; relations simples sur `Lignee` plus tard |
+| **Les PNJ survivent-ils aux parties ?** (sur `Lignee`) | Retrouver un rival de mission en mission est très fort, mais c'est une entité qui référence le joueur : **aucune cascade ne l'emporte**, il faut l'ajouter à `SuppressionDeCompte` | **Décidé le 2026-11-16 : oui, par la lignée** — relations de cités (palier A § 4.3), visages connus (palier B § 7) |
 | **PNJ en Campagne, en Aventure, ou les deux ?** | Aventure (Memphis, règnes successifs) en profite le plus ; en Campagne, les dix missions ont leur propre fiction | Les deux, avec un contenu par mission en Campagne |
 | **Les PNJ se disputent-ils des cases de la carte du joueur ?** | Casserait « rien ne se perd » ; la carte est propre à la partie | Non : ils agissent hors grille, sur les routes et les débouchés |
 | **Les Medjaÿ répondent-ils aux rivaux ?** (déjà ouverte au plan de bataille) | Un monde qui bouge réclame plus d'issues | À rouvrir avec ce chantier |
@@ -236,10 +238,10 @@ d'engager le suivant. Aucune télémétrie n'est envisagée (RGPD).
 | **0** | Ce document et les décisions du § 8 | Cadrage validé |
 | **1** | Socle : entité, graine dérivée, décision pure, chronique structurée, tests de déterminisme. **Un** type de PNJ : les partenaires commerciaux | Un monde qui change les prix, invisible mais mesuré |
 | **2** | « Au loin » dans le récapitulatif, fenêtre du monde, rumeurs par l'Auberge et le Port | **Le premier playtest** : le joueur regarde-t-il ? |
-| **3** | Rivaux persistants et chefs voyageurs | Des visages |
+| **3** | Rivaux persistants et chefs voyageurs — **palier B**, voir [`plan-pnj-palier-b.md`](plan-pnj-palier-b.md) | Des visages |
 | **4** | Cours et succession comme événements de monde | Le long terme en Aventure |
 | **5** | Banc d'essai de monde étoffé ; calibrage | Équilibre |
-| **6** (conditionnel) | Cités autonomes en modèle abstrait | La « civilisation » |
+| **6** (conditionnel) | Cités autonomes en modèle abstrait — **palier C**, voir [`plan-pnj-palier-c.md`](plan-pnj-palier-c.md) | La « civilisation » |
 
 Chaque lot se livre seul et laisse le jeu jouable ; le suivant ne démarre pas
 sans le résultat du playtest précédent.

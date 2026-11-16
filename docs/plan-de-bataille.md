@@ -220,7 +220,7 @@ son attribut Stimulus. Aucun test fonctionnel ne les aurait vus.
 | **Les Medjaÿ répondent-ils aux rivaux commerciaux ?** | Ni le doc 03 ni le doc 08 ne le prévoient. L'enquête reste la seule réponse au rival. À rouvrir si le playtest montre que `Rivaux` manque d'une seconde issue |
 | **Les Medjaÿ partis en expédition couvrent-ils encore les routes ?** | Oui aujourd'hui : le jeu suit leur disponibilité, pas leur position. Les marquer absents demande une colonne, et rendrait une sortie plus coûteuse encore |
 | **Le bonus de renommée passif du niveau 4 de Résidence** | Promis par le doc 01, jamais chiffré, jamais implanté |
-| **Des PNJ qui vivent leur vie, observables dans un écran du monde** | Idée d'attractivité, cadrée mais non engagée : [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md). Le palier à ouvrir en premier et le sort des PNJ entre parties sont à trancher (§ 8 du plan) |
+| **Des PNJ qui vivent leur vie, observables dans un écran du monde** | Idée d'attractivité, cadrée mais non engagée : [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md), paliers [A](plan-pnj-palier-a.md), [B](plan-pnj-palier-b.md) et [C](plan-pnj-palier-c.md). Le palier à ouvrir en premier et le sort des PNJ entre parties sont à trancher (§ 8 du plan) |
 | **Les paramètres de lancement du doc 14** | Point de départ dans la succession et vitesse des règnes ne sont pas offerts. La taille de grille et la difficulté le sont déjà |
 
 **Trois effets de la règle des travailleurs (2026-10-08) n'ont pas été éprouvés** : le **début de

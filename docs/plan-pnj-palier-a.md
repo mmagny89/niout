@@ -40,7 +40,7 @@ où le vendre. Le monde n'est pas un fond d'écran, c'est de l'information jouab
 | `avantageDeNegoce(partie, ?Ressource)` **accepte déjà une ressource** : le carnet de contacts ne joue que sur celles de sa région | `Commerce::avantageDeNegoce()` | Un avantage **par ressource** a déjà son précédent |
 | Un rival rogne un volume, **jamais sous une unité** | `Commerce::apresLeRival()` | Même plancher pour tout effet de monde |
 | Le risque de pillage existe, borné, par bande de la région | `Commerce::risqueDePillage()` | Un événement « troubles » ne peut que **s'y ajouter, plafonné et affiché avant l'engagement** |
-| **Aucune graine n'est stockée.** Tout le hasard passe par un `Randomizer` injecté, non semé en production | `Rivaux`, `Epidemies`, `TirageDeLaCrue`… | **Prérequis bloquant** (§ 4.1) : sans graine, une conjoncture déduite ne se rejoue pas |
+| **Aucune graine de monde n'est stockée.** Le hasard passe par un `Randomizer` injecté, non semé en production ; seule `Family::graineDesHeritiers` garde une graine, **pour les héritiers seulement**, remise à zéro après usage | `Rivaux`, `Epidemies`, `TirageDeLaCrue`, `Family` | **Prérequis bloquant** (§ 4.1) : sans graine de partie, une conjoncture déduite ne se rejoue pas. Le précédent existe : on garde la graine, pas le tirage |
 | `CategorieDEvenement` a `Commerce`, `Rivaux`, `Royaume`, mais **rien pour le lointain** | `CategorieDEvenement` | Une catégorie à ajouter, avec son pictogramme |
 | Cross-partenaire : Thèbes **vend** des tissus, Pount en **achète** (sous Hatchepsout) | `CataloguePartenaires` | Des boucles d'arbitrage existent déjà, bornées par les fenêtres de 150 %/200 % et par le coût des routes. **La conjoncture ne doit pas les élargir** |
 
@@ -67,11 +67,11 @@ fourchettes se déduisent, jamais d'une table par partenaire et par ressource »
 Dix partenaires par vingt-cinq ressources feraient des centaines de nombres à
 tenir ; une règle et une graine n'en demandent aucun.
 
-**À trancher à l'implantation** : `AvantageDeNegoce::total()` borne aujourd'hui
+**Décidé (2026-11-16) : l'avantage signé.** `AvantageDeNegoce::total()` borne aujourd'hui
 ses sources à zéro au moins (`max(0, $autresSources)`). Accepter un avantage
 **négatif** jusqu'à −20 touche tous les appelants et leurs tests ; l'alternative
 est de ne porter que le positif et de rendre le défavorable par une **baisse
-d'empressement** séparée. Penchant : l'avantage signé, plus simple à expliquer
+d'empressement** séparée. Retenu parce que c'est plus simple à expliquer
 (« −8 points sur le lin chez Byblos »).
 
 ## 4. Trois couches, dont deux se déduisent
@@ -122,10 +122,48 @@ Un événement a une **cause lisible** (c'est le « pourquoi » de la V1) et un
 | **Foire** | Un marché saisonnier | + empressement général, durée courte |
 | **Troubles sur la route** | Une piste moins sûre | + risque de pillage, **plafonné** et **affiché avant** le départ |
 | **Besoin d'un ouvrage** | Un chantier royal, une guerre qui appelle des armes | + conjoncture sur outils, armes, ou pierre |
+| **Guerre** | Une cité entre en guerre, ou son voisin l'attaque *(décidé le 2026-11-16 : une cité peut fermer durablement)* | Route **fermée** pour **10 à 30 quinzaines**, sous les garde-fous du § 4.4 |
 
 Le **plancher de 50 %** est celui des épidémies (« des malades, jamais des
-morts ») transposé : un événement de monde **ralentit**, il **ne ferme pas** —
-exactement comme « un rival gêne, il ne ferme pas une route ».
+morts ») transposé : un événement ordinaire **ralentit**, il **ne ferme pas** —
+exactement comme « un rival gêne, il ne ferme pas une route ». **La guerre est
+la seule exception**, voulue, et c'est pour cela qu'elle a son propre cadre.
+
+### 4.4 La fermeture durable : ce que la guerre peut faire, et ce qu'elle ne peut pas
+
+**Décidé le 2026-11-16 : une cité peut fermer durablement.** Une fermeture est un
+événement rare, lisible de loin, et **jamais une impasse** :
+
+- **Un préavis d'une quinzaine au moins.** La guerre s'annonce (rumeur, étal,
+  récapitulatif) avant de fermer : le joueur a le temps d'expédier ce qu'il veut.
+  Une fermeture qui tombe sans prévenir punit un joueur qui n'a rien pu faire.
+- **Un convoi parti arrive.** Aucun convoi en route n'est perdu ni détourné : il
+  fait son échange comme prévu. La fermeture ne bloque que **les départs
+  suivants**.
+- **Rien n'est repris.** La route reste **ouverte en base**, ses ordres restent
+  posés, aucune réouverture ne se paie. L'étal est mis **en sommeil** et le dit.
+  Le coût réel de la fermeture, c'est la capacité qui chôme.
+- **Jamais la dernière route.** Une fermeture est **refusée** si elle laisserait la
+  ville sans aucun partenaire atteignable. Le Marché local reste d'ailleurs
+  toujours ouvert (« toute règle qui rendrait le Marché inatteignable fige la
+  partie »).
+- **Un partenaire vital ne ferme pas.** Le catalogue en compte : la mission 9
+  n'a qu'une route, Coptos, *« la seule route du camp : sans elle, rien à
+  manger »* ; la mission 8 n'a que le Bahr Yousef. Ils sont marqués **non
+  fermables** — ils se ralentissent, plancher de 50 % — et un test garde que
+  **chaque mission garde au moins un partenaire non fermable ou deux fermables**.
+- **Une seule adversité à la fois** sur la ville : pas de fermeture pendant qu'un
+  rival est installé sur la même route, ni deux fermetures en même temps.
+- **Une réponse existe.** La fermeture finit d'elle-même (terme de l'événement),
+  ou **se raccourcit** par une sollicitation de paix (A3 : un présent, une
+  ambassade), ou se **contourne** par une autre route. **Ne rien faire** reste une
+  décision.
+- **Une relation élevée adoucit.** À partir d'une relation de **60**, la guerre
+  **ralentit** au lieu de fermer : c'est ce que la lignée (§ 4.3) achète au joueur
+  qui a soigné ses cités.
+- **Les objectifs de mission restent atteints** : « un objectif atteint le reste »
+  (`ObjectifDeMission`). Mais une fermeture longue peut retarder ce qui ne l'est
+  pas encore : à surveiller au playtest, **pas à compenser en silence**.
 
 ### 4.3 La mémoire de la famille : la seule couche stockée
 
@@ -137,13 +175,59 @@ Deux petites choses ne se déduisent pas, parce qu'elles viennent **du joueur** 
   et **s'érode** d'un tiers par quinzaine. C'est ce qui fait que **le monde
   répond** et qu'on ne vide pas une conjoncture favorable en un seul ordre
   permanent. C'est aussi le meilleur garde-fou contre l'exploitation.
-- **La relation** de la famille avec la cité, de 0 à 100. Elle monte avec les
-  convois menés à bien, **redescend vers un neutre — jamais en dessous** : ne rien
-  faire est une décision, pas une faute. Elle ouvre un **petit avantage**
-  (0 à 10 points au plus), **dans le plafond commun** et **sans cumul avec le
-  contact** de la même région (`CarnetDeContacts`) au-delà de ce plafond.
+- **La relation** de la famille avec la cité, de 0 à 100. **Décidé le
+  2026-11-16 : elle survit aux parties, par la lignée, et nourrit le carnet de
+  contacts.** Elle monte avec les convois menés à bien et **redescend vers un
+  plancher — jamais en dessous** : ne rien faire est une décision, pas une faute.
+  Elle ouvre un **petit avantage** (0 à 10 points au plus, `relation / 10`),
+  **dans le plafond commun de 40**.
 
 Deux écritures par quinzaine et par route, un seul `flush`.
+
+#### La relation et la lignée : le modèle de la renommée, à l'identique
+
+La renommée a déjà résolu ce problème (arbitrage 9.0), et la relation **le
+copie** plutôt que d'en inventer un autre :
+
+| | Renommée | Relation |
+|---|---|---|
+| **Jauge vivante**, propre à la partie, qui bouge | `Family::renommee` | `EtatDePartenaire::relation` |
+| **Acquis**, sur le joueur, **plancher qui ne descend jamais** | `Lignee::renommeeAcquise` | `Lignee::relations` (JSON `{cité: acquis}`, défaut `'{}'`) |
+| **Au lancement** | la jauge démarre à l'acquis | la jauge démarre à l'acquis de la cité |
+| **Au jalon** (mission accomplie, fin de règne) | `Lignees::encaisser()` relève l'acquis | le même geste relève l'acquis de chaque cité, **au plus haut atteint** |
+| **Deux parties de front** | lisent le même acquis, chacune sa jauge | idem : elles ne se contaminent pas |
+
+Conséquences à garder :
+
+- **L'identité d'une cité n'est pas la clé d'une route.** `byblos` (mission 1) et
+  `byblos-levant` (mission 4) sont la même cité ; `coptos` et `coptos-desert` aussi ;
+  `memphis` et `memphis-amont` aussi. Il faut une **identité de cité** dans
+  `CataloguePartenaires` (un champ, pas une table), et la relation se range sous
+  elle. Sans elle, la relation de Byblos se perdrait entre deux missions — ce que la
+  décision cherche précisément à éviter.
+- **Un acquis plafonné à 50.** Les 50 points suivants se gagnent **dans la
+  partie**. C'est la réponse déjà notée au plan de bataille : *« si le bac à sable
+  devient le chemin court vers une campagne facile, le remède sera un plafond, pas
+  un cloisonnement »*. Valeur inventée, au § 12.
+- **L'avantage reste sous le plafond commun de 40**, quelle que soit la lignée : une
+  relation héritée ne peut pas rendre l'import gratuit.
+- **`Lignee` existe déjà**, et `Security\SuppressionDeCompte` la supprime déjà : une
+  colonne de plus n'ajoute aucune étape de suppression. C'est une **colonne JSON
+  avec défaut `'{}'`** (règle des migrations, § 8).
+
+#### Le carnet de contacts : la relation en est le prolongement
+
+`CarnetDeContacts` se **déduit** des missions accomplies et donne **2 points** sur
+les ressources de la région. La relation ne le remplace pas, elle le prolonge :
+
+- **Une mission accomplie fixe un plancher de relation de 20** avec les cités de
+  cette mission — « on a bâti chez eux, on y connaît du monde ». Vingt points de
+  relation valent **2 points d'avantage** : c'est exactement la valeur actuelle d'un
+  contact, donc **les tests existants du carnet ne bougent pas**.
+- **Le carnet les affiche** : il liste chaque cité avec sa relation, au lieu de
+  seulement nommer des régions.
+- **Pas de double compte** : pour une même cité et une même ressource, c'est le
+  **plus grand** des deux avantages qui s'applique, pas leur somme. Un test le garde.
 
 ## 5. Les bornes — ce que le monde ne peut jamais faire
 
@@ -155,6 +239,8 @@ C'est la section à relire avant tout calibrage.
 | Avantage total, monde compris | **≤ 40**, `AvantageDeNegoce::PLAFOND_TOTAL` | Au-delà, le plancher d'import rejoint le cours local et les routes ne coûtent plus rien |
 | Plancher d'achat | **jamais sous 110 % du cours local** | Idem : c'est le chiffre qui rend l'import moins rentable que produire |
 | Volume d'une route ralentie | **≥ 50 %** | Plancher des épidémies |
+| Fermeture par guerre | **10 à 30 quinzaines, préavis ≥ 1, jamais la dernière route, jamais un partenaire vital** | § 4.4 : la seule exception au plancher, avec ses garde-fous |
+| Relation héritée de la lignée | **acquis plafonné à 50**, avantage ≤ 10 points, sous le plafond de 40 | Une relation héritée ne doit pas devenir un raccourci |
 | Volume après tout effet | **≥ 1 unité** tant que la route porte quelque chose | Plancher du rival |
 | Convoi en route | **jamais modifié** | Engagement pris |
 | Pillage ajouté par un événement | **+10 points au plus**, affiché avant l'engagement | Le risque est existant et lisible ; il ne devient pas un piège |
@@ -230,15 +316,16 @@ refusée, échue). C'est la troisième et dernière chose persistée au palier A
 | `EtatDePartenaire` | `partie`, `cle`, `relation`, `saturations` (JSON `{ressource: niveau}`) | `GameSave`, cascade `remove` ; créée à la première route ouverte |
 | `Sollicitation` (A3) | `partie`, `cle`, nature, ressource, quantité, échéance, statut | `GameSave`, cascade `remove` |
 | `FaitDeMonde` | `partie`, quinzaine, type, partenaire, ressource nullable, quantité nullable | `GameSave`, cascade `remove`, **purge au-delà de 40 quinzaines** |
+| `Lignee::$relations` | JSON `{identité de cité: acquis}`, défaut `'{}'` | Colonne de `Lignee` : **aucune suppression de plus**, `SuppressionDeCompte` la couvre déjà |
 
 Points de vigilance :
 - **La colonne JSON `saturations` porte un défaut `'{}'`** dans la migration : un
   défaut retiré ne casse rien à l'exécution et fait échouer un test sans rapport
   plus loin (incident déjà payé, règle `tests.md`).
-- Tout est **rattaché à la partie** : rien ne référence `User`,
-  `Security\SuppressionDeCompte` n'est donc pas touchée. Si l'on décide un jour de
-  faire survivre la relation d'une cité **entre les parties**, elle ira sur
-  `Lignee` et devra être ajoutée à la suppression explicite.
+- Tout ce qui est **neuf** est rattaché à la partie : aucune nouvelle entité ne
+  référence `User`. La seule chose qui survit aux parties — l'acquis de relation —
+  vit sur `Lignee`, qui est déjà supprimée explicitement par
+  `Security\SuppressionDeCompte` : rien à ajouter là.
 - `FaitDeMonde` porte des **faits structurés**, jamais du texte : le texte se rend
   en Twig. Une colonne de texte divergerait du fait qu'elle raconte.
 - Un **`flush` unique** par quinzaine, comme le reste de `PassageDeCycle`.
@@ -282,7 +369,7 @@ chose.** C'est la question du playtest (§ 11, après A2).
 | Lot | Contenu | Sortie | Verrou |
 |---|---|---|---|
 | **A0** | Ce document, les décisions du § 13 | Cadrage validé | — |
-| **A1** | **Graine** sur la partie ; `ConjonctureDeMarche` (météo + événements dérivés) ; avantage signé dans `AvantageDeNegoce` ; tests de bornes, de déterminisme et d'arbitrage ; **commande de banc d'essai** | Un monde qui change **déjà** les volumes, **sans écran** | Bornes tenues sur 200 quinzaines |
+| **A1** | **Graine** sur la partie ; **identité de cité** dans le catalogue, `Lignee::$relations` et marque « non fermable » ; `ConjonctureDeMarche` (météo + événements dérivés) ; avantage signé dans `AvantageDeNegoce` ; tests de bornes, de déterminisme et d'arbitrage ; **commande de banc d'essai** | Un monde qui change **déjà** les volumes, **sans écran** | Bornes tenues sur 200 quinzaines |
 | **A2** | Conjoncture dans l'étal ; saturation et relation ; `FaitDeMonde` ; catégorie « Au loin » | **Le premier écran utile** | **Playtest : le joueur s'en sert-il ?** |
 | **A3** | Fenêtre « Le monde », rumeurs par l'Auberge, prévision par le Négociateur, sollicitations | Le monde se regarde | Playtest, mobile et accessibilité |
 | **A4** | Calibrage sur parties réelles ; les valeurs du § 12 passent au § 6 du plan de bataille | Équilibre | — |
@@ -306,16 +393,39 @@ enrichi est lu serait payer le plus cher pour le moins vérifié.
 | Gain de relation par convoi mené à bien | +2 | La vitesse à laquelle une cité s'attache |
 | Avantage maximal de la relation | 10 points | Sa place dans le plafond commun |
 | Retard d'une rumeur | 2 quinzaines | La valeur de l'Auberge |
+| Acquis de relation plafonné | 50 | Ce que la lignée offre d'emblée, et ce qui se gagne en jouant |
+| Plancher de relation d'une mission accomplie | 20 (soit 2 points, la valeur d'un contact) | Garder les tests du carnet inchangés |
+| Durée d'une fermeture par guerre | 10 à 30 quinzaines | Le poids d'une capacité suspendue |
+| Préavis d'une fermeture | 1 quinzaine au moins | Le temps d'expédier |
+| Relation à partir de laquelle la guerre ralentit au lieu de fermer | 60 | Ce que la fidélité d'une cité rapporte |
 
-## 13. Questions ouvertes
+## 13. Décisions (2026-11-16)
 
-| Question | Penchant |
-|---|---|
-| **Avantage négatif dans `AvantageDeNegoce::total()`**, ou baisse d'empressement séparée ? (§ 3) | Avantage signé |
-| **Quelle graine pour les parties existantes ?** | Dérivée de l'identifiant de la partie, à la migration |
-| **La relation survit-elle entre les parties** (`Lignee`), et nourrit-elle `CarnetDeContacts` ? | Non d'abord : une relation propre à la partie, le carnet reste statique |
-| **L'Auberge porte-t-elle les rumeurs ?** (§ 6.3) | Oui, à confirmer avec `interface.md` |
-| **Des événements propres à la Campagne** (un par mission) ou un seul catalogue ? | Un catalogue commun d'abord, des événements propres quand le playtest les réclame |
-| **Une cité peut-elle durablement fermer** (guerre longue) ? | Non : ralentie, jamais fermée — mais c'est la question que le playtest rouvrira |
-| **Les Medjaÿ répondent-ils à un événement « troubles » ?** | Oui, par l'**escorte**, ce qui répond à la question déjà ouverte au plan de bataille — **à cadrer avec `Commerce::risqueDePillage`** |
-| **Et en Aventure (Memphis) ?** | `pourMemphis($regne)` rend des partenaires qui changent avec le pharaon : un changement de règne **retire des cités** de la liste atteignable. Que devient la relation avec elles ? **À étudier avec la succession** avant A3 |
+Les questions ouvertes de la première version sont tranchées. **Deux le sont contre
+le penchant initial**, à la demande de la joueuse ; elles ont chacune leur section.
+
+| Question | Décision | Où |
+|---|---|---|
+| Avantage négatif dans `AvantageDeNegoce::total()`, ou baisse d'empressement séparée ? | **Avantage signé**, de −20 à +20 | § 3 |
+| Quelle graine pour les parties existantes ? | **Dérivée de l'identifiant de la partie**, à la migration | § 4.1 |
+| **La relation survit-elle entre les parties (`Lignee`), et nourrit-elle `CarnetDeContacts` ?** | **Oui** *(contre le penchant « non d'abord »)* | § 4.3 |
+| L'Auberge porte-t-elle les rumeurs ? | **Oui**, à confirmer avec `interface.md` avant de poser quoi que ce soit | § 6.3 |
+| Événements propres à la Campagne, ou un catalogue commun ? | **Un catalogue commun d'abord**, des événements propres quand le playtest les réclame | § 4.2 |
+| **Une cité peut-elle durablement fermer (guerre longue) ?** | **Oui** *(contre le penchant « ralentie, jamais fermée »)*, avec des garde-fous | § 4.4 |
+| Les Medjaÿ répondent-ils à un événement « troubles » ? | **Oui, par l'escorte** ; à cadrer avec `Commerce::risqueDePillage` | § 5 |
+| Et en Aventure : un changement de règne retire des cités de la liste atteignable | **La relation, étant sur la lignée, survit** : la cité réapparaît avec sa relation quand un règne la rouvre. Reste à écrire ce qu'on **dit** au joueur quand elle s'éloigne | § 4.3 |
+
+### Ce que les deux décisions contraires changent au reste du document
+
+- **La relation héritée** déplace du poids vers la lignée : le plafond de l'acquis
+  (50) et le plafond commun (40) deviennent les deux seules protections contre un
+  raccourci de campagne. Ils se testent **sur le catalogue entier**, pas sur un cas.
+- **La fermeture** est la première règle du monde qui **retire une capacité au
+  joueur** (et non un volume). D'où un cadre plus strict que tout le reste du
+  document : préavis, convois épargnés, jamais la dernière route, jamais un
+  partenaire vital, fin garantie, adoucissement par la relation. Si le playtest
+  d'A2 montre qu'une fermeture est vécue comme une punition, **on resserre le
+  cadre avant de supprimer la règle**.
+- **Le principe général** (`plan-pnj-autonomes.md` § 2) est précisé en
+  conséquence : *un PNJ ne détruit rien de ce que le joueur possède* ; il peut, dans
+  des bornes écrites, **suspendre une capacité**.
