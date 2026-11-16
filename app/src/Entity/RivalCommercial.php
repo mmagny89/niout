@@ -50,8 +50,26 @@ class RivalCommercial
     #[ORM\Column]
     private int $quinzainesRestantes;
 
-    public function __construct(City $ville, string $partenaire, string $nom, int $malusEnCentiemes, int $quinzaines)
+    /** Sa graine : la même qu'`Npc::$identite`, par où l'on retrouve sa mémoire. Zéro pour un rival sans mémoire. */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $identite = 0;
+
+    /**
+     * Ce qui a décidé de sa route — des **clés** et des valeurs (`DecisionDuRival`), jamais une phrase :
+     * le texte se rend à l'affichage. C'est le « pourquoi » de la V1.
+     *
+     * @var array<string, int|string|bool>
+     */
+    #[ORM\Column(type: 'json', options: ['default' => '{}'])]
+    private array $raisons = [];
+
+    /**
+     * @param array<string, int|string|bool> $raisons
+     */
+    public function __construct(City $ville, string $partenaire, string $nom, int $malusEnCentiemes, int $quinzaines, int $identite = 0, array $raisons = [])
     {
+        $this->identite = $identite;
+        $this->raisons = $raisons;
         $this->ville = $ville;
         $this->partenaire = $partenaire;
         $this->nom = $nom;
@@ -77,6 +95,19 @@ class RivalCommercial
     public function getMalusEnCentiemes(): int
     {
         return $this->malusEnCentiemes;
+    }
+
+    public function getIdentite(): int
+    {
+        return $this->identite;
+    }
+
+    /**
+     * @return array<string, int|string|bool>
+     */
+    public function getRaisons(): array
+    {
+        return $this->raisons;
     }
 
     public function getQuinzainesRestantes(): int

@@ -43,6 +43,11 @@ final readonly class PanneauDeLEntrepot implements FournisseurDePanneau
             // gouverne chaque exploitation.
             'exploitations' => ExploitationsParGouvernant::pour($partie),
             'rival' => $ville->getRival(),
+            // L'information se mérite (`docs/plan-pnj-palier-b.md` § 8) : on voit ce qu'il fait, et
+            // l'on n'en comprend les raisons qu'avec les voyageurs de l'Auberge.
+            'raisonsDuRival' => null !== $ville->getRival() && null !== $ville->batimentDeType(TypeDeBatiment::Auberge)
+                ? $this->rivaux->raconter($ville->getRival())
+                : null,
             'prixDeLAccord' => $this->rivaux->prixDeLAccord($partie),
         ] + $this->direction->donnees($partie);
     }

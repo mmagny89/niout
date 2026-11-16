@@ -11,9 +11,14 @@
             Il se lassera dans <span data-chiffres>{{ rival.quinzainesRestantes }}</span>
             quinzaine(s) si vous le laissez faire.
         </p>
+        {% if raisonsDuRival %}
+            <p class="mt-2 text-sm text-encre-700">{{ raisonsDuRival }}</p>
+        {% else %}
+            <p class="mt-2 text-sm text-encre-500">Une Auberge, et ses voyageurs, vous diraient pourquoi il a choisi cette route.</p>
+        {% endif %}
         <p class="mt-2 text-sm text-encre-500">
             Vous pouvez le payer pour qu'il s'écarte, ou chercher sur quoi il tient —
-            vos gens trouveront de quoi le démonter, et il ne reviendra pas.
+            vos gens trouveront de quoi le démonter, et il ne reviendra pas de sitôt.
         </p>
 
         {% if partie.estEnCours %}
