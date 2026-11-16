@@ -268,7 +268,6 @@ final class PrenomsTest extends WebTestCase
 
         $caserne = $client->request('GET', \sprintf('/partie/%d/ville?onglet=caserne', $partie->getId()));
         self::assertStringContainsString('Paneb — ', $caserne->text());
-
     }
 
     private function unChefSansPrenom(GameSave $partie): Employee
