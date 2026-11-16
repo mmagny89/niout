@@ -13,6 +13,7 @@ agent qui démarre lise d'abord ce dont il a besoin :
 | [`docs/regles-du-jeu.md`](docs/regles-du-jeu.md) | Les invariants du jeu et leur raison d'être : ressources, carte, commerce, population, chefs, dieux, missions, énigmes | Avant de toucher à `src/Game/` ou `src/Entity/` |
 | [`docs/interface.md`](docs/interface.md) | Les écrans : les deux coques, la barre de jeu, les fenêtres, la carte isométrique, la ville vue d'en haut | Avant de toucher à `templates/` ou `assets/controllers/` |
 | [`docs/plan-fenetres.md`](docs/plan-fenetres.md) | Le chantier « tout en fenêtres » : décisions, phases, journal et pièges | Avant de toucher à la fenêtre, à la carte ou à `src/Fenetre/` |
+| [`docs/plan-pnj-autonomes.md`](docs/plan-pnj-autonomes.md) | Le chantier « PNJ qui vivent leur vie » : intention, garde-fous, ce qu'on reprend de `simulation`, lots et questions ouvertes (cadrage, rien de codé) | Avant de toucher à `Rivaux`, `CataloguePartenaires`, `Bandits` ou aux candidats |
 | [`docs/prompts-images-ville.md`](docs/prompts-images-ville.md) | Les prompts des images de la ville et leur cahier des charges | Avant de regénérer ou d'ajouter une image de ville |
 | [`docs/plan-de-bataille.md`](docs/plan-de-bataille.md) | La feuille de route et les décisions actées | Pour savoir ce qui est fait et ce qui vient |
 | [`docs/phases-livrees.md`](docs/phases-livrees.md) | Le journal des phases : intention, lots, pièges payés | Pour comprendre **pourquoi** une décision a été prise |
