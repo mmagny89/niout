@@ -14,6 +14,7 @@ use App\Game\EmplacementsDeLaVille;
 use App\Game\Maisonnees;
 use App\Game\MomentDeLaJournee;
 use App\Game\PhotoDeLaVille;
+use App\Game\Prenoms;
 use App\Game\RoleDeFigure;
 use App\Game\TraceDeQuinzaine;
 use App\Game\TypeDeBatiment;
@@ -64,7 +65,7 @@ final readonly class GensDeLaVille
     /**
      * Combien de silhouettes un même lot accueille avant d'être plein.
      */
-    private const int PAR_LOT_AU_PLUS = 8;
+    private const int PAR_LOT_AU_PLUS = 12;
 
     /**
      * La taille d'une silhouette debout, en pixels du visuel de 1376 × 768 :
@@ -85,12 +86,14 @@ final readonly class GensDeLaVille
     public const array ANCRAGES = [
         [0.00, 0.17], [-0.20, 0.12], [0.20, 0.12], [-0.10, 0.24],
         [0.10, 0.24], [-0.30, 0.06], [0.30, 0.06], [0.00, 0.31],
+        [-0.40, 0.14], [0.40, 0.14], [-0.22, 0.34], [0.22, 0.34],
     ];
 
     public function __construct(
         private Commerce $commerce,
         private PhotoDeLaVille $photo,
         private TraceDeQuinzaine $trace,
+        private Prenoms $prenoms,
     ) {
     }
 
@@ -242,7 +245,7 @@ final readonly class GensDeLaVille
      *     sousTitre: string,
      *     lignes: list<array{libelle: string, valeur: string}>,
      *     lien: ?array{libelle: string, onglet: string},
-     *     representatif: bool,
+     *     representatif: bool, nommer?: ?array{cle: string, propositions: list<string>},
      *     journal: list<array{jour: int, lignes: list<string>, fait: bool}>,
      * }|null
      */
@@ -265,7 +268,7 @@ final readonly class GensDeLaVille
                 'sousTitre' => 'N\'est plus en ville',
                 'lignes' => [],
                 'lien' => null,
-                'representatif' => str_starts_with($cle, 'maison-') || str_starts_with($cle, 'poste-') || 'sans-poste' === $cle,
+                'representatif' => 1 === preg_match('/^(maison|poste|enfant|ancien|macon)-/', $cle) || 'sans-poste' === $cle,
             ];
         }
 
@@ -313,7 +316,7 @@ final readonly class GensDeLaVille
      *     sousTitre: string,
      *     lignes: list<array{libelle: string, valeur: string}>,
      *     lien: ?array{libelle: string, onglet: string},
-     *     representatif: bool,
+     *     representatif: bool, nommer?: ?array{cle: string, propositions: list<string>},
      * }|null
      */
     private function ficheDuPresent(GameSave $partie, string $cle): ?array
@@ -341,7 +344,7 @@ final readonly class GensDeLaVille
         if (str_starts_with($cle, 'chef-')) {
             foreach (PhotoDeLaVille::chefsEnPoste($partie) as $chef) {
                 if ('chef-'.$chef->getId() === $cle) {
-                    return $this->ficheDuChef($chef, $cycle);
+                    return $this->ficheDuChef($partie, $chef, $cycle);
                 }
             }
 
@@ -351,7 +354,7 @@ final readonly class GensDeLaVille
         if (str_starts_with($cle, 'medjay-')) {
             foreach ($ville->getMedjays() as $medjay) {
                 if ('medjay-'.$medjay->getId() === $cle) {
-                    return $this->ficheDuMedjay($medjay, $cycle);
+                    return $this->ficheDuMedjay($partie, $medjay, $cycle);
                 }
             }
 
@@ -426,6 +429,25 @@ final readonly class GensDeLaVille
             ];
         }
 
+        // Un enfant ou un ancien d'une maison : représentatif, comme elle.
+        if (1 === preg_match('/^(enfant|ancien)-(\d+)$/', $cle, $m)) {
+            $maisons = Maisonnees::repartir($ville);
+            $rang = (int) $m[2] - 1;
+            $age = 'enfant' === $m[1] ? Maisonnees::ENFANT : Maisonnees::ANCIEN;
+
+            if (!isset($maisons[$rang]) || !\in_array($age, $maisons[$rang], true)) {
+                return null;
+            }
+
+            return [
+                'titre' => 'enfant' === $m[1] ? 'Un enfant du Quartier' : 'Un ancien du Quartier',
+                'sousTitre' => \sprintf('De la maison %d', $rang + 1),
+                'lignes' => [['libelle' => 'Qui y vit', 'valeur' => Maisonnees::decrire($maisons[$rang])]],
+                'lien' => ['libelle' => 'Ouvrir le Quartier d\'habitation', 'onglet' => TypeDeBatiment::QuartierDHabitation->value],
+                'representatif' => true,
+            ];
+        }
+
         if (str_starts_with($cle, 'poste-')) {
             $type = TypeDeBatiment::tryFrom(substr($cle, 6));
             $poste = null === $type ? null : Effectifs::repartir($ville, $cycle)[$type->value] ?? null;
@@ -476,9 +498,9 @@ final readonly class GensDeLaVille
     }
 
     /**
-     * @return array{titre: string, sousTitre: string, lignes: list<array{libelle: string, valeur: string}>, lien: ?array{libelle: string, onglet: string}, representatif: bool}
+     * @return array{titre: string, sousTitre: string, lignes: list<array{libelle: string, valeur: string}>, lien: ?array{libelle: string, onglet: string}, representatif: bool, nommer?: ?array{cle: string, propositions: list<string>}}
      */
-    private function ficheDuChef(Employee $chef, int $cycle): array
+    private function ficheDuChef(GameSave $partie, Employee $chef, int $cycle): array
     {
         $lignes = [];
 
@@ -510,13 +532,15 @@ final readonly class GensDeLaVille
             'lignes' => $lignes,
             'lien' => ['libelle' => \sprintf('Ouvrir %s', $chef->getType()->libelle()), 'onglet' => $chef->getType()->value],
             'representatif' => false,
+            // Un chef sans prénom peut en recevoir un : à son choix, ou parmi ceux que l'Égypte ancienne portait.
+            'nommer' => null === $chef->getPrenom() ? ['cle' => 'chef-'.$chef->getId(), 'propositions' => $this->prenoms->propositions($partie)] : null,
         ];
     }
 
     /**
-     * @return array{titre: string, sousTitre: string, lignes: list<array{libelle: string, valeur: string}>, lien: ?array{libelle: string, onglet: string}, representatif: bool}
+     * @return array{titre: string, sousTitre: string, lignes: list<array{libelle: string, valeur: string}>, lien: ?array{libelle: string, onglet: string}, representatif: bool, nommer?: ?array{cle: string, propositions: list<string>}}
      */
-    private function ficheDuMedjay(Medjay $medjay, int $cycle): array
+    private function ficheDuMedjay(GameSave $partie, Medjay $medjay, int $cycle): array
     {
         $lignes = [['libelle' => 'Force', 'valeur' => (string) $medjay->force()]];
 
@@ -537,6 +561,7 @@ final readonly class GensDeLaVille
             'lignes' => $lignes,
             'lien' => ['libelle' => 'Ouvrir la Caserne', 'onglet' => TypeDeBatiment::Caserne->value],
             'representatif' => false,
+            'nommer' => null === $medjay->getPrenom() ? ['cle' => 'medjay-'.$medjay->getId(), 'propositions' => $this->prenoms->propositions($partie, masculin: true)] : null,
         ];
     }
 
@@ -686,6 +711,18 @@ final readonly class GensDeLaVille
                     'texte' => \sprintf('%d maison%s, %s', \count($maisons), \count($maisons) > 1 ? 's' : '', 0 === $malades ? 'aucun malade' : \sprintf('%d malade%s', $malades, $malades > 1 ? 's' : '')),
                     'cle' => [] === $maisons ? null : 'maison-1',
                 ];
+
+                foreach ([[Maisonnees::ENFANT, 'enfant', 'enfant', 'enfants'], [Maisonnees::ANCIEN, 'ancien', 'ancien', 'anciens']] as [$age, $prefixe, $singulier, $pluriel]) {
+                    $total = Maisonnees::ENFANT === $age ? $ville->getEnfants() : $ville->getAnciens();
+
+                    foreach (PhotoDeLaVille::maisonsMontrees($maisons) as $rang) {
+                        if (\in_array($age, $maisons[$rang], true)) {
+                            $lignes[] = ['texte' => \sprintf('%d %s en ville', $total, 1 === $total ? $singulier : $pluriel), 'cle' => $prefixe.'-'.($rang + 1)];
+
+                            break;
+                        }
+                    }
+                }
 
                 foreach ($ville->getMedjays() as $medjay) {
                     if (!$medjay->estDisponible($cycle)) {

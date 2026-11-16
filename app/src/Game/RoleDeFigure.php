@@ -30,6 +30,13 @@ enum RoleDeFigure: string
     case Macon = 'macon';
 
     /**
+     * Les inactifs de la ville : les enfants jouent, les anciens se reposent ou vont au Temple. Représentatifs, comme
+     * les maisons — le jeu compte des enfants et des anciens (`City::getEnfants()`), pas des individus.
+     */
+    case Enfant = 'enfant';
+    case Ancien = 'ancien';
+
+    /**
      * Les deux silhouettes **de passage** (lot I2) : ni habitants ni personnes de la ville, du décor
      * attaché à une énigme jouable, sans nom ni mémoire. Elles ne sont jamais dans la photographie.
      */
@@ -52,6 +59,8 @@ enum RoleDeFigure: string
             self::Rival => 'fig-rival',
             self::Travailleur => 'fig-travailleur',
             self::Macon => 'fig-macon',
+            self::Enfant => 'fig-enfant',
+            self::Ancien => 'fig-ancien',
             self::Voyageur => 'fig-voyageur',
             self::Pretre => 'fig-pretre',
             self::SansPoste, self::Foyer => 'fig-habitant',

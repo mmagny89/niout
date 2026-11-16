@@ -89,6 +89,37 @@ final readonly class Prenoms
     }
 
     /**
+     * Quelques prénoms égyptiens libres, à proposer quand on nomme quelqu'un soi-même : **distincts** entre eux et de
+     * tout ce qui est déjà porté dans la ville.
+     *
+     * @return list<string>
+     */
+    public function propositions(GameSave $partie, bool $masculin = false, int $nombre = 6): array
+    {
+        $propositions = [];
+
+        for ($i = 0; $i < $nombre * 4 && \count($propositions) < $nombre; ++$i) {
+            $prenom = $this->libre($partie, $masculin, $propositions);
+
+            if (!\in_array($prenom, $propositions, true)) {
+                $propositions[] = $prenom;
+            }
+        }
+
+        return $propositions;
+    }
+
+    /**
+     * Ce prénom est-il déjà porté dans la ville ? (Sans tenir compte de la casse, ni de la filiation.).
+     */
+    public static function estPris(GameSave $partie, string $prenom): bool
+    {
+        $base = static fn (string $nom): string => mb_strtolower(trim(explode(',', $nom)[0]));
+
+        return \in_array($base($prenom), array_map($base, self::pris($partie)), true);
+    }
+
+    /**
      * Donne un prénom à chaque candidat d'une annonce, sans que deux la
      * portent.
      *

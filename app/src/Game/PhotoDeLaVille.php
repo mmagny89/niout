@@ -66,6 +66,14 @@ final readonly class PhotoDeLaVille
 
     public const int SANS_POSTE_MONTRES = 3;
 
+    /**
+     * Combien d'enfants et d'anciens une maison montre au plus. **Valeurs inventées** : de quoi peupler les ruelles
+     * sans les encombrer.
+     */
+    public const int ENFANTS_PAR_MAISON = 2;
+
+    public const int ANCIENS_PAR_MAISON = 1;
+
     public function __construct(
         private Commerce $commerce,
     ) {
@@ -185,6 +193,30 @@ final readonly class PhotoDeLaVille
                 'lieu' => TypeDeBatiment::QuartierDHabitation->value,
                 'couchee' => \in_array(Maisonnees::MALADE, $maisons[$rang], true),
             ];
+        }
+
+        // Les inactifs, **après** les foyers : le plafond coupe la foule, et eux en font partie. Ce sont ceux que
+        // `Maisonnees` loge vraiment dans la maison — le jeu compte des enfants et des anciens, pas des individus.
+        // **Un enfant, puis un ancien, maison après maison** : si le lot est plein, aucun des deux âges ne disparaît.
+        $inactifs = [
+            [Maisonnees::ENFANT, RoleDeFigure::Enfant, 'enfant', 'Enfant', self::ENFANTS_PAR_MAISON],
+            [Maisonnees::ANCIEN, RoleDeFigure::Ancien, 'ancien', 'Ancien', self::ANCIENS_PAR_MAISON],
+        ];
+
+        for ($tour = 0; $tour < max(self::ENFANTS_PAR_MAISON, self::ANCIENS_PAR_MAISON); ++$tour) {
+            foreach (self::maisonsMontrees($maisons) as $rang) {
+                foreach ($inactifs as [$age, $role, $cle, $nom, $maximum]) {
+                    if ($tour < min($maximum, \count(array_keys($maisons[$rang], $age, true)))) {
+                        $candidats[] = [
+                            'cle' => $cle.'-'.($rang + 1),
+                            'role' => $role->value,
+                            'libelle' => \sprintf('%s — maison %d', $nom, $rang + 1),
+                            'lieu' => TypeDeBatiment::QuartierDHabitation->value,
+                            'couchee' => false,
+                        ];
+                    }
+                }
+            }
         }
 
         $chantiers = [];

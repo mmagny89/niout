@@ -36,11 +36,16 @@ import { Controller } from '@hotwired/stimulus';
  * et atténue les autres : il ne déplace rien.
  */
 const MS_PAR_JOUR = 4000;
-// Un jour compte quatre moments ; on a fini de marcher après cette part du moment (`FilmDeLaVille::MARCHE`).
+// Un jour compte quatre moments ; à la mi-moment, chacun est arrivé (`FilmDeLaVille::MARCHE` et `AVANCE`).
 const MS_PAR_MOMENT = MS_PAR_JOUR / 4;
 
+// Le moment de la journée sur la ville : la teinte (fondue par `multiply` : le blanc ne change rien) et la couleur de
+// la pastille. Aube, matin, après-midi, soir — dans l'ordre de `MomentDeLaJournee`.
+const TEINTES = ['rgb(255 226 210)', 'rgb(255 255 255)', 'rgb(255 242 214)', 'rgb(170 178 222)'];
+const PASTILLES = ['#f4a261', '#f6d365', '#f0a030', '#4b5fa8'];
+
 export default class extends Controller {
-    static targets = ['film', 'statique', 'barre', 'lecture', 'curseur', 'jour', 'suivi', 'maintenant', 'figure', 'bulle', 'ecouter'];
+    static targets = ['film', 'statique', 'barre', 'lecture', 'curseur', 'jour', 'suivi', 'maintenant', 'figure', 'bulle', 'ecouter', 'ciel', 'moment', 'momentPastille', 'momentTexte'];
     static values = { film: Object, libelles: Object, lancer: Boolean };
 
     connect() {
@@ -175,6 +180,12 @@ export default class extends Controller {
 
         this.maintenantTarget.hidden = true;
         this.enFilm = false;
+
+        if (this.hasCielTarget) {
+            this.cielTarget.hidden = true;
+            this.momentTarget.hidden = true;
+        }
+
         this.lectureTarget.textContent = this.libellesValue.lecture;
     }
 
@@ -306,7 +317,8 @@ export default class extends Controller {
         }
 
         this.curseurTarget.setAttribute('aria-valuetext', `Jour ${jour} sur ${film.jours}, ${film.libellesDesMoments[moment].toLowerCase()}`);
-        this.jourTarget.textContent = `Jour ${jour} sur ${film.jours}`;
+        this.jourTarget.textContent = `Jour ${jour} sur ${film.jours} · ${film.libellesDesMoments[moment]}`;
+        this.teinterLeCiel(moment);
 
         // Arrêté sur un moment, on voit ce qui s'y dit — toutes les bulles, ensemble.
         if (!this.enLecture && !this.enConversation) {
@@ -318,6 +330,26 @@ export default class extends Controller {
             ? this.libellesValue.pause
             : (termine ? this.libellesValue.lecture : (this.enFilm ? this.libellesValue.reprendre : this.libellesValue.lecture));
     }
+
+    /**
+     * Le moment de la journée, sur la ville — seulement quand le film est à l'écran.
+     */
+    teinterLeCiel(moment) {
+        if (!this.hasCielTarget) {
+            return;
+        }
+
+        const visible = this.enFilm;
+        this.cielTarget.hidden = !visible;
+        this.momentTarget.hidden = !visible;
+
+        if (visible) {
+            this.cielTarget.style.backgroundColor = TEINTES[moment];
+            this.momentPastilleTarget.style.backgroundColor = PASTILLES[moment];
+            this.momentTexteTarget.textContent = this.filmValue.libellesDesMoments[moment];
+        }
+    }
+
     // ---- Les conversations -----------------------------------------------------------
 
     /**
@@ -331,7 +363,7 @@ export default class extends Controller {
 
     premiereParoleApres(moment) {
         const paroles = this.filmValue.paroles || [];
-        const rang = paroles.findIndex((parole) => parole.t + 0.45 > moment);
+        const rang = paroles.findIndex((parole) => parole.t + 0.5 > moment);
 
         return -1 === rang ? paroles.length : rang;
     }
@@ -362,7 +394,7 @@ export default class extends Controller {
 
         const moment = this.image.currentTime / MS_PAR_MOMENT;
 
-        while (this.prochaine < paroles.length && paroles[this.prochaine].t + 0.45 <= moment) {
+        while (this.prochaine < paroles.length && paroles[this.prochaine].t + 0.5 <= moment) {
             const parole = paroles[this.prochaine];
             const rang = this.prochaine;
             ++this.prochaine;

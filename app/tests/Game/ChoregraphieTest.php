@@ -128,6 +128,80 @@ final class ChoregraphieTest extends TestCase
     }
 
     /**
+     * **Les enfants jouent, les anciens se reposent** : un enfant n'a ni poste ni conversation d'adulte (il joue, ou il
+     * est chez lui), un ancien reste autour des maisons ou va au Temple. Quelle que soit la graine.
+     */
+    public function testLesEnfantsJouentEtLesAnciensSeReposent(): void
+    {
+        $photo = $this->photo(['candidats' => [
+            $this->candidat('famille', 'chef_de_famille', 'residence_familiale'),
+            $this->candidat('enfant-1', 'enfant', 'quartier_habitation'),
+            $this->candidat('ancien-1', 'ancien', 'quartier_habitation'),
+        ], 'batiments' => ['quartier_habitation', 'marche', 'temple', 'auberge']]);
+
+        $jouent = [GesteDeLaVille::Joue, GesteDeLaVille::Habite, GesteDeLaVille::Procession];
+        $reposent = [GesteDeLaVille::Habite, GesteDeLaVille::Visite, GesteDeLaVille::Procession];
+        $auMarche = 0;
+        $auTemple = 0;
+
+        foreach (range(1, 25) as $graine) {
+            $film = Choregraphie::pour($photo, [], $graine);
+
+            foreach ($film['pas']['enfant-1'] as $moments) {
+                foreach ($moments as $pas) {
+                    self::assertContains($pas['geste'], $jouent);
+                    $auMarche += 'marche' === $pas['lieu'] ? 1 : 0;
+                }
+            }
+
+            foreach ($film['pas']['ancien-1'] as $moments) {
+                foreach ($moments as $pas) {
+                    self::assertContains($pas['geste'], $reposent);
+                    $auTemple += 'temple' === $pas['lieu'] ? 1 : 0;
+                }
+            }
+
+            foreach ($film['paroles'] as $parole) {
+                self::assertNotContains($parole['libelleA'], ['enfant-1'], 'Un enfant ne cause jamais en dehors de la procession.');
+            }
+        }
+
+        self::assertGreaterThan(0, $auMarche, 'Les enfants vont parfois sur la place.');
+        self::assertGreaterThan(0, $auTemple, 'Les anciens vont parfois au Temple.');
+    }
+
+    /**
+     * Le journal porte ses **segments** : les moments, le geste, sa famille (une couleur), le lieu quand il dit
+     * quelque chose — et les lignes de texte restent les mêmes pour qui ne voit pas la mise en page.
+     */
+    public function testLeJournalPorteSesSegmentsEtGardeSesLignes(): void
+    {
+        $film = Choregraphie::pour($this->photo(), [$this->fait(TypeDeFait::ChantierAcheve, 'grenier', 'chantier-1')], 11);
+        $journal = Choregraphie::journal($film['pas']['chef-1']);
+
+        self::assertCount(15, $journal);
+
+        foreach ($journal as $jour) {
+            self::assertNotSame([], $jour['lignes']);
+            self::assertNotSame([], $jour['segments']);
+
+            foreach ($jour['segments'] as $segment) {
+                self::assertContains($segment['famille'], ['travail', 'foyer', 'sortie', 'repos', 'depart']);
+                self::assertNotSame([], $segment['moments']);
+                self::assertContains($segment['geste'], array_map(static fn (GesteDeLaVille $g): string => $g->libelle(), GesteDeLaVille::cases()));
+            }
+        }
+
+        // Le dernier jour, le chef achève le chantier : un segment de travail, au Grenier.
+        $segments = $journal[14]['segments'];
+        $achevement = array_values(array_filter($segments, static fn (array $s): bool => GesteDeLaVille::Acheve->libelle() === $s['geste']));
+        self::assertCount(1, $achevement);
+        self::assertSame('travail', $achevement[0]['famille']);
+        self::assertSame('Grenier', $achevement[0]['lieu']);
+        self::assertTrue($journal[14]['fait']);
+    }
+
+    /**
      * **L'ordre du cycle** : un convoi ne repart qu'après être rentré, quelle que
      * soit la graine.
      */

@@ -759,6 +759,16 @@ du jeu. **Aucune réplique ne donne un chiffre, un prix, un lieu de gisement ni 
 sait déjà et le montre ailleurs. Écrire de nouvelles répliques, c'est enrichir `Dialogues::catalogue()`, jamais composer du texte à la
 volée ; les garde-fous sont dans `DialoguesTest`. **Ce lot ne touche ni aux enquêtes ni aux énigmes.**
 
+**Les enfants et les anciens** (`RoleDeFigure::Enfant` et `Ancien`, `PhotoDeLaVille::ENFANTS_PAR_MAISON` et `ANCIENS_PAR_MAISON`). Ils viennent de `Maisonnees` (le jeu
+compte `City::getEnfants()` et `getAnciens()`) : au plus deux enfants et un ancien par maison montrée, **entrelacés maison après maison** pour qu'aucun
+âge ne disparaisse quand un lot est plein. Un enfant joue (`GesteDeLaVille::Joue`), parfois sur la place du Marché ; il **ne cause jamais** — la
+sélection des conversations l'écarte par son rôle. Un ancien reste autour des maisons et va l'après-midi au Temple. Tous deux suivent la procession.
+Représentatifs, comme les maisons. Un lot accueille douze silhouettes au plus (`ANCRAGES`).
+
+**Nommer** (`PartieController::nommer()`, `Prenoms::propositions()`). Seuls les chefs et les Medjaÿ ont une identité qui dure : sans prénom, leur fiche en
+propose. **Une seule fois** (un nom donné ne se reprend pas), **jamais deux fois le même** (`Prenoms::estPris()`, casse et filiation ignorées), et le prénom
+saisi n'est fait que de lettres, tiret et apostrophe. Les silhouettes représentatives ne se nomment pas : plusieurs partagent la même clé, et le jeu ne les suit pas.
+
 **Les maçons d'un chantier** (`RoleDeFigure::Macon`, `PhotoDeLaVille::MACONS_PAR_CHANTIER`). Tout chantier en cours (construction ou amélioration)
 pose trois maçons dans la photographie, **sur le lot du type de bâtiment** même s'il n'est pas encore dressé (`GensDeLaVille::lotsDresses()`
 l'inclut tant qu'un chantier le vise). Ils travaillent le matin et l'après-midi, **sans course ni détour** (testé sur 40 graines) ; le jour

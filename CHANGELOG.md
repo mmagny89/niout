@@ -14,6 +14,17 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **On nomme ceux qui n'ont pas de prénom.** La fiche d'un chef ou d'un Medjaÿ sans prénom propose six prénoms égyptiens libres, ou un champ pour
+  taper le sien (2 à 24 lettres, jamais un nom déjà porté dans la ville). Une seule fois : qui a un prénom ne se renomme pas. Les silhouettes
+  représentatives (maisons, postes, enfants) n'ont pas d'identité à nommer.
+- **Les enfants et les anciens se voient.** Dans le Quartier : au plus deux enfants (plus petits) et un ancien (une canne) par maison, qui jouent
+  dans les ruelles ou sur la place, ou se reposent et vont au Temple. Les enfants ne causent pas. Cliquables, dits représentatifs.
+- **« Sa quinzaine passée, jour par jour » se lit d'un regard.** Une carte par jour avec ses quatre moments — aube, matin, après-midi, soir —
+  teintés par ce que fait la personne (travail, foyer, sortie, repos), le jour marquant en or, et un clic qui montre la ville ce jour-là.
+- **Le film ne s'arrête plus.** Qui change de lieu à chaque moment marche sans pause : le trajet dure un moment entier, d'une mi-moment à l'autre.
+  Seul qui reste plusieurs moments au même endroit est immobile.
+- **Le moment de la journée se voit sur la ville.** Pendant le film, la ville se teinte (aube rosée, soir bleuté) et une pastille dit
+  « L'aube », « Le matin », « L'après-midi » ou « Le soir » ; la barre de lecture l'écrit aussi.
 - **Un chantier en cours se voit.** Sur la ville vue d'en haut, le lot d'un chantier (construction ou amélioration) porte un
   échafaudage qui tressaille et de la poussière qui monte ; **trois maçons** y travaillent, matin et après-midi, tous les jours
   qu'il dure — et dans le film de la quinzaine ils l'achèvent le jour dit, puis rentrent. Leur fiche dit ce qu'il reste à bâtir.

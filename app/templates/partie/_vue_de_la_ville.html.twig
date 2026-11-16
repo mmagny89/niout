@@ -38,6 +38,21 @@
              width="1376" height="768"
              class="pointer-events-none absolute inset-0 size-full select-none object-contain">
 
+        {# Le moment de la journée, **sur la ville** quand le film joue : une teinte (aube rosée, soir bleuté — fondue
+           par `multiply`, donc sans effet sur le matin) et une pastille qui le dit en toutes lettres. Au-dessus des
+           silhouettes (leur `z-index` monte à 768), sous les boutons (`z-[1000]`). Décor : `aria-hidden`, le curseur
+           de la barre porte déjà le moment dans son `aria-valuetext`. #}
+        {% if filmDeLaVille %}
+            <div hidden data-ville-vivante-target="ciel" aria-hidden="true"
+                 class="pointer-events-none absolute inset-0 z-[900]"
+                 style="mix-blend-mode: multiply; background-color: rgb(255 255 255); transition: background-color 900ms linear;"></div>
+            <p hidden data-ville-vivante-target="moment" aria-hidden="true"
+               class="pointer-events-none absolute left-1/2 top-2 z-[950] flex -translate-x-1/2 items-center gap-2 rounded-full border border-ocre-500/30 bg-sable-50/90 px-3 py-1 text-sm text-encre-800 shadow-sm">
+                <span data-ville-vivante-target="momentPastille" class="size-2.5 rounded-full" style="background-color: #f6d365;"></span>
+                <span data-ville-vivante-target="momentTexte">Matin</span>
+            </p>
+        {% endif %}
+
         {% for e in vueDeLaVille.emplacements %}
             {% if e.decor %}
                 {# Un lot que le jeu n'emploie pas : du décor, rien à cliquer. #}
