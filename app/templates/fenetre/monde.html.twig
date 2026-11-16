@@ -34,7 +34,67 @@
             {% endif %}
         </p>
 
-        <ul class="mt-4 space-y-4 list-none p-0">
+        {# Les personnes : un visage, un but, ce qu'elles ont fait. Le « pourquoi » se mérite — une Auberge. #}
+        {% if personnes %}
+            <section class="mt-6" aria-labelledby="personnes-titre">
+                <h3 id="personnes-titre" class="text-xs font-medium uppercase tracking-wide text-encre-500">Les personnes que vous connaissez</h3>
+                <ul class="mt-3 space-y-3 list-none p-0">
+                    {% for f in personnes %}
+                        <li class="rounded-sm border {{ f.choisi ? 'border-terre-500/60' : 'border-ocre-500/30' }} bg-sable-50 p-4">
+                            <h4 class="font-display text-lg text-encre-900">{{ f.nom }}</h4>
+                            <p class="mt-0.5 text-xs text-encre-500" data-chiffres>
+                                {{ f.role }} · {{ f.caractere.libelle|lower }}
+                                {% if f.accords > 0 %}· {{ f.accords }} accord{{ f.accords > 1 ? 's' : '' }} passé{{ f.accords > 1 ? 's' : '' }} avec vous{% endif %}
+                            </p>
+                            <p class="mt-2 text-sm text-encre-900" data-chiffres>
+                                {% if f.ici %}
+                                    Installé sur votre route{{ f.route ? ' vers ' ~ f.route : '' }}.
+                                {% elseif f.ailleurs %}
+                                    Ailleurs, jusqu'à la quinzaine {{ f.ailleurs }} au plus tôt.
+                                {% else %}
+                                    Il peut reparaître à tout moment.
+                                {% endif %}
+                            </p>
+                            {% if f.pourquoi %}
+                                <p class="mt-1 text-sm text-encre-700">{{ f.pourquoi }}</p>
+                            {% elseif f.ici %}
+                                <p class="mt-1 text-xs text-encre-500">Une Auberge vous dirait pourquoi il a choisi cette route.</p>
+                            {% endif %}
+                            <p class="mt-2">
+                                {% if f.choisi %}
+                                    <a href="{{ path('app_partie_monde', {id: partie.id}) }}" class="inline-flex min-h-11 items-center text-sm text-lapis-500 underline underline-offset-2">Toute la chronique</a>
+                                {% else %}
+                                    <a href="{{ path('app_partie_monde', {id: partie.id, personne: f.identite}) }}" class="inline-flex min-h-11 items-center text-sm text-lapis-500 underline underline-offset-2">Sa chronique</a>
+                                {% endif %}
+                            </p>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                {% if chronique %}
+                    <h3 class="mt-5 text-xs font-medium uppercase tracking-wide text-encre-500">
+                        {{ filtre is not null ? 'Sa chronique' : 'La chronique' }}
+                    </h3>
+                    <ol class="mt-2 space-y-1.5 list-none p-0 text-sm text-encre-800" data-chiffres>
+                        {% for fait in chronique %}
+                            <li>
+                                <span class="text-encre-500">Quinzaine {{ fait.quinzaine }}</span> —
+                                {{ fait.nom }}
+                                {% if fait.type == 'installe' %}s'installe sur la route {{ fait.route ? 'de ' ~ fait.route : '' }}
+                                {% elseif fait.type == 'revient' %}revient sur la route {{ fait.route ? 'de ' ~ fait.route : '' }}
+                                {% elseif fait.type == 'lasse' %}se lasse et s'en va
+                                {% elseif fait.type == 'paye' %}est payé et s'écarte
+                                {% elseif fait.type == 'demonte' %}est démonté par votre enquête
+                                {% endif %}.
+                            </li>
+                        {% endfor %}
+                    </ol>
+                {% endif %}
+            </section>
+        {% endif %}
+
+        <h3 class="mt-6 text-xs font-medium uppercase tracking-wide text-encre-500">Les cités</h3>
+        <ul class="mt-3 space-y-4 list-none p-0">
             {% for carte in cartes %}
                 {% set p = carte.partenaire %}
                 <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-4">

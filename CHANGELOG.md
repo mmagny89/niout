@@ -14,6 +14,9 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les personnes ont une fiche.** La fenêtre « Le monde » liste les marchands que vous avez croisés : leur caractère, les accords passés avec vous, où ils sont
+  (sur votre route, ou ailleurs jusqu'à quelle quinzaine), et leur chronique — que l'on peut isoler pour une seule personne. Ce qu'ils ont fait se lit
+  toujours ; pourquoi, seulement avec une Auberge.
 - **Un rival a un but, et il revient.** Le marchand rival choisit sa route : là où le marché paie et où votre commerce est le plus vivant, selon son
   caractère (un économe pèse le marché, un ambitieux le prestige). Avec une Auberge, vous lisez pourquoi. Il garde le même nom d'une visite à l'autre : un
   marchand que vous avez payé revient au plus tôt douze quinzaines plus tard, s'entend plus vite (un quart de rabais sur l'accord, jamais gratuit) et,
