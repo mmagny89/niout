@@ -119,6 +119,12 @@
                       text-lapis-500 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
                 Les gens de la ville
             </a>
+            <a href="{{ path('app_partie_monde', {id: partie.id}) }}"
+               data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"
+               class="inline-flex min-h-11 items-center rounded-sm border border-ocre-500/30 bg-sable-50/90 px-3 py-2 text-sm
+                      text-lapis-500 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+                Le monde
+            </a>
             <p class="pointer-events-none rounded-sm bg-sable-50/80 px-2 py-0.5 text-xs text-encre-600">
                 Image reconstituée — le jeu ne suit pas chaque habitant.
             </p>

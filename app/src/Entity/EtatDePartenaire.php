@@ -99,6 +99,15 @@ class EtatDePartenaire
     }
 
     /**
+     * Un geste qui n'est pas un convoi — une offre acceptée, une demande servie : la cité vous connaît mieux,
+     * sans que sa saturation bouge.
+     */
+    public function gagnerLaRelation(int $points): void
+    {
+        $this->relation = min(self::RELATION_MAX, $this->relation + max(0, $points));
+    }
+
+    /**
      * Une quinzaine passe : la saturation s'érode d'un tiers (arrondi au-dessus, pour qu'elle finisse
      * par s'éteindre), la relation redescend d'un point vers son plancher.
      */
