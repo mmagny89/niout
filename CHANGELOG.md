@@ -14,6 +14,12 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **On reconnaît des visages d'une partie à l'autre.** Les marchands rivaux et les chefs partis que vous avez croisés entrent dans la mémoire de votre
+  lignée — douze au plus, le plus ancien cède. Une nouvelle partie en sème un seul, pas avant dix quinzaines : un marchand payé revient avec un accord de
+  mémoire, un chef parti peut se présenter à une annonce. Aucune rancune ne se transmet, et courtisans et chefs de bande ne survivent pas à leur partie.
+- **Le caractère d'un rival se lit.** Un économe s'installe deux fois sur trois où le marché paie, un ambitieux où votre commerce est le plus vivant ; ceux qui
+  n'ont pas de préférence se partagent les routes à parts égales.
+- **Correctif** : la première partie d'un compte ne peut plus créer sa lignée deux fois dans la même requête.
 - **Les requêtes du pharaon ont un courtisan.** Un titre — le vizir, le scribe royal, l'intendant du palais — porte chaque demande, sans nom propre. Il a une
   humeur : servi, il devient bienveillant et le présent qui revient monte jusqu'à 70 % de la valeur livrée ; refusé, ou laissé sans réponse, il s'impatiente et
   le présent descend jusqu'à 50 %. Rien d'autre ne change : une requête reste facultative, et son coût comme son rythme sont les mêmes. Chaque nouveau règne (ou

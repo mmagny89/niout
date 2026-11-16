@@ -1,6 +1,6 @@
 # Niout — PNJ, palier B : des personnes qui ont un but
 
-**Statut : lots B1 à B5 livrés (2026-11-16) — le rival raisonné, sa fiche, les chefs voyageurs, les bandes parlantes, la cour ; B6 cadré, rien d'autre n'est codé.** Suite de
+**Statut : palier B livré (2026-11-16), lots B1 à B6 — rival raisonné, fiche, chefs voyageurs, bandes parlantes, cour, visages connus, calibrage au banc, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1) et de
 [`plan-pnj-palier-a.md`](plan-pnj-palier-a.md). **Dépend d'A** : la graine de
 partie, les faits de monde, la conjoncture et la fenêtre « Le monde » y sont
@@ -425,3 +425,33 @@ sur l'humeur **d'avant** la livraison. « Le monde » montre sa fiche (humeur, d
   ce qui attend son flush ; tout nouveau rôle l'utilise.
 
 **Verrou suivant** : B6 (visages connus de la lignée, calibrage) — et toujours le playtest de B2.
+
+## 18. Lot B6 — les visages connus, et le calibrage au banc
+
+**Livré** : `Lignee::$visagesConnus` (JSON `'{}'`, clés `v<identité>`, **12 au plus**, le plus ancien cède, un visage revu se
+rafraîchit) ; `Visages::retenir()` (à chaque jalon, par `Lignees::encaisser` : **rivaux et chefs partis seulement** — un
+courtisan tient à son règne, un chef de bande à sa case) et `Visages::figurer()` (au lancement d'une partie : **un seul**
+visage, choisi par la graine, **pas avant 10 quinzaines**). Un rival revient avec ses accords passés (3 au plus) ; un chef parti
+avec sa candidature et son bâtiment, **sans** ce qu'il avait gagné ailleurs ni sa destination. `ChefsVoyageurs::auRetour`
+respecte désormais `peutParaitre`.
+
+**Calibrage au banc** (`app:monde:banc-d-essai`, section « rivaux sans joueur », 2 000 identités par caractère, trois routes) :
+
+| Caractère | Route riche | Commerce vivant | Route morte |
+|---|---|---|---|
+| Économe | 67 % | 33 % | 0 |
+| Ambitieux | 33 % | 67 % | 0 |
+| Fidèle, Croyant | ≈ 50 % | ≈ 50 % | 0 |
+
+**Deux valeurs changées après mesure.** (1) Le hasard parmi les deux meilleures routes était à parts égales : le caractère ne
+se lisait pas du tout (50/50 pour tous). Il est maintenant de **deux contre un** (`DecisionDuRival::UNE_FOIS_SUR`). (2) À score
+égal, l'ordre **alphabétique** des clés faisait toujours gagner la même route aux caractères sans préférence : remplacé par une
+empreinte de l'identité. La décision ne dépend toujours ni de l'ordre d'arrivée des routes, ni de rien hors de ses paramètres.
+
+**Deux défauts trouvés et corrigés** : `Lignees::pour` créait la lignée deux fois dans une même requête non flushée (une
+première partie lisait l'acquis puis y semait un visage) — la contrainte d'unicité l'aurait refusée ; et le tie-break
+alphabétique ci-dessus.
+
+**Palier B complet.** Il reste ce que le plan renvoie à plus tard : les bandes mobiles, le changement de rôle, les héritiers des
+voisins (palier C), les noms historiques (à vérifier), le Logisticien parti. **Le playtest de B2 n'a pas eu lieu** : tout ce qui
+précède est vérifié par des tests et le banc, pas par quelqu'un qui joue.

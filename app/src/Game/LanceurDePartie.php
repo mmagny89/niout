@@ -38,6 +38,7 @@ final readonly class LanceurDePartie
         private Legs $legs,
         private Lignees $lignees,
         private BonusDeDepart $bonus,
+        private ?Visages $visages = null,
     ) {
     }
 
@@ -154,6 +155,10 @@ final readonly class LanceurDePartie
         $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::ResidenceFamiliale));
 
         $this->entityManager->persist($partie);
+
+        // Une personne que la famille a croisée avant peut figurer ici : une seule, et pas avant dix quinzaines.
+        $this->visages?->figurer($partie, $this->lignees->pour($partie->getJoueur()));
+
         $this->entityManager->flush();
 
         return $partie;

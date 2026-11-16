@@ -28,6 +28,13 @@ final class DecisionDuRival
     public const int PARMI_LES_MEILLEURS = 2;
 
     /**
+     * Une fois sur trois, il prend la deuxième au lieu de la première. **Valeur inventée.** Un tirage à parts
+     * égales entre les deux premières effaçait le caractère : l'économe et l'ambitieux s'installaient aussi
+     * souvent sur la même route. À deux contre un, le caractère se lit — et le monde reste varié.
+     */
+    public const int UNE_FOIS_SUR = 3;
+
+    /**
      * @param list<array{cle: string, prosperite: int, prestige: int}> $routes les routes ouvertes, aspirations de 0 à 100
      *
      * @return array{cle: string, score: int, raisons: array<string, int|string>}|null
@@ -49,10 +56,14 @@ final class DecisionDuRival
             $routes,
         );
 
-        // Le meilleur d'abord ; à score égal, l'ordre de la clé — jamais l'ordre d'arrivée, qui n'est pas stable.
-        usort($notees, static fn (array $a, array $b): int => [$b['score'], $a['cle']] <=> [$a['score'], $b['cle']]);
+        // Le meilleur d'abord ; à score égal, un ordre propre à cette personne (une empreinte de son identité et de la
+        // route) — jamais l'ordre d'arrivée, qui n'est pas stable, ni l'ordre alphabétique, qui ferait toujours gagner
+        // la même route à qui n'a pas de préférence.
+        $empreinte = static fn (array $route): string => md5($identite.'|'.$route['cle']);
+        usort($notees, static fn (array $a, array $b): int => [$b['score'], $empreinte($a)] <=> [$a['score'], $empreinte($b)]);
 
-        $retenue = $notees[$identite % min(self::PARMI_LES_MEILLEURS, \count($notees))];
+        $rang = 0 === $identite % self::UNE_FOIS_SUR ? 1 : 0;
+        $retenue = $notees[min($rang, \count($notees) - 1)];
 
         return [
             'cle' => $retenue['cle'],

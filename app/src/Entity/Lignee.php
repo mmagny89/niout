@@ -63,6 +63,22 @@ class Lignee
     private array $relations = [];
 
     /**
+     * Les personnes que la famille a rencontrées, d'une partie à l'autre (`docs/plan-pnj-palier-b.md` § 7) : jusqu'à
+     * `VISAGES_MAX`, les plus récemment vus. Clé `v<identité>` (jamais un entier nu : un JSON dont les clés seraient
+     * 0, 1, 2… se relirait comme une liste). Chacun porte son rôle, son nom, son caractère, ce qu'on a fait avec lui
+     * et un rang de rencontre — le plus petit cède le premier.
+     *
+     * **Aucune rancune ne se transmet** : on garde ce qu'on a fait *avec* lui (des accords), jamais un grief.
+     *
+     * @var array<string, array{identite: int, role: string, nom: string, caractere: string, accords: int, vu: int, profil: array<string, mixed>}>
+     */
+    #[ORM\Column(type: 'json', options: ['default' => '{}'])]
+    private array $visagesConnus = [];
+
+    /** Combien de visages une lignée garde : au-delà, le plus ancien s'efface. */
+    public const int VISAGES_MAX = 12;
+
+    /**
      * Ce qu'une nouvelle partie reçoit d'emblée : les cinquante points suivants se gagnent en
      * jouant. Un plafond plutôt qu'un cloisonnement, comme le plan de bataille le prévoit.
      * **Valeur inventée.**.
@@ -116,6 +132,44 @@ class Lignee
     public function releverLaRelation(string $cite, int $relation): static
     {
         $this->relations[$cite] = max($this->relationAcquise($cite), min(self::RELATION_ACQUISE_MAX, $relation));
+
+        return $this;
+    }
+
+    /**
+     * @return list<array{identite: int, role: string, nom: string, caractere: string, accords: int, vu: int, profil: array<string, mixed>}> du plus récemment vu au plus ancien
+     */
+    public function getVisagesConnus(): array
+    {
+        $visages = array_values($this->visagesConnus);
+        usort($visages, static fn (array $a, array $b): int => $b['vu'] <=> $a['vu']);
+
+        return $visages;
+    }
+
+    /**
+     * Retient une personne rencontrée, ou rafraîchit celle qu'on connaît déjà. Au-delà de `VISAGES_MAX`, le
+     * plus anciennement vu s'efface : une mémoire sans limite deviendrait un obstacle à chaque partie.
+     *
+     * @param array<string, mixed> $profil
+     */
+    public function retenirUnVisage(int $identite, string $role, string $nom, string $caractere, int $accords, array $profil = []): static
+    {
+        $rang = 1 + max(0, ...array_column($this->visagesConnus, 'vu') ?: [0]);
+        $this->visagesConnus['v'.$identite] = [
+            'identite' => $identite,
+            'role' => $role,
+            'nom' => $nom,
+            'caractere' => $caractere,
+            'accords' => max(0, min(3, $accords)),
+            'vu' => $rang,
+            'profil' => $profil,
+        ];
+
+        while (\count($this->visagesConnus) > self::VISAGES_MAX) {
+            uasort($this->visagesConnus, static fn (array $a, array $b): int => $a['vu'] <=> $b['vu']);
+            array_shift($this->visagesConnus);
+        }
 
         return $this;
     }

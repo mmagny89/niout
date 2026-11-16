@@ -37,9 +37,9 @@ final class DecisionDuRivalTest extends TestCase
     public function testLeCaractereInfleshitLeChoix(): void
     {
         // Un économe pèse la prospérité double : il préfère Byblos (90/10) à Canaan (10/90).
-        $econome = DecisionDuRival::choisir(self::ROUTES, TraitDeCandidat::Econome, 0);
+        $econome = DecisionDuRival::choisir(self::ROUTES, TraitDeCandidat::Econome, 1);
         // Un ambitieux pèse le prestige double : Canaan.
-        $ambitieux = DecisionDuRival::choisir(self::ROUTES, TraitDeCandidat::Ambitieux, 0);
+        $ambitieux = DecisionDuRival::choisir(self::ROUTES, TraitDeCandidat::Ambitieux, 1);
 
         self::assertSame('byblos', $econome['cle'] ?? null);
         self::assertSame('canaan', $ambitieux['cle'] ?? null);
@@ -55,6 +55,13 @@ final class DecisionDuRivalTest extends TestCase
 
         self::assertArrayNotHasKey('thebes', $vus);
         self::assertCount(2, $vus, 'La variété vient du hasard parmi les deux meilleures.');
+
+        // Deux contre un : le caractère se lit, la variété reste.
+        $premiere = 0;
+        for ($identite = 0; $identite < 300; ++$identite) {
+            $premiere += 'byblos' === (DecisionDuRival::choisir(self::ROUTES, TraitDeCandidat::Econome, $identite)['cle'] ?? '') ? 1 : 0;
+        }
+        self::assertSame(200, $premiere);
     }
 
     public function testLaDecisionPorteSesRaisonsEnClesJamaisEnPhrase(): void

@@ -56,6 +56,20 @@ final class BancDEssaiDuMondeCommand
             $rapport['evenements'],
         ));
 
+        $rivaux = $this->banc->mesurerLesRivaux();
+        $io->section('Les rivaux sans joueur');
+        $io->table(['Caractère', 'Route riche', 'Commerce vivant', 'Route morte'], array_map(
+            static fn (string $caractere, array $choix): array => [$caractere, $choix['marche-riche'] ?? 0, $choix['commerce-vivant'] ?? 0, $choix['route-morte'] ?? 0],
+            array_keys($rivaux['parCaractere']),
+            $rivaux['parCaractere'],
+        ));
+
+        if (0 !== $rivaux['pireChoisie'] || 0 !== $rivaux['instable']) {
+            $io->error(\sprintf('Un rival a choisi la pire route %d fois, ou sa décision dépend de l\'ordre %d fois.', $rivaux['pireChoisie'], $rivaux['instable']));
+
+            return Command::FAILURE;
+        }
+
         if ([] !== $rapport['violations'] || $rapport['avantageMaximal'] > AvantageDeNegoce::PLAFOND_TOTAL) {
             $io->error([] === $rapport['violations'] ? 'Une borne est rompue.' : \array_slice($rapport['violations'], 0, 10));
 
