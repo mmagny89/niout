@@ -153,6 +153,16 @@ class Npc
         $this->profil = $profil;
     }
 
+    /**
+     * Une personne que la famille connaît d'une partie précédente : elle arrive avec les accords passés
+     * (jamais de grief), et ne paraîtra pas avant `$delai` quinzaines.
+     */
+    public function reconnaitre(int $accords, int $delai): void
+    {
+        $this->accords = max(0, min(self::ACCORDS_RETENUS_MAX, $accords));
+        $this->indisponibleJusqua = max($this->indisponibleJusqua, $delai);
+    }
+
     public function peutParaitre(int $quinzaine): bool
     {
         return $quinzaine >= $this->indisponibleJusqua;

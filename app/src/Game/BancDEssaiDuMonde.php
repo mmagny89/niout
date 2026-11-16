@@ -93,6 +93,42 @@ final readonly class BancDEssaiDuMonde
     }
 
     /**
+     * Les rivaux sans joueur (`docs/plan-pnj-palier-b.md` § 9) : sur des milliers d'identités et trois routes
+     * d'attraits différents, où s'installe-t-on, selon le caractère ? Dit si la décision **varie** (sans quoi
+     * le monde est un rail), si elle **respecte** les deux meilleures routes (jamais la pire), et si elle
+     * se **rejoue**.
+     *
+     * @return array{tirages: int, parCaractere: array<string, array<string, int>>, pireChoisie: int, instable: int}
+     */
+    public function mesurerLesRivaux(int $tirages = 2000): array
+    {
+        $routes = [
+            ['cle' => 'marche-riche', 'prosperite' => 90, 'prestige' => 20],
+            ['cle' => 'commerce-vivant', 'prosperite' => 20, 'prestige' => 90],
+            ['cle' => 'route-morte', 'prosperite' => 0, 'prestige' => 0],
+        ];
+        $parCaractere = [];
+        $pire = 0;
+        $instable = 0;
+
+        foreach ([TraitDeCandidat::Econome, TraitDeCandidat::Ambitieux, TraitDeCandidat::Fidele, TraitDeCandidat::Croyant] as $caractere) {
+            for ($identite = 0; $identite < $tirages; ++$identite) {
+                $choix = DecisionDuRival::choisir($routes, $caractere, $identite);
+
+                if (null === $choix) {
+                    continue;
+                }
+
+                $parCaractere[$caractere->value][$choix['cle']] = ($parCaractere[$caractere->value][$choix['cle']] ?? 0) + 1;
+                $pire += 'route-morte' === $choix['cle'] ? 1 : 0;
+                $instable += $choix !== DecisionDuRival::choisir(array_reverse($routes), $caractere, $identite) ? 1 : 0;
+            }
+        }
+
+        return ['tirages' => 4 * $tirages, 'parCaractere' => $parCaractere, 'pireChoisie' => $pire, 'instable' => $instable];
+    }
+
+    /**
      * @return list<PartenaireCommercial>
      */
     public function partenaires(): array

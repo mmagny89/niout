@@ -27,6 +27,7 @@ final readonly class Lignees
         private LigneeRepository $lignees,
         private EtatDePartenaireRepository $etatsDesCites,
         private EntityManagerInterface $entityManager,
+        private ?Visages $visages = null,
     ) {
     }
 
@@ -36,7 +37,7 @@ final readonly class Lignees
      */
     public function pour(User $joueur): Lignee
     {
-        $lignee = $this->lignees->findPourJoueur($joueur);
+        $lignee = $this->lignees->findPourJoueur($joueur) ?? $this->enAttente($joueur);
 
         if (null === $lignee) {
             $lignee = new Lignee($joueur);
@@ -44,6 +45,22 @@ final readonly class Lignees
         }
 
         return $lignee;
+    }
+
+    /**
+     * Une lignée créée plus tôt dans la même requête, **pas encore flushée** : sans elle, deux appels avant le
+     * flush en créeraient deux, et la contrainte d'unicité (`joueur_id`) refuserait le second. C'est le cas
+     * d'une première partie, qui lit l'acquis de départ puis y sème un visage.
+     */
+    private function enAttente(User $joueur): ?Lignee
+    {
+        foreach ($this->entityManager->getUnitOfWork()->getScheduledEntityInsertions() as $entite) {
+            if ($entite instanceof Lignee && $entite->getJoueur() === $joueur) {
+                return $entite;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -78,5 +95,8 @@ final readonly class Lignees
         foreach ($this->etatsDesCites->deLaPartie($partie) as $etat) {
             $lignee->releverLaRelation($etat->getCite(), $etat->getRelation());
         }
+
+        // Les personnes rencontrées se retiennent aussi : on les reverra, au plus douze.
+        $this->visages?->retenir($partie, $lignee);
     }
 }

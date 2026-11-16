@@ -139,6 +139,8 @@ final readonly class ChefsVoyageurs
             $profil = $voyageur->getProfil();
 
             if (($profil['batiment'] ?? null) !== $batiment->value
+                || [] === ($profil['candidat'] ?? [])
+                || !$voyageur->peutParaitre($cycle)
                 || true === ($profil['revenu'] ?? false)
                 || $cycle < (int) ($profil['depart'] ?? $cycle) + self::DELAI_DE_RETOUR
                 || 0 !== self::entier($partie->getGraine(), 'retour', $voyageur->getIdentite(), $cycle) % 2) {
