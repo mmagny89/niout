@@ -201,7 +201,13 @@
                 <ul class="mt-3 space-y-2 list-none p-0">
                     {% for indice in dossier.indices %}
                         <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-l-2 border-ocre-500/40 pl-3 text-sm">
-                            <span class="text-encre-700">{{ indice.texte }}</span>
+                            {# Un témoignage se lit **dit par son témoin**, à la première personne — le même texte, rien
+                               de plus, **sur le même ton pour tous** : le ton ne doit jamais trahir la nature (doc 10). #}
+                            {% if indice.parole %}
+                                <span class="text-encre-700"><span class="font-medium text-encre-900">{{ indice.temoin }}</span> : « {{ indice.parole }} »</span>
+                            {% else %}
+                                <span class="text-encre-700">{{ indice.texte }}</span>
+                            {% endif %}
                             <span class="text-xs text-encre-500">
                                 {{ indice.source.libelle }} · {{ indice.nature.libelleAffiche|lower }}
                             </span>

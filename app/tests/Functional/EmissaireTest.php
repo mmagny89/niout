@@ -8,6 +8,7 @@ use App\Entity\Building;
 use App\Entity\GameSave;
 use App\Entity\User;
 use App\Entity\Zone;
+use App\Game\Enquete;
 use App\Game\Enquetes;
 use App\Game\ExplorationImpossible;
 use App\Game\Explorations;
@@ -111,6 +112,29 @@ final class EmissaireTest extends WebTestCase
         self::assertCount(1, $verses);
         self::assertSame(SourceDIndice::Temoignage, $verses[0]->source());
         self::assertNotSame([], array_filter($rapports, static fn (string $m): bool => str_contains($m, 'émissaire')));
+    }
+
+    /**
+     * **Un témoignage se lit dit par son témoin**, à la première personne ; un indice de terrain garde
+     * sa formule neutre. Le gabarit est le même pour tous : le ton ne trahit pas la nature (doc 10).
+     */
+    public function testLeDossierLitUnTemoignageDansLaBoucheDeSonTemoin(): void
+    {
+        $client = static::createClient();
+        $partie = $this->villeAvecScribes('dossier-parole@example.com');
+        $dossier = $partie->getVille()->ouvrirLeDossierDe(Enquete::PassageCoupe);
+        $dossier->verser(Indice::PlainteDunPaysan);
+        $dossier->verser(Indice::BorneRenversee);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+        $client->loginUser($partie->getJoueur());
+
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        $page = (string) $client->getResponse()->getContent();
+        self::assertStringContainsString('« '.Indice::PlainteDunPaysan->parole().' »', html_entity_decode($page));
+        self::assertStringContainsString(Indice::BorneRenversee->texte(), html_entity_decode($page));
+        self::assertStringNotContainsString(Indice::BorneRenversee->texte().' »', html_entity_decode($page));
     }
 
     /**

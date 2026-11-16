@@ -42,6 +42,7 @@ use App\Entity\Medjay;
  *     medjays: list<array{cle: string, libelle: string, disponible: bool}>,
  *     rival: ?array{cle: string, libelle: string},
  *     batiments?: list<string>,
+ *     temoignages?: list<string>,
  * }
  */
 final readonly class PhotoDeLaVille
@@ -206,6 +207,9 @@ final readonly class PhotoDeLaVille
             // Les bâtiments debout, la Résidence comprise : de quoi savoir où l'on peut aller.
             // Absent des traces d'avant ce champ — la chorégraphie s'en passe alors.
             'batiments' => self::batimentsDresses($partie),
+            // Les témoignages que les dossiers contiennent, par la valeur de l'indice : la
+            // comparaison de deux photographies dit lesquels l'émissaire a rapportés.
+            'temoignages' => self::temoignagesDesDossiers($partie),
         ];
     }
 
@@ -227,6 +231,26 @@ final readonly class PhotoDeLaVille
         }
 
         return $dresses;
+    }
+
+    /**
+     * Les indices de **témoignage** que les dossiers contiennent.
+     *
+     * @return list<string>
+     */
+    public static function temoignagesDesDossiers(GameSave $partie): array
+    {
+        $temoignages = [];
+
+        foreach ($partie->getVille()->getDossiers() as $dossier) {
+            foreach ($dossier->indices() as $indice) {
+                if (SourceDIndice::Temoignage === $indice->source()) {
+                    $temoignages[] = $indice->value;
+                }
+            }
+        }
+
+        return $temoignages;
     }
 
     /**

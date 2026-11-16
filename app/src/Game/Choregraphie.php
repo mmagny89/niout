@@ -246,6 +246,54 @@ final class Choregraphie
         $paroles = [];
         $dites = [];
 
+        // **Les témoignages rapportés d'abord** : un fait vrai, mis en scène l'après-midi du jour. Ceux
+        // qui les disent ne bavardent pas ce moment-là.
+        $occupes = [];
+
+        foreach ($c['temoignages'] as $temoignage) {
+            $indice = Indice::tryFrom($temoignage['indice']);
+            $temoin = $indice?->temoin();
+            $parole = $indice?->parole();
+
+            if (null === $temoin || null === $parole) {
+                continue;
+            }
+
+            [$a, $b] = self::voixDuTemoignage($candidats);
+
+            if (null === $a || null === $b) {
+                continue;
+            }
+
+            $jour = $temoignage['jour'];
+            $presents = true;
+
+            foreach ([$a, $b] as $i) {
+                $p = $pas[$candidats[$i]['cle']][$jour][2] ?? null;
+                $presents = $presents && null !== $p && null !== $p['lieu'] && !$p['couchee'];
+            }
+
+            if (!$presents) {
+                continue;
+            }
+
+            $h = crc32($graine.'|temoignage|'.$jour.'|'.$temoignage['indice']);
+            $texteA = Dialogues::replique('temoignage', 'a', $h >> 4, ['temoin' => $temoin, 'parole' => $parole]);
+            $texteB = Dialogues::replique('temoignage', 'b', $h >> 12);
+            $lieu = (string) $pas[$candidats[$a]['cle']][$jour][2]['lieu'];
+
+            $dites[] = ['cle' => $candidats[$a]['cle'], 'jour' => $jour, 'moment' => 2, 'parole' => ['texte' => $texteA, 'nature' => Dialogues::FAIT, 'avec' => $candidats[$b]['libelle']]];
+            $dites[] = ['cle' => $candidats[$b]['cle'], 'jour' => $jour, 'moment' => 2, 'parole' => ['texte' => $texteB, 'nature' => Dialogues::FAIT, 'avec' => $candidats[$a]['libelle']]];
+            $paroles[] = [
+                'jour' => $jour, 'moment' => 2, 'lieu' => $lieu, 'a' => $a, 'b' => $b,
+                'situation' => 'temoignage', 'nature' => Dialogues::FAIT,
+                'libelleA' => $candidats[$a]['libelle'], 'libelleB' => $candidats[$b]['libelle'],
+                'texteA' => $texteA, 'texteB' => $texteB,
+            ];
+            $occupes[$jour.'|2|'.$a] = true;
+            $occupes[$jour.'|2|'.$b] = true;
+        }
+
         for ($jour = 1; $jour <= $jours; ++$jour) {
             $duJour = 0;
 
@@ -255,7 +303,7 @@ final class Choregraphie
                 foreach ($candidats as $i => $candidat) {
                     $pasDuMoment = $pas[$candidat['cle']][$jour][$moment] ?? null;
 
-                    if (null !== $pasDuMoment && null !== $pasDuMoment['lieu'] && !$pasDuMoment['couchee'] && self::causant($pasDuMoment)) {
+                    if (null !== $pasDuMoment && null !== $pasDuMoment['lieu'] && !$pasDuMoment['couchee'] && !isset($occupes[$jour.'|'.$moment.'|'.$i]) && self::causant($pasDuMoment)) {
                         $groupes[$pasDuMoment['lieu']][] = $i;
                     }
                 }
@@ -312,7 +360,41 @@ final class Choregraphie
             }
         }
 
+        // Dans l'ordre du temps, pour que le film les rencontre dans l'ordre.
+        usort($paroles, static fn (array $x, array $y): int => [$x['jour'], $x['moment']] <=> [$y['jour'], $y['moment']]);
+
         return ['paroles' => $paroles, 'dites' => $dites];
+    }
+
+    /**
+     * Qui rapporte, et à qui : **le chef de la Maison des scribes** — c'est à lui que l'émissaire
+     * en répond — ou, à défaut, la famille ; et l'autre est la famille, ou un autre chef, ou une
+     * maison. Nul si l'on n'a personne à qui le dire : le témoignage se lit alors au dossier.
+     *
+     * @param list<array{cle: string, role: string, libelle: string, lieu: ?string, couchee: bool}> $candidats
+     *
+     * @return array{?int, ?int}
+     */
+    private static function voixDuTemoignage(array $candidats): array
+    {
+        $scribe = null;
+        $famille = null;
+        $autre = null;
+
+        foreach ($candidats as $i => $candidat) {
+            if (null === $scribe && 'chef' === $candidat['role'] && TypeDeBatiment::MaisonDesScribes->value === $candidat['lieu']) {
+                $scribe = $i;
+            } elseif (null === $famille && 'chef_de_famille' === $candidat['role']) {
+                $famille = $i;
+            } elseif (null === $autre && \in_array($candidat['role'], ['chef', 'foyer'], true)) {
+                $autre = $i;
+            }
+        }
+
+        $a = $scribe ?? $famille;
+        $b = $scribe === $a ? ($famille ?? $autre) : $autre;
+
+        return [$a, $b];
     }
 
     /**
@@ -408,6 +490,7 @@ final class Choregraphie
      *     corvee: ?string,
      *     graine: int,
      *     batiments: array<string, true>,
+     *     temoignages: list<array{jour: int, indice: string}>,
      * }
      */
     private static function contexte(array $photo, array $faits, array $jourDe, int $jours, int $graine): array
@@ -415,6 +498,7 @@ final class Choregraphie
         $c = [
             'jours' => $jours,
             'graine' => $graine,
+            'temoignages' => [],
             // Où l'on peut aller : les bâtiments debout. Une trace d'avant ce champ ne
             // connaît que la Résidence, et la chorégraphie n'invente alors aucune course.
             'batiments' => array_fill_keys($photo['batiments'] ?? [TypeDeBatiment::ResidenceFamiliale->value], true),
@@ -449,6 +533,7 @@ final class Choregraphie
                 TypeDeFait::RivalParti => $c['rivalParti'] = $jour,
                 TypeDeFait::EpidemieEclate => $c['epidemieEclate'] = ['jour' => (int) $jour, 'malades' => $fait['quantite'] ?? 0],
                 TypeDeFait::EpidemieFinie => $c['epidemieFinie'] = $jour,
+                TypeDeFait::TemoignageRecueilli => $c['temoignages'][] = ['jour' => (int) $jour, 'indice' => (string) ($fait['details']['indice'] ?? '')],
                 default => null,
             };
         }

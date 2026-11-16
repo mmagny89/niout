@@ -449,6 +449,11 @@ sur **la première conversation du jour** s'il y en a une. Cocher **« Lire les 
 lecture de chaque réplique (55 ms par caractère, entre 1,8 s et 4,5 s) : lire à 4 s par jour est impossible. **Le texte est
 aussi dans la fenêtre** — « Ce qu'on s'est dit », avec qui et où — et dans le journal de celui qui parle (« dit à … : « … » »).
 
+**Les témoignages dits** (lot I3, `Choregraphie::paroles()`, dossier de la Maison des scribes). Un témoignage rapporté par
+l'émissaire se joue **l'après-midi du jour**, en bulles, avec le même mécanisme que les conversations, et se lit aussi au journal et
+dans « Ce qu'on s'est dit ». **Au dossier d'enquête**, il s'affiche « *Témoin* : « parole » » ; un indice de terrain garde son texte.
+**Même gabarit pour tous** : le ton de la ligne ne doit jamais trahir la nature de l'indice.
+
 **La variété des journées** (lot V3b, `Choregraphie`). Sans fait, une journée n'est plus « maison, travail » : l'**après-midi**, une
 course au Marché (25 % des cas pour un chef ou un travailleur), le scribe au Temple (40 %), la famille en visite au Temple
 (30 %), la ronde des Medjaÿ sur la place (40 %), un foyer non alité au Marché (25 %) ; le **soir**, un détour par l'Auberge (20 %).

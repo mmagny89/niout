@@ -173,6 +173,24 @@ final class Dialogues
                     'Le travail n\'attend pas.',
                 ],
             ],
+            // Un témoignage que l'émissaire vient de rapporter, rejoué en paroles (`Indice::parole()`).
+            // **Le texte est celui de l'indice, rien de plus, sur le même ton pour tous** : le doc 10
+            // interdit qu'un ton trahisse la nature d'un indice.
+            'temoignage' => [
+                'nature' => self::FAIT,
+                'a' => [
+                    'L\'émissaire revient. {temoin} dit : « {parole} »',
+                    '{temoin} a parlé à notre émissaire : « {parole} »',
+                    'Voici ce qu\'on a recueilli — {temoin} : « {parole} »',
+                    'Notre émissaire rapporte, de la part de {temoin} : « {parole} »',
+                ],
+                'b' => [
+                    'Qu\'on l\'inscrive au dossier.',
+                    'Il faudra y réfléchir.',
+                    'Voyons ce que cela vaut.',
+                    'Les scribes en prendront note.',
+                ],
+            ],
             'ambiance' => [
                 'nature' => self::AMBIANCE,
                 'a' => [
@@ -218,7 +236,7 @@ final class Dialogues
      * La réplique de celui qui parle (`a`) ou de celui qui répond (`b`), pour une variante
      * donnée — prise modulo le nombre de variantes — et ses variables.
      *
-     * @param array<string, string> $variables `{fete}`, `{partenaire}`, `{rival}`
+     * @param array<string, string> $variables `{fete}`, `{partenaire}`, `{rival}`, `{temoin}`, `{parole}`
      */
     public static function replique(string $situation, string $qui, int $variante, array $variables = []): string
     {
