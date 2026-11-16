@@ -12,6 +12,7 @@ use App\Entity\Zone;
 use App\Enum\GameMode;
 use App\Fenetre\BatimentsDeLaCite;
 use App\Fenetre\DetailDeCase;
+use App\Fenetre\FilmDeLaVille;
 use App\Fenetre\GensDeLaVille;
 use App\Fenetre\OuvertureDeFenetre;
 use App\Fenetre\Panneau\PanneauxDeLaVille;
@@ -1268,6 +1269,7 @@ final class PartieController extends AbstractController
         OuvertureDeFenetre $fenetres,
         VueDeLaVille $vueDeLaVille,
         GensDeLaVille $gensDeLaVille,
+        FilmDeLaVille $filmDeLaVille,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
@@ -1301,6 +1303,9 @@ final class PartieController extends AbstractController
             // Les silhouettes posées sur la ville vue d'en haut : une
             // représentation, calculée à la volée (`GensDeLaVille`).
             'gensDeLaVille' => $enVille ? $gensDeLaVille->pour($partie, $jourDemande, $request->query->getInt('moment', 1)) : null,
+            // Le film de la quinzaine passée : les points par où chaque silhouette passe, que
+            // le navigateur joue. Null sans trace — il n'y a rien à rejouer.
+            'filmDeLaVille' => $enVille ? $filmDeLaVille->pour($partie) : null,
             // La case dont la fenêtre est ouverte, pour la surligner.
             'zoneDetaillee' => $this->zoneDeLOuverture($zones, $chemin),
             // Les signaux et les expéditions en route se lisent dans la barre

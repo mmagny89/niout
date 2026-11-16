@@ -17,8 +17,14 @@
    eux, ils passaient au-dessus de la fenêtre (`z-30`) — le Temple s'ouvrait
    *sous* les sprites de la ville. En ligne, comme le rapport du visuel : pas
    de dépendance à la compilation de la CSS. #}
+{% set libelles = {lecture: 'Rejouer la quinzaine', pause: 'Pause', reprendre: 'Reprendre'} %}
 <div class="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden bg-sable-100 p-2 md:p-4"
-     style="container-type: size; isolation: isolate;">
+     style="container-type: size; isolation: isolate;"
+     {% if filmDeLaVille %}
+         data-controller="ville-vivante"
+         data-ville-vivante-film-value="{{ filmDeLaVille|json_encode }}"
+         data-ville-vivante-libelles-value="{{ libelles|json_encode }}"
+     {% endif %}>
     {# Le rapport du visuel est posé **en ligne** et non par une classe Tailwind :
        c'est lui qui donne sa hauteur au conteneur, dont tous les enfants sont
        en `absolute`. Une classe oubliée par la compilation de la CSS le ferait
@@ -62,6 +68,10 @@
         {% if gensDeLaVille %}
             {{ include('partie/_symboles_de_figures.html.twig') }}
             {{ include('partie/_figures_de_la_ville.html.twig') }}
+            {# Le film de la quinzaine passée : un calque caché, que le contrôleur dévoile. #}
+            {% if filmDeLaVille %}
+                {{ include('partie/_film_de_la_ville.html.twig') }}
+            {% endif %}
         {% endif %}
     </div>
 
@@ -92,6 +102,10 @@
                 </p>
             {% endif %}
         </div>
+
+        {% if filmDeLaVille %}
+            {{ include('partie/_barre_de_lecture.html.twig', {libelles: libelles, jourInitial: gensDeLaVille.jour ?? 1}) }}
+        {% endif %}
 
         {% if gensDeLaVille.auxChamps > 0 %}
             <p class="pointer-events-none absolute bottom-2 left-2 z-[1000] rounded-sm border border-ocre-500/30 bg-sable-50/90 px-2.5 py-1.5 text-sm

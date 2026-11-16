@@ -37,7 +37,7 @@
     </svg>
 {% endmacro %}
 
-<div aria-hidden="true">
+<div aria-hidden="true" data-ville-vivante-target="statique">
     {% for f in gensDeLaVille.figures %}
         {% set geometrie = 'left: ' ~ f.gauche ~ '%; top: ' ~ f.haut ~ '%; width: ' ~ f.largeur ~ '%; aspect-ratio: ' ~ f.rapport ~ '; z-index: ' ~ f.profondeur ~ ';' %}
         <a href="{{ path('app_partie_gens', {id: partie.id, cle: f.cle}) }}" tabindex="-1"

@@ -1,0 +1,32 @@
+{# Page de contrôle, développement seulement (`ReseauDeRuesController`) : le réseau de
+   rues par-dessus le visuel. Rouge : les carrefours ; trait rose : les rues ; carré
+   bleu : le centre d'un lot ; trait bleu : de son centre à sa porte. #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Réseau de rues — contrôle{% endblock %}
+
+{% block body %}
+    <main class="mx-auto max-w-6xl p-4">
+        <h1 class="font-display text-xl">Le réseau de rues, sur le visuel</h1>
+        <p class="mt-1 text-sm text-encre-600">Carrefours en rouge, rues en rose, lots en bleu avec leur porte. Cherchez une rue qui traverse un bâtiment.</p>
+
+        <div class="relative mt-4" style="aspect-ratio: {{ largeur }} / {{ hauteur }};">
+            <img src="{{ asset('images/ville/ville_port.webp') }}" alt="" class="absolute inset-0 size-full">
+            <svg viewBox="0 0 {{ largeur }} {{ hauteur }}" class="absolute inset-0 size-full" role="img" aria-label="Réseau de rues">
+                {% for arete in aretes %}
+                    <line x1="{{ noeuds[arete[0]][0] }}" y1="{{ noeuds[arete[0]][1] }}" x2="{{ noeuds[arete[1]][0] }}" y2="{{ noeuds[arete[1]][1] }}"
+                          stroke="#d0189a" stroke-width="4" stroke-linecap="round"/>
+                {% endfor %}
+                {% for lot in lots %}
+                    <line x1="{{ lot.x }}" y1="{{ lot.y }}" x2="{{ lot.porteX }}" y2="{{ lot.porteY }}" stroke="#1c4a6b" stroke-width="2" stroke-dasharray="6 4"/>
+                    <rect x="{{ lot.x - 6 }}" y="{{ lot.y - 6 }}" width="12" height="12" fill="#1c4a6b"/>
+                    <text x="{{ lot.x + 9 }}" y="{{ lot.y + 4 }}" font-size="16" fill="#1c4a6b">{{ lot.type ? lot.type.value : 'libre' }}</text>
+                {% endfor %}
+                {% for id, noeud in noeuds %}
+                    <circle cx="{{ noeud[0] }}" cy="{{ noeud[1] }}" r="9" fill="#d61f1f"/>
+                    <text x="{{ noeud[0] + 11 }}" y="{{ noeud[1] - 8 }}" font-size="15" fill="#d61f1f">{{ id }}</text>
+                {% endfor %}
+            </svg>
+        </div>
+    </main>
+{% endblock %}
