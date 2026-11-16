@@ -151,7 +151,7 @@ Aujourd'hui, un chef qui part (`DepartsNaturels`) **disparaît**, avec sa
 maisonnée. Demain :
 
 - **Il va quelque part.** Une cité partenaire, ou une autre ville. Le départ devient
-  *« Ouser, notre Négociateur, a rejoint Byblos »*.
+  *« Notre Négociateur de l'Entrepôt a rejoint Byblos »* — **sans nom**, comme aujourd'hui : `Employee` n'en a pas, par décision de la joueuse.
 - **Il y fait quelque chose.** Un **Négociateur** parti à Byblos **élève la relation
   de Byblos** avec la famille qui l'a formé (un geste de plus qu'un convoi) ; un
   **Logisticien** peut raccourcir un trajet vers cette cité. Les bonus passent
@@ -162,7 +162,7 @@ maisonnée. Demain :
   Sa compétence ne monte que **dans les bornes du générateur** (20 à 100).
 - **Le pool de candidats est déduit, pas stocké.** Comme les héritiers, il vient
   d'une graine : *« des personnes qui existent avant l'annonce »* veut dire **une
-  population de N noms stable par partie**, dont l'annonce tire. Seuls ceux que le
+  population de N profils stable par partie**, dont l'annonce tire. Seuls ceux que le
   joueur **touche** — embauchés, renvoyés — sont **persistés**, paresseusement, comme
   un dossier d'enquête naît à son premier indice.
 - **Le foyer suit**, comme aujourd'hui : un départ n'ajoute ni ne retire de
@@ -321,6 +321,7 @@ cher pour du non vérifié.
 
 | Question | Penchant |
 |---|---|
+| **Un chef qui part, ou revient, reçoit-il un nom ?** Aujourd'hui non (`Employee` et `Medjay` n'en ont pas, décision de la joueuse) ; le rival, lui, en a un | Non : désignation par bâtiment et spécialité ; seuls les PNJ **neufs** de B (rival, courtisan, chef de bande) sont nommés |
 | **Quel nom pour l'entité** (`Npc`, ou un mot de l'univers) ? | `Npc` pour la classe, vocabulaire de l'univers pour les rôles |
 | **Combien de personnes à l'écran** avant que la fiche ne devienne un annuaire ? | 6 à 10 ; au-delà, la chronique, pas la fiche |
 | **Les bandes peuvent-elles se déplacer ?** | Non en B ; à rouvrir avec un chantier de carte |

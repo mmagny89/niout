@@ -68,7 +68,7 @@ l'**extension dans le temps**.
 | **Chaque bâtiment a son lot, fixe** : « on ne choisit pas où bâtir, on choisit quoi — la ville se gère, elle ne se dessine pas » (doc 15) | `EmplacementsDeLaVille` | Les **lieux de travail** sont connus et **ne bougent pas** : c'est ce qui rend le panneau faisable |
 | **Il n'existe aucun graphe de rues** : les chemins sont dans l'image, pas dans les données | `AncragesDesSprites` (généré) | **Seule vraie donnée à créer** : des points de passage (§ 5) |
 | `Maisonnees` répartit la population en **foyers déterministes**, sans rien stocker | `Maisonnees`, `Population::foyersPour()` | La **strate des foyers** (§ 4) : déjà là |
-| Les **chefs** sont des personnes : compétence, salaire, spécialité, traits, **foyer amené** ; les **Medjaÿ** aussi : spécialisation, expérience, équipement | `Employee`, `Medjay` | La **strate des nommés** : déjà là |
+| Les **chefs** sont suivis un par un : compétence (affichée en étoiles), salaire, spécialité, traits, **foyer amené** ; les **Medjaÿ** aussi : spécialisation, expérience, équipement, **mort permanente** au combat. **Aucun des deux n'a de nom, par décision de la joueuse** : on les désigne par leur bâtiment et leur spécialité, ou par leur spécialisation | `Employee`, `Medjay` | La **strate des désignés** : déjà là, **sans nom** — voir § 4 et § 14 |
 | Les **effectifs** par bâtiment se **dérivent** (nombre de travailleurs requis, rendement) | `Effectifs` | Combien de **silhouettes** au travail dans chaque bâtiment, sans rien inventer |
 | Le **calendrier** compte **15 jours par quinzaine**, 25 cycles par an — **le dernier ne dure que 5 jours** (épagomènes) — et trois **fêtes attestées** : Opet, mystères d'Osiris, Belle Fête de la Vallée | `DateDeJeu`, `FeteCalendaire` | **La frise du rejeu** : 15 jours, **5 en fin d'année** ; les fêtes en sont des **jours marqués** |
 | **La corvée d'Akhèt** mobilise les paysans que la crue désœuvre ; sans Nil, pas de corvée | `PassageDeCycle`, `GeographieDeLaPartie` | Une scène qui **n'est pas décorative** : on voit les paysans aux chantiers |
@@ -80,13 +80,13 @@ l'**extension dans le temps**.
 
 | Strate | Qui | Ce que c'est | Cliquable |
 |---|---|---|---|
-| **Nommés** | Chefs en poste, Medjaÿ, **chef de famille** et héritier ; plus tard, les **visiteurs** des paliers B et C | **De vraies personnes** : leurs données existent dans le jeu | Oui — fiche complète |
-| **Foyers** | Les maisonnées de `Maisonnees` | **Représentatifs** : chaque foyer a un **nom déduit d'une graine** (`PrenomEgyptien`), ses membres (actif, enfant, ancien, malade) | Oui — fiche de foyer, dite *représentative* |
+| **Désignés** | Chefs en poste, Medjaÿ, **chef de famille** (le seul qui ait un prénom, en Aventure) et le **rival** installé ; plus tard, les **visiteurs** des paliers B et C | **De vraies personnes** : leurs données existent dans le jeu. **Sans nom** pour les chefs et les Medjaÿ (« le chef du Grenier, gestionnaire ») | Oui — fiche |
+| **Foyers** | Les maisonnées de `Maisonnees` | **Représentatifs** : une **maison numérotée**, ses membres (actif, enfant, ancien, malade). Un nom déduit d'une graine (`PrenomEgyptien`) reste possible, **mais le jeu n'en donne à personne d'autre** : question ouverte (§ 14) | Oui — fiche de foyer, dite *représentative* |
 | **Foule** | Les silhouettes qui animent les rues | **Décor** : un échantillon, jamais le compte | Non — mais **la foule montre l'état** (§ 6.2) |
 
 **On ne dessine pas toute la ville.** Une ville a des dizaines d'habitants ;
 afficher chaque personne noierait le panneau et coûterait en images. **Un plafond
-de figures animées** (valeur inventée, § 12) s'applique, **les nommés d'abord**.
+de figures animées** (valeur inventée, § 12) s'applique, **les désignés d'abord**.
 
 **La foule dit la santé de la ville** et c'est ce qui la rend utile, pas seulement
 belle : clairsemée en famine, des silhouettes **couchées** quand l'épidémie
@@ -94,7 +94,7 @@ belle : clairsemée en famine, des silhouettes **couchées** quand l'épidémie
 suit **une donnée réelle** — jamais un effet d'ambiance qui mentirait.
 
 **Ce que le panneau ne montre pas** : les **décès ordinaires** et les
-**naissances** (`Demographie`) restent des **nombres** dans la fiche du jour. Pas
+**naissances** (`Demographie`) restent des **nombres** dans la fiche du jour ; **la mort d'un Medjaÿ au combat** (mort permanente, doc 03) reste un fait du journal, pas une scène. Pas
 de cortège, pas de scène — le ton du jeu est celui de *« des malades, jamais des
 morts »*, et un décès d'ancien tiré au sort n'est pas un événement qu'on met en
 scène (§ 13).
@@ -215,7 +215,7 @@ Twig** : règle du projet.
   les paramètres. C'est la discipline du moteur de la V1 de `simulation`
   (`avancer(monde, durée, données)`), appliquée à un rendu.
 - **Déterministe** : même entrée, même scénario.
-- **Les nommés d'abord** : ils sont placés **avant** la foule, qui remplit **ce
+- **Les désignés d'abord** : ils sont placés **avant** la foule, qui remplit **ce
   qui reste** du plafond.
 - **Les chemins** : le plus court entre deux portes, **calculé côté serveur**.
   Le navigateur **reçoit** des trajets, il ne les cherche pas.
@@ -324,7 +324,7 @@ la question du playtest de V3.
 | Lot | Contenu | Sortie | Verrou |
 |---|---|---|---|
 | **V0** | Ce document, les décisions du § 14 | Cadrage validé | — |
-| **V1** | **« La ville habitée »** : le calque de figures **à l'instant**, chacun **à sa place** (nommés, foyers, foule), **sans temps ni trace**. Les points de passage ne sont **pas** nécessaires. Fiche d'un nommé et d'un foyer | **Du visuel, tout de suite**, avec **les seules données qui existent** | **Playtest : regarde-t-on ?** |
+| **V1** | **« La ville habitée »** : le calque de figures **à l'instant**, chacun **à sa place** (désignés, foyers, foule), **sans temps ni trace**. Les points de passage ne sont **pas** nécessaires. Fiche d'un désigné et d'un foyer | **Du visuel, tout de suite**, avec **les seules données qui existent** | **Playtest : regarde-t-on ?** |
 | **V2** | **La trace** (`InstantaneDeQuinzaine`, `FaitDeMonde` de ville) et la **chorégraphie pure** ; **frise** de 15 jours, curseur, **journal jour par jour** dans la fiche. **Les figures sautent**, elles ne marchent pas | Le **jour par jour**, en texte et en lieux | Déterminisme, ordre du cycle, compte des gens |
 | **V3** | **Les chemins** (graphe des deux visuels, outil de contrôle), **le rejeu animé**, vitesses, suivi, `prefers-reduced-motion` | **Le film de la quinzaine** | **Playtest : vivant ou factice ?** Fluidité à 390 px |
 | **V4** | **Le zoom « quartier »** : une rue, des maisons, des portes | « Dans leur maison » | Un visuel de plus à produire |
@@ -343,7 +343,7 @@ V1 regardé.
 | Valeur | Amorce | Ce qu'elle infléchit |
 |---|---|---|
 | Plafond de figures animées | 40 | La fluidité à 390 px |
-| Part de foule dans ce plafond | 50 % | L'équilibre entre nommés et ambiance |
+| Part de foule dans ce plafond | 50 % | L'équilibre entre désignés et ambiance |
 | Moments par jour | 4 | La finesse de la reconstitution |
 | Vitesse « normale » | 4 s par jour | Le confort de lecture |
 | Vitesse « rapide » | ≈ 30 s la quinzaine | Le plaisir du film |
@@ -359,10 +359,213 @@ V1 regardé.
 | **Par quel lot commence-t-on ?** | **V1**, sans trace ni chemins |
 | **Pictogrammes SVG ou sprites ?** | SVG au début, de profil ; sprites plus tard si la direction artistique le veut |
 | **Les décès ordinaires sont-ils un jour mis en scène ?** | Non : un chiffre dans la fiche |
-| **Les nommés ont-ils un portrait ?** | Oui, **déduit** du métier et du trait, sans image par personne |
+| **Les chefs et les Medjaÿ reçoivent-ils un nom ?** Aujourd'hui non, **décision de la joueuse** (`Employee`, `Medjay`) | Non : on garde la désignation par bâtiment et spécialité ; à rouvrir seulement si le panneau le réclame |
+| **Les désignés ont-ils un portrait ?** | Oui, **déduit** du métier et du trait, sans image par personne |
 | **Rejouer plus de trois quinzaines ?** | Non : le contrat dit que la trace se purge |
 | **Une ville sans Port (variante sans eau) montre-t-elle un autre visuel ?** | Oui, comme aujourd'hui : un graphe par visuel |
 | **Les enfants et les anciens sont-ils cliquables ?** | Par **foyer**, pas par individu |
 | **Quel mot pour l'écran ?** | « La ville » (onglet), « Le film de la quinzaine » (rejeu) |
 | **Le son ?** | Non : aucune ressource audio, et l'accessibilité d'abord |
 | **Et sur la carte isométrique**, des silhouettes aux cases ? | Non : la carte reste la carte ; la ville est dans sa fenêtre |
+
+## 15. Lot V1 — « La ville habitée » : la spécification
+
+**Retenu le 2026-11-16 comme premier lot.** Ce qui suit est ce qu'on écrira, fichier
+par fichier, **quand le code sera autorisé** — rien n'est codé à ce jour.
+
+### 15.1 Ce que V1 est, et ce qu'il n'est pas
+
+**V1 pose des silhouettes sur la ville vue d'en haut, à l'instant présent**, d'après
+ce que le jeu sait déjà, et ouvre une fiche au clic. **Il n'ajoute ni table, ni
+migration, ni contrôleur Stimulus, ni animation.** Tout est calculé à la volée, par
+une fonction déterministe, comme `Maisonnees`.
+
+| V1 fait | V1 ne fait pas |
+|---|---|
+| Des silhouettes **à leur poste, au quartier, à la caserne** | Aucun **temps** : pas de jours, pas de frise, pas de rejeu |
+| Les **désignés** : chefs en poste, Medjaÿ, chef de famille, rival | Aucune **trace** d'une quinzaine passée |
+| Des **foyers représentatifs** au Quartier, les malades **couchés** | Aucun **chemin** : personne ne marche |
+| Les **bras sans poste** vus au Marché ; les paysans « aux champs » en pastille | Pas de visiteurs des paliers A, B, C |
+| Une **fenêtre « Les gens de la ville »** : la liste équivalente et les fiches | Pas de zoom sur le quartier |
+| La mention **« reconstitution »** | Pas de sprites : des silhouettes SVG |
+
+### 15.2 Ce qui existe, et suffit (vérifié)
+
+| Besoin | Source dans le code |
+|---|---|
+| Où se dresse chaque bâtiment (centre du lot, classe de lot) | `EmplacementsDeLaVille::tous()`, en pixels de 1376 × 768 |
+| Quel bâtiment est dressé | `City::batimentDeType()`, `VueDeLaVille` |
+| Les chefs en poste, leur bâtiment, leur spécialité, leurs traits | `City::getEmployes()`, `Employee::estEnPoste($cycle)`, `getType()`, `getSpecialite()` |
+| Les Medjaÿ, **disponibles ou blessés** | `City::getMedjays()`, `Medjay::estDisponible($cycle)`, `getRetabliAuCycle()` |
+| Combien de travailleurs **à chaque poste** | `Effectifs::repartir($ville, $cycle)` → `affectes`, `requis` |
+| Les bras **oisifs** et les postes **vides** | `Effectifs::bilan()` → `oisifs`, `manquants` |
+| Les paysans **aux champs** | `Effectifs::brasPourLesChamps()` |
+| Les maisons, leurs habitants, leurs malades | `Maisonnees::repartir()`, `Maisonnees::decrire()` |
+| Le chef de famille | `Family::getChefDeFamille()` (nul hors Aventure) |
+| Le rival installé | `City::getRival()` — **il a déjà un nom** (`Panehsy le marchand`) |
+| L'ouverture d'une fenêtre | `data-turbo-frame="fenetre"`, `fenetre#ouvrir`, `app_partie_ville` |
+| Le droit de voir une partie | `#[IsGranted(PartieVoter::VOIR, subject: 'partie')]` |
+
+### 15.3 Les fichiers
+
+| Fichier | Rôle |
+|---|---|
+| `src/Fenetre/GensDeLaVille.php` *(neuf)* | **Le service.** `pour(GameSave): array` rend les figures et les listes. **Pur, déterministe, sans écriture.** Aucune règle de jeu nouvelle : il **lit** |
+| `src/Fenetre/RoleDeFigure.php` *(neuf, enum)* | Chef, Medjaÿ, ChefDeFamille, Rival, Travailleur, Foyer, Malade, SansPoste. Porte le **symbole** et le **libellé** |
+| `src/Controller/PartieController.php` | Une route `app_partie_gens` : `GET /partie/{id}/ville/gens`, `?cle=…` pour une fiche. **Même contrôle d'accès** que `app_partie_ville` ; une `cle` inconnue → 404 |
+| `templates/partie/_vue_de_la_ville.html.twig` | Un calque de figures **après** les sprites, un bouton « Les gens de la ville », la mention de reconstitution |
+| `templates/partie/_figures_de_la_ville.html.twig` *(neuf)* | Le calque : une boucle, aucune logique |
+| `templates/partie/_symboles_de_figures.html.twig` *(neuf)* | Les `<symbol>` SVG, **inline, une seule fois** |
+| `templates/fenetre/gens.html.twig` *(neuf)* | La liste « qui est où » et la fiche |
+| `tests/…` | § 15.7 |
+| `CHANGELOG.md`, `docs/interface.md`, `docs/regles-du-jeu.md` | **Au moment du commit**, pas après (§ 15.8) |
+
+### 15.4 Le service
+
+**Une figure** porte : une **clé stable** (`chef-<id>`, `medjay-<id>`, `famille`,
+`rival`, `maison-<n>`, `poste-<bâtiment>-<i>`), un **rôle**, un **libellé**, un
+**lieu** (le bâtiment), une **position** en pourcentages du visuel, une
+**orientation** (gauche ou droite), une **profondeur**, un **état** (debout, couché),
+un **lien** (la fiche) ou rien, et un **libellé pour lecteur d'écran**.
+
+**Règles de composition**, par priorité décroissante, sous **un plafond de 40
+figures** (valeur inventée, § 13) :
+
+1. **Le chef de famille**, à la Résidence. Son prénom s'il existe (Aventure), sinon
+   « le chef de la famille ».
+2. **Les chefs en poste**, **un par chef**, à leur bâtiment — *« Chef du Grenier,
+   gestionnaire »*. **Sans nom** (décision de la joueuse, `Employee`).
+3. **Les Medjaÿ**, à la Caserne s'ils sont disponibles ; **couchés au Quartier**
+   s'ils sont blessés.
+4. **Le rival**, au Marché, s'il est installé.
+5. **Des travailleurs représentatifs** : par bâtiment, **`min(affectés, 3)`**
+   silhouettes — **le compte exact est dans la fiche**, pas dans le nombre de
+   silhouettes. Un bâtiment **à l'arrêt** (aucun affecté) **n'en a aucune** : c'est
+   une information vraie, visible d'un coup d'œil.
+6. **Les bras sans poste** : **`min(oisifs, 3)`** au Marché.
+7. **Des foyers** : jusqu'à **6 maisons représentatives** au Quartier ; les
+   **malades** y sont **couchés**.
+8. **Une pastille « aux champs : N »** en marge — les paysans sont **hors scène**.
+
+**Une figure par désigné d'abord, la foule ensuite** : si le plafond est atteint, on
+coupe la foule, **jamais** un chef.
+
+**Le placement** : un **décalage par lot**, d'après un **petit tableau d'ancrages**
+(devant la porte, en éventail, selon la classe du lot — grand, moyen, petit), converti
+en pourcentages **dans le même repère** que les sprites ; **borné à l'intérieur du
+visuel**. **L'orientation et le léger décalage** se tirent d'une graine **dérivée de
+l'identifiant de la partie** (`Randomizer` à moteur semé, jamais le hasard global) :
+**stables d'une visite à l'autre**, comme les héritiers.
+
+**Le service ne dessine rien** : il rend des données ; le gabarit les affiche.
+
+### 15.5 L'affichage
+
+- **Le calque** : à l'intérieur du conteneur du visuel, **après** les sprites ;
+  chaque figure est **en `absolute`, en pourcentages**, `z-index` = profondeur du lot
+  **+ 1** (devant son propre bâtiment, derrière un bâtiment plus proche). Le conteneur
+  a déjà `isolation: isolate`.
+- **La géométrie est posée en ligne** — position, taille, retournement
+  (`transform: scaleX(-1)`) — **règle du projet** : une classe Tailwind oubliée par la
+  compilation ferait écraser toutes les figures sur une ligne, comme les sprites une
+  fois l'ont fait.
+- **Les silhouettes** : un petit jeu de `<symbol>` SVG **de profil, à l'égyptienne**,
+  coloré par les **jetons de couleur du thème** — jamais une valeur codée en dur. **Une
+  teinte par rôle ne suffit pas** : un malade est **couché** et porte **un
+  pictogramme**.
+- **Cliquables à partir de `md`** : un lien vers `app_partie_gens?cle=…`, avec
+  `data-turbo-frame="fenetre"` et `data-action="click->fenetre#ouvrir"`, **comme un
+  sprite**. Sous `md`, les figures sont **décoratives** (`aria-hidden`, pas de clic) :
+  elles seraient **trop petites pour 44 px** et recouvriraient les bâtiments.
+- **Le bouton « Les gens de la ville »**, **toujours là**, d'**au moins 44 px**, à
+  côté du titre : **c'est la voie de téléphone et de lecteur d'écran**.
+- **La mention** : *« Image reconstituée — le jeu ne suit pas chaque habitant. »*,
+  sous le bouton.
+- **Aucune ressource externe** ; **aucun JavaScript neuf**.
+
+### 15.6 La fenêtre « Les gens de la ville »
+
+**La liste équivalente** — une section par lieu : *Résidence*, *Grenier — chef,
+gestionnaire ; 3 travailleurs en poste (2 requis)*, *Quartier — 12 maisons, 3
+malades*, *Caserne — 2 Medjaÿ disponibles, 1 blessé jusqu'au cycle N*, *Marché — un
+rival, 2 bras sans poste*, *Aux champs — 14*. **Tout ce que le panneau visuel montre
+s'y lit**, sans image.
+
+**La fiche** (`?cle=…`) :
+
+| Cible | Contenu |
+|---|---|
+| **Chef** | Bâtiment (**lien vers sa fenêtre**), spécialité, **compétence en étoiles** (jamais en nombre : *« chiffré en interne, qualitatif à l'affichage »*), traits, foyer amené |
+| **Medjaÿ** | Spécialisation, expérience (qualitative), équipement, **disponible ou blessé jusqu'à** |
+| **Chef de famille** | Prénom ou titre, génération, trait de lignée |
+| **Rival** | Nom, route disputée, ce qu'il prend, **les trois issues** (lien vers l'écran du commerce) |
+| **Maison** | `Maisonnees::decrire()`, **dite représentative** |
+| **Travailleurs d'un bâtiment** | Affectés, requis, rendement ; lien vers le bâtiment |
+
+**La mention de reconstitution y figure** pour les maisons et les travailleurs ;
+**pas pour les chefs ni les Medjaÿ**, qui sont réels.
+
+### 15.7 Les tests
+
+| Test | Ce qu'il prouve |
+|---|---|
+| **Déterminisme** | Deux appels sur la même partie rendent **exactement** les mêmes figures |
+| **Plafond et priorité** | Jamais plus de 40 figures ; **si on coupe, c'est la foule**, jamais un chef |
+| **Fidélité** | Autant de figures « chef » que de chefs **en poste** ; Medjaÿ **disponibles** à la Caserne, **blessés** couchés ; figures « malade » ≤ `City::malades()` ; « sans poste » ≤ `oisifs` ; maisons ≤ `Population::foyersPour()` |
+| **Pas de fantôme** | Aucune figure à un bâtiment **non dressé** ; aucun travailleur à un bâtiment **à l'arrêt** |
+| **Bornes** | Toute position dans `[0, 100]` % ; clés **uniques** |
+| **Route des gens** | **200** pour la propriétaire ; **403/404** pour une autre joueuse (IDOR) ; `cle` inconnue → 404 ; une clé qui vise **une autre partie** → 404 |
+| **Vue de la ville** (`VueDeLaVilleTest`, étendu) | Le calque, le bouton et la mention s'affichent ; chaque lien porte un `aria-label` |
+| **Gabarit** | Aucun calcul dans Twig ; aucune couleur codée en dur |
+
+**Contrôle au navigateur** (skill `verification-ui-navigateur`, Claude in Chrome sur
+`http://localhost`), **à 390 px et en desktop** : défilement horizontal
+(`scrollWidth` contre `clientWidth`), **figures qui sortent du visuel**, **figures
+qui recouvrent un lien de bâtiment ou « Retour au territoire »**, cibles **sous
+44 px**, balisage orphelin, lignes de debug. **Avant, vider `app/public/assets`** si
+le build compilé existe, et lancer `tailwind:build` : une classe neuve n'existe
+qu'après. Ce qu'on regarde n'est pas ce que les tests voient.
+
+**Les quatre portes** (style, PHPStan niveau 8, audit des dépendances, tests) passent
+**une fois**, avant de committer ; pendant le développement, **seulement les tests
+concernés**.
+
+### 15.8 La documentation à écrire avec le code
+
+- **`CHANGELOG.md`**, sous « Non publié », **dans le commit** : *« La ville vue d'en
+  haut est habitée : chefs, Medjaÿ, foyers et rival s'y voient à leur place, et une
+  fenêtre liste « qui est où » »*.
+- **`docs/interface.md`** : une section sur le calque, la règle des 44 px, la liste
+  équivalente, la mention de reconstitution.
+- **`docs/regles-du-jeu.md`** : *une représentation, pas un état* ; **ce que chaque
+  figure lit** ; **un bâtiment à l'arrêt n'a aucun travailleur à l'écran**.
+- **`docs/phases-livrees.md`** : l'entrée du lot, ses pièges.
+
+### 15.9 Les scénarios d'acceptation
+
+1. **Une ville neuve** : le chef de famille à la Résidence, quelques maisons au
+   Quartier, **aucun chef, aucun travailleur** — une ville calme, et c'est vrai.
+2. **Un chef au Grenier** : une silhouette au Grenier, étiquetée *« Chef du Grenier,
+   gestionnaire »* ; le clic ouvre sa fiche ; la fiche **renvoie** à la fenêtre du
+   Grenier.
+3. **Une épidémie** : des silhouettes **couchées** au Quartier, **moins** de
+   travailleurs aux postes ; la liste le dit.
+4. **Un rival installé** : un marchand **au Marché**, par son nom.
+5. **Un Medjaÿ blessé** : couché ; **debout à la Caserne** une fois rétabli.
+6. **Des bras sans poste** : des silhouettes oisives au Marché, et la liste dit
+   *« 2 bras sans poste »*.
+7. **Un bâtiment à l'arrêt** : **aucun** travailleur, et la fiche en dit la raison.
+8. **À 390 px** : aucun débordement ; le bouton atteint 44 px ; **la liste suffit** ;
+   les figures ne gênent aucun lien.
+9. **Sans JavaScript, sans animation** : tout fonctionne.
+
+### 15.10 Les décisions à prendre **avant** de coder
+
+| Question | Penchant |
+|---|---|
+| **Les chefs et les Medjaÿ restent-ils sans nom ?** (décision de la joueuse, jusqu'ici) | **Oui** : désignés par bâtiment et spécialité. Une ville peuplée de « chef du Grenier » est moins vivante qu'avec un prénom, et c'est **un choix à rouvrir en connaissance de cause**, pas à contourner |
+| **Les maisons ont-elles un nom** ? | **Numérotées** (« maison 7 ») : le jeu ne nomme personne d'autre |
+| **Silhouettes en SVG faits main, ou sprites générés ?** | SVG : léger, sans pipeline, cohérent avec les pictogrammes ; les sprites viendraient avec V6 |
+| **Le rival et les bras sans poste dans V1 ?** | **Oui** : ce sont des **données vraies** qui rendent le panneau utile, et non un décor |
+| **Figures cliquables sur desktop seulement ?** | **Oui** ; le bouton et la liste font le reste |
+| **Un plafond de 40 est-il juste ?** | **À mesurer** au navigateur, à 390 px surtout |
