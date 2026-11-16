@@ -374,6 +374,8 @@ V1 regardé.
 **Retenu le 2026-11-16 comme premier lot, après le lot N (§ 16) : les désignés y portent un prénom.** Ce qui suit est ce qu'on écrira, fichier
 par fichier, **quand le code sera autorisé** — rien n'est codé à ce jour.
 
+**Statut : livré et mergé dans `develop`** (branche `feat/ville-habitee`, `Fenetre\GensDeLaVille`, `GensDeLaVilleTest`). Écarts avec la spécification ci-dessous : le calque et la liste sont comme prévu ; les silhouettes sont des **symboles SVG inline** coloriés par des classes écrites dans le gabarit ; le hachage de la position est un `crc32` de (partie, clé, rang) et non un `Randomizer` semé ; les clés des travailleurs et des bras sans poste **se répètent** (`poste-<bâtiment>`, `sans-poste`) — seules celles des désignés sont uniques ; la fiche est une **feuille** à droite (`data-forme="feuille"`). Les maisons se posent au Résidence quand le Quartier n'est pas bâti. **Vérifié au navigateur à 1728 px** (15 silhouettes dans le visuel, aucune hors cadre, aucune tabulable, bouton de 44 px, clic sur une silhouette → fiche) ; **pas à 390 px**, la fenêtre de l'extension ne se redimensionnant pas.
+
 ### 15.1 Ce que V1 est, et ce qu'il n'est pas
 
 **V1 pose des silhouettes sur la ville vue d'en haut, à l'instant présent**, d'après
