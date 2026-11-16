@@ -759,6 +759,13 @@ du jeu. **Aucune réplique ne donne un chiffre, un prix, un lieu de gisement ni 
 sait déjà et le montre ailleurs. Écrire de nouvelles répliques, c'est enrichir `Dialogues::catalogue()`, jamais composer du texte à la
 volée ; les garde-fous sont dans `DialoguesTest`. **Ce lot ne touche ni aux enquêtes ni aux énigmes.**
 
+**Les silhouettes de passage** (lot I2, `VisiteurDePassage`, `RoleDeFigure::Voyageur` et `Pretre`). Le doc 10 veut que le lieu décide
+d'où se dit une énigme : un voyageur se tient à l'Auberge, un prêtre au Temple, **seulement tant qu'une énigme de ce lieu est
+jouable** (bâtiment debout, énigme non tentée — `Enigme::disponiblesPour()`). La Maison des scribes n'a pas la sienne. **Ce n'est
+pas une personne de la ville** : sans nom ni mémoire, jamais dans la photographie, donc jamais dans le film ni la trace ;
+elles s'ajoutent au plafond de silhouettes et ne se voient que dans la ville d'à présent. Leur fiche **invite et renvoie vers
+l'énigme existante**, rien de plus : jamais l'énoncé, la réponse ni l'explication (testé).
+
 **Les aides parlent sans rien ajouter** (lots I1 et I5, `VoixDesAides`). L'Oraculaire, le Déchiffreur et Thot agissaient sans
 visage ; ils en ont un. **Chaque phrase se calcule depuis la source de l'effet** : `Enigmes::propositionsEcartees()` décide
 ce que l'Oraculaire écarte, l'écran retire ces propositions **et** la voix les nomme — deux lectures d'une même liste, jamais deux
