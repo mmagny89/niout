@@ -215,6 +215,19 @@
                     {% endfor %}
                 </ul>
 
+                {# **Tout nommer, ou rien** : le chef remet le dossier en ordre sans choisir ce qu'il rappelle, et sans y répondre. #}
+                {% if entree.memoire %}
+                    <div class="mt-3 rounded-sm bg-sable-100 px-4 py-3 text-sm text-encre-600">
+                        <p><span class="font-medium text-encre-900">{{ entree.memoire.voix }}</span> : « {{ entree.memoire.constat }} »</p>
+                        <ol class="mt-2 list-decimal space-y-1 pl-5">
+                            {% for ligne in entree.memoire.lignes %}
+                                <li>{{ ligne }}</li>
+                            {% endfor %}
+                        </ol>
+                        <p class="mt-2 italic">{{ entree.memoire.question }}</p>
+                    </div>
+                {% endif %}
+
                 {% if dossier.statut.value != 'en_cours' %}
                     <p class="mt-3 text-sm {{ dossier.statut.value == 'resolue' ? 'text-lapis-500' : 'text-terre-600' }}">
                         {{ dossier.statut.libelle }}. {{ dossier.enquete.denouement }}

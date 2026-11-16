@@ -14,6 +14,7 @@ use App\Game\FilRouge;
 use App\Game\Inscription;
 use App\Game\LeconDeNiout;
 use App\Game\LectureDeCartouche;
+use App\Game\MemoireDuDossier;
 use App\Game\MissionCatalogue;
 use App\Game\PalierDErudition;
 use App\Game\SigneAlphabetique;
@@ -106,6 +107,8 @@ final readonly class PanneauDeLaMaisonDesScribes implements FournisseurDePanneau
             'dossiers' => array_map(
                 static fn ($dossier): array => [
                     'dossier' => $dossier,
+                    // Le chef des scribes remet le dossier en ordre : tout nommé, ou rien (`MemoireDuDossier`).
+                    'memoire' => MemoireDuDossier::pour($ville, $dossier),
                     'peutConclure' => $dossier->peutConclure($partie->getCycle()),
                     // Mélangées au rendu : la bonne conclusion est la première
                     // du catalogue, et se lirait sinon dans la source.

@@ -449,6 +449,10 @@ sur **la première conversation du jour** s'il y en a une. Cocher **« Lire les 
 lecture de chaque réplique (55 ms par caractère, entre 1,8 s et 4,5 s) : lire à 4 s par jour est impossible. **Le texte est
 aussi dans la fenêtre** — « Ce qu'on s'est dit », avec qui et où — et dans le journal de celui qui parle (« dit à … : « … » »).
 
+**La mémoire du dossier** (lot I4, `MemoireDuDossier`). Dans la carte de chaque enquête en cours : un encadré sable — la voix du chef des
+scribes (« *Hori* : « J'ai relu le dossier : 3 choses notées… » »), la liste numérotée **de tous les indices** dans l'ordre de la
+découverte, puis la question en italique. Même gabarit pour toute enquête ; texte seul, donc lisible au téléphone.
+
 **Les silhouettes de passage** (lot I2, `VisiteurDePassage`). Devant l'Auberge, un voyageur (bâton de marche) ; devant le Temple, un
 prêtre (disque solaire) — tant qu'une énigme de ce lieu est à jouer. Cliquables comme les autres figures dès `md`, et dites dans la
 liste « Les gens de la ville » à leur lieu. Leur fiche : « Une devinette, étranger ? » / « Une question pour qui sait écouter les
