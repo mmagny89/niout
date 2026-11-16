@@ -759,6 +759,14 @@ du jeu. **Aucune réplique ne donne un chiffre, un prix, un lieu de gisement ni 
 sait déjà et le montre ailleurs. Écrire de nouvelles répliques, c'est enrichir `Dialogues::catalogue()`, jamais composer du texte à la
 volée ; les garde-fous sont dans `DialoguesTest`. **Ce lot ne touche ni aux enquêtes ni aux énigmes.**
 
+**Les aides parlent sans rien ajouter** (lots I1 et I5, `VoixDesAides`). L'Oraculaire, le Déchiffreur et Thot agissaient sans
+visage ; ils en ont un. **Chaque phrase se calcule depuis la source de l'effet** : `Enigmes::propositionsEcartees()` décide
+ce que l'Oraculaire écarte, l'écran retire ces propositions **et** la voix les nomme — deux lectures d'une même liste, jamais deux
+logiques ; le nombre de signes dits est celui que compte la clé. **Une aide qui n'agit pas ne parle pas** (le doc 10 : ce sont des
+spécialités de chef, pas un conseil gratuit), et la bonne réponse n'est jamais nommée. **L'explication d'une énigme est dite
+telle quelle** par le chef de la Maison des scribes (s'il a un prénom), juste ou faux : le contenu est celui de l'énigme.
+`EffetDeChef::chefDeSpecialite()` donne le chef qui agit — le même que celui que `chefSpecialise()` compte.
+
 **Un témoignage se dit sans changer de nature** (lot I3, `Indice::temoin()`/`parole()`, `TypeDeFait::TemoignageRecueilli`). Les 16
 indices de source « témoignage » portent un témoin et une parole à la première personne ; les indices de terrain n'en ont pas.
 **La parole reprend le texte de l'indice sans rien y ajouter** — ni mot de nature (vrai, faux, trompeur), ni chiffre, ni ton

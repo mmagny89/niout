@@ -80,6 +80,7 @@ use App\Game\SuccessionImpossible;
 use App\Game\Temple;
 use App\Game\TypeDeBatiment;
 use App\Game\VenteImpossible;
+use App\Game\VoixDesAides;
 use App\Repository\GameSaveRepository;
 use App\Security\Voter\PartieVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -938,16 +939,18 @@ final class PartieController extends AbstractController
             return $this->retourALaVille($request, $partie);
         }
 
+        $explication = VoixDesAides::explique($partie->getVille(), $verdict['explication']);
+
         $this->addFlash(
             $verdict['juste'] ? 'succes' : 'erreur',
             $verdict['juste']
                 ? \sprintf(
                     '%s Vous recevez %d deben%s.',
-                    $verdict['explication'],
+                    $explication,
                     $verdict['recompense'],
                     self::etLaRenommee($verdict['renommee']),
                 )
-                : \sprintf('Ce n\'était pas la réponse. %s', $verdict['explication']),
+                : \sprintf('Ce n\'était pas la réponse. %s', $explication),
         );
 
         return $this->retourALaVille($request, $partie);

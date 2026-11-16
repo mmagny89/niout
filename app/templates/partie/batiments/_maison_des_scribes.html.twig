@@ -268,6 +268,10 @@
     et son vrai sens : ce que vous apprenez ici est ce qu'un égyptologue lirait.
 </p>
 
+{% for ligne in signesAppris %}
+    <p class="mt-2 text-sm italic text-encre-600">{{ ligne }}</p>
+{% endfor %}
+
 {% if prochainSigne %}
     <p class="mt-3 flex items-center gap-3 rounded-sm border-l-4 border-lapis-500 bg-lapis-500/5 px-4 py-2 text-sm text-encre-600">
         <span class="font-hieroglyphes text-3xl leading-none" aria-hidden="true">{{ prochainSigne.signe }}</span>
