@@ -1,0 +1,59 @@
+{# La barre de lecture du film de la quinzaine : lecture, vitesses, jour, suivi
+   (`ville-vivante_controller.js`, lot V3 de `plan-pnj-ville-vivante.md`).
+
+   **Cachée tant que le JavaScript n'a pas répondu**, et pour toujours quand l'utilisateur
+   demande moins de mouvement (`prefers-reduced-motion`) : des boutons qui ne feraient
+   rien seraient un mensonge. Elle n'est alors pas nécessaire — la frise de la fenêtre
+   avance jour par jour, au clic, sans animation.
+
+   Chaque commande fait 44 px de haut. Le curseur dit le jour ; le texte à côté le répète
+   pour l'œil, sans que le lecteur d'écran l'annonce à chaque jour de la lecture. #}
+<div hidden data-ville-vivante-target="barre" role="group" aria-label="Rejouer la quinzaine passée"
+     class="absolute inset-x-2 bottom-2 z-[1000] mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 rounded-sm border
+            border-ocre-500/30 bg-sable-50/95 p-2 shadow-sm md:bottom-4">
+    <button type="button" data-ville-vivante-target="lecture" data-action="ville-vivante#basculer"
+            class="inline-flex min-h-11 items-center rounded-sm border border-terre-500 bg-terre-500 px-4 text-sm font-medium text-sable-50
+                   hover:bg-terre-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+        {{ libelles.lecture }}
+    </button>
+
+    <div role="group" aria-label="Vitesse" class="flex gap-1">
+        {% for vitesse, libelle in {1: 'Normale', 2: 'Rapide', 6: 'Très rapide'} %}
+            <button type="button" data-action="ville-vivante#vitesse" data-vitesse="{{ vitesse }}" aria-pressed="{{ 1 == vitesse ? 'true' : 'false' }}"
+                    class="inline-flex min-h-11 items-center rounded-sm border border-ocre-500/40 bg-sable-50 px-3 text-sm text-lapis-500
+                           hover:bg-ocre-300/20 aria-pressed:border-terre-500 aria-pressed:bg-ocre-300/40 aria-pressed:text-encre-900
+                           focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+                {{ libelle }}
+            </button>
+        {% endfor %}
+    </div>
+
+    <div class="flex min-w-[15rem] flex-1 items-center gap-2">
+        <label for="curseur-de-la-quinzaine" class="sr-only">Jour de la quinzaine passée</label>
+        <input id="curseur-de-la-quinzaine" type="range" min="1" max="{{ filmDeLaVille.jours }}" step="1" value="{{ jourInitial }}"
+               data-ville-vivante-target="curseur" data-action="input->ville-vivante#aller"
+               class="min-h-11 min-w-20 flex-1 accent-terre-500">
+        <span data-ville-vivante-target="jour" aria-hidden="true" class="shrink-0 whitespace-nowrap text-sm text-encre-700" data-chiffres>
+            Jour {{ jourInitial }} sur {{ filmDeLaVille.jours }}
+        </span>
+    </div>
+
+    <label class="flex items-center gap-2 text-sm text-encre-700">
+        <span>Suivre</span>
+        <select data-ville-vivante-target="suivi" data-action="change->ville-vivante#suivre"
+                class="min-h-11 rounded-sm border border-ocre-500/40 bg-sable-50 px-2 text-sm text-encre-900">
+            <option value="">Personne</option>
+            {% for f in filmDeLaVille.figures %}
+                {% if f.role in ['chef_de_famille', 'chef', 'medjay', 'rival'] %}
+                    <option value="{{ f.cle }}">{{ f.libelle }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </label>
+
+    <button type="button" hidden data-ville-vivante-target="maintenant" data-action="ville-vivante#maintenant"
+            class="inline-flex min-h-11 items-center rounded-sm border border-lapis-500/40 bg-sable-50 px-3 text-sm text-lapis-500
+                   hover:bg-lapis-500/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+        Revenir à maintenant
+    </button>
+</div>

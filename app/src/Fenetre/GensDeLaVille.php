@@ -81,7 +81,7 @@ final readonly class GensDeLaVille
      *
      * @var list<array{float, float}>
      */
-    private const array ANCRAGES = [
+    public const array ANCRAGES = [
         [0.00, 0.17], [-0.20, 0.12], [0.20, 0.12], [-0.10, 0.24],
         [0.10, 0.24], [-0.30, 0.06], [0.30, 0.06], [0.00, 0.31],
     ];
@@ -255,7 +255,7 @@ final readonly class GensDeLaVille
      *
      * @return array{cycle: int, photo: array<string, mixed>, film: array<string, mixed>}|null
      */
-    private function reconstitution(GameSave $partie): ?array
+    public function reconstitution(GameSave $partie): ?array
     {
         $trace = $this->trace->derniere($partie);
 
@@ -535,7 +535,7 @@ final readonly class GensDeLaVille
      *
      * @return array<string, array{x: int, y: int, classe: string, type: ?TypeDeBatiment}>
      */
-    private function lotsDresses(GameSave $partie): array
+    public function lotsDresses(GameSave $partie): array
     {
         $ville = $partie->getVille();
         $lots = [];

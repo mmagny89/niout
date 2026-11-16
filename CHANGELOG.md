@@ -14,6 +14,12 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Le film de la quinzaine passée se joue.** Sur la ville vue d'en haut, une barre de lecture lance la quinzaine en
+  animation : les gens quittent leur maison à l'aube, **marchent par les rues** jusqu'à leur poste, rentrent le soir, suivent
+  la procession un jour de fête ; le Medjaÿ blessé se couche, le chef parti disparaît. Trois vitesses (normale : 4 s par jour ;
+  rapide : la quinzaine en 30 s ; très rapide : 10 s), un curseur de jour, et « Suivre » pour mettre une silhouette en valeur.
+  Cliquer une silhouette met la lecture en pause et ouvre sa fiche. Qui demande moins de mouvement ne voit ni barre ni
+  animation : la frise de la fenêtre avance jour par jour.
 - **On peut rejouer la quinzaine qui vient de passer, jour après jour.** La fenêtre « Les gens de la ville » porte une
   frise de ses 15 jours (5 pour les jours épagomènes), avec le jour de fête marqué, et quatre moments par jour — l'aube,
   le matin, l'après-midi, le soir. Choisir un jour **recompose la ville vue d'en haut** : les chefs à leur poste le

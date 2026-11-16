@@ -753,7 +753,13 @@ règles, elle n'en pose aucune : un chef se voit à son bâtiment **seulement s'
 un Medjaÿ est debout à la Caserne s'il est disponible et couché au Quartier s'il est blessé, **un bâtiment à l'arrêt
 n'a aucun travailleur à l'écran** (`Effectifs::repartir()`, `affectes === 0`), des bras sans poste (`oisifs`) traînent au
 Marché, et un malade (`City::malades()`) se couche parmi les maisons. **Les désignés d'abord** : au plafond de 40
-silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **La quinzaine passée se rejoue, et c'est une reconstitution**
+silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **Le film de la quinzaine ajoute les chemins, pas des règles** (`FilmDeLaVille`, `ReseauDeRues`) : la chorégraphie dit où est
+chacun à chaque moment ; le film y ajoute **le trajet par les rues** entre la porte d'un lot et celle d'un autre, et en fait une
+liste de points datés. Une silhouette **garde sa place dans un lot** pour toute la quinzaine — sans cela, l'arrivée de l'une
+décalerait les autres. Le film n'est jamais stocké : il se recalcule, identique, à partir de la trace. Il pèse environ 25 Ko
+pour 15 silhouettes, une soixantaine au plafond de 40.
+
+**La quinzaine passée se rejoue, et c'est une reconstitution**
 (`Choregraphie`, `PhotoDeLaVille`, `DifferenceDeQuinzaine`, `TraceDeQuinzaine`). Le jeu **garde**, pour les trois dernières
 quinzaines, la photographie de la ville au début (`InstantaneDeQuinzaine`) et les faits (`FaitDeMonde`) ; il **ne garde aucune
 scène** — la chorégraphie se recalcule, identique à chaque lecture. Cinq règles, dont dépend la confiance qu'on lui doit :

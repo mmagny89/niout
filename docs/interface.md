@@ -417,6 +417,31 @@ un jour hors de la quinzaine, ou une partie sans trace, retombe sur « maintenan
 Medjaÿ ou d'une maison porte **son journal, jour par jour**. Chaque lien de la frise fait **au moins 44 px**. **Les silhouettes
 se déplacent par saut**, jamais par une marche : le jeu n'a pas de chemins.
 
+**Le film de la quinzaine** (lot V3, `ville-vivante_controller.js`, `Fenetre\FilmDeLaVille`, `Game\ReseauDeRues`,
+`_film_de_la_ville.html.twig`, `_barre_de_lecture.html.twig`). **Le serveur décide de tout, le navigateur joue** : pour chaque
+silhouette, `FilmDeLaVille` donne une liste de points `[t, gauche, haut, visible, couchée, tourné]` — le lieu, le chemin par les
+rues, l'instant — et le contrôleur Stimulus n'en fait que des animations de l'API d'animation du navigateur (`left` et `top` en
+continu ; `opacity` et `transform` qui basculent d'un coup, par `steps(1, end)`). **Aucune règle ne vit dans le JavaScript.**
+Quatre choses à ne pas défaire :
+
+- **Rien n'est nécessaire à la page.** Le calque immobile reste la vérité sans JavaScript ; le calque du film et la barre sont
+  `hidden` d'emblée, et **le contrôleur ne les dévoile pas quand `prefers-reduced-motion: reduce`** : ni animation, ni commande
+  qui ne servirait pas. La frise de la fenêtre avance alors jour par jour. Vérifié en surchargeant `matchMedia`.
+- **Le temps** : 60 s pour 15 jours à la vitesse normale (4 s par jour) ; ×2 = 30 s, ×6 = 10 s. Un offset est `t / moments`.
+  Entre deux moments où l'on change de lieu, on **marche pendant les 40 premiers centièmes** du moment, puis on reste là.
+- **Politesse** : pause quand l'onglet n'est plus visible, et au clic sur une silhouette (qui ouvre sa fiche). Le suivi met l'une
+  en valeur (contour) et atténue les autres, sans rien déplacer.
+- **Cibles de 44 px** pour chaque commande de la barre, qui se replie sur deux lignes sous la largeur d'une ligne ; le curseur
+  porte un `aria-valuetext` (« Jour 4 sur 15, le matin »), le texte à côté est masqué aux lecteurs d'écran pour ne pas annoncer
+  chaque jour de la lecture.
+
+**Le réseau de rues** (`ReseauDeRues`) est **une donnée écrite à la main** : douze carrefours, aux croisements du treillis que
+forment les rues du visuel (deux familles de droites de pente ±½, espacées d'environ 181 et 183 px), reliés de proche en proche ;
+chaque lot a une porte, le carrefour le plus proche de son devant. **Les deux visuels portent le même plan, donc un seul
+réseau.** À chaque retouche de `ReseauDeRues` ou de `EmplacementsDeLaVille`, **regarder `/dev/reseau-de-rues`**, la page de
+contrôle (développement seulement, `#[When(env: 'dev')]` : la route n'existe ni en test ni en production) qui dessine le réseau
+par-dessus le visuel — une rue qui traverse un bâtiment ne se voit pas dans un test.
+
 **Ce que le panneau dit de lui-même** : *« Image reconstituée — le jeu ne suit pas chaque habitant. »*, sous le bouton ; et
 les fiches de maison et de poste portent *« Représentatif »*. Mesuré au navigateur à 1728 px : 15 silhouettes dans le
 visuel, aucune hors de son cadre, aucune dans l'ordre de tabulation. **Le contrôle à 390 px n'a pas pu se faire** (la
