@@ -14,6 +14,12 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **La ville vue d'en haut est habitée.** Le chef de famille à la Résidence, chaque chef en poste à son bâtiment, les
+  Medjaÿ à la Caserne (couchés au Quartier s'ils sont blessés), le marchand rival au Marché, quelques travailleurs à
+  chaque poste, des bras sans poste au Marché, des maisons au Quartier dont les malades sont couchés, et une pastille
+  « Aux champs ». Un bâtiment à l'arrêt n'a personne. Cliquer une silhouette ouvre sa fiche ; le bouton « Les gens de
+  la ville » ouvre la liste de qui est où — la même chose en toutes lettres, pour le téléphone et les lecteurs d'écran.
+  L'image est une reconstitution, et le dit : le jeu ne suit pas chaque habitant.
 - **Chaque chef et chaque Medjaÿ porte désormais un prénom**, tiré une fois et gardé. Il se lit à l'annonce
   (on retient *quelqu'un*), sur la carte du chef, dans la Caserne et dans les messages — *« Hori, votre nouveau chef
   (négociateur), s'installe avec les siens »*. Deux gens d'une même ville ne partagent jamais un prénom (la filiation

@@ -56,12 +56,43 @@
                 </a>
             {% endif %}
         {% endfor %}
+
+        {# Les gens de la ville : des silhouettes devant leur bâtiment, du décor pour
+           qui voit — la liste du bouton ci-dessous dit tout, sans image. #}
+        {% if gensDeLaVille %}
+            {{ include('partie/_symboles_de_figures.html.twig') }}
+            {{ include('partie/_figures_de_la_ville.html.twig') }}
+        {% endif %}
     </div>
 
     <div class="pointer-events-none absolute left-2 top-2 flex items-center gap-2 rounded-sm border border-ocre-500/30
                 bg-sable-50/90 px-2.5 py-1.5 text-sm shadow-sm md:left-4 md:top-4 md:px-3 md:py-2">
         <h1 class="font-display text-sm text-encre-900 md:text-base">{{ ville.nom }}</h1>
     </div>
+
+    {% if gensDeLaVille %}
+        {# La voie de téléphone et de lecteur d'écran, et celle de tout le monde pour
+           lire la ville : 44 px de haut, toujours là. La mention dit ce que
+           l'image est — une reconstitution, le jeu ne suit pas chaque habitant. #}
+        <div class="absolute left-2 top-14 z-[1000] flex max-w-[15rem] flex-col items-start gap-1 md:left-4 md:top-[4.5rem]">
+            <a href="{{ path('app_partie_gens', {id: partie.id}) }}"
+               data-turbo-frame="fenetre" data-action="click->fenetre#ouvrir"
+               class="inline-flex min-h-11 items-center rounded-sm border border-ocre-500/30 bg-sable-50/90 px-3 py-2 text-sm
+                      text-lapis-500 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+                Les gens de la ville
+            </a>
+            <p class="pointer-events-none rounded-sm bg-sable-50/80 px-2 py-0.5 text-xs text-encre-600">
+                Image reconstituée — le jeu ne suit pas chaque habitant.
+            </p>
+        </div>
+
+        {% if gensDeLaVille.auxChamps > 0 %}
+            <p class="pointer-events-none absolute bottom-2 left-2 z-[1000] rounded-sm border border-ocre-500/30 bg-sable-50/90 px-2.5 py-1.5 text-sm
+                      text-encre-700 shadow-sm md:bottom-4 md:left-4">
+                Aux champs : {{ gensDeLaVille.auxChamps }}
+            </p>
+        {% endif %}
+    {% endif %}
 
     <a href="{{ path('app_partie_carte', {id: partie.id}) }}" data-turbo-frame="_top"
        class="absolute right-2 top-2 z-[1000] rounded-sm border border-ocre-500/30 bg-sable-50/90 px-3 py-2 text-sm

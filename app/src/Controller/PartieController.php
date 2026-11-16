@@ -12,6 +12,7 @@ use App\Entity\Zone;
 use App\Enum\GameMode;
 use App\Fenetre\BatimentsDeLaCite;
 use App\Fenetre\DetailDeCase;
+use App\Fenetre\GensDeLaVille;
 use App\Fenetre\OuvertureDeFenetre;
 use App\Fenetre\Panneau\PanneauxDeLaVille;
 use App\Fenetre\VueDeLaVille;
@@ -229,6 +230,34 @@ final class PartieController extends AbstractController
             // qu'il affiche (`App\Fenetre\Panneau`), plutôt que la fenêtre de
             // tous les préparer pour n'en rendre qu'un.
         ] + $panneaux->pour($ongletActif, $partie));
+    }
+
+    /**
+     * Les gens de la ville, en fenêtre : la liste de qui est où — la voie
+     * équivalente des silhouettes de la ville vue d'en haut —, et la fiche de
+     * celui qu'on a cliqué (`?cle=chef-12`).
+     *
+     * Une clé qui ne désigne rien **dans cette ville** — un chef d'une autre
+     * partie, une maison qui n'existe pas — rend une 404, jamais la fiche d'un
+     * autre.
+     */
+    #[Route('/{id}/ville/gens', name: 'app_partie_gens', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function gens(Request $request, GameSave $partie, GensDeLaVille $gens): Response
+    {
+        // Une fenêtre, pas une page (voir `ville()`).
+        if (!OuvertureDeFenetre::estUneRequeteDeCadre($request)) {
+            return $this->forward(self::class.'::carte', ['id' => $partie->getId()], ['ouvre' => $request->getRequestUri()]);
+        }
+
+        $cle = (string) $request->query->get('cle', '');
+        $fiche = '' === $cle ? null : ($gens->fiche($partie, $cle) ?? throw $this->createNotFoundException('Personne ne répond à ce nom.'));
+
+        return $this->render('fenetre/gens.html.twig', [
+            'partie' => $partie,
+            'ville' => $partie->getVille(),
+            'fiche' => $fiche,
+        ] + $gens->pour($partie));
     }
 
     /**
@@ -1230,6 +1259,7 @@ final class PartieController extends AbstractController
         GeographieDeLaPartie $geographies,
         OuvertureDeFenetre $fenetres,
         VueDeLaVille $vueDeLaVille,
+        GensDeLaVille $gensDeLaVille,
     ): Response {
         $ville = $partie->getVille();
         $zones = $this->zonesTrieesPourLIsometrie($ville);
@@ -1257,6 +1287,9 @@ final class PartieController extends AbstractController
             'zones' => $zones,
             'vue' => $enVille,
             'vueDeLaVille' => $enVille ? $vueDeLaVille->pour($partie) : null,
+            // Les silhouettes posées sur la ville vue d'en haut : une
+            // représentation, calculée à la volée (`GensDeLaVille`).
+            'gensDeLaVille' => $enVille ? $gensDeLaVille->pour($partie) : null,
             // La case dont la fenêtre est ouverte, pour la surligner.
             'zoneDetaillee' => $this->zoneDeLOuverture($zones, $chemin),
             // Les signaux et les expéditions en route se lisent dans la barre
