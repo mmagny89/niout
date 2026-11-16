@@ -33,6 +33,15 @@
     {# `container-type: size` sur le parent, `cqw` / `cqh` ici : le visuel occupe la
        plus grande place qui garde son rapport, sans jamais le déformer — les
        sprites, en pourcentages de ce conteneur, restent calés sur lui. #}
+    {# **La teinte du moment couvre tout le conteneur, pas seulement le visuel.** Posée sur l'image seule, elle dessinait
+       un rectangle bleuté (le soir) ou rosé (l'aube) sur le fond de la page, qui, lui, ne change pas : le bord du
+       visuel se voyait comme un cadre. Sur tout le conteneur, le fond suit le ciel et la ville s'y fond. Sous les
+       boutons (`z-[1000]`), au-dessus des silhouettes (`z-index` jusqu'à 768). #}
+    {% if filmDeLaVille %}
+    <div hidden data-ville-vivante-target="ciel" aria-hidden="true"
+                 class="pointer-events-none absolute inset-0 z-[900]"
+                 style="mix-blend-mode: multiply; background-color: rgb(255 255 255); transition: background-color 900ms linear;"></div>
+    {% endif %}
     <div class="relative" style="aspect-ratio: 1376 / 768; width: min(100cqw, 100cqh * 1376 / 768);">
         <img src="{{ asset(vueDeLaVille.visuel) }}" alt=""
              width="1376" height="768"
@@ -43,9 +52,6 @@
            silhouettes (leur `z-index` monte à 768), sous les boutons (`z-[1000]`). Décor : `aria-hidden`, le curseur
            de la barre porte déjà le moment dans son `aria-valuetext`. #}
         {% if filmDeLaVille %}
-            <div hidden data-ville-vivante-target="ciel" aria-hidden="true"
-                 class="pointer-events-none absolute inset-0 z-[900]"
-                 style="mix-blend-mode: multiply; background-color: rgb(255 255 255); transition: background-color 900ms linear;"></div>
             <p hidden data-ville-vivante-target="moment" aria-hidden="true"
                class="pointer-events-none absolute left-1/2 top-2 z-[950] flex -translate-x-1/2 items-center gap-2 rounded-full border border-ocre-500/30 bg-sable-50/90 px-3 py-1 text-sm text-encre-800 shadow-sm">
                 <span data-ville-vivante-target="momentPastille" class="size-2.5 rounded-full" style="background-color: #f6d365;"></span>

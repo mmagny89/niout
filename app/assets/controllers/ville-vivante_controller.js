@@ -43,7 +43,7 @@ const MS_PAR_MOMENT = MS_PAR_JOUR / 4;
 
 // Le moment de la journée sur la ville : la teinte (fondue par `multiply` : le blanc ne change rien) et la couleur de
 // la pastille. Aube, matin, après-midi, soir — dans l'ordre de `MomentDeLaJournee`.
-const TEINTES = ['rgb(255 226 210)', 'rgb(255 255 255)', 'rgb(255 242 214)', 'rgb(170 178 222)'];
+const TEINTES = ['rgb(255 226 210)', 'rgb(255 255 255)', 'rgb(255 242 214)', 'rgb(150 160 210)'];
 const PASTILLES = ['#f4a261', '#f6d365', '#f0a030', '#4b5fa8'];
 
 export default class extends Controller {

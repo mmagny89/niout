@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les messages de la partie sont de petites cartes**, comme le récapitulatif de la quinzaine : un pictogramme, un titre, un détail (« Une maisonnée
+  s'installe » / « 2 bras et 1 bouches de plus »). Le texte reste entier pour le lecteur d'écran.
+- **Le moment de la journée teinte toute la ville, fond compris.** Le soir et l'aube ne dessinent plus un rectangle coloré sur le fond de la page.
+
 - **Les messages de la partie se lisent mieux, et les liens ouvrent la bonne section.** Un message porte une icône et se range en deux temps (la
   première phrase en titre, la suite dessous) ; l'envoi d'un éclaireur dit où il va (« L'éclaireur part en reconnaissance vers la case (2, 1). »)
   et « au prochain cycle » plutôt que « dans 1 cycle ». Le décret de la barre ouvre la section Mission de la Résidence, « Il vous manque N bras »
