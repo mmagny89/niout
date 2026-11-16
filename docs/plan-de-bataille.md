@@ -293,6 +293,14 @@ le calibrage du lot 4.6.
 | Poids du score d'Aventure | 10 par habitant, 1 par deben, 10 par point de renommée, 1 pour 10 deben échangés | `ScoreDAventure` |
 | Score converti en centièmes de réussite | 100 points pour un centième | `Successions::POINTS_PAR_CENTIEME` |
 | Couverture d'un Medjaÿ sur les routes | 15 % du risque | `Commerce::PROTECTION_PAR_MEDJAY` |
+| Amplitude de la conjoncture des marchés | ±20 points ; fond ±10, saison ±3, crue ±4 sur les vivres | `ConjonctureDeMarche::AMPLITUDE` |
+| Fenêtre et durée d'un événement de marché | 12 quinzaines, 1 fenêtre sur 2, 2 à 6 quinzaines (17 % des quinzaines mesurées) | `ConjonctureDeMarche::FENETRE` |
+| Poids des événements de marché | 12 points (disette, bonne récolte, besoin d'un ouvrage), 4 (foire) | `EvenementDeMarche::POIDS` |
+| Saturation d'une cité | +4 par convoi rentré, plafond 20, érosion d'un tiers par quinzaine | `EtatDePartenaire::SATURATION_PAR_CONVOI` |
+| Relation d'une cité | +2 par convoi, −1 par quinzaine vers l'acquis ; avantage `relation / 10`, jamais cumulé avec le carnet | `EtatDePartenaire::GAIN_PAR_CONVOI` |
+| Acquis de relation hérité de la lignée | plafonné à 50 | `Lignee::RELATION_ACQUISE_MAX` |
+| Sollicitations d'une cité | 1 fenêtre de 4 quinzaines sur 3 ; 10 à 30 unités ; offre à 110 %, demande à 140 % du cours ; 4 quinzaines pour répondre ; +3 de relation | `Sollicitations` |
+| Retard d'une rumeur | 2 quinzaines | `LeMonde::RETARD_DES_RUMEURS` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,

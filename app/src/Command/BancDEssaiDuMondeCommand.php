@@ -43,6 +43,9 @@ final class BancDEssaiDuMondeCommand
             ['Conjoncture' => \sprintf('de %d à %d', $rapport['minimum'], $rapport['maximum'])],
             ['Mesures non nulles' => \sprintf('%d %%', (int) round(100 * $rapport['nonNulles'] / max(1, $rapport['mesures'])))],
             ['Avantage total' => \sprintf('de %d à %d (plafond %d)', $rapport['avantageMinimal'], $rapport['avantageMaximal'], AvantageDeNegoce::PLAFOND_TOTAL)],
+            ['Écart moyen' => \sprintf('%.1f points ; %d %% des mesures à 10 points ou plus', $rapport['sommeDesEcarts'] / max(1, $rapport['mesures']), (int) round(100 * $rapport['marquees'] / max(1, $rapport['mesures'])))],
+            ['Quinzaines avec événement' => \sprintf('%d %%', (int) round(100 * $rapport['quinzainesAvecEvenement'] / max(1, $rapport['quinzaines'])))],
+            ['Marge d\'aller-retour' => \sprintf('%d deben au plus avec le monde, %d au plafond sans lui', $rapport['arbitrageMaximal'], $rapport['arbitrageDeReference'])],
             ['Plancher d\'achat observé' => \sprintf('%d %% du cours (cours bon marché : arrondi à l\'entier ; 110 %% exigé, vérifié exactement)', $rapport['plancherDAchat'])],
         );
 

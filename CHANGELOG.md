@@ -26,6 +26,7 @@ la lecture de référence pour comprendre le code.
   quinzaine suivante, l'Auberge (ou le Port, pour l'eau) fait entendre des rumeurs vieilles de deux quinzaines sur les routes fermées.
 - **Les cités vous écrivent.** Une cité dont la route est ouverte peut offrir une marchandise à 110 % du cours ou en réclamer une à 140 %, pour 10 à
   30 unités, valable quatre quinzaines. Accepter la conclut et rapproche la cité ; décliner, ou ne rien répondre, ne coûte rien.
+- **Le monde ne triche pas.** Le banc d'essai en console vérifie aussi que la conjoncture n'élargit jamais la marge d'un aller-retour entre deux cités.
 - **« Au loin » dans le récapitulatif.** Quand un événement s'ouvre ou se termine chez une cité dont la route est ouverte, la quinzaine le dit.
 - **On nomme ceux qui n'ont pas de prénom.** La fiche d'un chef ou d'un Medjaÿ sans prénom propose six prénoms égyptiens libres, ou un champ pour
   taper le sien (2 à 24 lettres, jamais un nom déjà porté dans la ville). Une seule fois : qui a un prénom ne se renomme pas. Les silhouettes

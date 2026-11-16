@@ -158,6 +158,9 @@ final class ConjonctureDeMarcheTest extends TestCase
         self::assertGreaterThanOrEqual(-ConjonctureDeMarche::AMPLITUDE, $rapport['minimum']);
         self::assertLessThanOrEqual(ConjonctureDeMarche::AMPLITUDE, $rapport['maximum']);
         self::assertLessThanOrEqual(AvantageDeNegoce::PLAFOND_TOTAL, $rapport['avantageMaximal']);
+        // Le monde n'élargit jamais l'arbitrage : la marge reste sous celle du plafond sans monde.
+        self::assertGreaterThan(0, $rapport['arbitrageDeReference']);
+        self::assertLessThanOrEqual($rapport['arbitrageDeReference'], $rapport['arbitrageMaximal']);
         // Le monde bouge : sans cela, il ne serait que décor.
         self::assertGreaterThan(0, $rapport['nonNulles']);
         self::assertNotSame([], $rapport['evenements']);
