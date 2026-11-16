@@ -8,6 +8,7 @@ use App\Entity\GameSave;
 use App\Entity\Npc;
 use App\Game\Commerce;
 use App\Game\ConjonctureDeMarche;
+use App\Game\Cour;
 use App\Game\EtatsDesCites;
 use App\Game\EvenementDeMarche;
 use App\Game\PartenaireCommercial;
@@ -136,6 +137,8 @@ final readonly class LeMonde
                 'ailleurs' => !$voyageur && !$ici && !$npc->peutParaitre($partie->getCycle()) ? $npc->getIndisponibleJusqua() : null,
                 'voyageur' => $voyageur,
                 'bande' => RoleDePnj::ChefDeBande === $npc->getRole(),
+                'courtisan' => RoleDePnj::Courtisan === $npc->getRole(),
+                'humeur' => RoleDePnj::Courtisan === $npc->getRole() ? Cour::libelleDeLHumeur(Cour::humeurDe($npc)) : null,
                 'inquietes' => (int) ($profil['convois'] ?? 0),
                 'destination' => $voyageur ? $this->commerce->partenaireDe($partie, (string) ($profil['destination'] ?? ''))?->nom : null,
                 'revenu' => true === ($profil['revenu'] ?? false),

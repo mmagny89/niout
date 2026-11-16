@@ -305,6 +305,7 @@ le calibrage du lot 4.6.
 | Mémoire d'un accord payé | −25 % sur le suivant, 3 accords retenus au plus, +4 de relation | `Rivaux::RABAIS_PAR_ACCORD_PASSE` |
 | Chef voyageur : retour et gain | retour dès 12 quinzaines, 1 fois sur 2 ; +8 de compétence ; Négociateur : +2 de relation par quinzaine, 10 au plus | `ChefsVoyageurs` |
 | Droit de passage aux bandes | −40 % de risque, 6 quinzaines, 2 butins par bande tenue ; non cumulable | `ChefsDeBande::REDUCTION_DU_DROIT` |
+| Courtisan : humeur et présent | humeur ±5, présent 60 % + 2 points par point d'humeur (50 à 70 %) | `Cour::PRESENT_PAR_POINT_D_HUMEUR` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,

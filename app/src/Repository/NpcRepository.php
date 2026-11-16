@@ -26,6 +26,25 @@ class NpcRepository extends ServiceEntityRepository
     }
 
     /**
+     * Comme `trouver()`, mais **voit aussi ceux qui attendent leur flush** : deux gestes d'une même quinzaine
+     * (deux convois pillés par la même bande) ne doivent pas créer deux fois la même personne — la contrainte
+     * d'unicité les refuserait au flush, et une personne dédoublée perdrait sa mémoire.
+     */
+    public function trouverOuEnAttente(GameSave $partie, RoleDePnj $role, int $identite): ?Npc
+    {
+        foreach ($this->getEntityManager()->getUnitOfWork()->getScheduledEntityInsertions() as $entite) {
+            if ($entite instanceof Npc
+                && $entite->getRole() === $role
+                && $entite->getIdentite() === $identite
+                && $entite->getPartie() === $partie) {
+                return $entite;
+            }
+        }
+
+        return $this->trouver($partie, $role, $identite);
+    }
+
+    /**
      * @return list<Npc> ceux que la famille connaît, dans l'ordre de leur rencontre
      */
     public function connus(GameSave $partie, RoleDePnj $role): array

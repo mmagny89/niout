@@ -43,11 +43,13 @@
                         <li class="rounded-sm border {{ f.choisi ? 'border-terre-500/60' : 'border-ocre-500/30' }} bg-sable-50 p-4">
                             <h4 class="font-display text-lg text-encre-900">{{ f.nom }}</h4>
                             <p class="mt-0.5 text-xs text-encre-500" data-chiffres>
-                                {{ f.role }}{% if not f.voyageur and not f.bande %} · {{ f.caractere.libelle|lower }}{% endif %}
+                                {{ f.role }}{% if not f.voyageur and not f.bande and not f.courtisan %} · {{ f.caractere.libelle|lower }}{% endif %}
                                 {% if f.accords > 0 %}· {{ f.accords }} accord{{ f.accords > 1 ? 's' : '' }} passé{{ f.accords > 1 ? 's' : '' }} avec vous{% endif %}
                             </p>
                             <p class="mt-2 text-sm text-encre-900" data-chiffres>
-                                {% if f.bande %}
+                                {% if f.courtisan %}
+                                    Humeur : {{ f.humeur }}. Il parle au nom du roi : ses demandes restent facultatives.
+                                {% elseif f.bande %}
                                     A inquiété {{ f.inquietes }} de vos convois.
                                 {% elseif f.voyageur %}
                                     {% if f.revenu %}
@@ -93,6 +95,10 @@
                                 {% elseif fait.type == 'lasse' %}se lasse et s'en va
                                 {% elseif fait.type == 'paye' %}est payé et s'écarte
                                 {% elseif fait.type == 'demonte' %}est démonté par votre enquête
+                                {% elseif fait.type == 'sert' %}est servi par votre famille
+                                {% elseif fait.type == 'decu' %}est déçu par votre réponse
+                                {% elseif fait.type == 's_efface' %}s'efface : un autre prend sa place
+                                {% elseif fait.type == 'paraît' %}prend la parole au palais
                                 {% elseif fait.type == 'pille' %}pille un de vos convois
                                 {% elseif fait.type == 'part' %}quitte la ville{{ fait.route ? ' pour ' ~ fait.route : '' }}
                                 {% elseif fait.type == 'rentre' %}est de retour, plus aguerri
