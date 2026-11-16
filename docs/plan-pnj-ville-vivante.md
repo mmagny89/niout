@@ -589,6 +589,8 @@ prénoms, des collisions certaines. **Un nom qui change sous les yeux du joueur 
 pire que pas de nom.** Il est donc **gardé**, comme l'est déjà le prénom du chef de
 famille (`Family::chefDeFamille`).
 
+**Statut : livré et mergé dans `develop`** (branche `feat/prenoms-des-gens`, migration `Version20261116132813`, `Game\Prenoms`, `PrenomsTest`). Écarts avec le plan ci-dessous : les prénoms se donnent à l'annonce par `Prenoms::nommerLesCandidats()` (et non dans `GenerateurDeCandidat`, qui reste sans notion de ville) ; **le fonds des gens exclut dès maintenant** les dix hauts fonctionnaires de `PrenomEgyptien`, faute de les avoir relus un par un (`ordinaires()`), sans toucher à `tous()` que les héritiers indexent ; un message de récapitulatif — départ, embauche, renvoi, levée — porte le prénom. **Non vérifié au navigateur** : le rendu est gardé par un test de gabarit, pas encore regardé à 390 px.
+
 ### 16.2 Ce qui change
 
 | Où | Quoi |
