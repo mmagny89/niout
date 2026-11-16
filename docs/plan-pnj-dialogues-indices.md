@@ -150,3 +150,13 @@ test d'écran ne le voie.
 - **Écart au cadrage** : la voix n'est pas au journal de la quinzaine, seulement dans la fenêtre — l'aide agit à l'affichage, pas
   pendant la quinzaine, donc rien à y rejouer.
 - **Verrous tenus** : identité de la liste écartée / montrée, la bonne réponse jamais nommée, silence sans aide, gabarit unique.
+
+### Lot I2 — voyageur de l'Auberge, prêtre du Temple (2026-11-16, dans `develop`)
+
+- `VisiteurDePassage::pour()` : un voyageur à l'Auberge, un prêtre au Temple, **tant qu'une énigme de ce lieu est jouable**
+  (`Enigme::disponiblesPour()`). Rôles `Voyageur` et `Pretre`, deux symboles SVG. Posés par `GensDeLaVille` en plus du plafond.
+- **Hors photographie** : donc hors film, hors trace, absents d'une quinzaine rejouée. Fiche et ligne de la liste (voie équivalente).
+- **Écarts au cadrage** : pas de bulle (le film ne les joue pas) ; le « marqueur » est la fiche, qui renvoie au bâtiment plutôt
+  que d'ouvrir l'énigme directement.
+- **Verrous tenus** : le lieu décide, rien sans énigme jouable, la fiche ne contient ni énoncé, ni réponse, ni explication.
+- **Non vérifié au navigateur** : lisibilité des deux silhouettes à l'échelle de la ville.
