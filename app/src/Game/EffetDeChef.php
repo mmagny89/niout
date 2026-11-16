@@ -260,13 +260,22 @@ final readonly class EffetDeChef
 
     public static function chefSpecialise(City $ville, TypeDeBatiment $type, SpecialiteDeChef $specialite, int $cycle): bool
     {
+        return null !== self::chefDeSpecialite($ville, $type, $specialite, $cycle);
+    }
+
+    /**
+     * Le chef en poste dont la spécialité agit, **celui-là même que `chefSpecialise()` compte** : une
+     * aide qui a un visage (« Hori l'oraculaire ») ne peut pas désigner un autre que celui qui agit.
+     */
+    public static function chefDeSpecialite(City $ville, TypeDeBatiment $type, SpecialiteDeChef $specialite, int $cycle): ?Employee
+    {
         foreach ($ville->chefsDe($type) as $chef) {
             if ($chef->estEnPoste($cycle) && $chef->getSpecialite() === $specialite) {
-                return true;
+                return $chef;
             }
         }
 
-        return false;
+        return null;
     }
 
     /**

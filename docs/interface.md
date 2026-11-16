@@ -449,6 +449,12 @@ sur **la première conversation du jour** s'il y en a une. Cocher **« Lire les 
 lecture de chaque réplique (55 ms par caractère, entre 1,8 s et 4,5 s) : lire à 4 s par jour est impossible. **Le texte est
 aussi dans la fenêtre** — « Ce qu'on s'est dit », avec qui et où — et dans le journal de celui qui parle (« dit à … : « … » »).
 
+**La voix des aides** (lots I1 et I5, `VoixDesAides`). Sous une devinette de la Maison des scribes, une ligne en italique quand
+l'Oraculaire est en poste : « *Hori l'oraculaire souffle : ce n'est pas « … »* » — la réponse écartée de la liste, jamais la
+bonne. En tête de la clé de lecture, une ligne par aide qui agit (« *Pia le déchiffreur vous a appris 2 signes de plus* », « *Thot
+vous éclaire : 1 signe de plus* »). Le message qui suit une réponse commence par « *Hori, chef de la Maison des scribes,
+l'explique :* » quand le chef a un prénom. Pas de bulle : tout est du texte, donc lisible au téléphone.
+
 **Les témoignages dits** (lot I3, `Choregraphie::paroles()`, dossier de la Maison des scribes). Un témoignage rapporté par
 l'émissaire se joue **l'après-midi du jour**, en bulles, avec le même mécanisme que les conversations, et se lit aussi au journal et
 dans « Ce qu'on s'est dit ». **Au dossier d'enquête**, il s'affiche « *Témoin* : « parole » » ; un indice de terrain garde son texte.

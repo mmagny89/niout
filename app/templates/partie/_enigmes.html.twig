@@ -31,6 +31,10 @@
                     <p class="mt-2 font-display text-lg leading-snug text-encre-900">{{ question.enigme.enonce }}</p>
                 </div>
 
+                {% if question.souffle %}
+                    <p class="text-sm italic text-encre-600">{{ question.souffle }}</p>
+                {% endif %}
+
                 <form method="post" action="{{ path('app_partie_enigme', {id: partie.id}) }}"
                       class="mt-auto grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <input type="hidden" name="_token" value="{{ csrf_token('enigme') }}">

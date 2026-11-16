@@ -21,6 +21,7 @@ use App\Game\SteleHistorique;
 use App\Game\SymboleHieroglyphique;
 use App\Game\TranscriptionDuNom;
 use App\Game\TypeDeBatiment;
+use App\Game\VoixDesAides;
 
 /**
  * Le panneau de la Maison des scribes : écriture, déchiffrage, exercices, énigmes
@@ -76,6 +77,7 @@ final readonly class PanneauDeLaMaisonDesScribes implements FournisseurDePanneau
             // du doc 10, celle des sons. Elle ne se mélange jamais à la clé de
             // lecture, alors même que six dessins leur sont communs.
             'cleDeLecture' => CleDeLecture::pour($ville, $partie->getCycle()),
+            'signesAppris' => VoixDesAides::signesAppris($ville, $partie->getCycle()),
             'alphabet' => AlphabetDesScribes::pour($ville),
             'prochainSigneDeLAlphabet' => AlphabetDesScribes::prochainSigne($ville),
             'signesDeLAlphabetEnTout' => \count(SigneAlphabetique::cases()),

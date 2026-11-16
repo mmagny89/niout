@@ -21,6 +21,7 @@ use App\Game\PalierDeFaveur;
 use App\Game\Ressource;
 use App\Game\SpecialiteDeChef;
 use App\Game\TypeDeBatiment;
+use App\Game\VoixDesAides;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -86,6 +87,124 @@ final class ScribesTest extends WebTestCase
 
         self::assertCount(\count($toutes) - EffetDeChef::PROPOSITIONS_ECARTEES_PAR_LORACULAIRE, $resserrees);
         self::assertContains(Enigme::IbisDeThot->bonneReponse(), $resserrees, 'La bonne réponse ne s\'écarte jamais.');
+    }
+
+    /**
+     * **La voix de l'Oraculaire dit ce que l'écran retire, et rien d'autre** : une seule liste
+     * d'écartées, lue deux fois. Jamais la bonne réponse, même gabarit pour toute énigme, et le silence
+     * quand l'Oraculaire n'agit pas.
+     */
+    public function testLOraculaireSouffleCeQueLEcranRetire(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecScribes('souffle@example.com');
+        $enigmes = static::getContainer()->get(Enigmes::class);
+        $voix = static::getContainer()->get(VoixDesAides::class);
+
+        foreach (Enigme::cases() as $enigme) {
+            self::assertNull($voix->souffle($partie, $enigme), 'Sans Oraculaire, personne ne souffle.');
+        }
+
+        $this->engager($partie, TypeDeBatiment::MaisonDesScribes, SpecialiteDeChef::ScribesOraculaire);
+
+        foreach (Enigme::cases() as $enigme) {
+            $ecartees = $enigmes->propositionsEcartees($partie, $enigme);
+            $souffle = $voix->souffle($partie, $enigme);
+
+            self::assertNotNull($souffle);
+            self::assertNotContains($enigme->bonneReponse(), $ecartees);
+            self::assertStringNotContainsString('« '.$enigme->bonneReponse().' »', $souffle);
+            self::assertMatchesRegularExpression('/^(\S+ l|L)\'oraculaire souffle : ce n\'est pas « /u', $souffle);
+            self::assertEqualsCanonicalizing(
+                $enigme->propositions(),
+                [...$enigmes->propositionsMontrees($partie, $enigme), ...$ecartees],
+                'Ce que l\'écran garde et ce que l\'Oraculaire écarte font toutes les propositions.',
+            );
+
+            foreach ($ecartees as $ecartee) {
+                self::assertStringContainsString('« '.$ecartee.' »', $souffle);
+            }
+        }
+    }
+
+    /**
+     * Le Déchiffreur et Thot disent **combien** ils ouvrent — le nombre même que compte la clé — et
+     * ne parlent que lorsqu'ils agissent.
+     */
+    public function testLesAidesDisentQuiAAppris(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecScribes('qui-a-appris@example.com');
+        $ville = $partie->getVille();
+
+        self::assertSame([], VoixDesAides::signesAppris($ville, $partie->getCycle()));
+
+        $this->engager($partie, TypeDeBatiment::MaisonDesScribes, SpecialiteDeChef::ScribesDechiffreur);
+        $lignes = VoixDesAides::signesAppris($ville, $partie->getCycle());
+
+        self::assertCount(1, $lignes);
+        self::assertStringContainsString((string) EffetDeChef::SIGNES_DU_DECHIFFREUR, $lignes[0]);
+        self::assertStringContainsString('déchiffreur', $lignes[0]);
+
+        $this->porterThotAuFavorable($partie);
+        $lignes = VoixDesAides::signesAppris($ville, $partie->getCycle());
+
+        self::assertCount(2, $lignes);
+        self::assertStringContainsString((string) CleDeLecture::signesDeThot($ville), $lignes[1]);
+        self::assertStringContainsString('Thot', $lignes[1]);
+    }
+
+    /**
+     * **L'explication est dite, jamais changée** : celle de l'énigme, mot pour mot, avec la voix du
+     * chef des scribes devant — et sans chef, exactement le texte d'avant.
+     */
+    public function testLExplicationEstDiteSansEtreChangee(): void
+    {
+        self::bootKernel();
+        $partie = $this->villeAvecScribes('explication@example.com');
+        $ville = $partie->getVille();
+
+        foreach (Enigme::cases() as $enigme) {
+            self::assertSame($enigme->explication(), VoixDesAides::explique($ville, $enigme->explication()));
+        }
+
+        $this->engager($partie, TypeDeBatiment::MaisonDesScribes, SpecialiteDeChef::ScribesOraculaire);
+        self::assertSame(
+            Enigme::IbisDeThot->explication(),
+            VoixDesAides::explique($ville, Enigme::IbisDeThot->explication()),
+            'Un chef sans prénom ne prête pas sa voix : le texte reste celui d\'avant.',
+        );
+
+        $ville->chefsDe(TypeDeBatiment::MaisonDesScribes)[0]->donnerUnPrenom('Hori');
+        $dite = VoixDesAides::explique($ville, Enigme::IbisDeThot->explication());
+
+        self::assertSame('Hori, chef de la Maison des scribes, l\'explique : '.Enigme::IbisDeThot->explication(), $dite);
+        self::assertStringStartsWith('Hori, chef de la Maison des scribes, l\'explique : ', $dite);
+    }
+
+    /**
+     * À l'écran : l'Oraculaire souffle sous la devinette, et la clé dit qui a appris quoi.
+     */
+    public function testLaMaisonDesScribesMontreLaVoixDesAides(): void
+    {
+        $client = static::createClient();
+        $partie = $this->villeAvecScribes('voix-ecran@example.com');
+        $this->engager($partie, TypeDeBatiment::MaisonDesScribes, SpecialiteDeChef::ScribesOraculaire);
+        $this->engager($partie, TypeDeBatiment::MaisonDesScribes, SpecialiteDeChef::ScribesDechiffreur);
+
+        foreach ($partie->getVille()->chefsDe(TypeDeBatiment::MaisonDesScribes) as $i => $chef) {
+            $chef->donnerUnPrenom(0 === $i ? 'Hori' : 'Pia');
+        }
+
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+        $client->loginUser($partie->getJoueur());
+
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=maison_des_scribes', $partie->getId()));
+
+        self::assertResponseIsSuccessful();
+        $page = html_entity_decode((string) $client->getResponse()->getContent());
+        self::assertStringContainsString('Hori l\'oraculaire souffle : ce n\'est pas «', $page);
+        self::assertStringContainsString('Pia le déchiffreur vous a appris', $page);
     }
 
     /**

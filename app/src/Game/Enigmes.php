@@ -49,26 +49,36 @@ final readonly class Enigmes
      */
     public function propositionsMontrees(GameSave $partie, Enigme $enigme): array
     {
-        $propositions = $enigme->propositions();
+        $ecartees = $this->propositionsEcartees($partie, $enigme);
 
+        return array_values(array_filter(
+            $enigme->propositions(),
+            static fn (string $proposition): bool => !\in_array($proposition, $ecartees, true),
+        ));
+    }
+
+    /**
+     * Ce que l'Oraculaire écarte — **l'unique endroit qui le décide**. L'écran retire ces
+     * propositions de la liste, et la voix de l'Oraculaire (`VoixDesAides`) les nomme : deux lectures
+     * d'une même liste, jamais deux logiques. Jamais la bonne réponse.
+     *
+     * @return list<string>
+     */
+    public function propositionsEcartees(GameSave $partie, Enigme $enigme): array
+    {
         if (!EffetDeChef::chefSpecialise($partie->getVille(), TypeDeBatiment::MaisonDesScribes, SpecialiteDeChef::ScribesOraculaire, $partie->getCycle())) {
-            return $propositions;
+            return [];
         }
 
-        $ecartees = 0;
-        $retenues = [];
+        $ecartees = [];
 
-        foreach ($propositions as $proposition) {
-            if ($proposition !== $enigme->bonneReponse() && $ecartees < EffetDeChef::PROPOSITIONS_ECARTEES_PAR_LORACULAIRE) {
-                ++$ecartees;
-
-                continue;
+        foreach ($enigme->propositions() as $proposition) {
+            if ($proposition !== $enigme->bonneReponse() && \count($ecartees) < EffetDeChef::PROPOSITIONS_ECARTEES_PAR_LORACULAIRE) {
+                $ecartees[] = $proposition;
             }
-
-            $retenues[] = $proposition;
         }
 
-        return $retenues;
+        return $ecartees;
     }
 
     /**

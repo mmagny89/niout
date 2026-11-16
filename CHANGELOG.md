@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les aides ont une voix.** À la Maison des scribes, l'Oraculaire en poste **souffle** sous la devinette quelle réponse
+  n'est pas la bonne (« Hori l'oraculaire souffle : ce n'est pas « … » ») ; la clé de lecture dit **qui a appris combien de
+  signes** (le Déchiffreur, Thot) ; et l'explication d'une énigme est **dite par le chef des scribes**, mot pour mot. Rien de
+  plus que ce que ces aides faisaient déjà : elles se taisent quand elles n'agissent pas, et ne donnent jamais la bonne réponse.
 - **Les témoignages se disent.** Quand l'émissaire rapporte un témoignage, **le chef de la Maison des scribes** (sinon la
   famille) le répète l'après-midi du jour, **dans les mots du témoin**, et un autre lui répond — dans le film, en bulles ; au
   journal, en toutes lettres. Au dossier d'enquête, un témoignage se lit « Le paysan : « … » » ; un indice de terrain garde sa
