@@ -160,3 +160,13 @@ test d'écran ne le voie.
   que d'ouvrir l'énigme directement.
 - **Verrous tenus** : le lieu décide, rien sans énigme jouable, la fiche ne contient ni énoncé, ni réponse, ni explication.
 - **Non vérifié au navigateur** : lisibilité des deux silhouettes à l'échelle de la ville.
+
+### Lot I4 — la mémoire du dossier (2026-11-16, dans `develop`)
+
+- `MemoireDuDossier::pour()` : tous les indices d'un dossier en cours, dans l'ordre du versement, avec la phrase du dossier ; introduction
+  et question identiques pour tout dossier. Nulle sous deux indices, sur un dossier clos, ou sans chef nommé aux scribes.
+- **Verrous tenus** : `MemoireDuDossierTest` — tout nommé dans l'ordre (toutes les enquêtes), même voix/phrase/question pour **toute
+  paire** d'indices, aucun mot de jugement, dossier intact, déterminisme, rendu à l'écran.
+- **Pas de lot restant** dans ce cadrage : I1 à I5 sont livrés. Reste hors cadrage : l'aide au déchiffrage (écartée en V4).
+- **Instabilité constatée, hors lot** : `TraceDeQuinzaineTest::testLaFenetrePorteLaFriseEtLeJournalDUnChef` a échoué une fois sur trois en suite
+  complète (404 « Personne ne répond à ce nom » : le chef a disparu pendant `passer()`, sans doute un départ naturel — `DepartsNaturels` tire au hasard).
