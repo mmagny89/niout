@@ -14,6 +14,9 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Passer la quinzaine joue son film.** Depuis la ville vue d'en haut, « Quinzaine suivante » lance tout seul le film de la quinzaine
+  qui vient de passer, à vitesse normale (60 s). On peut le mettre en pause, l'accélérer ou revenir à maintenant comme avant. Rien
+  ne se lance pour qui demande moins de mouvement, ni depuis la carte ou un onglet de bâtiment, ni en rechargeant la page.
 - **Le chef des scribes remet le dossier en ordre.** Sous les indices d'une enquête en cours (deux au moins), il dit « J'ai relu le
   dossier : N choses notées, dans l'ordre où elles sont venues », les redonne **toutes**, dans l'ordre de la découverte, et
   demande « Qu'en penses-tu ? » **sans y répondre**. Tout ou rien : il ne choisit jamais ce qu'il rappelle, sinon le choix dirait

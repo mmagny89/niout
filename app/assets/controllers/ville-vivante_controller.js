@@ -27,6 +27,10 @@ import { Controller } from '@hotwired/stimulus';
  * 55 ms par caractère, entre 1,8 s et 4,5 s — puis repart. Lire à 4 s par jour est impossible, et
  * cela vaut mieux qu'une bulle qui clignote.
  *
+ * **Après un passage de quinzaine** (`lancer`) : le film de la quinzaine qui vient de passer se joue tout
+ * seul, à vitesse normale, quand on était sur la ville vue d'en haut — jamais pour qui demande moins de
+ * mouvement, ni si l'onglet est caché.
+ *
  * **Politesse.** La lecture se met en pause quand l'onglet n'est plus visible, et quand
  * on clique une silhouette pour lire sa fiche. Le suivi met une silhouette en valeur
  * et atténue les autres : il ne déplace rien.
@@ -37,7 +41,7 @@ const MS_PAR_MOMENT = MS_PAR_JOUR / 4;
 
 export default class extends Controller {
     static targets = ['film', 'statique', 'barre', 'lecture', 'curseur', 'jour', 'suivi', 'maintenant', 'figure', 'bulle', 'ecouter'];
-    static values = { film: Object, libelles: Object };
+    static values = { film: Object, libelles: Object, lancer: Boolean };
 
     connect() {
         this.animations = null;
@@ -65,6 +69,32 @@ export default class extends Controller {
             }
         };
         document.addEventListener('visibilitychange', this.auChangementDeVisibilite);
+
+        // Revenu d'un passage de quinzaine : on joue le film qui vient de s'écrire, à vitesse normale.
+        if (this.lancerValue && this.filmValue.jours > 0 && !document.hidden) {
+            this.oublierLaDemande();
+            requestAnimationFrame(() => {
+                if (this.element.isConnected && !this.enLecture) {
+                    this.basculer();
+                }
+            });
+        }
+    }
+
+    /**
+     * L'adresse ne garde pas `film=1` : recharger la page, ou y revenir, ne doit pas relancer le film.
+     */
+    oublierLaDemande() {
+        try {
+            const adresse = new URL(window.location.href);
+
+            if (adresse.searchParams.has('film')) {
+                adresse.searchParams.delete('film');
+                window.history.replaceState(window.history.state, '', adresse);
+            }
+        } catch (erreur) {
+            // Une adresse qu'on ne sait pas lire n'empêche pas de jouer.
+        }
     }
 
     disconnect() {

@@ -1309,6 +1309,9 @@ final class PartieController extends AbstractController
             // Le film de la quinzaine passée : les points par où chaque silhouette passe, que
             // le navigateur joue. Null sans trace — il n'y a rien à rejouer.
             'filmDeLaVille' => $enVille ? $filmDeLaVille->pour($partie) : null,
+            // Revenu d'un passage de quinzaine : le film se lance tout seul (`film=1`). Jamais quand on
+            // regarde un jour précis, ni sans film.
+            'lancerLeFilm' => $enVille && 1 === $request->query->getInt('film') && null === $jourDemande,
             // La case dont la fenêtre est ouverte, pour la surligner.
             'zoneDetaillee' => $this->zoneDeLOuverture($zones, $chemin),
             // Les signaux et les expéditions en route se lisent dans la barre
@@ -1593,7 +1596,7 @@ final class PartieController extends AbstractController
         // (écarts), puis le journal rangé par catégorie. Il voyage en message flash.
         $this->addFlash('quinzaine', $recapitulatif->composer($avant, $partie, $evenements));
 
-        return $this->retourDemande($request, $partie);
+        return $this->retourDemande($request, $partie, lancerLeFilm: true);
     }
 
     /**
@@ -1612,7 +1615,7 @@ final class PartieController extends AbstractController
      * le temps ne doit ni éjecter le joueur, ni lui faire retrouver sa place à
      * chaque cycle.
      */
-    private function retourDemande(Request $request, GameSave $partie): Response
+    private function retourDemande(Request $request, GameSave $partie, bool $lancerLeFilm = false): Response
     {
         $route = $this->routeDeRetour($request);
         $onglet = (string) $request->request->get('onglet', '');
@@ -1631,6 +1634,10 @@ final class PartieController extends AbstractController
             'ouvre' => 'app_partie_carte' === $route && '' !== (string) $request->request->get('ouvre') ? (string) $request->request->get('ouvre') : null,
             // La ville vue d'en haut aussi : on avance le temps en la regardant.
             'vue' => 'app_partie_carte' === $route && 'ville' === $request->request->get('vue') ? 'ville' : null,
+            // Quinzaine passée depuis la ville vue d'en haut : on en joue le film, à vitesse normale. Le
+            // paramètre voyage dans l'adresse (et non en message flash) : un message que la page n'affiche
+            // pas resterait en attente et déclencherait un film à contretemps.
+            'film' => $lancerLeFilm && 'app_partie_carte' === $route && 'ville' === $request->request->get('vue') ? 1 : null,
         ], static fn (mixed $valeur): bool => null !== $valeur));
     }
 
