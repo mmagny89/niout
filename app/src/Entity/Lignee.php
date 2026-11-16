@@ -52,6 +52,23 @@ class Lignee
     #[ORM\Column]
     private int $renommeeAcquise = Family::RENOMMEE_MIN;
 
+    /**
+     * Ce que la famille a bâti avec chaque cité, par identité de cité (`PartenaireCommercial::cite()`),
+     * au plus haut atteint — plafonné à `RELATION_ACQUISE_MAX`. Le même modèle que la renommée : une
+     * jauge vivante dans la partie (`EtatDePartenaire::relation`), un acquis ici qui ne descend jamais.
+     *
+     * @var array<string, int>
+     */
+    #[ORM\Column(type: 'json', options: ['default' => '{}'])]
+    private array $relations = [];
+
+    /**
+     * Ce qu'une nouvelle partie reçoit d'emblée : les cinquante points suivants se gagnent en
+     * jouant. Un plafond plutôt qu'un cloisonnement, comme le plan de bataille le prévoit.
+     * **Valeur inventée.**.
+     */
+    public const int RELATION_ACQUISE_MAX = 50;
+
     public function __construct(User $joueur)
     {
         $this->joueur = $joueur;
@@ -84,6 +101,21 @@ class Lignee
             $this->renommeeAcquise,
             min(Family::RENOMMEE_MAX, $renommee),
         );
+
+        return $this;
+    }
+
+    public function relationAcquise(string $cite): int
+    {
+        return $this->relations[$cite] ?? 0;
+    }
+
+    /**
+     * Relève l'acquis d'une cité, **jamais l'inverse**.
+     */
+    public function releverLaRelation(string $cite, int $relation): static
+    {
+        $this->relations[$cite] = max($this->relationAcquise($cite), min(self::RELATION_ACQUISE_MAX, $relation));
 
         return $this;
     }

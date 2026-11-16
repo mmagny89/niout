@@ -132,6 +132,12 @@
                                         <span>
                                             <span class="inline-block rounded-full border px-2 text-xs {{ ligne.sens.value == 'vendre' ? 'border-lapis-500/40 text-lapis-600' : 'border-terre-500/40 text-terre-600' }}">{{ ligne.sens.libelle }}</span>
                                             <span class="block text-sm text-encre-900">{{ ligne.ressource.libelle|capitalize }}</span>
+                                            {# Le monde, en signe, en chiffre et en mots : une couleur seule ne se lit pas. #}
+                                            <span class="block text-xs text-encre-500" data-chiffres title="{{ ligne.cause }}">
+                                                <span aria-hidden="true">{{ ligne.monde > 0 ? '▲' : (ligne.monde < 0 ? '▼' : '■') }}</span>
+                                                <span class="sr-only">{{ ligne.monde > 0 ? 'Favorable' : (ligne.monde < 0 ? 'Défavorable' : 'Neutre') }} :</span>
+                                                {{ ligne.monde > 0 ? '+' : '' }}{{ ligne.monde }} — {{ ligne.cause }}
+                                            </span>
                                         </span>
                                     </span>
 

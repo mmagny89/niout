@@ -60,6 +60,16 @@ final readonly class PartenaireCommercial
     ) {
     }
 
+    /**
+     * L'identité de la cité, qui survit d'une mission à l'autre : `byblos` et `byblos-levant`
+     * sont la même Byblos, `coptos` et `coptos-desert` aussi. La relation se range sous elle —
+     * sans quoi celle de Byblos se perdrait entre deux missions (`docs/plan-pnj-palier-a.md` § 4.3).
+     */
+    public function cite(): string
+    {
+        return preg_replace('/-(levant|desert|amont)$/', '', $this->cle) ?? $this->cle;
+    }
+
     public function vendDe(Ressource $ressource): bool
     {
         return \in_array($ressource, $this->vend, true);

@@ -157,6 +157,7 @@ final readonly class PassageDeCycle
             // Et ce que la renommée attire : un marchand qui vient disputer
             // une route (doc 08).
             ...$de(CategorieDEvenement::Rivaux, $this->rivaux->avancerDUnCycle($partie)),
+            ...$de(CategorieDEvenement::Lointain, $this->commerce->nouvellesDuMonde($partie)),
             // Et ce que le pharaon réclame pour ses propres chantiers.
             ...$de(CategorieDEvenement::Royaume, $this->quetes->avancerDUnCycle($partie)),
         ];

@@ -1,6 +1,6 @@
 # Niout — PNJ, palier A : le monde commerçant qui bouge
 
-**Statut : lot A1 livré (2026-11-16) — conjoncture dérivée, avantage signé, banc d'essai ; le reste est cadré, rien d'autre n'est codé.** Suite de
+**Statut : lots A1 et A2 livrés (2026-11-16) — conjoncture dérivée, avantage signé, banc d'essai ; le reste est cadré, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1, palier A). Ce document dit
 **quoi** faire des partenaires commerciaux, **où** cela s'accroche dans le code
 existant, **jusqu'où** cela peut peser sur le joueur, et **comment on le
@@ -446,3 +446,21 @@ affichage avant l'engagement : ils s'écrivent avec A2, quand l'étal peut les d
 
 **Piège évité** : `plancher d'achat ≥ 110 %` ne se mesure pas en ratio sur les cours bon marché (un cours de
 13 donne 107 % à l'entier) ; le banc compare au `intdiv(cours × 110, 100)` exact.
+
+## 15. Lot A2 — ce qui est livré, et ce qui s'écarte du plan
+
+**Livré** : `PartenaireCommercial::cite()` (identité de cité, par suffixe) ; `EtatDePartenaire` (relation, plancher,
+saturations JSON `'{}'`, une ligne par cité et par partie, cascade de la base) et `EtatsDesCites` (chargé une fois par
+requête, vidé par `ResetInterface` pour le mode worker) ; `Lignee::$relations` (acquis plafonné à 50, relevé par
+`Lignees::encaisser`, jamais abaissé) ; saturation (+4 par convoi rentré, un tiers d'érosion arrondi au-dessus, max 20) qui
+**rogne le monde** ; relation (+2 par convoi, −1 par quinzaine vers le plancher) qui vaut `relation / 10` points, **le plus grand
+de ce avantage et du carnet**, jamais leur somme ; conjoncture et cause dans l'étal ; catégorie « Au loin ».
+
+**Écarts assumés** :
+- **Pas de `FaitDeMonde` pour les cités** : « Au loin » se **déduit** de la conjoncture (un événement qui s'ouvre ou
+  s'achève), donc rien à stocker ni à purger — c'est la règle du plan elle-même (§ 4).
+- **Plancher de relation de 20 par mission accomplie** et affichage de la relation dans le carnet : **reportés** (la
+  relation héritée existe, pas encore cette garantie).
+- **Toujours reportés** : deuil de cour, troubles, guerre et son cadre (§ 4.4), qui demandent un affichage avant l'engagement.
+
+**À jouer avant A3** (verrou du plan) : le joueur lit-il l'étal enrichi, et en tire-t-il quelque chose ?
