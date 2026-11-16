@@ -24,6 +24,12 @@ enum RoleDeFigure: string
     case Foyer = 'foyer';
 
     /**
+     * La main-d'œuvre d'un chantier en cours : elle se voit sur le lot, au travail. Du décor représentatif —
+     * le jeu compte l'avancement d'un chantier, pas ses ouvriers un à un.
+     */
+    case Macon = 'macon';
+
+    /**
      * Les deux silhouettes **de passage** (lot I2) : ni habitants ni personnes de la ville, du décor
      * attaché à une énigme jouable, sans nom ni mémoire. Elles ne sont jamais dans la photographie.
      */
@@ -45,6 +51,7 @@ enum RoleDeFigure: string
             self::Medjay => 'fig-medjay',
             self::Rival => 'fig-rival',
             self::Travailleur => 'fig-travailleur',
+            self::Macon => 'fig-macon',
             self::Voyageur => 'fig-voyageur',
             self::Pretre => 'fig-pretre',
             self::SansPoste, self::Foyer => 'fig-habitant',

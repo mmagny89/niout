@@ -83,8 +83,8 @@ final class CarteTest extends WebTestCase
         self::assertMatchesRegularExpression('/@media \(prefers-reduced-motion: reduce\)\s*\{[^@]*animation-duration:\s*0\.01ms\s*!important/s', $css);
 
         $barre = (string) file_get_contents(\dirname(__DIR__, 2).'/templates/partie/_barre.html.twig');
-        self::assertSame(2, substr_count($barre, 'fixed inset-x-3 top-28'), 'Les deux volets de la barre sortent de la rangée sur téléphone.');
-        self::assertSame(2, substr_count($barre, 'md:absolute'));
+        self::assertSame(3, substr_count($barre, 'fixed inset-x-3 top-28'), 'Les trois volets de la barre (familles, habitants, mission) sortent de la rangée sur téléphone.');
+        self::assertSame(3, substr_count($barre, 'md:absolute'));
     }
 
     /**
@@ -405,22 +405,21 @@ final class CarteTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/ville', $partie->getId()));
         $client->submit($crawler->selectButton('Quinzaine suivante')->form());
 
-        // Et sur la fenêtre d'où l'on est parti : on passe souvent plusieurs
-        // quinzaines de suite depuis le même panneau. La ville est une fenêtre
-        // de la carte : le cycle ramène à la carte, fenêtre rouverte.
+        // La ville est une fenêtre de la carte : le cycle ramène à la carte, fenêtre **refermée**, sur la ville
+        // vue d'en haut — c'est elle qu'on veut voir vivre, avec le film de la quinzaine.
         self::assertResponseRedirects();
         $lieu = urldecode((string) $client->getResponse()->headers->get('Location'));
         self::assertStringContainsString(\sprintf('/partie/%d/carte', $partie->getId()), $lieu);
-        self::assertStringContainsString(\sprintf('ouvre=/partie/%d/ville', $partie->getId()), $lieu);
+        self::assertStringContainsString('vue=ville', $lieu);
+        self::assertStringContainsString('film=1', $lieu);
+        self::assertStringNotContainsString('ouvre=', $lieu, 'La fenêtre masquerait le film.');
     }
 
     /**
-     * **La case sélectionnée survit à la quinzaine.** On avance souvent le
-     * temps en surveillant une expédition, un chantier ou une carrière :
-     * repartir d'une carte sans sélection obligeait à retrouver sa case à
-     * chaque cycle.
+     * **La quinzaine passée depuis une case ramène à la ville** : la case était une fenêtre, qui masquerait le
+     * film des habitants. On la retrouve d'un geste ; ce qu'on voit d'abord, c'est la ville qui vit.
      */
-    public function testLaCaseSelectionneeSurvitAuPassageDuTemps(): void
+    public function testPasserLeTempsDepuisUneCaseMenePlusALaVille(): void
     {
         $client = static::createClient();
         $joueur = $this->connecter($client, 'case-apres-cycle@example.com');
@@ -432,12 +431,11 @@ final class CarteTest extends WebTestCase
         $crawler = $client->request('GET', $adresse);
         $client->submit($crawler->selectButton('Quinzaine suivante')->form());
 
-        // La case est une fenêtre : c'est `ouvre` qui la rouvre après la quinzaine.
         self::assertResponseRedirects();
-        self::assertStringContainsString(
-            \sprintf('ouvre=/partie/%d/case/%d-%d', $partie->getId(), $zone->getX(), $zone->getY()),
-            urldecode((string) $client->getResponse()->headers->get('Location')),
-        );
+        $lieu = urldecode((string) $client->getResponse()->headers->get('Location'));
+        self::assertStringContainsString('vue=ville', $lieu);
+        self::assertStringContainsString('film=1', $lieu);
+        self::assertStringNotContainsString('ouvre=', $lieu);
     }
 
     public function testAvancerLeTempsDepuisLaCarteYRamene(): void
@@ -449,7 +447,8 @@ final class CarteTest extends WebTestCase
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
         $client->submit($crawler->selectButton('Quinzaine suivante')->form());
 
-        self::assertResponseRedirects(\sprintf('/partie/%d/carte', $partie->getId()));
+        // Depuis le territoire : on arrive sur la ville vue d'en haut, film lancé.
+        self::assertResponseRedirects(\sprintf('/partie/%d/carte?vue=ville&film=1', $partie->getId()));
     }
 
     public function testUnRetourFantaisisteRetombeSurLaCarte(): void
@@ -464,7 +463,8 @@ final class CarteTest extends WebTestCase
 
         $client->submit($formulaire);
 
-        self::assertResponseRedirects(\sprintf('/partie/%d/carte', $partie->getId()));
+        // Une route de retour inconnue retombe sur la carte — donc, au cycle, sur la ville et son film.
+        self::assertResponseRedirects(\sprintf('/partie/%d/carte?vue=ville&film=1', $partie->getId()));
     }
 
     public function testUnJoueurNeVoitPasLaCarteDUnAutre(): void

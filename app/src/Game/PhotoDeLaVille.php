@@ -58,6 +58,12 @@ final readonly class PhotoDeLaVille
 
     public const int TRAVAILLEURS_PAR_BATIMENT = 3;
 
+    /**
+     * Combien de maçons un chantier montre. **Valeur inventée** : assez pour qu'on voie un chantier, pas assez
+     * pour qu'il écrase le reste de la foule.
+     */
+    public const int MACONS_PAR_CHANTIER = 3;
+
     public const int SANS_POSTE_MONTRES = 3;
 
     public function __construct(
@@ -123,6 +129,27 @@ final readonly class PhotoDeLaVille
                 'lieu' => TypeDeBatiment::Marche->value,
                 'couchee' => false,
             ];
+        }
+
+        // Un chantier en cours a sa main-d'œuvre, **sur le lot** : c'est ce qu'on voit au cycle. Les
+        // désignés viennent d'abord, la foule ensuite (le plafond coupe la foule, jamais un chantier).
+        $parLieu = [];
+
+        foreach ($ville->getChantiers() as $chantier) {
+            $lieuDuChantier = $chantier->getType()->value;
+            $parLieu[$lieuDuChantier] = true;
+        }
+
+        foreach (array_keys($parLieu) as $lieuDuChantier) {
+            for ($i = 0; $i < self::MACONS_PAR_CHANTIER; ++$i) {
+                $candidats[] = [
+                    'cle' => 'macon-'.$lieuDuChantier,
+                    'role' => RoleDeFigure::Macon->value,
+                    'libelle' => \sprintf('Maçon — chantier du %s', mb_strtolower(TypeDeBatiment::from($lieuDuChantier)->libelle())),
+                    'lieu' => $lieuDuChantier,
+                    'couchee' => false,
+                ];
+            }
         }
 
         // Un bâtiment à l'arrêt n'a personne : c'est une information vraie.

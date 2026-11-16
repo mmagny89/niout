@@ -759,6 +759,13 @@ du jeu. **Aucune réplique ne donne un chiffre, un prix, un lieu de gisement ni 
 sait déjà et le montre ailleurs. Écrire de nouvelles répliques, c'est enrichir `Dialogues::catalogue()`, jamais composer du texte à la
 volée ; les garde-fous sont dans `DialoguesTest`. **Ce lot ne touche ni aux enquêtes ni aux énigmes.**
 
+**Les maçons d'un chantier** (`RoleDeFigure::Macon`, `PhotoDeLaVille::MACONS_PAR_CHANTIER`). Tout chantier en cours (construction ou amélioration)
+pose trois maçons dans la photographie, **sur le lot du type de bâtiment** même s'il n'est pas encore dressé (`GensDeLaVille::lotsDresses()`
+l'inclut tant qu'un chantier le vise). Ils travaillent le matin et l'après-midi, **sans course ni détour** (testé sur 40 graines) ; le jour
+où le fait `ChantierAcheve` tombe, ils l'achèvent ; ensuite ils rentrent. Comme les travailleurs de poste, c'est du décor **représentatif** :
+le jeu compte l'avancement du chantier, pas ses ouvriers un à un. Un rôle neuf doit avoir sa couleur dans **les deux** gabarits de
+silhouettes (la ville et le film), sans quoi la page lève une 500 (`ChantiersAnimesTest`).
+
 **La mémoire du dossier : tout nommer, ou rien** (lot I4, `MemoireDuDossier`). Le chef de la Maison des scribes remet sous les yeux
 les indices d'un dossier **en cours** : **chacun**, dans l'ordre où il a été versé, avec la phrase même du dossier, puis la
 question fixe « Qu'en penses-tu ? ». **Choisir ce qu'on rappelle trahirait la nature** (ne citer que les concordants dirait

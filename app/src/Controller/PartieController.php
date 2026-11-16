@@ -1621,23 +1621,24 @@ final class PartieController extends AbstractController
         $onglet = (string) $request->request->get('onglet', '');
         $zone = (string) $request->request->get('zone', '');
 
+        // **Une quinzaine passée depuis la carte — vue territoire, fenêtre ouverte ou ville vue d'en
+        // haut — se regarde sur la ville** : on y arrive, la fenêtre refermée, et le film de la
+        // quinzaine se joue à vitesse normale. Le territoire et la case choisie se retrouvent d'un
+        // geste. Le paramètre voyage dans l'adresse (et non en message flash) : un message que la page
+        // n'affiche pas resterait en attente et déclencherait un film à contretemps.
+        $enVille = $lancerLeFilm && 'app_partie_carte' === $route;
+
         return $this->redirectToRoute($route, array_filter([
             'id' => $partie->getId(),
             'onglet' => 'app_partie_ville' === $route && '' !== $onglet ? $onglet : null,
-            // La case détaillée survit à la quinzaine, comme l'onglet ouvert :
-            // on avance souvent le temps en surveillant une expédition, un
-            // champ ou une carrière, et repartir sur une carte sans sélection
-            // obligeait à retrouver sa case à chaque cycle.
-            'zone' => 'app_partie_carte' === $route && '' !== $zone ? $zone : null,
-            // La fenêtre ouverte survit à la quinzaine : la carte la valide de
-            // nouveau, rien n'est suivi sur parole.
-            'ouvre' => 'app_partie_carte' === $route && '' !== (string) $request->request->get('ouvre') ? (string) $request->request->get('ouvre') : null,
-            // La ville vue d'en haut aussi : on avance le temps en la regardant.
-            'vue' => 'app_partie_carte' === $route && 'ville' === $request->request->get('vue') ? 'ville' : null,
-            // Quinzaine passée depuis la ville vue d'en haut : on en joue le film, à vitesse normale. Le
-            // paramètre voyage dans l'adresse (et non en message flash) : un message que la page n'affiche
-            // pas resterait en attente et déclencherait un film à contretemps.
-            'film' => $lancerLeFilm && 'app_partie_carte' === $route && 'ville' === $request->request->get('vue') ? 1 : null,
+            // La case détaillée survit à la quinzaine, comme l'onglet ouvert, sauf quand on passe à la ville.
+            'zone' => 'app_partie_carte' === $route && !$enVille && '' !== $zone ? $zone : null,
+            // La fenêtre ouverte survit à la quinzaine : la carte la valide de nouveau, rien n'est suivi
+            // sur parole. Sauf quand on passe à la ville : elle masquerait le film.
+            'ouvre' => 'app_partie_carte' === $route && !$enVille && '' !== (string) $request->request->get('ouvre') ? (string) $request->request->get('ouvre') : null,
+            // La ville vue d'en haut : celle qu'on regardait, ou celle où l'on arrive pour voir le film.
+            'vue' => 'app_partie_carte' === $route && ($enVille || 'ville' === $request->request->get('vue')) ? 'ville' : null,
+            'film' => $enVille ? 1 : null,
         ], static fn (mixed $valeur): bool => null !== $valeur));
     }
 
