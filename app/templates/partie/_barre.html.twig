@@ -251,7 +251,7 @@
                                     </p>
                                 {% endif %}
 
-                                <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'}) }}" data-turbo-frame="fenetre"
+                                <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale', section: 'mission'}) }}" data-turbo-frame="fenetre"
                                    class="mt-3 inline-flex min-h-11 items-center text-lapis-600 underline md:min-h-0">Ouvrir le décret à la Résidence familiale</a>
                             </div>
                         </details>
@@ -259,7 +259,7 @@
                 {% endif %}
                 {% for signal in signaux %}
                     <li>
-                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: signal.onglet ?? 'residence_familiale'}) }}"
+                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: signal.onglet ?? 'residence_familiale', section: signal.section ?? null}) }}"
                            data-turbo-frame="fenetre" data-infobulle="{{ signal.detail }}"
                            class="signal group min-h-8 md:min-h-0 {{ signal.ton == 'mauvais' ? 'signal--mauvais' : 'signal--bon' }}">
                             {{ include('partie/_pictogramme.html.twig', {nom: signal.icone, taille: 20, classe: 'signal__image'}) }}

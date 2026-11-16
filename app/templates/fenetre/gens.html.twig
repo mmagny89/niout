@@ -76,7 +76,7 @@
 
                 {% if fiche.lien %}
                     <p class="mt-4">
-                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: fiche.lien.onglet}) }}"
+                        <a href="{{ path('app_partie_ville', {id: partie.id, onglet: fiche.lien.onglet, section: fiche.lien.section ?? null}) }}"
                            class="inline-flex min-h-11 items-center rounded-sm border border-lapis-500/40 px-3 py-2 text-sm text-lapis-500
                                   hover:bg-lapis-500/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
                             {{ fiche.lien.libelle }}

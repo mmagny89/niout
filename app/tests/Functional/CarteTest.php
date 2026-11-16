@@ -297,6 +297,35 @@ final class CarteTest extends WebTestCase
     }
 
     /**
+     * Un lien peut viser une section d'un bâtiment (`?section=mission`) : la barre d'onglets de la Résidence reçoit la
+     * demande, que le contrôleur confronte à ses onglets. Rien d'autre qu'une clé ne passe dans l'attribut, et le
+     * décret de la barre de jeu y mène vraiment.
+     */
+    public function testUnLienPeutViserUneSectionDeLaResidence(): void
+    {
+        $client = static::createClient();
+        $joueur = $this->connecter($client, 'section@example.com');
+        $partie = $this->lancer($joueur);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=residence_familiale&section=mission', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(1, $crawler->filter('[data-controller="onglets"][data-onglets-demande-value="mission"]'));
+        self::assertCount(1, $crawler->filter('#residence-onglet-mission'));
+
+        // Une valeur forgée ne casse rien et ne s'échappe pas de l'attribut.
+        $crawler = $client->request('GET', \sprintf('/partie/%d/ville?onglet=residence_familiale&section=%%22%%3E%%3Cb%%3E', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $crawler->filter('[data-controller="onglets"] b'));
+
+        $client->request('GET', \sprintf('/partie/%d/ville?onglet=residence_familiale&section[]=x', $partie->getId()), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+        self::assertResponseIsSuccessful();
+
+        $carte = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
+        self::assertGreaterThan(0, $carte->filter('a[href$="onglet=residence_familiale&section=mission"]')->count());
+    }
+
+    /**
      * La case poissonneuse dit ce qui la bloque tant que le Port n'est pas
      * dressé, puis propose les filets une fois qu'il l'est. Le rendu réel est
      * la seule façon de vérifier la branche Twig qui distingue les deux.

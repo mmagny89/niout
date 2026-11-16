@@ -44,7 +44,7 @@ final readonly class EtatDeLaVille
     /**
      * Tout ce que la ville a de notable, le bon comme le mauvais.
      *
-     * @return list<array{ton: string, icone: string, titre: string, detail: string, onglet?: string}>
+     * @return list<array{ton: string, icone: string, titre: string, detail: string, onglet?: string, section?: string}>
      */
     public function signaux(GameSave $partie): array
     {
@@ -52,7 +52,7 @@ final readonly class EtatDeLaVille
     }
 
     /**
-     * @return list<array{ton: string, icone: string, titre: string, detail: string, onglet?: string}>
+     * @return list<array{ton: string, icone: string, titre: string, detail: string, onglet?: string, section?: string}>
      */
     public function ennuis(GameSave $partie): array
     {
@@ -121,6 +121,10 @@ final readonly class EtatDeLaVille
                         : 'Dressez un Quartier d\'habitation',
                     Population::FAMILLES_PAR_NIVEAU_DE_QUARTIER,
                 ),
+                // Le remède est au Quartier s'il est dressé, sinon dans la liste de ce qu'il reste à bâtir.
+                ...$ville->possede(TypeDeBatiment::QuartierDHabitation)
+                    ? ['onglet' => TypeDeBatiment::QuartierDHabitation->value]
+                    : ['section' => 'batiments'],
             ];
         }
 
@@ -132,6 +136,8 @@ final readonly class EtatDeLaVille
                 'icone' => 'habitants',
                 'titre' => \sprintf('Il vous manque %d bras', $bilan['manquants']),
                 'detail' => 'Les bâtiments sont servis avant le territoire, et chacun tourne à proportion de ce qu\'il a reçu — sans un seul travailleur, il ne fonctionne pas. Faites venir du monde, ou renvoyez un chef dont vous ne pouvez pas tenir le bâtiment.',
+                // La main-d'œuvre — et son salaire — se règle au Gouvernement de la Résidence.
+                'section' => 'gouvernement',
             ];
         } elseif ($bilan['oisifs'] > 0) {
             $signaux[] = [
@@ -139,14 +145,18 @@ final readonly class EtatDeLaVille
                 'icone' => 'chantier',
                 'titre' => \sprintf('%d bras sont sans ouvrage', $bilan['oisifs']),
                 'detail' => 'Ils mangent et ne produisent rien. Tous vos bâtiments ont déjà leur équipage : embauchez un chef quelque part pour monter son rendement, semez un champ ou ouvrez une carrière.',
+                'section' => 'gouvernement',
             ];
         }
 
         $sansChef = [];
+        $premierSansChef = null;
 
         foreach ($ville->getBatiments() as $batiment) {
             if ([] !== SpecialiteDeChef::pour($batiment->getType()) && [] === $ville->chefsDe($batiment->getType())) {
                 $sansChef[] = $batiment->getType()->libelle();
+                // Le premier de la liste (dans l'ordre des bâtiments) : la pastille y mène, c'est là qu'on affiche l'annonce.
+                $premierSansChef ??= $batiment->getType();
             }
         }
 
@@ -161,6 +171,7 @@ final readonly class EtatDeLaVille
                     implode(', ', $sansChef),
                     Effectifs::RENDEMENT_PLANCHER,
                 ),
+                ...null !== $premierSansChef ? ['onglet' => $premierSansChef->value] : [],
             ];
         }
 
@@ -188,7 +199,7 @@ final readonly class EtatDeLaVille
     }
 
     /**
-     * @return list<array{ton: string, icone: string, titre: string, detail: string, onglet?: string}>
+     * @return list<array{ton: string, icone: string, titre: string, detail: string, onglet?: string, section?: string}>
      */
     public function bonnesNouvelles(GameSave $partie): array
     {

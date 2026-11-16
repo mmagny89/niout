@@ -1658,21 +1658,25 @@ final class PartieController extends AbstractController
 
         try {
             $expedition = $explorations->envoyer($partie, $destination, $role, $charriers);
+            $cycles = $expedition->getDureeEnCycles();
+            // Deux phrases : ce qui part et où, puis quand. Le gabarit des messages met la première en titre.
             $this->addFlash('succes', \sprintf(
-                '%s part%s. Il sera sur place dans %d cycle%s.',
-                $role->libelle(),
+                '%s part%s vers la case (%d, %d). %s',
+                ucfirst($role->avecArticle()),
                 match (true) {
-                    RoleDExploration::Emissaire === $role => '',
-                    RoleDExploration::Prospecteur === $role => ' sonder la case',
+                    RoleDExploration::Emissaire === $role => ' parler à ses gens',
+                    RoleDExploration::Prospecteur === $role => ' sonder le sol',
                     $expedition->getCharriers() > 0 => \sprintf(
-                        ' en armes, avec %d char(s) du pharaon',
+                        ' en armes, avec %d char%s du pharaon',
                         $expedition->getCharriers(),
+                        $expedition->getCharriers() > 1 ? 's' : '',
                     ),
                     RoleDExploration::ChefDExpedition === $role => ' en armes',
                     default => ' en reconnaissance',
                 },
-                $expedition->getDureeEnCycles(),
-                $expedition->getDureeEnCycles() > 1 ? 's' : '',
+                $destination->getX(),
+                $destination->getY(),
+                $cycles > 1 ? \sprintf('Il sera sur place dans %d cycles.', $cycles) : 'Il sera sur place au prochain cycle.',
             ));
         } catch (ExplorationImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());

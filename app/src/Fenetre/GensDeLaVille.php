@@ -244,7 +244,7 @@ final readonly class GensDeLaVille
      *     titre: string,
      *     sousTitre: string,
      *     lignes: list<array{libelle: string, valeur: string}>,
-     *     lien: ?array{libelle: string, onglet: string},
+     *     lien: ?array{libelle: string, onglet: string, section?: string},
      *     representatif: bool, nommer?: ?array{cle: string, propositions: list<string>},
      *     journal: list<array{jour: int, lignes: list<string>, fait: bool}>,
      * }|null
@@ -315,7 +315,7 @@ final readonly class GensDeLaVille
      *     titre: string,
      *     sousTitre: string,
      *     lignes: list<array{libelle: string, valeur: string}>,
-     *     lien: ?array{libelle: string, onglet: string},
+     *     lien: ?array{libelle: string, onglet: string, section?: string},
      *     representatif: bool, nommer?: ?array{cle: string, propositions: list<string>},
      * }|null
      */
@@ -368,7 +368,7 @@ final readonly class GensDeLaVille
                         'titre' => 'Maçons du chantier',
                         'sousTitre' => \sprintf('Au chantier du %s', mb_strtolower($chantier->getType()->libelle())),
                         'lignes' => [['libelle' => 'Reste à bâtir', 'valeur' => \sprintf('%d quinzaine%s', $chantier->cyclesRestants(), $chantier->cyclesRestants() > 1 ? 's' : '')]],
-                        'lien' => ['libelle' => 'Voir les chantiers', 'onglet' => TypeDeBatiment::ResidenceFamiliale->value],
+                        'lien' => ['libelle' => 'Voir les chantiers', 'onglet' => TypeDeBatiment::ResidenceFamiliale->value, 'section' => 'batiments'],
                         // Le jeu compte l'avancement d'un chantier, pas ses ouvriers un à un.
                         'representatif' => true,
                     ];
@@ -498,7 +498,7 @@ final readonly class GensDeLaVille
     }
 
     /**
-     * @return array{titre: string, sousTitre: string, lignes: list<array{libelle: string, valeur: string}>, lien: ?array{libelle: string, onglet: string}, representatif: bool, nommer?: ?array{cle: string, propositions: list<string>}}
+     * @return array{titre: string, sousTitre: string, lignes: list<array{libelle: string, valeur: string}>, lien: ?array{libelle: string, onglet: string, section?: string}, representatif: bool, nommer?: ?array{cle: string, propositions: list<string>}}
      */
     private function ficheDuChef(GameSave $partie, Employee $chef, int $cycle): array
     {
@@ -538,7 +538,7 @@ final readonly class GensDeLaVille
     }
 
     /**
-     * @return array{titre: string, sousTitre: string, lignes: list<array{libelle: string, valeur: string}>, lien: ?array{libelle: string, onglet: string}, representatif: bool, nommer?: ?array{cle: string, propositions: list<string>}}
+     * @return array{titre: string, sousTitre: string, lignes: list<array{libelle: string, valeur: string}>, lien: ?array{libelle: string, onglet: string, section?: string}, representatif: bool, nommer?: ?array{cle: string, propositions: list<string>}}
      */
     private function ficheDuMedjay(GameSave $partie, Medjay $medjay, int $cycle): array
     {

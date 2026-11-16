@@ -27,13 +27,29 @@ export default class extends Controller {
      * dépendent — régler un salaire recharge l'écran, et l'on ne doit pas
      * retomber sur la première section à chaque geste.
      */
-    static values = { memoire: String };
+    static values = { memoire: String, demande: String };
 
     connect() {
-        const demande = this.ongletTargets.findIndex((o) => o.dataset.ongletActif === 'true');
-        const retenu = this.rangRetenu();
+        const parDefaut = this.ongletTargets.findIndex((o) => o.dataset.ongletActif === 'true');
+        const voulu = this.rangVoulu();
 
-        this.montrer(retenu ?? (demande < 0 ? 0 : demande));
+        // **Une section demandée par l'adresse (`?section=mission`) l'emporte sur la mémoire** : un lien qui
+        // dit « le décret » doit ouvrir le décret, pas la dernière section regardée.
+        this.montrer(voulu ?? this.rangRetenu() ?? (parDefaut < 0 ? 0 : parDefaut));
+    }
+
+    /**
+     * Le rang de la section demandée par l'adresse, si cette barre d'onglets la porte (`…-onglet-<clé>`).
+     * Une clé qu'elle ne connaît pas — la section d'un autre bâtiment — est ignorée.
+     */
+    rangVoulu() {
+        if (!this.hasDemandeValue || '' === this.demandeValue) {
+            return null;
+        }
+
+        const rang = this.ongletTargets.findIndex((o) => o.id.endsWith(`-onglet-${this.demandeValue}`));
+
+        return rang < 0 ? null : rang;
     }
 
     rangRetenu() {

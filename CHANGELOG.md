@@ -14,6 +14,11 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les messages de la partie se lisent mieux, et les liens ouvrent la bonne section.** Un message porte une icône et se range en deux temps (la
+  première phrase en titre, la suite dessous) ; l'envoi d'un éclaireur dit où il va (« L'éclaireur part en reconnaissance vers la case (2, 1). »)
+  et « au prochain cycle » plutôt que « dans 1 cycle ». Le décret de la barre ouvre la section Mission de la Résidence, « Il vous manque N bras »
+  son Gouvernement, « N bâtiments sans chef » le premier bâtiment concerné, « Voir les chantiers » la liste des Bâtiments (`?section=…`).
+
 - **La carte du territoire montre le travail.** Une case en extraction porte un ouvrier qui frappe la roche, des éclats à chaque coup ; un champ semé,
   son laboureur et des pousses qui ondulent ; une pêche, un pêcheur et des ondes. Un homme par gisement ou parcelle, trois au plus à l'image ; le nom de
   la case le dit aussi (« en extraction », « champs cultivés », « pêche en cours »). Immobile pour qui demande moins de mouvement.

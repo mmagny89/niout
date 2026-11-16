@@ -258,6 +258,9 @@
     @keyframes fenetre-ouvre { from { opacity: 0; transform: translateY(10px) scale(0.985); } }
     @keyframes feuille-ouvre { from { opacity: 0; transform: translateX(32px); } }
     @keyframes fondu { from { opacity: 0; } }
+    /* Un message de la partie entre d'en haut, sans bruit : il se lit, il ne surprend pas. */
+    .message-de-jeu { animation: message-entre 260ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @keyframes message-entre { from { opacity: 0; transform: translateY(-8px); } }
 
     /* Le récapitulatif de la quinzaine : il descend, la lune fait un tour. */
     .recapitulatif { animation: recap-entre 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
