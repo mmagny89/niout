@@ -38,10 +38,22 @@
                 </a>
             </li>
             {% for j in 1..frise.jours %}
+                {# Le détail du jour, en infobulle : ce qui s'y est passé, puis où l'on a parlé. Le même texte que la fiche du jour, en plus court. #}
+                {% set lignes = ['Jour ' ~ j ~ (j == frise.jourDeFete ? ' — jour de fête : ' ~ frise.fete : '')] %}
+                {% for phrase in frise.evenements[j] ?? [] %}
+                    {% set lignes = lignes|merge(['• ' ~ phrase]) %}
+                {% endfor %}
+                {% for conversation in frise.conversations[j] ?? [] %}
+                    {% set lignes = lignes|merge(['Conversation : ' ~ conversation.moment|lower ~ ', ' ~ conversation.lieu|lower ~ ('ambiance' == conversation.nature ? ' (ambiance)' : '')]) %}
+                {% endfor %}
+                {% if frise.evenements[j] is not defined and frise.conversations[j] is not defined %}
+                    {% set lignes = lignes|merge(['Un jour ordinaire : chacun à son métier.']) %}
+                {% endif %}
+                {% set detail_du_jour = lignes|join("\n") %}
                 <li>
                     <a href="{{ _self.adresse(partie, j, moment, cle) }}" data-turbo-frame="_top"
                        {{ j == jour ? 'aria-current="true"' }}
-                       title="Jour {{ j }}{{ j == frise.jourDeFete ? ' — jour de fête : ' ~ frise.fete : '' }}"
+                       title="{{ detail_du_jour }}"
                        aria-label="Jour {{ j }}{{ j == frise.jourDeFete ? ', jour de fête' : '' }}{{ frise.evenements[j] is defined ? ', des événements' : '' }}{{ frise.conversations[j] is defined ? ', des conversations' : '' }}"
                        class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm border px-2 text-sm
                               {{ j == jour ? 'border-terre-500 bg-ocre-300/40 text-encre-900' : 'border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20' }}
