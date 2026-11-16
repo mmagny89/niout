@@ -23,6 +23,7 @@ enum CategorieDEvenement: string
     case Habitants = 'habitants';
     case Dieux = 'dieux';
     case Rivaux = 'rivaux';
+    case Lointain = 'lointain';
     case Royaume = 'royaume';
     case Calendrier = 'calendrier';
 
@@ -39,6 +40,7 @@ enum CategorieDEvenement: string
             self::Habitants => 'Habitants',
             self::Dieux => 'Les dieux',
             self::Rivaux => 'Rivaux',
+            self::Lointain => 'Au loin',
             self::Royaume => 'Le royaume',
             self::Calendrier => 'Le temps',
         };
@@ -60,6 +62,7 @@ enum CategorieDEvenement: string
             self::Habitants => 'habitants',
             self::Dieux => 'faveur',
             self::Rivaux => 'danger',
+            self::Lointain => 'expedition',
             self::Royaume => 'pharaon',
             self::Calendrier => 'quinzaine',
         };

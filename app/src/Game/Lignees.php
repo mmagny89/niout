@@ -7,6 +7,7 @@ namespace App\Game;
 use App\Entity\GameSave;
 use App\Entity\Lignee;
 use App\Entity\User;
+use App\Repository\EtatDePartenaireRepository;
 use App\Repository\LigneeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -24,6 +25,7 @@ final readonly class Lignees
 {
     public function __construct(
         private LigneeRepository $lignees,
+        private EtatDePartenaireRepository $etatsDesCites,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -69,6 +71,12 @@ final readonly class Lignees
      */
     public function encaisser(GameSave $partie): void
     {
-        $this->pour($partie->getJoueur())->relever($partie->getFamille()->getRenommee());
+        $lignee = $this->pour($partie->getJoueur());
+        $lignee->relever($partie->getFamille()->getRenommee());
+
+        // Les cités suivent la renommée : ce qu'on a bâti avec elles se retrouve à la partie suivante.
+        foreach ($this->etatsDesCites->deLaPartie($partie) as $etat) {
+            $lignee->releverLaRelation($etat->getCite(), $etat->getRelation());
+        }
     }
 }
