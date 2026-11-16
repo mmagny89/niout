@@ -107,8 +107,20 @@ class GameSave
     #[ORM\Column]
     private int $quinzainesDeMecontentement = 0;
 
+    /**
+     * La graine du monde, posée au lancement et **jamais modifiée** : tout ce que les
+     * personnages non joueurs font de déductible (la conjoncture des marchés) est une
+     * fonction pure d'elle, de la clé de l'acteur et de la quinzaine
+     * (`docs/plan-pnj-palier-a.md` § 4.1). On garde la graine, pas le tirage : n'importe
+     * quelle quinzaine se rejoue à l'identique, donc se teste. Les parties qui précèdent
+     * la colonne la reçoivent de leur identifiant (migration).
+     */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $graine = 0;
+
     private function __construct(User $joueur, GameMode $mode, Family $famille, City $ville)
     {
+        $this->graine = random_int(1, 2147483646);
         $this->joueur = $joueur;
         $this->mode = $mode;
         $this->famille = $famille;
@@ -132,6 +144,11 @@ class GameSave
     public static function pourAventure(User $joueur, Family $famille, City $ville): self
     {
         return new self($joueur, GameMode::Aventure, $famille, $ville);
+    }
+
+    public function getGraine(): int
+    {
+        return $this->graine;
     }
 
     public function getId(): ?int

@@ -35,6 +35,7 @@ final readonly class Commerce
         private CataloguePartenaires $partenaires,
         private EntityManagerInterface $entityManager,
         private CarnetDeContacts $carnet,
+        private ConjonctureDeMarche $conjoncture,
         private GameSaveRepository $parties,
         private Medjays $medjays,
         private Successions $successions,
@@ -308,7 +309,7 @@ final readonly class Commerce
             foreach ($ressources as $ressource) {
                 // Le carnet fait un prix sur ce que ses régions portent :
                 // l'avantage se compte donc marchandise par marchandise.
-                $avantage = $this->avantageDeNegoce($partie, $ressource);
+                $avantage = $this->avantageDeNegoce($partie, $ressource, $partenaire);
                 $cours = PrixDuMarche::pour($ressource) ?? 1;
                 $ordre = $route->ordrePour($ressource);
 
@@ -484,7 +485,7 @@ final readonly class Commerce
             $ressource = $ordre->getRessource();
             // Marchandise par marchandise : le carnet ne fait un prix que sur
             // ce que ses régions portent.
-            $avantage = $this->avantageDeNegoce($partie, $ressource);
+            $avantage = $this->avantageDeNegoce($partie, $ressource, $partenaire);
             $enPlace = $route->convoiPour($ressource);
 
             // Un seul convoi en chemin par ressource : la caravane doit
@@ -629,7 +630,7 @@ final readonly class Commerce
      * `$ressource` n'est renseignée que là où l'on parle d'une marchandise
      * précise : le carnet fait un prix sur ce que sa région porte, pas sur tout.
      */
-    public function avantageDeNegoce(GameSave $partie, ?Ressource $ressource = null): int
+    public function avantageDeNegoce(GameSave $partie, ?Ressource $ressource = null, ?PartenaireCommercial $partenaire = null): int
     {
         $autres = $this->avantageDuNegociateur($partie->getVille(), $partie->getCycle());
 
@@ -639,7 +640,13 @@ final readonly class Commerce
             $autres += $this->carnet->avantageSur($partie, $ressource);
         }
 
-        return AvantageDeNegoce::total($partie->getFamille()->getRenommee(), $autres);
+        // Le monde est signé, et propre à une cité et à une marchandise : il ne joue que là
+        // où l'on nomme les deux.
+        $monde = null !== $ressource && null !== $partenaire
+            ? $this->conjoncture->pour($partie, $partenaire, $ressource)->points
+            : 0;
+
+        return AvantageDeNegoce::total($partie->getFamille()->getRenommee(), $autres, $monde);
     }
 
     /**
