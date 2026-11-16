@@ -14,6 +14,7 @@ enum RoleDePnj: string
     case Rival = 'rival';
     case ChefVoyageur = 'chef-voyageur';
     case ChefDeBande = 'chef-de-bande';
+    case Courtisan = 'courtisan';
 
     public function libelle(): string
     {
@@ -21,6 +22,7 @@ enum RoleDePnj: string
             self::Rival => 'Marchand rival',
             self::ChefVoyageur => 'Ancien chef de la ville',
             self::ChefDeBande => 'Chef de bande',
+            self::Courtisan => 'Courtisan du palais',
         };
     }
 }

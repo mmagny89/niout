@@ -102,7 +102,7 @@ final readonly class ChefsDeBande
         $chef = $this->chefDe($partie, $zone);
 
         $depot = $this->entityManager->getRepository(Npc::class);
-        $npc = $depot->findOneBy(['partie' => $partie, 'role' => RoleDePnj::ChefDeBande, 'identite' => $chef['identite']]);
+        $npc = $depot->trouverOuEnAttente($partie, RoleDePnj::ChefDeBande, $chef['identite']);
 
         if (null === $npc) {
             $npc = new Npc($partie, $chef['identite'], RoleDePnj::ChefDeBande, $chef['nom'], TraitDeCandidat::Bagarreur);

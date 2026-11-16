@@ -60,6 +60,21 @@ final class BandesParlantesTest extends WebTestCase
         self::assertSame('pille', $npc?->getHistoire()[0]['t']);
     }
 
+    public function testDeuxPillagesDeLaMemeBandeDansUneQuinzaineNeCreentQuUnChef(): void
+    {
+        static::createClient();
+        $partie = $this->partieAvecBandes('bande-double@example.com', 1);
+        $bandes = static::getContainer()->get(ChefsDeBande::class);
+
+        // Deux convois rentrent la même quinzaine, avant le flush unique du cycle.
+        $bandes->attribuerUnPillage($partie, 1);
+        $bandes->attribuerUnPillage($partie, 2);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        self::assertSame(2, $bandes->lesBandes($partie)[0]['inquietes']);
+        self::assertCount(1, static::getContainer()->get(EntityManagerInterface::class)->getRepository(Npc::class)->findBy(['partie' => $partie, 'role' => RoleDePnj::ChefDeBande]));
+    }
+
     public function testSansBandeAucunPillageNiAucunPrix(): void
     {
         static::createClient();

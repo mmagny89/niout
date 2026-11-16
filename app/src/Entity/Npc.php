@@ -88,6 +88,11 @@ class Npc
         $this->caractere = $caractere;
     }
 
+    public function getPartie(): GameSave
+    {
+        return $this->partie;
+    }
+
     public function getIdentite(): int
     {
         return $this->identite;

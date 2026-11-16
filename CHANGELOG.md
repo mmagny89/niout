@@ -14,6 +14,11 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les requêtes du pharaon ont un courtisan.** Un titre — le vizir, le scribe royal, l'intendant du palais — porte chaque demande, sans nom propre. Il a une
+  humeur : servi, il devient bienveillant et le présent qui revient monte jusqu'à 70 % de la valeur livrée ; refusé, ou laissé sans réponse, il s'impatiente et
+  le présent descend jusqu'à 50 %. Rien d'autre ne change : une requête reste facultative, et son coût comme son rythme sont les mêmes. Chaque nouveau règne (ou
+  nouvelle mission) amène un autre courtisan, et l'ancien s'efface.
+- **Correctif** : deux convois pillés par la même bande dans une même quinzaine ne créent plus deux fois le même chef de bande.
 - **Le risque de pillage a un visage, et une troisième réponse.** Le panneau de l'Entrepôt montre avant l'engagement le risque qu'un convoi de retour soit
   pillé, les chefs des bandes de la région (un nom par bande, déduit de la partie) et combien de vos convois chacun a inquiétés — leurs fiches sont aussi
   dans « Le monde ». Aux Medjaÿ et à la Caserne s'ajoute un droit de passage : des deben, au prix de deux butins par bande, contre 40 % de risque en moins

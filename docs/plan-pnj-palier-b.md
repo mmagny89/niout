@@ -1,6 +1,6 @@
 # Niout — PNJ, palier B : des personnes qui ont un but
 
-**Statut : lots B1 à B4 livrés (2026-11-16) — le rival raisonné, sa fiche, les chefs voyageurs, les bandes parlantes ; B5 et B6 cadrés, rien d'autre n'est codé.** Suite de
+**Statut : lots B1 à B5 livrés (2026-11-16) — le rival raisonné, sa fiche, les chefs voyageurs, les bandes parlantes, la cour ; B6 cadré, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1) et de
 [`plan-pnj-palier-a.md`](plan-pnj-palier-a.md). **Dépend d'A** : la graine de
 partie, les faits de monde, la conjoncture et la fenêtre « Le monde » y sont
@@ -404,3 +404,24 @@ l'Entrepôt montre le risque, les bandes et leur réputation, **avant l'engageme
   `CLAUDE.md`) : la logique est testée par le service, le formulaire par son rendu.
 
 **Verrou suivant** : B5 (la cour) — **aucun nom de personnage historique avant vérification** ; sans source, des titres seuls.
+
+## 17. Lot B5 — la cour
+
+**Livré** : `Cour` — `enPoste(partie, rang)` (courtisan **déduit** de la graine et du rang du règne en Aventure, ou du numéro de
+la mission en Campagne : **un titre parmi cinq, jamais un nom**), `obtenir()` (`Npc` de rôle `Courtisan`, créé à sa première
+parole ; les précédents s'effacent), humeur de −5 à +5 (`honorer` +1, `decevoir` −1, bornée), `presentEnCentiemes()` (60 +
+2 par point d'humeur : de 50 à 70 %), `prefaceDe()` (le ton). `QuetesDeChantier` reçoit un `Cour` optionnel : message
+« Le vizir transmet : … », présent modulé, humeur mise à jour à la livraison, au refus et au délai manqué. Le présent se règle
+sur l'humeur **d'avant** la livraison. « Le monde » montre sa fiche (humeur, demandes facultatives) et sa chronique.
+
+**Écarts** :
+- **Aucun nom attesté.** Le plan réservait la vérification des noms ; sans source consultée, je n'en ai écrit aucun — des titres
+  seulement. À ouvrir si l'on veut des vizirs nommés : chaque nom se vérifie (existence, règne, fonction) avant d'être écrit.
+- **La fréquence des requêtes ne bouge pas** (le plan la citait parmi ce qu'un courtisan peut moduler) : une humeur ne doit
+  pas rendre un palais plus ou moins pressant sans qu'on l'ait calibré. Seuls le présent et le ton varient.
+- **Un défaut trouvé en chemin** : `Cour::obtenir` et `ChefsDeBande::attribuerUnPillage` créaient une personne puis la
+  cherchaient en base **avant le flush** — deux gestes d'une même quinzaine (deux convois pillés par la même bande)
+  dédoublaient la personne, et la contrainte d'unicité refusait le flush. `NpcRepository::trouverOuEnAttente()` voit aussi
+  ce qui attend son flush ; tout nouveau rôle l'utilise.
+
+**Verrou suivant** : B6 (visages connus de la lignée, calibrage) — et toujours le playtest de B2.
