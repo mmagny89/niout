@@ -1,6 +1,6 @@
 # Niout — PNJ, palier B : des personnes qui ont un but
 
-**Statut : cadrage détaillé, rien n'est codé.** Suite de
+**Statut : lot B1 livré (2026-11-16) — le rival raisonné ; B2 à B6 cadrés, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1) et de
 [`plan-pnj-palier-a.md`](plan-pnj-palier-a.md). **Dépend d'A** : la graine de
 partie, les faits de monde, la conjoncture et la fenêtre « Le monde » y sont
@@ -329,3 +329,26 @@ cher pour du non vérifié.
 | **Les visages connus s'effacent-ils d'eux-mêmes** après N parties sans les revoir ? | Oui, par ancienneté : le plus ancien cède au 13ᵉ |
 | **Quels personnages historiques nomme-t-on ?** | Aucun avant vérification ; des titres sans nom d'ici là |
 | **La cour a-t-elle un favori en Campagne**, ou seulement en Aventure ? | Aventure d'abord ; en Campagne, une mission est trop courte pour un favori |
+
+## 13. Lot B1 — ce qui est livré, et ce qui s'écarte du plan
+
+**Livré** : `DecisionDuRival::choisir(routes, caractère, identité)` — fonction pure (prospérité et prestige pondérés par le
+trait *Économe* ou *Ambitieux*, hasard parmi les **deux** meilleures, ordre d'arrivée sans effet, raisons en clés) ;
+`Npc` (entité, créée à l'installation du rival : identité-graine, nom, caractère, `accords` plafonnés à 3,
+`indisponibleJusqua`) ; `RivalCommercial` gagne `identite` et `raisons` (JSON `'{}'`) ; `Rivaux` choisit la route par
+la conjoncture du palier A, déduit nom, trait, malus et durée de la graine, et **rappelle** un marchand déjà connu une
+fois sur deux, jamais avant son délai (lassé 8, payé 12, démonté 30 quinzaines) ; un accord rabat le prix suivant de 25 %
+(plancher inchangé) et gagne 4 points de relation avec la cité disputée ; les raisons se lisent dans le panneau de
+l'Entrepôt **avec une Auberge**.
+
+**Écarts** :
+- **L'apparition garde son tirage `Randomizer`** (la chance de renommée) : seule l'identité est déduite de la graine. Rendre
+  l'apparition elle-même rejouable obligerait à réécrire les tests qui forcent ce hasard ; à faire avec la graine de
+  quinzaine au lot de calibrage.
+- **Inertie par construction** : le rival n'est pas redécidé à chaque quinzaine, il tient sa route jusqu'à se lasser.
+- **« Plus riche » au retour** : non codé, faute de mécanique de richesse chez un rival. Le plan n'en tire rien d'autre.
+- **Piège payé** : `City::chasserLeRival()` n'est détecté par Doctrine que si la ville a **relu** son rival ; un rival installé
+  puis chassé dans la **même** requête ne se retire jamais de la base. Inoffensif en production (chaque geste est une
+  requête), mais les tests doivent rafraîchir la ville entre deux quinzaines.
+
+**Verrou suivant** : B2 (fiche de personne dans « Le monde », chronique filtrée), puis **playtest : s'attache-t-on à lui ?**

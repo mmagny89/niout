@@ -14,6 +14,11 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Un rival a un but, et il revient.** Le marchand rival choisit sa route : là où le marché paie et où votre commerce est le plus vivant, selon son
+  caractère (un économe pèse le marché, un ambitieux le prestige). Avec une Auberge, vous lisez pourquoi. Il garde le même nom d'une visite à l'autre : un
+  marchand que vous avez payé revient au plus tôt douze quinzaines plus tard, s'entend plus vite (un quart de rabais sur l'accord, jamais gratuit) et,
+  une fois payé, rapproche la cité qu'il se disputait. L'enquête l'écarte trente quinzaines, pas pour toujours. Ses bornes ne bougent pas : 10 à 20 %,
+  un seul à la fois, il se lasse seul.
 - **Les marchés lointains ont une conjoncture.** Chaque cité commerçante a ses bonnes et ses mauvaises quinzaines — un fond qui varie
   doucement, la saison et la crue du fleuve sur les vivres, et parfois un événement de deux à six quinzaines (disette, bonne récolte,
   foire, besoin d'un ouvrage). Elle élargit ou rogne la fourchette d'une route, de −20 à +20 points, sous le plafond de 40 qui borne déjà

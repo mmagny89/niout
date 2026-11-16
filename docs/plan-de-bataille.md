@@ -301,6 +301,8 @@ le calibrage du lot 4.6.
 | Acquis de relation hérité de la lignée | plafonné à 50 | `Lignee::RELATION_ACQUISE_MAX` |
 | Sollicitations d'une cité | 1 fenêtre de 4 quinzaines sur 3 ; 10 à 30 unités ; offre à 110 %, demande à 140 % du cours ; 4 quinzaines pour répondre ; +3 de relation | `Sollicitations` |
 | Retard d'une rumeur | 2 quinzaines | `LeMonde::RETARD_DES_RUMEURS` |
+| Retour d'un rival (lassé / payé / démonté) | 8 / 12 / 30 quinzaines avant de pouvoir reparaître, une fois sur deux | `Rivaux::DELAI_APRES_*` |
+| Mémoire d'un accord payé | −25 % sur le suivant, 3 accords retenus au plus, +4 de relation | `Rivaux::RABAIS_PAR_ACCORD_PASSE` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,
