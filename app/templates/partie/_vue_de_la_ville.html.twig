@@ -24,6 +24,7 @@
          data-controller="ville-vivante"
          data-ville-vivante-film-value="{{ filmDeLaVille|json_encode }}"
          data-ville-vivante-libelles-value="{{ libelles|json_encode }}"
+         {% if lancerLeFilm|default(false) %}data-ville-vivante-lancer-value="true"{% endif %}
      {% endif %}>
     {# Le rapport du visuel est posé **en ligne** et non par une classe Tailwind :
        c'est lui qui donne sa hauteur au conteneur, dont tous les enfants sont

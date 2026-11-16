@@ -435,6 +435,12 @@ Quatre choses à ne pas défaire :
   porte un `aria-valuetext` (« Jour 4 sur 15, le matin »), le texte à côté est masqué aux lecteurs d'écran pour ne pas annoncer
   chaque jour de la lecture.
 
+**Le film se lance après la quinzaine.** Le formulaire de cycle depuis la ville vue d'en haut (`vue=ville`) revient sur `?vue=ville&film=1` ;
+la page porte alors `data-ville-vivante-lancer-value` et le contrôleur joue le film (`basculer()`), vitesse normale, puis **retire `film`
+de l'adresse** (`history.replaceState`) pour qu'un rechargement ne le rejoue pas. Le paramètre voyage dans l'adresse et non en message
+flash : un flash que la page n'afficherait pas resterait en attente et lancerait un film à contretemps. Jamais avec `jour=`, jamais
+sous `prefers-reduced-motion`, jamais si l'onglet est caché. **Non vérifié au navigateur** (la lecture elle-même est du JavaScript).
+
 **Les conversations** (lot V4a, `Dialogues`, `Choregraphie::paroles()`, bulles du film). Deux silhouettes **au même endroit au
 même moment**, dehors et à leurs affaires (poste, course, visite, Auberge, procession, ronde, maisons voisines), se parlent
 avec une chance sur quatre, **au plus trois fois par jour, jamais à l'aube**. Ni un alité, ni une silhouette qui joue un fait ne

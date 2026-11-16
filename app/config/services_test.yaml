@@ -1,0 +1,16 @@
+# Services propres à l'environnement de test.
+services:
+    # Aucun chef ne part au hasard pendant un test (voir `MoteurSansDepart`). Les tests de
+    # `DepartsNaturels` construisent leur propre instance et gardent leur hasard.
+    test.hasard_sans_depart:
+        class: Random\Randomizer
+        arguments:
+            - '@test.moteur_sans_depart'
+
+    test.moteur_sans_depart:
+        class: App\Tests\Support\MoteurSansDepart
+
+    App\Game\DepartsNaturels:
+        autowire: true
+        arguments:
+            $hasard: '@test.hasard_sans_depart'

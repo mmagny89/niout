@@ -16,6 +16,7 @@ use App\Game\Mecontentement;
 use App\Game\PassageDeCycle;
 use App\Game\Ressource;
 use App\Game\TypeDeBatiment;
+use App\Tests\Support\MoteurSansDepart;
 use Doctrine\ORM\EntityManagerInterface;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -118,8 +119,15 @@ final class MecontentementTest extends KernelTestCase
 
         $populationAvecLeChef = $ville->population();
 
-        for ($i = 0; $i < 200 && [] !== $ville->chefsDe(TypeDeBatiment::Grenier); ++$i) {
-            $this->cycle()->passer($partie);
+        // Ce test **veut** les départs : on rend au hasard des tests sa vraie nature, le temps de la boucle.
+        MoteurSansDepart::$hasardReel = true;
+
+        try {
+            for ($i = 0; $i < 200 && [] !== $ville->chefsDe(TypeDeBatiment::Grenier); ++$i) {
+                $this->cycle()->passer($partie);
+            }
+        } finally {
+            MoteurSansDepart::$hasardReel = false;
         }
 
         self::assertSame([], $ville->chefsDe(TypeDeBatiment::Grenier), 'Aucun chef ne reste en poste pour toujours.');

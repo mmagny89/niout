@@ -246,6 +246,79 @@ final class TraceDeQuinzaineTest extends WebTestCase
     }
 
     /**
+     * **Passer la quinzaine depuis la ville vue d'en haut en joue le film** : le retour porte `film=1`,
+     * la page demande au contrôleur de se lancer, et l'adresse seule ne suffit pas à le rejouer ailleurs.
+     */
+    public function testPasserLaQuinzaineDepuisLaVilleLanceLeFilm(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancerConnecte($client, 'film-auto@example.com');
+        $id = $partie->getId();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte?vue=ville', $id));
+        $jeton = (string) $crawler->filter('form[action$="/cycle"] input[name="_token"]')->first()->attr('value');
+
+        $client->request('POST', \sprintf('/partie/%d/cycle', $id), ['_token' => $jeton, 'retour' => 'app_partie_carte', 'vue' => 'ville', 'ouvre' => '']);
+
+        self::assertResponseRedirects();
+        $adresse = (string) $client->getResponse()->headers->get('Location');
+        self::assertStringContainsString('vue=ville', $adresse);
+        self::assertStringContainsString('film=1', $adresse);
+
+        $page = $client->followRedirect();
+        self::assertResponseIsSuccessful();
+        self::assertCount(1, $page->filter('[data-controller="ville-vivante"][data-ville-vivante-lancer-value="true"]'));
+
+        // Sans la demande, ou en regardant un jour précis, le film ne se lance pas.
+        $sans = $client->request('GET', \sprintf('/partie/%d/carte?vue=ville', $id));
+        self::assertCount(1, $sans->filter('[data-controller="ville-vivante"]'));
+        self::assertCount(0, $sans->filter('[data-ville-vivante-lancer-value]'));
+
+        $unJour = $client->request('GET', \sprintf('/partie/%d/carte?vue=ville&film=1&jour=3', $id));
+        self::assertCount(0, $unJour->filter('[data-ville-vivante-lancer-value]'));
+    }
+
+    /**
+     * Hors de la ville vue d'en haut, il n'y a pas de film à jouer : le retour n'en parle pas.
+     */
+    public function testPasserLaQuinzaineAilleursNeLanceRien(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancerConnecte($client, 'film-ailleurs@example.com');
+        $id = $partie->getId();
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $id));
+        $jeton = (string) $crawler->filter('form[action$="/cycle"] input[name="_token"]')->first()->attr('value');
+
+        $client->request('POST', \sprintf('/partie/%d/cycle', $id), ['_token' => $jeton, 'retour' => 'app_partie_carte', 'ouvre' => '']);
+
+        self::assertResponseRedirects();
+        self::assertStringNotContainsString('film=1', (string) $client->getResponse()->headers->get('Location'));
+    }
+
+    /**
+     * **Le test ne dépend pas du hasard** : un chef d'ancienneté 2 (une chance sur deux de partir à chaque
+     * quinzaine) reste en poste pendant huit passages, parce que le hasard des départs est neutralisé
+     * en test (`services_test.yaml`). C'est ce qui rendait la fenêtre de ce fichier instable.
+     */
+    public function testAucunChefNePartAuHasardPendantLesTests(): void
+    {
+        static::createClient();
+        $partie = $this->lancerPartie('sans-depart@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Grenier, 4));
+        $chef = new Employee($ville, TypeDeBatiment::Grenier, new Candidat(60, 5, 2, [], null, 2, 0), $partie->getCycle());
+        $ville->ajouterEmploye($chef);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        foreach (range(1, 8) as $ignore) {
+            $this->passer($partie);
+        }
+
+        self::assertContains($chef, $ville->getEmployes()->toArray());
+    }
+
+    /**
      * La ville vue d'en haut annonce qu'elle montre un jour de la quinzaine
      * passée, et offre de revenir à maintenant.
      */
