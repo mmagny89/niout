@@ -753,7 +753,14 @@ règles, elle n'en pose aucune : un chef se voit à son bâtiment **seulement s'
 un Medjaÿ est debout à la Caserne s'il est disponible et couché au Quartier s'il est blessé, **un bâtiment à l'arrêt
 n'a aucun travailleur à l'écran** (`Effectifs::repartir()`, `affectes === 0`), des bras sans poste (`oisifs`) traînent au
 Marché, et un malade (`City::malades()`) se couche parmi les maisons. **Les désignés d'abord** : au plafond de 40
-silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **La variété d'une journée est de la routine, pas un fait** (`Choregraphie`, lot V3b) : une course au Marché, une visite au
+silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **Un dialogue dit un fait vrai, ou se déclare ambiance** (`Dialogues`, lot V4a) : c'est la règle qui permet de l'écrire sans mentir au
+joueur. Une réplique de situation n'est choisie que si le fait est vrai dans la quinzaine ; une réplique d'ambiance ne dit rien
+du jeu. **Aucune réplique ne donne un chiffre, un prix, un lieu de gisement ni une réponse d'énigme** : ce qu'elle porte, le jeu le
+sait déjà et le montre ailleurs. Écrire de nouvelles répliques, c'est enrichir `Dialogues::catalogue()`, jamais composer du texte à la
+volée ; les garde-fous sont dans `DialoguesTest`. **Ce lot ne touche ni aux enquêtes ni aux énigmes** : y faire parler les gens
+(témoignages, aides à la lecture) est un autre lot, qui demande de relire le doc 10.
+
+**La variété d'une journée est de la routine, pas un fait** (`Choregraphie`, lot V3b) : une course au Marché, une visite au
 Temple, un détour par l'Auberge ne correspondent à aucune règle du jeu — personne ne « va au Marché » dans l'état —, et le
 journal les dit « routine ». C'est ce qui les distingue des scènes de fait, qui illustrent ce qui s'est réellement passé et
 qui **priment toujours** sur elles. Elles n'existent que **là où le bâtiment est debout**.

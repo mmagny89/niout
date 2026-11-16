@@ -14,6 +14,13 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les gens se parlent.** Quand deux silhouettes se croisent au même endroit, elles échangent quelques mots : **une
+  bulle** au-dessus de chacune quand la lecture est arrêtée sur le moment (au curseur, ou en pause), et, si l'on coche
+  « Lire les conversations », **la lecture s'arrête d'elle-même** le temps de les lire. Ce qui se dit est **un fait vrai**
+  de la quinzaine — la fièvre, un chantier, un convoi en route, le marchand rival, un bras sans ouvrage, la saison, la
+  fête — **ou une ambiance déclarée**, sans chiffre ni indice. Le même texte se lit dans la fenêtre « Les gens de la
+  ville » (« Ce qu'on s'est dit »), dans la frise de chaque jour, et dans le journal de celui qui parle. Sous la largeur
+  d'un téléphone, les bulles n'existent pas : le texte suffit.
 - **Les journées ne sont plus « maison, travail ».** Dans une ville bâtie, le chef ou le travailleur fait parfois, l'après-midi,
   **une course au Marché** ; le scribe porte un rouleau au Temple ; la famille y passe en visite ; la ronde des Medjaÿ traverse
   la place ; les habitants non alités vont au Marché ; et, le soir, certains font un détour par l'Auberge. Le matin reste le poste.

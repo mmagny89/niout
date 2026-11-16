@@ -435,6 +435,20 @@ Quatre choses à ne pas défaire :
   porte un `aria-valuetext` (« Jour 4 sur 15, le matin »), le texte à côté est masqué aux lecteurs d'écran pour ne pas annoncer
   chaque jour de la lecture.
 
+**Les conversations** (lot V4a, `Dialogues`, `Choregraphie::paroles()`, bulles du film). Deux silhouettes **au même endroit au
+même moment**, dehors et à leurs affaires (poste, course, visite, Auberge, procession, ronde, maisons voisines), se parlent
+avec une chance sur quatre, **au plus trois fois par jour, jamais à l'aube**. Ni un alité, ni une silhouette qui joue un fait ne
+bavarde ; la procession, si. **Chaque réplique est un fait vrai ou une ambiance déclarée** (`Dialogues::nature()`) : les
+situations de fait ne sont proposées que si le fait est vrai cette quinzaine (la fièvre, un chantier, un convoi en route, le
+rival, la fête **le matin seulement**, un bras sans ouvrage — et celui qui s'en plaint est celui qui n'en a pas) ; la saison est
+toujours vraie. **Aucun chiffre** dans une réplique, **au plus 80 caractères**, **au moins quatre variantes** de chaque côté
+— trois gardes testés. Elles se composent à la lecture, la trace ne garde aucune phrase.
+**À l'écran** : une bulle par silhouette, **côte à côte** (celle qui est le plus à gauche parle vers la gauche), cachée d'emblée
+et **absente sous `md`**. Elles se montrent **toutes ensemble** quand la lecture est arrêtée sur le moment ; le curseur se pose
+sur **la première conversation du jour** s'il y en a une. Cocher **« Lire les conversations »** arrête la lecture pendant la
+lecture de chaque réplique (55 ms par caractère, entre 1,8 s et 4,5 s) : lire à 4 s par jour est impossible. **Le texte est
+aussi dans la fenêtre** — « Ce qu'on s'est dit », avec qui et où — et dans le journal de celui qui parle (« dit à … : « … » »).
+
 **La variété des journées** (lot V3b, `Choregraphie`). Sans fait, une journée n'est plus « maison, travail » : l'**après-midi**, une
 course au Marché (25 % des cas pour un chef ou un travailleur), le scribe au Temple (40 %), la famille en visite au Temple
 (30 %), la ronde des Medjaÿ sur la place (40 %), un foyer non alité au Marché (25 %) ; le **soir**, un détour par l'Auberge (20 %).

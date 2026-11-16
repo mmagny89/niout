@@ -54,7 +54,7 @@ final readonly class GensDeLaVille
      * Combien de silhouettes au plus. **Valeur inventée**, à mesurer au
      * navigateur : au-delà, la ville n'est plus qu'une foule.
      */
-    public const int PLAFOND_DE_FIGURES = 40;
+    public const int PLAFOND_DE_FIGURES = PhotoDeLaVille::PLAFOND_DE_FIGURES;
 
     public const int TRAVAILLEURS_PAR_BATIMENT = PhotoDeLaVille::TRAVAILLEURS_PAR_BATIMENT;
 
@@ -172,6 +172,7 @@ final readonly class GensDeLaVille
      *     fete: ?string,
      *     evenements: array<int, list<string>>,
      *     enCours: list<string>,
+     *     conversations: array<int, list<array{moment: string, lieu: string, nature: string, lignes: list<array{qui: string, texte: string}>}>>,
      * }|null
      */
     public function frise(GameSave $partie): ?array
@@ -182,8 +183,27 @@ final readonly class GensDeLaVille
             return null;
         }
 
+        // Les conversations du jour, en texte : **le même que la bulle**, pour qui ne voit pas l'image.
+        $conversations = [];
+
+        /** @var list<array{jour: int, moment: int, lieu: string, a: int, b: int, situation: string, nature: string, libelleA: string, libelleB: string, texteA: string, texteB: string}> $paroles */
+        $paroles = $reconstitution['film']['paroles'];
+
+        foreach ($paroles as $parole) {
+            $conversations[$parole['jour']][] = [
+                'moment' => MomentDeLaJournee::from($parole['moment'])->libelle(),
+                'lieu' => TypeDeBatiment::tryFrom($parole['lieu'])?->libelle() ?? $parole['lieu'],
+                'nature' => $parole['nature'],
+                'lignes' => [
+                    ['qui' => $parole['libelleA'], 'texte' => $parole['texteA']],
+                    ['qui' => $parole['libelleB'], 'texte' => $parole['texteB']],
+                ],
+            ];
+        }
+
         return [
             'cycle' => $reconstitution['cycle'],
+            'conversations' => $conversations,
             'jours' => $reconstitution['film']['jours'],
             'jourDeFete' => $reconstitution['film']['jourDeFete'],
             'fete' => $reconstitution['photo']['fete']['libelle'] ?? null,
