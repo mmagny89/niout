@@ -14,6 +14,12 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **On peut rejouer la quinzaine qui vient de passer, jour après jour.** La fenêtre « Les gens de la ville » porte une
+  frise de ses 15 jours (5 pour les jours épagomènes), avec le jour de fête marqué, et quatre moments par jour — l'aube,
+  le matin, l'après-midi, le soir. Choisir un jour **recompose la ville vue d'en haut** : les chefs à leur poste le
+  matin, chez eux le soir, la procession un jour d'Opet, le Medjaÿ blessé couché, le convoi qui charge au Port. La
+  fiche de chacun donne **son journal, jour par jour**. Tout est dit **reconstitué** : le jour où les choses se passent
+  est une mise en scène, sans valeur de règle. Le jeu garde les trois dernières quinzaines pour cela, pas davantage.
 - **La ville vue d'en haut est habitée.** Le chef de famille à la Résidence, chaque chef en poste à son bâtiment, les
   Medjaÿ à la Caserne (couchés au Quartier s'ils sont blessés), le marchand rival au Marché, quelques travailleurs à
   chaque poste, des bras sans poste au Marché, des maisons au Quartier dont les malades sont couchés, et une pastille

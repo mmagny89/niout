@@ -7,30 +7,42 @@ namespace App\Fenetre;
 use App\Entity\Employee;
 use App\Entity\GameSave;
 use App\Entity\Medjay;
+use App\Game\Choregraphie;
 use App\Game\Commerce;
 use App\Game\Effectifs;
 use App\Game\EmplacementsDeLaVille;
 use App\Game\Maisonnees;
+use App\Game\MomentDeLaJournee;
+use App\Game\PhotoDeLaVille;
+use App\Game\RoleDeFigure;
+use App\Game\TraceDeQuinzaine;
 use App\Game\TypeDeBatiment;
 
 /**
  * Les gens de la ville, posés sur la ville vue d'en haut
- * (`docs/plan-pnj-ville-vivante.md` § 15, lot V1).
+ * (`docs/plan-pnj-ville-vivante.md` § 15 et suivants, lots V1 et V2).
  *
  * **Une représentation, pas un état** — comme `Maisonnees`, dont ce service est
- * le prolongement : rien n'est persisté, rien n'est tiré au sort, et la même
- * ville donne toujours les mêmes figures. Un rechargement ne recompose pas la
- * ville sous les yeux du joueur.
+ * le prolongement : rien n'est tiré au sort, et la même ville donne toujours les
+ * mêmes figures. Un rechargement ne recompose pas la ville sous les yeux du
+ * joueur.
  *
  * **Chaque silhouette dit une chose vraie.** Un chef en poste se voit à son
- * bâtiment, un Medjaÿ blessé est couché, un bâtiment à l'arrêt n'a personne,
- * des bras sans poste traînent au Marché. Ce que le jeu ne tient pas — il ne
- * compte que des nombres d'habitants, pas des individus — est montré comme
- * **représentatif**, et dit tel. Le service **lit** les règles
- * (`Effectifs`, `Maisonnees`, `Medjay::estDisponible()`), il n'en pose aucune.
+ * bâtiment, un Medjaÿ blessé est couché, un bâtiment à l'arrêt n'a personne, des
+ * bras sans poste traînent au Marché. Ce que le jeu ne tient pas — il ne compte
+ * que des nombres d'habitants, pas des individus — est montré comme
+ * **représentatif**, et dit tel. Le service **lit** les règles (`PhotoDeLaVille`),
+ * il n'en pose aucune.
  *
- * **Les désignés d'abord, la foule ensuite** : si le plafond est atteint, on
- * coupe la foule, jamais un chef.
+ * **Deux façons de voir la même ville.** *Maintenant* : la photographie de la ville
+ * telle qu'elle est (V1). *Un jour de la quinzaine passée* : la ville telle que la
+ * chorégraphie la reconstitue ce jour-là, à ce moment (`Choregraphie`, V2) — une
+ * reconstitution, dont le jour n'a aucune valeur de règle. Dans les deux cas, ce
+ * service ne fait que **poser** des silhouettes ; ce qui les met là vient de la
+ * photographie ou du film.
+ *
+ * **Les désignés d'abord, la foule ensuite** : si le plafond est atteint, on coupe
+ * la foule, jamais un chef.
  *
  * La liste (`lieux`) est la **voie équivalente** : complète, sans plafond, et
  * lisible sans image — c'est elle qui sert le téléphone et les lecteurs
@@ -44,15 +56,9 @@ final readonly class GensDeLaVille
      */
     public const int PLAFOND_DE_FIGURES = 40;
 
-    /**
-     * Combien de travailleurs représentatifs par bâtiment. Le compte exact est
-     * dans la fiche, pas dans le nombre de silhouettes.
-     */
-    public const int TRAVAILLEURS_PAR_BATIMENT = 3;
+    public const int TRAVAILLEURS_PAR_BATIMENT = PhotoDeLaVille::TRAVAILLEURS_PAR_BATIMENT;
 
-    public const int MAISONS_MONTREES = 6;
-
-    public const int SANS_POSTE_MONTRES = 3;
+    public const int MAISONS_MONTREES = PhotoDeLaVille::MAISONS_MONTREES;
 
     /**
      * Combien de silhouettes un même lot accueille avant d'être plein.
@@ -82,115 +88,107 @@ final readonly class GensDeLaVille
 
     public function __construct(
         private Commerce $commerce,
+        private PhotoDeLaVille $photo,
+        private TraceDeQuinzaine $trace,
     ) {
     }
 
     /**
+     * @param int|null $jour   le jour de la quinzaine passée à reconstituer, ou null pour la ville d'à présent
+     * @param int      $moment le moment de ce jour (`MomentDeLaJournee`), ignoré sans jour
+     *
      * @return array{
      *     figures: list<FigureDeLaVille>,
      *     lieux: list<array{titre: string, lieu: ?TypeDeBatiment, lignes: list<array{texte: string, cle: ?string}>}>,
      *     auxChamps: int,
+     *     jour: ?int,
+     *     moment: int,
+     *     momentLibelle: string,
      * }
      */
-    public function pour(GameSave $partie): array
+    public function pour(GameSave $partie, ?int $jour = null, int $moment = 1): array
     {
         $ville = $partie->getVille();
         $cycle = $partie->getCycle();
+        $photo = $this->photo->prendre($partie);
         $postes = Effectifs::repartir($ville, $cycle);
-        $bilan = Effectifs::bilan($ville, $cycle);
         $maisons = Maisonnees::repartir($ville);
+        $moment = MomentDeLaJournee::tryFrom($moment)->value ?? MomentDeLaJournee::Matin->value;
 
-        /** @var list<array{cle: string, role: RoleDeFigure, libelle: string, lieu: ?TypeDeBatiment, couchee: bool}> $candidats */
+        $reconstitution = null === $jour ? null : $this->reconstitution($partie);
         $candidats = [];
 
-        // 1. Le chef de famille, à la Résidence.
-        $candidats[] = [
-            'cle' => 'famille',
-            'role' => RoleDeFigure::ChefDeFamille,
-            'libelle' => $this->nomDuChefDeFamille($partie),
-            'lieu' => TypeDeBatiment::ResidenceFamiliale,
-            'couchee' => false,
-        ];
+        if (null !== $jour && null !== $reconstitution && $jour >= 1 && $jour <= $reconstitution['film']['jours']) {
+            // Un jour de la quinzaine passée : les mêmes gens que ce matin-là,
+            // placés où la chorégraphie les met.
+            foreach ($reconstitution['photo']['candidats'] as $candidat) {
+                $pas = $reconstitution['film']['pas'][$candidat['cle']][$jour][$moment] ?? null;
 
-        // 2. Les chefs en poste, un par chef, à leur bâtiment.
-        foreach ($this->chefsEnPoste($partie) as $chef) {
-            $candidats[] = [
-                'cle' => 'chef-'.$chef->getId(),
-                'role' => RoleDeFigure::Chef,
-                'libelle' => $this->libelleDuChef($chef),
-                'lieu' => $chef->getType(),
-                'couchee' => false,
-            ];
-        }
+                if (null === $pas || null === $pas['lieu']) {
+                    continue;
+                }
 
-        // 3. Les Medjaÿ : debout à la Caserne, couchés au Quartier s'ils sont blessés.
-        foreach ($ville->getMedjays() as $medjay) {
-            $disponible = $medjay->estDisponible($cycle);
-            $candidats[] = [
-                'cle' => 'medjay-'.$medjay->getId(),
-                'role' => RoleDeFigure::Medjay,
-                'libelle' => $this->libelleDuMedjay($medjay, $cycle),
-                'lieu' => $disponible ? TypeDeBatiment::Caserne : TypeDeBatiment::QuartierDHabitation,
-                'couchee' => !$disponible,
-            ];
-        }
-
-        // 4. Le rival, au Marché.
-        $rival = $ville->getRival();
-
-        if (null !== $rival) {
-            $candidats[] = [
-                'cle' => 'rival',
-                'role' => RoleDeFigure::Rival,
-                'libelle' => $rival->getNom(),
-                'lieu' => TypeDeBatiment::Marche,
-                'couchee' => false,
-            ];
-        }
-
-        // 5. Des travailleurs représentatifs. Un bâtiment à l'arrêt n'en a
-        // aucun : c'est une information vraie, visible d'un coup d'œil.
-        foreach ($postes as $cle => $poste) {
-            $type = TypeDeBatiment::from($cle);
-
-            for ($i = 0; $i < min($poste['affectes'], self::TRAVAILLEURS_PAR_BATIMENT); ++$i) {
                 $candidats[] = [
-                    'cle' => 'poste-'.$cle,
-                    'role' => RoleDeFigure::Travailleur,
-                    'libelle' => \sprintf('Travailleur — %s', $type->libelle()),
-                    'lieu' => $type,
-                    'couchee' => false,
+                    'cle' => $candidat['cle'],
+                    'role' => RoleDeFigure::from($candidat['role']),
+                    'libelle' => \sprintf('%s : %s', $candidat['libelle'], mb_strtolower($pas['geste']->libelle())),
+                    'lieu' => TypeDeBatiment::tryFrom($pas['lieu']),
+                    'couchee' => $pas['couchee'],
+                ];
+            }
+        } else {
+            $jour = null;
+
+            foreach ($photo['candidats'] as $candidat) {
+                $candidats[] = [
+                    'cle' => $candidat['cle'],
+                    'role' => RoleDeFigure::from($candidat['role']),
+                    'libelle' => $candidat['libelle'],
+                    'lieu' => null === $candidat['lieu'] ? null : TypeDeBatiment::tryFrom($candidat['lieu']),
+                    'couchee' => $candidat['couchee'],
                 ];
             }
         }
 
-        // 6. Les bras sans poste, au Marché.
-        for ($i = 0; $i < min($bilan['oisifs'], self::SANS_POSTE_MONTRES); ++$i) {
-            $candidats[] = [
-                'cle' => 'sans-poste',
-                'role' => RoleDeFigure::SansPoste,
-                'libelle' => 'Bras sans poste',
-                'lieu' => TypeDeBatiment::Marche,
-                'couchee' => false,
-            ];
-        }
+        return [
+            'figures' => $this->poser($partie, \array_slice($candidats, 0, self::PLAFOND_DE_FIGURES)),
+            'lieux' => $this->lieux($partie, $postes, $maisons, Effectifs::bilan($ville, $cycle)['oisifs']),
+            'auxChamps' => Effectifs::brasPourLesChamps($ville, $cycle),
+            'jour' => $jour,
+            'moment' => $moment,
+            'momentLibelle' => MomentDeLaJournee::from($moment)->libelle(),
+        ];
+    }
 
-        // 7. Des maisons représentatives, au Quartier ; un malade y est couché.
-        foreach ($this->maisonsMontrees($maisons) as $rang) {
-            $habitants = $maisons[$rang];
-            $candidats[] = [
-                'cle' => 'maison-'.($rang + 1),
-                'role' => RoleDeFigure::Foyer,
-                'libelle' => \sprintf('Maison %d', $rang + 1),
-                'lieu' => TypeDeBatiment::QuartierDHabitation,
-                'couchee' => \in_array(Maisonnees::MALADE, $habitants, true),
-            ];
+    /**
+     * La quinzaine qu'on peut rejouer : ses jours, ses fêtes, ce qui s'y est
+     * passé jour par jour. Null si la trace n'en garde aucune — une partie qui
+     * n'a pas encore vécu de quinzaine, ou dont le jeu précède la trace.
+     *
+     * @return array{
+     *     cycle: int,
+     *     jours: int,
+     *     jourDeFete: ?int,
+     *     fete: ?string,
+     *     evenements: array<int, list<string>>,
+     *     enCours: list<string>,
+     * }|null
+     */
+    public function frise(GameSave $partie): ?array
+    {
+        $reconstitution = $this->reconstitution($partie);
+
+        if (null === $reconstitution) {
+            return null;
         }
 
         return [
-            'figures' => $this->poser($partie, \array_slice($candidats, 0, self::PLAFOND_DE_FIGURES)),
-            'lieux' => $this->lieux($partie, $postes, $maisons, $bilan['oisifs']),
-            'auxChamps' => Effectifs::brasPourLesChamps($ville, $cycle),
+            'cycle' => $reconstitution['cycle'],
+            'jours' => $reconstitution['film']['jours'],
+            'jourDeFete' => $reconstitution['film']['jourDeFete'],
+            'fete' => $reconstitution['photo']['fete']['libelle'] ?? null,
+            'evenements' => $reconstitution['film']['evenements'],
+            'enCours' => $reconstitution['film']['enCours'],
         ];
     }
 
@@ -198,6 +196,81 @@ final readonly class GensDeLaVille
      * La fiche d'une figure, ou null si la clé ne désigne rien **dans cette
      * ville** : une clé forgée vers un chef d'une autre partie ne rend rien.
      *
+     * Elle porte aussi **le journal de la quinzaine passée**, jour par jour, quand
+     * la trace en garde une. Une figure qui n'est plus en ville — un chef parti —
+     * garde une fiche minimale tant que la trace la connaît.
+     *
+     * @return array{
+     *     titre: string,
+     *     sousTitre: string,
+     *     lignes: list<array{libelle: string, valeur: string}>,
+     *     lien: ?array{libelle: string, onglet: string},
+     *     representatif: bool,
+     *     journal: list<array{jour: int, lignes: list<string>, fait: bool}>,
+     * }|null
+     */
+    public function fiche(GameSave $partie, string $cle): ?array
+    {
+        $fiche = $this->ficheDuPresent($partie, $cle);
+        $reconstitution = $this->reconstitution($partie);
+        $journal = null !== $reconstitution && isset($reconstitution['film']['pas'][$cle])
+            ? Choregraphie::journal($reconstitution['film']['pas'][$cle])
+            : [];
+
+        if (null === $fiche) {
+            // Une figure qui n'est plus là, mais que la quinzaine passée a vue.
+            if (null === $reconstitution || [] === $journal) {
+                return null;
+            }
+
+            $fiche = [
+                'titre' => $this->libelleDansLaPhoto($reconstitution['photo'], $cle) ?? $cle,
+                'sousTitre' => 'N\'est plus en ville',
+                'lignes' => [],
+                'lien' => null,
+                'representatif' => str_starts_with($cle, 'maison-') || str_starts_with($cle, 'poste-') || 'sans-poste' === $cle,
+            ];
+        }
+
+        return $fiche + ['journal' => $journal];
+    }
+
+    /**
+     * @param array<string, mixed> $photo
+     */
+    private function libelleDansLaPhoto(array $photo, string $cle): ?string
+    {
+        foreach ($photo['candidats'] as $candidat) {
+            if ($candidat['cle'] === $cle) {
+                return (string) $candidat['libelle'];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * La reconstitution de la quinzaine passée — la photographie du début, et le
+     * film qu'en tire la chorégraphie avec les faits — ou null.
+     *
+     * @return array{cycle: int, photo: array<string, mixed>, film: array<string, mixed>}|null
+     */
+    private function reconstitution(GameSave $partie): ?array
+    {
+        $trace = $this->trace->derniere($partie);
+
+        if (null === $trace) {
+            return null;
+        }
+
+        return [
+            'cycle' => $trace['cycle'],
+            'photo' => $trace['photo'],
+            'film' => Choregraphie::pour($trace['photo'], $trace['faits'], (int) $partie->getId()),
+        ];
+    }
+
+    /**
      * @return array{
      *     titre: string,
      *     sousTitre: string,
@@ -206,7 +279,7 @@ final readonly class GensDeLaVille
      *     representatif: bool,
      * }|null
      */
-    public function fiche(GameSave $partie, string $cle): ?array
+    private function ficheDuPresent(GameSave $partie, string $cle): ?array
     {
         $ville = $partie->getVille();
         $cycle = $partie->getCycle();
@@ -220,7 +293,7 @@ final readonly class GensDeLaVille
             }
 
             return [
-                'titre' => $this->nomDuChefDeFamille($partie),
+                'titre' => PhotoDeLaVille::nomDuChefDeFamille($partie),
                 'sousTitre' => \sprintf('Chef de la famille %s', $famille->getNom()),
                 'lignes' => $lignes,
                 'lien' => ['libelle' => 'Ouvrir la Résidence familiale', 'onglet' => TypeDeBatiment::ResidenceFamiliale->value],
@@ -229,7 +302,7 @@ final readonly class GensDeLaVille
         }
 
         if (str_starts_with($cle, 'chef-')) {
-            foreach ($this->chefsEnPoste($partie) as $chef) {
+            foreach (PhotoDeLaVille::chefsEnPoste($partie) as $chef) {
                 if ('chef-'.$chef->getId() === $cle) {
                     return $this->ficheDuChef($chef, $cycle);
                 }
@@ -337,45 +410,6 @@ final readonly class GensDeLaVille
     }
 
     /**
-     * Les chefs qui tiennent réellement leur poste : un chef embauché à la
-     * quinzaine qui vient n'est pas encore à l'ouvrage.
-     *
-     * @return list<Employee>
-     */
-    private function chefsEnPoste(GameSave $partie): array
-    {
-        return array_values(array_filter(
-            $partie->getVille()->getEmployes()->toArray(),
-            static fn (Employee $chef): bool => $chef->estEnPoste($partie->getCycle()),
-        ));
-    }
-
-    private function nomDuChefDeFamille(GameSave $partie): string
-    {
-        return $partie->getFamille()->getChefDeFamille() ?? 'Le chef de la famille';
-    }
-
-    private function libelleDuChef(Employee $chef): string
-    {
-        $poste = \sprintf('chef (%s)', $chef->getType()->libelle());
-
-        return null !== $chef->getPrenom()
-            ? \sprintf('%s — %s', $chef->getPrenom(), $poste)
-            : ucfirst($poste);
-    }
-
-    private function libelleDuMedjay(Medjay $medjay, int $cycle): string
-    {
-        $base = null !== $medjay->getPrenom()
-            ? \sprintf('%s — %s', $medjay->getPrenom(), $medjay->getSpecialisation()->libelle())
-            : $medjay->getSpecialisation()->libelle();
-
-        return $medjay->estDisponible($cycle)
-            ? $base
-            : \sprintf('%s (blessé, de retour à la quinzaine %d)', $base, (int) $medjay->getRetabliAuCycle());
-    }
-
-    /**
      * @return array{titre: string, sousTitre: string, lignes: list<array{libelle: string, valeur: string}>, lien: ?array{libelle: string, onglet: string}, representatif: bool}
      */
     private function ficheDuChef(Employee $chef, int $cycle): array
@@ -438,33 +472,6 @@ final readonly class GensDeLaVille
             'lien' => ['libelle' => 'Ouvrir la Caserne', 'onglet' => TypeDeBatiment::Caserne->value],
             'representatif' => false,
         ];
-    }
-
-    /**
-     * Quelles maisons montrer : jusqu'à six, **régulièrement réparties** parmi
-     * toutes, pour que les malades du fond du quartier ne soient pas oubliés au
-     * profit des premières maisons.
-     *
-     * @param list<list<string>> $maisons
-     *
-     * @return list<int> les rangs retenus
-     */
-    private function maisonsMontrees(array $maisons): array
-    {
-        $nombre = \count($maisons);
-
-        if (0 === $nombre) {
-            return [];
-        }
-
-        $montrees = min($nombre, self::MAISONS_MONTREES);
-        $rangs = [];
-
-        for ($i = 0; $i < $montrees; ++$i) {
-            $rangs[] = intdiv($i * $nombre, $montrees);
-        }
-
-        return $rangs;
     }
 
     /**
@@ -563,7 +570,7 @@ final readonly class GensDeLaVille
         $ville = $partie->getVille();
         $cycle = $partie->getCycle();
         $lots = $this->lotsDresses($partie);
-        $chefs = $this->chefsEnPoste($partie);
+        $chefs = PhotoDeLaVille::chefsEnPoste($partie);
         $lieux = [];
 
         foreach (TypeDeBatiment::cases() as $type) {
@@ -581,7 +588,7 @@ final readonly class GensDeLaVille
             foreach ($chefs as $chef) {
                 if ($chef->getType() === $type) {
                     $specialite = null !== $chef->getSpecialite() ? ', '.mb_strtolower($chef->getSpecialite()->libelle()) : '';
-                    $lignes[] = ['texte' => $this->libelleDuChef($chef).$specialite, 'cle' => 'chef-'.$chef->getId()];
+                    $lignes[] = ['texte' => PhotoDeLaVille::libelleDuChef($chef).$specialite, 'cle' => 'chef-'.$chef->getId()];
                 }
             }
 
@@ -604,7 +611,7 @@ final readonly class GensDeLaVille
 
                 foreach ($ville->getMedjays() as $medjay) {
                     if (!$medjay->estDisponible($cycle)) {
-                        $lignes[] = ['texte' => $this->libelleDuMedjay($medjay, $cycle), 'cle' => 'medjay-'.$medjay->getId()];
+                        $lignes[] = ['texte' => PhotoDeLaVille::libelleDuMedjay($medjay, $cycle), 'cle' => 'medjay-'.$medjay->getId()];
                     }
                 }
             }
@@ -612,7 +619,7 @@ final readonly class GensDeLaVille
             if (TypeDeBatiment::Caserne === $type) {
                 foreach ($ville->getMedjays() as $medjay) {
                     if ($medjay->estDisponible($cycle)) {
-                        $lignes[] = ['texte' => $this->libelleDuMedjay($medjay, $cycle), 'cle' => 'medjay-'.$medjay->getId()];
+                        $lignes[] = ['texte' => PhotoDeLaVille::libelleDuMedjay($medjay, $cycle), 'cle' => 'medjay-'.$medjay->getId()];
                     }
                 }
             }

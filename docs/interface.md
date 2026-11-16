@@ -408,6 +408,15 @@ toutes lettres dans le gabarit** pour que Tailwind les compile. Trois règles :
 - **La géométrie est en ligne** (position, taille, rapport, retournement `scaleX(-1)`), comme celle des sprites : une
   classe oubliée par la compilation ne doit pas écraser les gens sur une ligne.
 
+**Rejouer la quinzaine passée** (lot V2, `_frise_de_la_quinzaine.html.twig`, `Game\Choregraphie`). La fenêtre porte, au-dessus de
+la liste, **une frise** : « Maintenant », puis un lien par jour de la quinzaine (15, ou 5 aux jours épagomènes), le jour de
+fête marqué d'une étoile ; choisi un jour, quatre liens de moment. **Sans JavaScript** : chaque lien recharge la ville sur
+ce jour (`?jour=4&moment=1`) en gardant la fenêtre ouverte par `ouvre`, d'où une page qui se recharge à chaque jour — la
+lecture animée est le lot suivant. La ville annonce *« Jour 4 de la quinzaine passée, le matin. Revenir à maintenant »*, et
+un jour hors de la quinzaine, ou une partie sans trace, retombe sur « maintenant » sans erreur. La fiche d'un chef, d'un
+Medjaÿ ou d'une maison porte **son journal, jour par jour**. Chaque lien de la frise fait **au moins 44 px**. **Les silhouettes
+se déplacent par saut**, jamais par une marche : le jeu n'a pas de chemins.
+
 **Ce que le panneau dit de lui-même** : *« Image reconstituée — le jeu ne suit pas chaque habitant. »*, sous le bouton ; et
 les fiches de maison et de poste portent *« Représentatif »*. Mesuré au navigateur à 1728 px : 15 silhouettes dans le
 visuel, aucune hors de son cadre, aucune dans l'ordre de tabulation. **Le contrôle à 390 px n'a pas pu se faire** (la
