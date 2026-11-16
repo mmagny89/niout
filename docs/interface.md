@@ -435,6 +435,16 @@ Quatre choses à ne pas défaire :
   porte un `aria-valuetext` (« Jour 4 sur 15, le matin »), le texte à côté est masqué aux lecteurs d'écran pour ne pas annoncer
   chaque jour de la lecture.
 
+**La variété des journées** (lot V3b, `Choregraphie`). Sans fait, une journée n'est plus « maison, travail » : l'**après-midi**, une
+course au Marché (25 % des cas pour un chef ou un travailleur), le scribe au Temple (40 %), la famille en visite au Temple
+(30 %), la ronde des Medjaÿ sur la place (40 %), un foyer non alité au Marché (25 %) ; le **soir**, un détour par l'Auberge (20 %).
+**Le matin reste le poste, l'aube reste chez soi.** Quatre garde-fous, tous testés : **on ne va pas où il n'y a rien** (la
+photographie nomme les bâtiments debout, `PhotoDeLaVille::batimentsDresses()` ; une trace d'avant ce champ n'en connaît aucun, donc
+aucun détour) ; **un fait prime sur la variété** (le jour où le chantier s'achève, le chef y est, quel que soit le tirage) ; un
+alité ne patrouille ni ne fait de course ; et **le tirage est stable** — un hachage de (partie, silhouette, jour, moment), jamais
+le hasard global. Les valeurs sont inventées, à calibrer. **Une ville bâtie de 27 silhouettes pèse environ 90 Ko de film non
+compressé** ; la réponse est compressée par Caddy (`encode zstd br gzip`).
+
 **Le réseau de rues** (`ReseauDeRues`) est **une donnée écrite à la main** : douze carrefours, aux croisements du treillis que
 forment les rues du visuel (deux familles de droites de pente ±½, espacées d'environ 181 et 183 px), reliés de proche en proche ;
 chaque lot a une porte, le carrefour le plus proche de son devant. **Les deux visuels portent le même plan, donc un seul

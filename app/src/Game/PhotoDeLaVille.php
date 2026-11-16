@@ -41,6 +41,7 @@ use App\Entity\Medjay;
  *     chefs: list<array{cle: string, libelle: string}>,
  *     medjays: list<array{cle: string, libelle: string, disponible: bool}>,
  *     rival: ?array{cle: string, libelle: string},
+ *     batiments?: list<string>,
  * }
  */
 final readonly class PhotoDeLaVille
@@ -195,7 +196,30 @@ final readonly class PhotoDeLaVille
             'chefs' => $chefs,
             'medjays' => $medjays,
             'rival' => null === $rival ? null : ['cle' => 'rival', 'libelle' => $rival->getNom()],
+            // Les bâtiments debout, la Résidence comprise : de quoi savoir où l'on peut aller.
+            // Absent des traces d'avant ce champ — la chorégraphie s'en passe alors.
+            'batiments' => self::batimentsDresses($partie),
         ];
+    }
+
+    /**
+     * Les bâtiments dressés, par la valeur de `TypeDeBatiment` : ceux que la ville a
+     * bâtis, et la Résidence, qui est là dès le premier jour.
+     *
+     * @return list<string>
+     */
+    public static function batimentsDresses(GameSave $partie): array
+    {
+        $ville = $partie->getVille();
+        $dresses = [];
+
+        foreach (TypeDeBatiment::cases() as $type) {
+            if (null !== $ville->batimentDeType($type) || $type->estLeBatimentDeDepart()) {
+                $dresses[] = $type->value;
+            }
+        }
+
+        return $dresses;
     }
 
     /**
