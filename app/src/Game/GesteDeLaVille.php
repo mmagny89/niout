@@ -28,6 +28,9 @@ enum GesteDeLaVille: string
     case Corvee = 'corvee';
     case Habite = 'habite';
     case Part = 'part';
+    case Course = 'course';
+    case Visite = 'visite';
+    case Detente = 'detente';
 
     public function libelle(): string
     {
@@ -49,6 +52,9 @@ enum GesteDeLaVille: string
             self::Corvee => 'Va à la corvée',
             self::Habite => 'Autour des maisons',
             self::Part => 'Quitte la ville',
+            self::Course => 'Fait une course',
+            self::Visite => 'Rend visite',
+            self::Detente => 'Se détend',
         };
     }
 }

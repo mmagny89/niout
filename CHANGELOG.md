@@ -14,6 +14,11 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les journées ne sont plus « maison, travail ».** Dans une ville bâtie, le chef ou le travailleur fait parfois, l'après-midi,
+  **une course au Marché** ; le scribe porte un rouleau au Temple ; la famille y passe en visite ; la ronde des Medjaÿ traverse
+  la place ; les habitants non alités vont au Marché ; et, le soir, certains font un détour par l'Auberge. Le matin reste le poste.
+  On ne va jamais où il n'y a rien : sans Marché, Temple ou Auberge, la journée reste ce qu'elle était. C'est de la mise en
+  scène, dite routine : rien dans le jeu ne dit qu'on y va.
 - **Le film de la quinzaine passée se joue.** Sur la ville vue d'en haut, une barre de lecture lance la quinzaine en
   animation : les gens quittent leur maison à l'aube, **marchent par les rues** jusqu'à leur poste, rentrent le soir, suivent
   la procession un jour de fête ; le Medjaÿ blessé se couche, le chef parti disparaît. Trois vitesses (normale : 4 s par jour ;

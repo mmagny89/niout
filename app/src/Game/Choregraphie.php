@@ -57,7 +57,7 @@ final class Choregraphie
     {
         $jours = $photo['jours'];
         $jourDe = self::joursDesFaits($faits, $jours, $graine);
-        $contexte = self::contexte($photo, $faits, $jourDe, $jours);
+        $contexte = self::contexte($photo, $faits, $jourDe, $jours, $graine);
 
         $pas = [];
 
@@ -218,12 +218,18 @@ final class Choregraphie
      *     epidemieEclate: ?array{jour: int, malades: int},
      *     epidemieFinie: ?int,
      *     corvee: ?string,
+     *     graine: int,
+     *     batiments: array<string, true>,
      * }
      */
-    private static function contexte(array $photo, array $faits, array $jourDe, int $jours): array
+    private static function contexte(array $photo, array $faits, array $jourDe, int $jours, int $graine): array
     {
         $c = [
             'jours' => $jours,
+            'graine' => $graine,
+            // Où l'on peut aller : les bâtiments debout. Une trace d'avant ce champ ne
+            // connaît que la Résidence, et la chorégraphie n'invente alors aucune course.
+            'batiments' => array_fill_keys($photo['batiments'] ?? [TypeDeBatiment::ResidenceFamiliale->value], true),
             'chantierAvance' => [], 'achevement' => [],
             'fabrication' => [], 'fabricationAchevee' => [],
             'convoiRentre' => [], 'convoiParti' => [],
@@ -290,21 +296,23 @@ final class Choregraphie
         return match ($role) {
             RoleDeFigure::ChefDeFamille => match (true) {
                 1 === $jour && 1 === $moment => self::pas($lieu, GesteDeLaVille::Paie),
+                // L'après-midi, la famille passe parfois au Temple : une visite, pas une offrande.
+                2 === $moment && self::existe($c, TypeDeBatiment::Temple) && self::tirage($c, $cle, $jour, $moment) < 30 => self::pas(TypeDeBatiment::Temple->value, GesteDeLaVille::Visite),
                 $enJournee => self::pas($lieu, GesteDeLaVille::Poste),
                 default => self::pas($lieu, GesteDeLaVille::Chez),
             },
             RoleDeFigure::Chef => self::pasDuChef($candidat, $jour, $moment, $enJournee, $c),
             RoleDeFigure::Travailleur => $enJournee
-                ? self::pasDeTravail((string) $lieu, $jour, $moment, $c)
-                : self::pas(self::CHEZ_SOI, GesteDeLaVille::Chez),
+                ? self::pasDeTravail((string) $lieu, $cle, $jour, $moment, $c)
+                : self::pasDeLAube($cle, $jour, $moment, $c),
             RoleDeFigure::SansPoste => match (true) {
-                !$enJournee => self::pas(self::CHEZ_SOI, GesteDeLaVille::Chez),
+                !$enJournee => self::pasDeLAube($cle, $jour, $moment, $c),
                 null !== $c['corvee'] => self::pas($c['corvee'], GesteDeLaVille::Corvee),
                 default => self::pas($lieu, GesteDeLaVille::Oisif),
             },
             RoleDeFigure::Medjay => self::pasDuMedjay($candidat, $jour, $moment, $enJournee, $c),
             RoleDeFigure::Rival => self::pasDuRival($jour, $enJournee, $lieu, $c),
-            RoleDeFigure::Foyer => self::pasDuFoyer($candidat, $jour, $c),
+            RoleDeFigure::Foyer => self::pasDuFoyer($candidat, $jour, $moment, $enJournee, $c),
         };
     }
 
@@ -331,8 +339,8 @@ final class Choregraphie
         }
 
         return $enJournee
-            ? self::pasDeTravail((string) $candidat['lieu'], $jour, $moment, $c)
-            : self::pas(self::CHEZ_SOI, GesteDeLaVille::Chez);
+            ? self::pasDeTravail((string) $candidat['lieu'], $candidat['cle'], $jour, $moment, $c)
+            : self::pasDeLAube($candidat['cle'], $jour, $moment, $c);
     }
 
     /**
@@ -343,7 +351,7 @@ final class Choregraphie
      *
      * @return Pas
      */
-    private static function pasDeTravail(string $lieu, int $jour, int $moment, array $c): array
+    private static function pasDeTravail(string $lieu, string $cle, int $jour, int $moment, array $c): array
     {
         $entrepot = \in_array($lieu, [TypeDeBatiment::Entrepot->value, TypeDeBatiment::Port->value], true);
 
@@ -371,7 +379,58 @@ final class Choregraphie
             return self::pas($lieu, GesteDeLaVille::Fabrique, TypeDeFait::FabricationAvance);
         }
 
+        // Sans fait, la routine du métier — avec ses détours : l'après-midi, une course au
+        // Marché, ou le scribe qui porte un rouleau au Temple. **Une variété de mise en
+        // scène, sans valeur de règle** : rien dans le jeu ne dit qu'on y va, et le journal
+        // le dit « routine ».
+        if (2 === $moment && TypeDeBatiment::Marche->value !== $lieu && self::existe($c, TypeDeBatiment::Marche) && self::tirage($c, $cle, $jour, $moment) < 25) {
+            return self::pas(TypeDeBatiment::Marche->value, GesteDeLaVille::Course);
+        }
+
+        if (2 === $moment && TypeDeBatiment::MaisonDesScribes->value === $lieu && self::existe($c, TypeDeBatiment::Temple) && self::tirage($c, $cle, $jour, $moment) < 40) {
+            return self::pas(TypeDeBatiment::Temple->value, GesteDeLaVille::Visite);
+        }
+
         return self::pas($lieu, GesteDeLaVille::Poste);
+    }
+
+    /**
+     * L'aube et le soir : chez soi — et, le soir, parfois un détour par l'Auberge, quand il y
+     * en a une. Une variété de mise en scène, sans valeur de règle.
+     *
+     * @param array<string, mixed> $c
+     *
+     * @return Pas
+     */
+    private static function pasDeLAube(string $cle, int $jour, int $moment, array $c): array
+    {
+        if (3 === $moment && self::existe($c, TypeDeBatiment::Auberge) && self::tirage($c, $cle, $jour, $moment) < 20) {
+            return self::pas(TypeDeBatiment::Auberge->value, GesteDeLaVille::Detente);
+        }
+
+        return self::pas(self::CHEZ_SOI, GesteDeLaVille::Chez);
+    }
+
+    /**
+     * Un tirage de 0 à 99, stable : même partie, même silhouette, même jour, même moment,
+     * même nombre. **Jamais le hasard global** — le film doit être identique à chaque
+     * lecture.
+     *
+     * @param array<string, mixed> $c
+     */
+    private static function tirage(array $c, string $cle, int $jour, int $moment): int
+    {
+        return crc32((int) $c['graine'].'|'.$cle.'|'.$jour.'|'.$moment) % 100;
+    }
+
+    /**
+     * Le bâtiment est-il debout ? On ne va pas où il n'y a rien.
+     *
+     * @param array<string, mixed> $c
+     */
+    private static function existe(array $c, TypeDeBatiment $type): bool
+    {
+        return isset($c['batiments'][$type->value]);
     }
 
     /**
@@ -393,6 +452,11 @@ final class Choregraphie
                 null !== $blesse && $jour === $blesse && 2 === $moment ? TypeDeFait::MedjayBlesse : null,
                 true,
             );
+        }
+
+        // L'après-midi, la ronde passe parfois par la place du Marché.
+        if (2 === $moment && self::existe($c, TypeDeBatiment::Marche) && self::tirage($c, $candidat['cle'], $jour, $moment) < 40) {
+            return self::pas(TypeDeBatiment::Marche->value, GesteDeLaVille::Ronde);
         }
 
         return self::pas(TypeDeBatiment::Caserne->value, $enJournee ? GesteDeLaVille::Ronde : GesteDeLaVille::Veille);
@@ -426,7 +490,7 @@ final class Choregraphie
      *
      * @return Pas
      */
-    private static function pasDuFoyer(array $candidat, int $jour, array $c): array
+    private static function pasDuFoyer(array $candidat, int $jour, int $moment, bool $enJournee, array $c): array
     {
         $couchee = $candidat['couchee'];
         $rang = (int) substr($candidat['cle'], 7);
@@ -437,6 +501,11 @@ final class Choregraphie
 
         if ($couchee && null !== $c['epidemieFinie'] && $jour >= $c['epidemieFinie']) {
             $couchee = false;
+        }
+
+        // Qui n'est pas alité va parfois au Marché dans la journée.
+        if (!$couchee && $enJournee && self::existe($c, TypeDeBatiment::Marche) && self::tirage($c, $candidat['cle'], $jour, $moment) < 25) {
+            return self::pas(TypeDeBatiment::Marche->value, GesteDeLaVille::Course);
         }
 
         return self::pas(

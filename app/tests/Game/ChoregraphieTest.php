@@ -303,6 +303,167 @@ final class ChoregraphieTest extends TestCase
     }
 
     /**
+     * **Une ville bâtie a des journées moins plates** : l'après-midi, une course au Marché ;
+     * le soir, parfois l'Auberge. Le matin reste le poste — c'est le métier.
+     */
+    public function testUneVilleBatieVarieSesJournees(): void
+    {
+        $film = Choregraphie::pour($this->photoBatie(), [], 5);
+        $courses = 0;
+        $detentes = 0;
+
+        foreach (['chef-1', 'chef-2'] as $cle) {
+            foreach ($film['pas'][$cle] as $moments) {
+                self::assertSame(GesteDeLaVille::Poste, $moments[1]['geste'], 'Le matin, on est à son poste.');
+                self::assertContains($moments[2]['geste'], [GesteDeLaVille::Poste, GesteDeLaVille::Course]);
+                self::assertContains($moments[3]['geste'], [GesteDeLaVille::Chez, GesteDeLaVille::Detente]);
+                $courses += GesteDeLaVille::Course === $moments[2]['geste'] ? 1 : 0;
+                $detentes += GesteDeLaVille::Detente === $moments[3]['geste'] ? 1 : 0;
+            }
+        }
+
+        self::assertGreaterThan(0, $courses, 'Sur trente après-midi, au moins une course.');
+        self::assertLessThan(20, $courses, 'Une course reste l\'exception.');
+        self::assertGreaterThan(0, $detentes);
+        self::assertSame(TypeDeBatiment::Marche->value, $this->premierPas($film['pas']['chef-1'], GesteDeLaVille::Course)['lieu'] ?? TypeDeBatiment::Marche->value);
+    }
+
+    /**
+     * **On ne va pas où il n'y a rien** : sans Marché, sans Temple, sans Auberge, aucune
+     * course, aucune visite, aucun détour — et les traces d'avant le champ des bâtiments
+     * en font autant.
+     */
+    public function testOnNAllantNullePartOuIlNYARien(): void
+    {
+        $sansDetour = [
+            $this->photoBatie(['batiments' => ['residence_familiale', 'grenier', 'entrepot', 'caserne', 'quartier_habitation']]),
+            $this->photo(),
+        ];
+
+        foreach ($sansDetour as $photo) {
+            foreach (range(1, 8) as $graine) {
+                foreach (Choregraphie::pour($photo, [], $graine)['pas'] as $jours) {
+                    foreach ($jours as $moments) {
+                        foreach ($moments as $pas) {
+                            self::assertNotContains($pas['geste'], [GesteDeLaVille::Course, GesteDeLaVille::Visite, GesteDeLaVille::Detente]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * **Un fait prime sur la variété** : le jour où le chantier s'achève, le chef y est, quel
+     * que soit le tirage de la course.
+     */
+    public function testUnFaitPrimeSurLaVariete(): void
+    {
+        $faits = [$this->fait(TypeDeFait::ChantierAcheve, 'grenier', 'chantier-1')];
+
+        foreach (range(1, 40) as $graine) {
+            $film = Choregraphie::pour($this->photoBatie(), $faits, $graine);
+
+            self::assertSame(GesteDeLaVille::Acheve, $film['pas']['chef-1'][15][1]['geste'], 'Graine '.$graine);
+            self::assertSame(GesteDeLaVille::Acheve, $film['pas']['chef-1'][15][2]['geste'], 'Graine '.$graine);
+        }
+    }
+
+    /**
+     * Un Medjaÿ alité ne patrouille pas, quelle que soit la variété.
+     */
+    public function testUnMedjayAliteNePatrouillePas(): void
+    {
+        $photo = $this->photoBatie();
+        $photo['candidats'][] = $this->candidat('medjay-9', 'medjay', 'quartier_habitation', true);
+
+        foreach (range(1, 20) as $graine) {
+            foreach (Choregraphie::pour($photo, [], $graine)['pas']['medjay-9'] as $moments) {
+                foreach ($moments as $pas) {
+                    self::assertSame(GesteDeLaVille::Repos, $pas['geste']);
+                }
+            }
+        }
+    }
+
+    /**
+     * Le journal dit où l'on est allé, et que c'est une course.
+     */
+    public function testLeJournalNommeLeLieuDeLaCourse(): void
+    {
+        $film = Choregraphie::pour($this->photoBatie(), [], 5);
+        $lignes = [];
+
+        foreach (Choregraphie::journal($film['pas']['chef-1']) as $jour) {
+            $lignes = [...$lignes, ...$jour['lignes']];
+        }
+
+        self::assertContains('Fait une course — Marché (après-midi)', $lignes);
+    }
+
+    /**
+     * La variété se rejoue à l'identique, et change avec la partie.
+     */
+    public function testLaVarieteEstStableEtDependDeLaPartie(): void
+    {
+        self::assertEquals(Choregraphie::pour($this->photoBatie(), [], 9), Choregraphie::pour($this->photoBatie(), [], 9));
+
+        $films = array_map(static fn (int $graine): array => Choregraphie::pour(self::photoBatieStatique(), [], $graine)['pas'], range(1, 12));
+
+        self::assertGreaterThan(1, \count(array_unique(array_map('serialize', $films))), 'Deux parties n\'ont pas toutes le même film.');
+    }
+
+    /**
+     * @param array<int, array<int, array{lieu: ?string, geste: GesteDeLaVille, fait: ?TypeDeFait, couchee: bool}>> $jours
+     *
+     * @return array{lieu: ?string, geste: GesteDeLaVille, fait: ?TypeDeFait, couchee: bool}|null
+     */
+    private function premierPas(array $jours, GesteDeLaVille $geste): ?array
+    {
+        foreach ($jours as $moments) {
+            foreach ($moments as $pas) {
+                if ($pas['geste'] === $geste) {
+                    return $pas;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $surcharge
+     *
+     * @return Photo
+     */
+    private function photoBatie(array $surcharge = []): array
+    {
+        return self::photoBatieStatique($surcharge);
+    }
+
+    /**
+     * @param array<string, mixed> $surcharge
+     *
+     * @return Photo
+     */
+    private static function photoBatieStatique(array $surcharge = []): array
+    {
+        $test = new self('photo');
+
+        return $test->photo($surcharge + [
+            'candidats' => [
+                $test->candidat('famille', 'chef_de_famille', 'residence_familiale'),
+                $test->candidat('chef-1', 'chef', 'grenier'),
+                $test->candidat('chef-2', 'chef', 'entrepot'),
+                $test->candidat('medjay-1', 'medjay', 'caserne'),
+                $test->candidat('maison-1', 'foyer', 'quartier_habitation'),
+                $test->candidat('sans-poste', 'sans_poste', 'marche'),
+            ],
+            'batiments' => ['residence_familiale', 'quartier_habitation', 'grenier', 'entrepot', 'caserne', 'marche', 'temple', 'auberge', 'maison_des_scribes'],
+        ]);
+    }
+
+    /**
      * @param array<int, array<int, array{lieu: ?string, geste: GesteDeLaVille, fait: ?TypeDeFait, couchee: bool}>> $jours
      */
     private function jourDuGeste(array $jours, GesteDeLaVille $geste): ?int

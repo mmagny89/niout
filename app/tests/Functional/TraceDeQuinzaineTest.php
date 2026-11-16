@@ -171,6 +171,25 @@ final class TraceDeQuinzaineTest extends WebTestCase
     }
 
     /**
+     * La photographie sait quels bâtiments sont debout — la Résidence, là dès le premier jour,
+     * et ceux qu'on a bâtis : c'est ce qui dit à la chorégraphie où l'on peut aller.
+     */
+    public function testLaPhotographieNommeLesBatimentsDebout(): void
+    {
+        static::createClient();
+        $partie = $this->lancerPartie('batiments@example.com');
+        $ville = $partie->getVille();
+        $ville->ajouterBatiment(new Building($ville, TypeDeBatiment::Auberge, 1));
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+
+        $batiments = static::getContainer()->get(PhotoDeLaVille::class)->prendre($partie)['batiments'] ?? [];
+
+        self::assertContains('residence_familiale', $batiments);
+        self::assertContains('auberge', $batiments);
+        self::assertNotContains('temple', $batiments, 'Un bâtiment non bâti n\'est pas un lieu où aller.');
+    }
+
+    /**
      * Un jour de la quinzaine passée remplace la ville d'à présent par sa
      * reconstitution ; un jour hors de la quinzaine, ou une partie sans trace,
      * retombe sur la ville d'à présent.

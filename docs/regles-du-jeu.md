@@ -753,11 +753,16 @@ règles, elle n'en pose aucune : un chef se voit à son bâtiment **seulement s'
 un Medjaÿ est debout à la Caserne s'il est disponible et couché au Quartier s'il est blessé, **un bâtiment à l'arrêt
 n'a aucun travailleur à l'écran** (`Effectifs::repartir()`, `affectes === 0`), des bras sans poste (`oisifs`) traînent au
 Marché, et un malade (`City::malades()`) se couche parmi les maisons. **Les désignés d'abord** : au plafond de 40
-silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **Le film de la quinzaine ajoute les chemins, pas des règles** (`FilmDeLaVille`, `ReseauDeRues`) : la chorégraphie dit où est
+silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **La variété d'une journée est de la routine, pas un fait** (`Choregraphie`, lot V3b) : une course au Marché, une visite au
+Temple, un détour par l'Auberge ne correspondent à aucune règle du jeu — personne ne « va au Marché » dans l'état —, et le
+journal les dit « routine ». C'est ce qui les distingue des scènes de fait, qui illustrent ce qui s'est réellement passé et
+qui **priment toujours** sur elles. Elles n'existent que **là où le bâtiment est debout**.
+
+**Le film de la quinzaine ajoute les chemins, pas des règles** (`FilmDeLaVille`, `ReseauDeRues`) : la chorégraphie dit où est
 chacun à chaque moment ; le film y ajoute **le trajet par les rues** entre la porte d'un lot et celle d'un autre, et en fait une
 liste de points datés. Une silhouette **garde sa place dans un lot** pour toute la quinzaine — sans cela, l'arrivée de l'une
-décalerait les autres. Le film n'est jamais stocké : il se recalcule, identique, à partir de la trace. Il pèse environ 25 Ko
-pour 15 silhouettes, une soixantaine au plafond de 40.
+décalerait les autres. Le film n'est jamais stocké : il se recalcule, identique, à partir de la trace. Il pèse environ 90 Ko non
+compressé pour 27 silhouettes dans une ville bâtie ; la réponse est compressée.
 
 **La quinzaine passée se rejoue, et c'est une reconstitution**
 (`Choregraphie`, `PhotoDeLaVille`, `DifferenceDeQuinzaine`, `TraceDeQuinzaine`). Le jeu **garde**, pour les trois dernières
