@@ -24,6 +24,13 @@ enum RoleDeFigure: string
     case Foyer = 'foyer';
 
     /**
+     * Les deux silhouettes **de passage** (lot I2) : ni habitants ni personnes de la ville, du décor
+     * attaché à une énigme jouable, sans nom ni mémoire. Elles ne sont jamais dans la photographie.
+     */
+    case Voyageur = 'voyageur';
+    case Pretre = 'pretre';
+
+    /**
      * L'identifiant du `<symbol>` qui le dessine.
      */
     public function symbole(bool $couchee = false): string
@@ -38,6 +45,8 @@ enum RoleDeFigure: string
             self::Medjay => 'fig-medjay',
             self::Rival => 'fig-rival',
             self::Travailleur => 'fig-travailleur',
+            self::Voyageur => 'fig-voyageur',
+            self::Pretre => 'fig-pretre',
             self::SansPoste, self::Foyer => 'fig-habitant',
         };
     }

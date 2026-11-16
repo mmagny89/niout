@@ -449,6 +449,12 @@ sur **la première conversation du jour** s'il y en a une. Cocher **« Lire les 
 lecture de chaque réplique (55 ms par caractère, entre 1,8 s et 4,5 s) : lire à 4 s par jour est impossible. **Le texte est
 aussi dans la fenêtre** — « Ce qu'on s'est dit », avec qui et où — et dans le journal de celui qui parle (« dit à … : « … » »).
 
+**Les silhouettes de passage** (lot I2, `VisiteurDePassage`). Devant l'Auberge, un voyageur (bâton de marche) ; devant le Temple, un
+prêtre (disque solaire) — tant qu'une énigme de ce lieu est à jouer. Cliquables comme les autres figures dès `md`, et dites dans la
+liste « Les gens de la ville » à leur lieu. Leur fiche : « Une devinette, étranger ? » / « Une question pour qui sait écouter les
+dieux ? », le nombre de questions en suspens, et un lien vers le bâtiment. Absentes d'une quinzaine rejouée. **Pas de bulle** :
+le film ne les joue pas.
+
 **La voix des aides** (lots I1 et I5, `VoixDesAides`). Sous une devinette de la Maison des scribes, une ligne en italique quand
 l'Oraculaire est en poste : « *Hori l'oraculaire souffle : ce n'est pas « … »* » — la réponse écartée de la liste, jamais la
 bonne. En tête de la clé de lecture, une ligne par aide qui agit (« *Pia le déchiffreur vous a appris 2 signes de plus* », « *Thot

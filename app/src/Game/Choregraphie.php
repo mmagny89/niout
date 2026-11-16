@@ -586,6 +586,9 @@ final class Choregraphie
             RoleDeFigure::Medjay => self::pasDuMedjay($candidat, $jour, $moment, $enJournee, $c),
             RoleDeFigure::Rival => self::pasDuRival($jour, $enJournee, $lieu, $c),
             RoleDeFigure::Foyer => self::pasDuFoyer($candidat, $jour, $moment, $enJournee, $c),
+            // Les silhouettes de passage ne sont jamais dans une photographie : elles dépendent de la ville
+            // d'à présent, pas d'une quinzaine rejouée. Sur place, par prudence.
+            RoleDeFigure::Voyageur, RoleDeFigure::Pretre => self::pas($lieu, GesteDeLaVille::Oisif),
         };
     }
 

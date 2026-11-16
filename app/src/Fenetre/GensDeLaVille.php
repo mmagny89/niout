@@ -17,6 +17,7 @@ use App\Game\PhotoDeLaVille;
 use App\Game\RoleDeFigure;
 use App\Game\TraceDeQuinzaine;
 use App\Game\TypeDeBatiment;
+use App\Game\VisiteurDePassage;
 
 /**
  * Les gens de la ville, posés sur la ville vue d'en haut
@@ -150,8 +151,24 @@ final readonly class GensDeLaVille
             }
         }
 
+        // Les silhouettes de passage ne se voient que dans la ville d'à présent, et s'ajoutent au plafond :
+        // elles dépendent d'énigmes jouables maintenant, pas d'une quinzaine rejouée.
+        $passage = [];
+
+        if (null === $jour) {
+            foreach (VisiteurDePassage::pour($ville) as $visiteur) {
+                $passage[] = [
+                    'cle' => $visiteur['cle'],
+                    'role' => $visiteur['role'],
+                    'libelle' => $visiteur['libelle'],
+                    'lieu' => $visiteur['lieu'],
+                    'couchee' => false,
+                ];
+            }
+        }
+
         return [
-            'figures' => $this->poser($partie, \array_slice($candidats, 0, self::PLAFOND_DE_FIGURES)),
+            'figures' => $this->poser($partie, [...\array_slice($candidats, 0, self::PLAFOND_DE_FIGURES), ...$passage]),
             'lieux' => $this->lieux($partie, $postes, $maisons, Effectifs::bilan($ville, $cycle)['oisifs']),
             'auxChamps' => Effectifs::brasPourLesChamps($ville, $cycle),
             'jour' => $jour,
@@ -339,6 +356,18 @@ final readonly class GensDeLaVille
             }
 
             return null;
+        }
+
+        foreach (VisiteurDePassage::pour($ville) as $visiteur) {
+            if ($visiteur['cle'] === $cle) {
+                return [
+                    'titre' => $visiteur['libelle'],
+                    'sousTitre' => VisiteurDePassage::invitation($visiteur['role']),
+                    'lignes' => [['libelle' => 'À l\'écoute', 'valeur' => \sprintf('%d question%s en suspens', $visiteur['nombre'], $visiteur['nombre'] > 1 ? 's' : '')]],
+                    'lien' => ['libelle' => \sprintf('Aller à %s', $visiteur['lieu']->libelle()), 'onglet' => $visiteur['lieu']->value],
+                    'representatif' => true,
+                ];
+            }
         }
 
         if ('rival' === $cle) {
@@ -641,6 +670,12 @@ final readonly class GensDeLaVille
                     if ($medjay->estDisponible($cycle)) {
                         $lignes[] = ['texte' => PhotoDeLaVille::libelleDuMedjay($medjay, $cycle), 'cle' => 'medjay-'.$medjay->getId()];
                     }
+                }
+            }
+
+            foreach (VisiteurDePassage::pour($ville) as $visiteur) {
+                if ($visiteur['lieu'] === $type) {
+                    $lignes[] = ['texte' => $visiteur['libelle'].' — '.VisiteurDePassage::invitation($visiteur['role']), 'cle' => $visiteur['cle']];
                 }
             }
 

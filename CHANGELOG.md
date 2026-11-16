@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Un voyageur à l'Auberge, un prêtre au Temple.** Quand une devinette (ou l'oracle) de ce lieu est encore à jouer, une silhouette de
+  passage se tient devant le bâtiment, avec une fiche qui invite (« Une devinette, étranger ? ») et mène au bâtiment. Elle s'en
+  va quand tout est joué. **Elle ne dit rien de l'énigme** : ni énoncé, ni réponse. C'est du décor, sans nom, que ne rejoue pas la
+  quinzaine passée.
 - **Les aides ont une voix.** À la Maison des scribes, l'Oraculaire en poste **souffle** sous la devinette quelle réponse
   n'est pas la bonne (« Hori l'oraculaire souffle : ce n'est pas « … » ») ; la clé de lecture dit **qui a appris combien de
   signes** (le Déchiffreur, Thot) ; et l'explication d'une énigme est **dite par le chef des scribes**, mot pour mot. Rien de
