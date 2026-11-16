@@ -84,6 +84,13 @@
             <p class="pointer-events-none rounded-sm bg-sable-50/80 px-2 py-0.5 text-xs text-encre-600">
                 Image reconstituée — le jeu ne suit pas chaque habitant.
             </p>
+            {% if gensDeLaVille.jour %}
+                <p class="rounded-sm border border-terre-500/40 bg-sable-50/90 px-2 py-1 text-xs text-encre-700" role="status">
+                    Jour {{ gensDeLaVille.jour }} de la quinzaine passée, {{ gensDeLaVille.momentLibelle|lower }}.
+                    <a href="{{ path('app_partie_carte', {id: partie.id, vue: 'ville'}) }}" data-turbo-frame="_top"
+                       class="text-lapis-500 underline underline-offset-2">Revenir à maintenant</a>
+                </p>
+            {% endif %}
         </div>
 
         {% if gensDeLaVille.auxChamps > 0 %}

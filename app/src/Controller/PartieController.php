@@ -56,6 +56,7 @@ use App\Game\Mission;
 use App\Game\MissionCatalogue;
 use App\Game\MissionFermee;
 use App\Game\ModeDivin;
+use App\Game\MomentDeLaJournee;
 use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
@@ -253,11 +254,18 @@ final class PartieController extends AbstractController
         $cle = (string) $request->query->get('cle', '');
         $fiche = '' === $cle ? null : ($gens->fiche($partie, $cle) ?? throw $this->createNotFoundException('Personne ne répond à ce nom.'));
 
+        $jour = $request->query->has('jour') ? $request->query->getInt('jour') : null;
+        $moment = $request->query->getInt('moment', 1);
+
         return $this->render('fenetre/gens.html.twig', [
             'partie' => $partie,
             'ville' => $partie->getVille(),
             'fiche' => $fiche,
-        ] + $gens->pour($partie));
+            'cle' => '' === $cle ? null : $cle,
+            // La quinzaine passée, à rejouer : sa frise, ses jours, ce qui s'y est passé.
+            'frise' => $gens->frise($partie),
+            'moments' => MomentDeLaJournee::cases(),
+        ] + $gens->pour($partie, $jour, $moment));
     }
 
     /**
@@ -1265,6 +1273,9 @@ final class PartieController extends AbstractController
         $zones = $this->zonesTrieesPourLIsometrie($ville);
         // La ville vue d'en haut remplace le territoire (`?vue=ville`).
         $enVille = 'ville' === $request->query->get('vue');
+        // Un jour de la quinzaine passée, à rejouer sur la ville (`?jour=4&moment=1`) : une
+        // reconstitution, que `GensDeLaVille` ignore si la trace n'a rien à rejouer.
+        $jourDemande = $request->query->has('jour') ? $request->query->getInt('jour') : null;
 
         $ancienne = $this->zoneDemandee($zones, $request->query->get('zone'));
         if (null !== $ancienne && !$request->query->has('ouvre')) {
@@ -1289,7 +1300,7 @@ final class PartieController extends AbstractController
             'vueDeLaVille' => $enVille ? $vueDeLaVille->pour($partie) : null,
             // Les silhouettes posées sur la ville vue d'en haut : une
             // représentation, calculée à la volée (`GensDeLaVille`).
-            'gensDeLaVille' => $enVille ? $gensDeLaVille->pour($partie) : null,
+            'gensDeLaVille' => $enVille ? $gensDeLaVille->pour($partie, $jourDemande, $request->query->getInt('moment', 1)) : null,
             // La case dont la fenêtre est ouverte, pour la surligner.
             'zoneDetaillee' => $this->zoneDeLOuverture($zones, $chemin),
             // Les signaux et les expéditions en route se lisent dans la barre

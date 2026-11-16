@@ -753,7 +753,17 @@ règles, elle n'en pose aucune : un chef se voit à son bâtiment **seulement s'
 un Medjaÿ est debout à la Caserne s'il est disponible et couché au Quartier s'il est blessé, **un bâtiment à l'arrêt
 n'a aucun travailleur à l'écran** (`Effectifs::repartir()`, `affectes === 0`), des bras sans poste (`oisifs`) traînent au
 Marché, et un malade (`City::malades()`) se couche parmi les maisons. **Les désignés d'abord** : au plafond de 40
-silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **Seuls les chefs, les Medjaÿ, le chef de famille et le
+silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **La quinzaine passée se rejoue, et c'est une reconstitution**
+(`Choregraphie`, `PhotoDeLaVille`, `DifferenceDeQuinzaine`, `TraceDeQuinzaine`). Le jeu **garde**, pour les trois dernières
+quinzaines, la photographie de la ville au début (`InstantaneDeQuinzaine`) et les faits (`FaitDeMonde`) ; il **ne garde aucune
+scène** — la chorégraphie se recalcule, identique à chaque lecture. Cinq règles, dont dépend la confiance qu'on lui doit :
+**une scène illustre un fait, elle n'en crée pas** (sans fait, une routine de métier) ; **le jour n'a aucune valeur
+mécanique** — qu'un convoi parte le quatrième ou le neuvième jour est une mise en scène, stable et sans conséquence ; **l'ordre
+du cycle est respecté** (un convoi repart après être rentré, un chantier s'achève le dernier jour) ; on ne montre **pas** ce que
+le jeu ne tient pas ; **le film est identique** à chaque lecture. **Les faits se déduisent de deux photographies**, avant et
+après, **jamais d'un texte du journal** : un chantier disparu s'est achevé, un convoi qui repart a un retour plus lointain,
+un chef qui n'est plus en poste est parti — comme les écarts du récapitulatif. **Seuls les chefs, les Medjaÿ, le chef de
+famille et le
 rival sont de vraies personnes** : les maisons et les travailleurs sont dits *représentatifs* — le jeu compte des
 habitants (`Population`), pas des individus. La liste « Les gens de la ville » est la voie équivalente du visuel, et
 une fiche dont la clé ne désigne rien **dans cette ville** (un chef d'une autre partie, une maison inexistante) rend

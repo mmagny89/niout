@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Fenetre;
 
+use App\Game\RoleDeFigure;
 use App\Game\TypeDeBatiment;
 
 /**

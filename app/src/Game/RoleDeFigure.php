@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Fenetre;
+namespace App\Game;
 
 /**
  * Qui l'on voit sur la ville vue d'en haut, et de quelle silhouette

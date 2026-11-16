@@ -18,6 +18,8 @@ final readonly class PassageDeCycle
 {
     public function __construct(
         private Prenoms $prenoms,
+        private PhotoDeLaVille $photo,
+        private TraceDeQuinzaine $trace,
         private Successions $successions,
         private Chantiers $chantiers,
         private Explorations $explorations,
@@ -62,6 +64,11 @@ final readonly class PassageDeCycle
      */
     public function passerEnDetail(GameSave $partie): array
     {
+        // La ville au début de la quinzaine : ce que la trace garde pour pouvoir la
+        // rejouer, et ce à quoi on comparera la ville de la fin pour en tirer les
+        // faits. Avant tout le reste, sans quoi elle ne serait plus celle du début.
+        $avant = $this->photo->prendre($partie);
+
         $de = static fn (CategorieDEvenement $categorie, array $messages): array => array_map(
             static fn (string $texte): array => ['categorie' => $categorie, 'texte' => $texte],
             array_values($messages),
@@ -191,6 +198,10 @@ final readonly class PassageDeCycle
         // En dernier : la mission peut s'être accomplie dans cette quinzaine,
         // et il faut que tout ce qui la mesure soit déjà à jour.
         $evenements = [...$evenements, ...$de(CategorieDEvenement::Royaume, $this->achevement->verifier($partie))];
+
+        // La quinzaine qui vient de passer, rangée pour qu'on la rejoue : même
+        // `flush` que le reste, jamais seule.
+        $this->trace->enregistrer($partie, $avant, $this->photo->prendre($partie));
 
         $this->entityManager->flush();
 

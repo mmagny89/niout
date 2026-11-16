@@ -17,6 +17,8 @@
             Image reconstituée : le jeu ne suit pas chaque habitant, seulement ses chefs, ses Medjaÿ et son rival.
         </p>
 
+        {{ include('partie/_frise_de_la_quinzaine.html.twig') }}
+
         {% if fiche %}
             <section class="mt-5 rounded-sm border border-ocre-500/30 bg-sable-50 p-4" aria-labelledby="fiche-titre">
                 <p class="text-xs font-medium uppercase tracking-wide text-encre-500">{{ fiche.sousTitre }}</p>
@@ -48,8 +50,26 @@
                 {% endif %}
             </section>
 
+            {# Son journal : ce que la chorégraphie lui fait faire, jour après jour. #}
+            {% if fiche.journal %}
+                <section class="mt-5" aria-labelledby="journal-titre">
+                    <h3 id="journal-titre" class="text-xs font-medium uppercase tracking-wide text-encre-500">Sa quinzaine passée, jour par jour</h3>
+                    <p class="mt-1 text-sm text-encre-600">Reconstituée : le jeu ne suit pas ses journées.</p>
+                    <ol class="mt-2 list-none space-y-1.5 p-0 text-sm" data-chiffres>
+                        {% for ligne in fiche.journal %}
+                            <li class="rounded-sm border px-3 py-1.5 {{ ligne.jour == jour ? 'border-terre-500 bg-ocre-300/30' : 'border-ocre-500/20' }}"
+                                {{ ligne.jour == jour ? 'aria-current="true"' }}>
+                                <span class="font-medium text-encre-900">Jour {{ ligne.jour }}</span>
+                                {% if ligne.fait %}<span class="text-or-500" aria-label="jour marquant">★</span>{% endif %}
+                                <span class="text-encre-700"> — {{ ligne.lignes|join(' ; ') }}</span>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                </section>
+            {% endif %}
+
             <p class="mt-4">
-                <a href="{{ path('app_partie_gens', {id: partie.id}) }}"
+                <a href="{{ path('app_partie_gens', {id: partie.id, jour: jour, moment: jour ? moment : null}) }}"
                    class="inline-flex min-h-11 items-center text-sm text-lapis-500 underline-offset-2 hover:underline
                           focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
                     ← Tous les gens de la ville
