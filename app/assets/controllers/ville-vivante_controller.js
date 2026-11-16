@@ -20,14 +20,23 @@ import { Controller } from '@hotwired/stimulus';
  * jour) ; « rapide » la fait en 30 s, « très rapide » en 10 s. Les points sont datés
  * en moments (quatre par jour) : un offset est `t / moments`.
  *
+ * **Les conversations.** Le serveur a écrit chaque réplique et dit où se tient chacun ; ce
+ * contrôleur ne fait que **montrer des bulles**. Elles se montrent quand la lecture est arrêtée sur
+ * un moment (au curseur, ou en pause), toutes ensemble ; et, si l'on a coché « Lire les
+ * conversations », la lecture **s'arrête d'elle-même** le temps de lire chaque réplique — à
+ * 55 ms par caractère, entre 1,8 s et 4,5 s — puis repart. Lire à 4 s par jour est impossible, et
+ * cela vaut mieux qu'une bulle qui clignote.
+ *
  * **Politesse.** La lecture se met en pause quand l'onglet n'est plus visible, et quand
  * on clique une silhouette pour lire sa fiche. Le suivi met une silhouette en valeur
  * et atténue les autres : il ne déplace rien.
  */
 const MS_PAR_JOUR = 4000;
+// Un jour compte quatre moments ; on a fini de marcher après cette part du moment (`FilmDeLaVille::MARCHE`).
+const MS_PAR_MOMENT = MS_PAR_JOUR / 4;
 
 export default class extends Controller {
-    static targets = ['film', 'statique', 'barre', 'lecture', 'curseur', 'jour', 'suivi', 'maintenant', 'figure'];
+    static targets = ['film', 'statique', 'barre', 'lecture', 'curseur', 'jour', 'suivi', 'maintenant', 'figure', 'bulle', 'ecouter'];
     static values = { film: Object, libelles: Object };
 
     connect() {
@@ -36,6 +45,9 @@ export default class extends Controller {
         this.enLecture = false;
         this.vitesseCourante = 1;
         this.image = null;
+        this.enConversation = false;
+        this.jeton = 0;
+        this.prochaine = 0;
 
         if (!this.hasFilmValue || !Array.isArray(this.filmValue.figures) || !this.hasBarreTarget) {
             return;
@@ -79,6 +91,7 @@ export default class extends Controller {
             return;
         }
 
+        this.annulerLaConversation();
         this.animations.forEach((animation) => animation.pause());
         this.enLecture = false;
         this.arreterLaBoucle();
@@ -100,7 +113,12 @@ export default class extends Controller {
     aller() {
         this.entrerEnFilm();
         this.pause();
-        this.placer((Number(this.curseurTarget.value) - 1) * MS_PAR_JOUR);
+
+        // Le curseur compte des jours. On se pose sur la première conversation du jour s'il y en
+        // a une — c'est là qu'il y a quelque chose à lire —, sinon sur l'aube.
+        const debutDuJour = (Number(this.curseurTarget.value) - 1) * 4;
+        const parole = (this.filmValue.paroles || []).find((p) => p.t >= debutDuJour && p.t < debutDuJour + 4);
+        this.placer((parole ? parole.t + 0.5 : debutDuJour) * MS_PAR_MOMENT);
         this.afficher();
     }
 
@@ -118,6 +136,7 @@ export default class extends Controller {
 
     maintenant() {
         this.pause();
+        this.cacherLesBulles();
         this.filmTarget.hidden = true;
 
         if (this.hasStatiqueTarget) {
@@ -205,6 +224,8 @@ export default class extends Controller {
             this.placer(0);
         }
 
+        this.prochaine = this.premiereParoleApres(this.image.currentTime / MS_PAR_MOMENT);
+        this.cacherLesBulles();
         this.animations.forEach((animation) => {
             animation.playbackRate = this.vitesseCourante;
             animation.play();
@@ -218,6 +239,7 @@ export default class extends Controller {
         (this.animations || []).forEach((animation) => {
             animation.currentTime = milliseconde;
         });
+        this.prochaine = this.premiereParoleApres(milliseconde / MS_PAR_MOMENT);
     }
 
     // ---- L'affichage de la barre -----------------------------------------------------
@@ -226,6 +248,7 @@ export default class extends Controller {
         this.arreterLaBoucle();
         const tourner = () => {
             this.afficher();
+            this.verifierLesParoles();
             this.boucle = requestAnimationFrame(tourner);
         };
         this.boucle = requestAnimationFrame(tourner);
@@ -255,9 +278,116 @@ export default class extends Controller {
         this.curseurTarget.setAttribute('aria-valuetext', `Jour ${jour} sur ${film.jours}, ${film.libellesDesMoments[moment].toLowerCase()}`);
         this.jourTarget.textContent = `Jour ${jour} sur ${film.jours}`;
 
+        // Arrêté sur un moment, on voit ce qui s'y dit — toutes les bulles, ensemble.
+        if (!this.enLecture && !this.enConversation) {
+            this.montrerLesBullesDuMoment(Math.floor(this.image.currentTime / MS_PAR_MOMENT));
+        }
+
         const termine = !this.enLecture && this.image.currentTime >= film.jours * MS_PAR_JOUR - 1;
         this.lectureTarget.textContent = this.enLecture
             ? this.libellesValue.pause
             : (termine ? this.libellesValue.lecture : (this.enFilm ? this.libellesValue.reprendre : this.libellesValue.lecture));
+    }
+    // ---- Les conversations -----------------------------------------------------------
+
+    /**
+     * Les bulles d'une conversation, dans l'ordre de celui qui parle puis de celui qui répond.
+     */
+    bullesDe(rang) {
+        const bulles = this.bulleTargets.filter((bulle) => Number(bulle.dataset.parole) === rang);
+
+        return [bulles.find((b) => 'a' === b.dataset.cote), bulles.find((b) => 'b' === b.dataset.cote)];
+    }
+
+    premiereParoleApres(moment) {
+        const paroles = this.filmValue.paroles || [];
+        const rang = paroles.findIndex((parole) => parole.t + 0.45 > moment);
+
+        return -1 === rang ? paroles.length : rang;
+    }
+
+    montrerLesBullesDuMoment(moment) {
+        this.bulleTargets.forEach((bulle) => {
+            const parole = (this.filmValue.paroles || [])[Number(bulle.dataset.parole)];
+            bulle.style.opacity = parole && Math.floor(parole.t) === moment ? '1' : '0';
+        });
+    }
+
+    cacherLesBulles() {
+        this.bulleTargets.forEach((bulle) => {
+            bulle.style.opacity = '0';
+        });
+    }
+
+    /**
+     * Pendant la lecture, si l'on a demandé à lire les conversations : au moment où une
+     * conversation commence — ceux qui parlent ont fini de marcher —, on s'arrête.
+     */
+    verifierLesParoles() {
+        const paroles = this.filmValue.paroles || [];
+
+        if (!this.enLecture || this.enConversation || !this.hasEcouterTarget) {
+            return;
+        }
+
+        const moment = this.image.currentTime / MS_PAR_MOMENT;
+
+        while (this.prochaine < paroles.length && paroles[this.prochaine].t + 0.45 <= moment) {
+            const parole = paroles[this.prochaine];
+            const rang = this.prochaine;
+            ++this.prochaine;
+
+            // Une conversation déjà passée — on a sauté, ou accéléré — ne se lit pas après coup.
+            if (this.ecouterTarget.checked && moment < parole.t + 1) {
+                this.lire(rang, parole);
+
+                return;
+            }
+        }
+    }
+
+    async lire(rang, parole) {
+        const jeton = ++this.jeton;
+        const [bulleA, bulleB] = this.bullesDe(rang);
+        const duree = (texte) => Math.min(4500, Math.max(1800, texte.length * 55));
+        const attendre = (ms) => new Promise((resoudre) => setTimeout(resoudre, ms));
+
+        this.enConversation = true;
+        this.animations.forEach((animation) => animation.pause());
+        this.arreterLaBoucle();
+
+        if (bulleA) {
+            bulleA.style.opacity = '1';
+            await attendre(duree(parole.texteA));
+            bulleA.style.opacity = '0';
+        }
+
+        if (jeton !== this.jeton) {
+            return;
+        }
+
+        if (bulleB) {
+            bulleB.style.opacity = '1';
+            await attendre(duree(parole.texteB));
+            bulleB.style.opacity = '0';
+        }
+
+        // Annulée entre-temps (pause, curseur, retour) : on ne relance rien.
+        if (jeton !== this.jeton) {
+            return;
+        }
+
+        this.enConversation = false;
+
+        if (this.enLecture) {
+            this.animations.forEach((animation) => animation.play());
+            this.demarrerLaBoucle();
+        }
+    }
+
+    annulerLaConversation() {
+        ++this.jeton;
+        this.enConversation = false;
+        this.cacherLesBulles();
     }
 }

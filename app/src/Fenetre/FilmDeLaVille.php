@@ -48,6 +48,8 @@ use App\Game\TypeDeBatiment;
  *     symbole: string,
  *     points: list<Point>,
  * }
+ * @phpstan-type Bulle array{i: int, x: float, y: float}
+ * @phpstan-type ParoleDuFilm array{t: float, nature: string, texteA: string, texteB: string, a: Bulle, b: Bulle}
  * @phpstan-type Film array{
  *     jours: int,
  *     moments: int,
@@ -55,6 +57,7 @@ use App\Game\TypeDeBatiment;
  *     largeur: float,
  *     libellesDesMoments: list<string>,
  *     figures: list<FigureDuFilm>,
+ *     paroles: list<ParoleDuFilm>,
  * }
  */
 final readonly class FilmDeLaVille
@@ -88,6 +91,8 @@ final readonly class FilmDeLaVille
         $pas = $reconstitution['film']['pas'];
         /** @var list<array{cle: string, role: string, libelle: string, lieu: ?string, couchee: bool}> $candidats */
         $candidats = $reconstitution['photo']['candidats'];
+        /** @var list<array{jour: int, moment: int, lieu: string, a: int, b: int, situation: string, nature: string, libelleA: string, libelleB: string, texteA: string, texteB: string}> $paroles */
+        $paroles = $reconstitution['film']['paroles'];
 
         return self::construire(
             $candidats,
@@ -95,17 +100,19 @@ final readonly class FilmDeLaVille
             (int) $reconstitution['film']['jours'],
             $this->gens->lotsDresses($partie),
             (int) $partie->getId(),
+            $paroles,
         );
     }
 
     /**
-     * @param list<array{cle: string, role: string, libelle: string, lieu: ?string, couchee: bool}>                          $candidats
-     * @param array<string, array<int, array<int, array{lieu: ?string, geste: GesteDeLaVille, fait: mixed, couchee: bool}>>> $pas
-     * @param array<string, array{x: int, y: int, classe: string, type: ?TypeDeBatiment}>                                    $lots
+     * @param list<array{cle: string, role: string, libelle: string, lieu: ?string, couchee: bool}>                                                                                    $candidats
+     * @param array<string, array<int, array<int, array{lieu: ?string, geste: GesteDeLaVille, fait: mixed, couchee: bool}>>>                                                           $pas
+     * @param array<string, array{x: int, y: int, classe: string, type: ?TypeDeBatiment}>                                                                                              $lots
+     * @param list<array{jour: int, moment: int, lieu: string, a: int, b: int, situation: string, nature: string, libelleA: string, libelleB: string, texteA: string, texteB: string}> $paroles
      *
      * @return Film
      */
-    public static function construire(array $candidats, array $pas, int $jours, array $lots, int $graine): array
+    public static function construire(array $candidats, array $pas, int $jours, array $lots, int $graine, array $paroles = []): array
     {
         $moments = $jours * 4;
         $occupation = [];
@@ -158,7 +165,69 @@ final readonly class FilmDeLaVille
             'largeur' => round(GensDeLaVille::LARGEUR_DEBOUT / EmplacementsDeLaVille::LARGEUR * 100, 3),
             'libellesDesMoments' => array_map(static fn (MomentDeLaJournee $m): string => $m->libelle(), MomentDeLaJournee::cases()),
             'figures' => $figures,
+            'paroles' => self::bulles($figures, $paroles),
         ];
+    }
+
+    /**
+     * Les conversations, avec **où se tient chacun** quand il parle : à l'instant où l'on
+     * a fini de marcher, sa dernière position connue. La bulle se pose au-dessus.
+     *
+     * @param list<FigureDuFilm>                                                                                                                                                       $figures
+     * @param list<array{jour: int, moment: int, lieu: string, a: int, b: int, situation: string, nature: string, libelleA: string, libelleB: string, texteA: string, texteB: string}> $paroles
+     *
+     * @return list<ParoleDuFilm>
+     */
+    private static function bulles(array $figures, array $paroles): array
+    {
+        $parIndice = [];
+
+        foreach ($figures as $figure) {
+            $parIndice[$figure['i']] = $figure['points'];
+        }
+
+        $bulles = [];
+
+        foreach ($paroles as $parole) {
+            if (!isset($parIndice[$parole['a']], $parIndice[$parole['b']])) {
+                continue;
+            }
+
+            $debut = (float) (($parole['jour'] - 1) * 4 + $parole['moment']);
+            $instant = $debut + self::MARCHE + 0.05;
+            $bulles[] = [
+                't' => $debut,
+                'nature' => $parole['nature'],
+                'texteA' => $parole['texteA'],
+                'texteB' => $parole['texteB'],
+                'a' => ['i' => $parole['a']] + self::positionAu($parIndice[$parole['a']], $instant),
+                'b' => ['i' => $parole['b']] + self::positionAu($parIndice[$parole['b']], $instant),
+            ];
+        }
+
+        return $bulles;
+    }
+
+    /**
+     * Où est une silhouette à un instant : le dernier de ses points qui n'est pas dans le futur.
+     *
+     * @param list<Point> $points
+     *
+     * @return array{x: float, y: float}
+     */
+    private static function positionAu(array $points, float $instant): array
+    {
+        $dernier = $points[0];
+
+        foreach ($points as $point) {
+            if ($point[0] > $instant) {
+                break;
+            }
+
+            $dernier = $point;
+        }
+
+        return ['x' => $dernier[1], 'y' => $dernier[2]];
     }
 
     /**

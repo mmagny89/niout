@@ -46,6 +46,13 @@ use App\Entity\Medjay;
  */
 final readonly class PhotoDeLaVille
 {
+    /**
+     * Combien de silhouettes au plus : la liste d'une photographie peut être plus longue,
+     * la ville et le film n'en montrent pas davantage — et les conversations ne se tiennent
+     * qu'entre elles.
+     */
+    public const int PLAFOND_DE_FIGURES = 40;
+
     public const int MAISONS_MONTREES = 6;
 
     public const int TRAVAILLEURS_PAR_BATIMENT = 3;

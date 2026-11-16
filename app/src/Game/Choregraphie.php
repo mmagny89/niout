@@ -32,7 +32,8 @@ namespace App\Game;
  * @phpstan-import-type Photo from PhotoDeLaVille
  * @phpstan-import-type Fait from DifferenceDeQuinzaine
  *
- * @phpstan-type Pas array{lieu: ?string, geste: GesteDeLaVille, fait: ?TypeDeFait, couchee: bool}
+ * @phpstan-type Pas array{lieu: ?string, geste: GesteDeLaVille, fait: ?TypeDeFait, couchee: bool, parole: ?array{texte: string, nature: string, avec: string}}
+ * @phpstan-type Parole array{jour: int, moment: int, lieu: string, a: int, b: int, situation: string, nature: string, libelleA: string, libelleB: string, texteA: string, texteB: string}
  */
 final class Choregraphie
 {
@@ -40,6 +41,15 @@ final class Choregraphie
      * Où l'on rentre le soir : le Quartier, ou la Résidence pour la famille.
      */
     private const string CHEZ_SOI = 'quartier_habitation';
+
+    /**
+     * Combien de conversations au plus par jour, et la chance que deux silhouettes qui se
+     * trouvent au même endroit se parlent. **Valeurs inventées** : assez pour qu'on en voie,
+     * pas assez pour que la ville bavarde sans fin et que chaque réplique s'use.
+     */
+    private const int PAROLES_PAR_JOUR = 3;
+
+    private const int CHANCE_DE_PAROLE = 25;
 
     /**
      * @param Photo      $photo
@@ -51,6 +61,7 @@ final class Choregraphie
      *     evenements: array<int, list<string>>,
      *     enCours: list<string>,
      *     jourDeFete: ?int,
+     *     paroles: list<Parole>,
      * }
      */
     public static function pour(array $photo, array $faits, int $graine): array
@@ -71,6 +82,17 @@ final class Choregraphie
                 for ($moment = 0; $moment <= 3; ++$moment) {
                     $pas[$candidat['cle']][$jour][$moment] = self::pasDe($candidat, $jour, $moment, $contexte);
                 }
+            }
+        }
+
+        // Les conversations : deux silhouettes au même endroit, au même moment, qui se parlent.
+        ['paroles' => $paroles, 'dites' => $dites] = self::paroles($photo, $pas, $contexte, $jours, $graine);
+
+        foreach ($dites as $dite) {
+            $existant = $pas[$dite['cle']][$dite['jour']][$dite['moment']] ?? null;
+
+            if (null !== $existant) {
+                $pas[$dite['cle']][$dite['jour']][$dite['moment']] = [...$existant, 'parole' => $dite['parole']];
             }
         }
 
@@ -97,6 +119,7 @@ final class Choregraphie
             'evenements' => $evenements,
             'enCours' => $enCours,
             'jourDeFete' => $contexte['fete'],
+            'paroles' => $paroles,
         ];
     }
 
@@ -121,7 +144,7 @@ final class Choregraphie
                     continue;
                 }
 
-                $cle = ($pas['lieu'] ?? '-').'|'.$pas['geste']->value.'|'.(int) $pas['couchee'];
+                $cle = ($pas['lieu'] ?? '-').'|'.$pas['geste']->value.'|'.(int) $pas['couchee'].'|'.($pas['parole']['texte'] ?? '');
                 $groupes[$cle] ??= ['pas' => $pas, 'moments' => []];
                 $groupes[$cle]['moments'][] = MomentDeLaJournee::from($moment);
                 $fait = $fait || null !== $pas['fait'];
@@ -134,7 +157,14 @@ final class Choregraphie
                 $geste = $groupe['pas']['geste']->libelle();
                 $ou = null !== $lieu && !\in_array($groupe['pas']['geste'], [GesteDeLaVille::Chez, GesteDeLaVille::Habite], true) ? ' — '.$lieu : '';
                 $quand = 4 === \count($groupe['moments']) ? 'toute la journée' : implode(', ', array_map(static fn (MomentDeLaJournee $m): string => $m->court(), $groupe['moments']));
-                $lignes[] = \sprintf('%s%s (%s)', $geste, $ou, $quand);
+                $ligne = \sprintf('%s%s (%s)', $geste, $ou, $quand);
+
+                // Ce qu'elle a dit, quand elle a parlé : **le même texte que la bulle**, pour qui ne voit pas l'image.
+                if (null !== $groupe['pas']['parole']) {
+                    $ligne .= \sprintf(' — dit à %s : « %s »', $groupe['pas']['parole']['avec'], $groupe['pas']['parole']['texte']);
+                }
+
+                $lignes[] = $ligne;
             }
 
             $journal[] = ['jour' => $jour, 'lignes' => [] === $lignes ? ['N\'est plus en ville.'] : $lignes, 'fait' => $fait];
@@ -192,6 +222,164 @@ final class Choregraphie
     private static function hachage(int $graine, array $fait, int $rang): int
     {
         return crc32($graine.'|'.$fait['type']->value.'|'.($fait['acteur'] ?? '').'|'.($fait['lieu'] ?? '').'|'.$rang);
+    }
+
+    /**
+     * Les conversations de la quinzaine : deux silhouettes au même endroit, au même moment,
+     * se disent quelques mots (`Dialogues`).
+     *
+     * **Ce n'est jamais un fait** : personne ne « parle » dans l'état du jeu. C'est de la
+     * mise en scène, qui n'a de valeur que si ce qui se dit est vrai — `situations()` ne
+     * propose que des situations que la quinzaine a réellement vécues. Les silhouettes qui
+     * jouent un fait ne bavardent pas (sauf le jour de fête, où la procession se parle) ; les
+     * alités non plus ; et personne ne parle chez soi, à l'aube ni au retour.
+     *
+     * @param Photo                                      $photo
+     * @param array<string, array<int, array<int, Pas>>> $pas
+     * @param array<string, mixed>                       $c
+     *
+     * @return array{paroles: list<Parole>, dites: list<array{cle: string, jour: int, moment: int, parole: array{texte: string, nature: string, avec: string}}>}
+     */
+    private static function paroles(array $photo, array $pas, array $c, int $jours, int $graine): array
+    {
+        $candidats = \array_slice($photo['candidats'], 0, PhotoDeLaVille::PLAFOND_DE_FIGURES);
+        $paroles = [];
+        $dites = [];
+
+        for ($jour = 1; $jour <= $jours; ++$jour) {
+            $duJour = 0;
+
+            for ($moment = 1; $moment <= 3; ++$moment) {
+                $groupes = [];
+
+                foreach ($candidats as $i => $candidat) {
+                    $pasDuMoment = $pas[$candidat['cle']][$jour][$moment] ?? null;
+
+                    if (null !== $pasDuMoment && null !== $pasDuMoment['lieu'] && !$pasDuMoment['couchee'] && self::causant($pasDuMoment)) {
+                        $groupes[$pasDuMoment['lieu']][] = $i;
+                    }
+                }
+
+                ksort($groupes);
+
+                foreach ($groupes as $lieu => $indices) {
+                    $nombre = \count($indices);
+
+                    if ($nombre < 2 || $duJour >= self::PAROLES_PAR_JOUR) {
+                        continue;
+                    }
+
+                    $h = crc32($graine.'|parole|'.$jour.'|'.$moment.'|'.$lieu);
+
+                    if ($h % 100 >= self::CHANCE_DE_PAROLE) {
+                        continue;
+                    }
+
+                    $a = $indices[($h >> 8) % $nombre];
+                    $b = $indices[((int) array_search($a, $indices, true) + 1 + (($h >> 16) % ($nombre - 1))) % $nombre];
+
+                    // Celui qui n'a pas d'ouvrage est celui qui s'en plaint.
+                    if ('sans_poste' === $candidats[$b]['role'] && 'sans_poste' !== $candidats[$a]['role']) {
+                        [$a, $b] = [$b, $a];
+                    }
+
+                    $situations = self::situations($photo, $c, $jour, $moment, [$candidats[$a]['role'], $candidats[$b]['role']]);
+                    $situation = $situations[($h >> 4) % \count($situations)];
+                    $variables = [
+                        'fete' => $photo['fete']['libelle'] ?? '',
+                        'partenaire' => $photo['convois'][0]['partenaire'] ?? '',
+                        'rival' => $photo['rival']['libelle'] ?? '',
+                    ];
+                    $texteA = Dialogues::replique($situation, 'a', $h >> 12, $variables);
+                    $texteB = Dialogues::replique($situation, 'b', $h >> 20, $variables);
+                    $nature = Dialogues::nature($situation);
+
+                    $dites[] = ['cle' => $candidats[$a]['cle'], 'jour' => $jour, 'moment' => $moment, 'parole' => ['texte' => $texteA, 'nature' => $nature, 'avec' => $candidats[$b]['libelle']]];
+
+                    // Deux travailleurs du même bâtiment partagent une clé, donc un journal : celui qui parle le garde.
+                    if ($candidats[$a]['cle'] !== $candidats[$b]['cle']) {
+                        $dites[] = ['cle' => $candidats[$b]['cle'], 'jour' => $jour, 'moment' => $moment, 'parole' => ['texte' => $texteB, 'nature' => $nature, 'avec' => $candidats[$a]['libelle']]];
+                    }
+
+                    $paroles[] = [
+                        'jour' => $jour, 'moment' => $moment, 'lieu' => (string) $lieu, 'a' => $a, 'b' => $b,
+                        'situation' => $situation, 'nature' => $nature,
+                        'libelleA' => $candidats[$a]['libelle'], 'libelleB' => $candidats[$b]['libelle'],
+                        'texteA' => $texteA, 'texteB' => $texteB,
+                    ];
+                    ++$duJour;
+                }
+            }
+        }
+
+        return ['paroles' => $paroles, 'dites' => $dites];
+    }
+
+    /**
+     * Qui peut causer : qui est dehors, à ses affaires, sans scène de fait à jouer — sauf
+     * la procession, que tout le monde suit en parlant.
+     *
+     * @param Pas $pas
+     */
+    private static function causant(array $pas): bool
+    {
+        return (null === $pas['fait'] || TypeDeFait::Fete === $pas['fait'])
+            && \in_array($pas['geste'], [
+                GesteDeLaVille::Poste, GesteDeLaVille::Course, GesteDeLaVille::Visite, GesteDeLaVille::Detente,
+                GesteDeLaVille::Procession, GesteDeLaVille::Oisif, GesteDeLaVille::Corvee, GesteDeLaVille::Ronde,
+                GesteDeLaVille::Habite,
+            ], true);
+    }
+
+    /**
+     * Ce dont ces deux-là peuvent parler : **seulement ce qui est vrai** cette quinzaine, plus
+     * la saison — toujours vraie — et une ambiance, qui ne dit rien.
+     *
+     * @param Photo                $photo
+     * @param array<string, mixed> $c
+     * @param list<string>         $roles
+     *
+     * @return non-empty-list<string>
+     */
+    private static function situations(array $photo, array $c, int $jour, int $moment, array $roles): array
+    {
+        $situations = [];
+
+        // La fête se dit le matin, à la procession : l'après-midi, elle est derrière.
+        if ($jour === $c['fete'] && 1 === $moment) {
+            $situations[] = 'fete';
+        }
+
+        $fievre = ($photo['epidemie'] && !(null !== $c['epidemieFinie'] && $jour >= $c['epidemieFinie']))
+            || (null !== $c['epidemieEclate'] && $jour >= $c['epidemieEclate']['jour']);
+
+        if ($fievre) {
+            $situations[] = 'fievre';
+        }
+
+        if ([] !== $photo['chantiers']) {
+            $situations[] = 'chantier';
+        }
+
+        if ([] !== $photo['convois']) {
+            $situations[] = 'convoi';
+        }
+
+        if (null !== $photo['rival'] && (null === $c['rivalParti'] || $jour < $c['rivalParti'])) {
+            $situations[] = 'rival';
+        }
+
+        if (\in_array('sans_poste', $roles, true)) {
+            $situations[] = 'sans_ouvrage';
+        }
+
+        if (null !== $photo['saison']) {
+            $situations[] = 'saison_'.$photo['saison'];
+        }
+
+        $situations[] = 3 === $moment ? 'ambiance_soir' : 'ambiance';
+
+        return $situations;
     }
 
     /**
@@ -521,6 +709,6 @@ final class Choregraphie
      */
     private static function pas(?string $lieu, GesteDeLaVille $geste, ?TypeDeFait $fait = null, bool $couchee = false): array
     {
-        return ['lieu' => $lieu, 'geste' => $geste, 'fait' => $fait, 'couchee' => $couchee];
+        return ['lieu' => $lieu, 'geste' => $geste, 'fait' => $fait, 'couchee' => $couchee, 'parole' => null];
     }
 }

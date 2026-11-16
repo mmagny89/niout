@@ -86,6 +86,54 @@ final class FilmDeLaVilleTest extends WebTestCase
     }
 
     /**
+     * Dans une ville peuplée, on se parle : les bulles sont dans la page — cachées, absentes sous
+     * `md` —, la case « Lire les conversations » aussi, et **le texte de la fenêtre est celui de la
+     * bulle**, pour qui ne la voit pas.
+     */
+    public function testLesConversationsSontDansLaVilleEtDansLaFenetre(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancerConnecte($client, 'bulles@example.com');
+        $partie->getVille()->accueillir(60, 30, 6);
+        static::getContainer()->get(EntityManagerInterface::class)->flush();
+        static::getContainer()->get(PassageDeCycle::class)->passer($partie);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte?vue=ville', $partie->getId()));
+        $donnees = json_decode((string) $crawler->filter('[data-controller="ville-vivante"]')->attr('data-ville-vivante-film-value'), true, 512, \JSON_THROW_ON_ERROR);
+
+        self::assertNotEmpty($donnees['paroles'], 'Une ville peuplée, une quinzaine : on s\'est parlé.');
+        self::assertCount(2 * \count($donnees['paroles']), $crawler->filter('[data-ville-vivante-target="bulle"].max-md\:hidden'));
+        self::assertSelectorExists('input[data-ville-vivante-target="ecouter"][type="checkbox"]');
+
+        $parole = $donnees['paroles'][0];
+        $jour = intdiv((int) $parole['t'], 4) + 1;
+        $fenetre = $client->request('GET', \sprintf('/partie/%d/ville/gens?jour=%d&moment=1', $partie->getId(), $jour), [], [], ['HTTP_TURBO_FRAME' => 'fenetre']);
+
+        self::assertStringContainsString($parole['texteA'], $fenetre->filter('[role="status"]')->text(), 'La bulle se lit aussi dans la fenêtre.');
+        self::assertStringContainsString($parole['texteB'], $fenetre->filter('[role="status"]')->text());
+    }
+
+    /**
+     * Sans conversation, rien à cocher.
+     */
+    public function testSansConversationPasDeCaseACocher(): void
+    {
+        $client = static::createClient();
+        $partie = $this->lancerConnecte($client, 'sans-bulle@example.com');
+        static::getContainer()->get(PassageDeCycle::class)->passer($partie);
+
+        $crawler = $client->request('GET', \sprintf('/partie/%d/carte?vue=ville', $partie->getId()));
+        $donnees = json_decode((string) $crawler->filter('[data-controller="ville-vivante"]')->attr('data-ville-vivante-film-value'), true, 512, \JSON_THROW_ON_ERROR);
+
+        if ([] === $donnees['paroles']) {
+            self::assertSelectorNotExists('input[data-ville-vivante-target="ecouter"]');
+            self::assertSelectorNotExists('[data-ville-vivante-target="bulle"]');
+        } else {
+            self::assertSelectorExists('input[data-ville-vivante-target="ecouter"]');
+        }
+    }
+
+    /**
      * La page de contrôle des rues est un outil de développement : hors de cet
      * environnement, la route n'existe pas.
      */

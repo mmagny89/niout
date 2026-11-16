@@ -414,6 +414,196 @@ final class ChoregraphieTest extends TestCase
     }
 
     /**
+     * **On se parle quand on se croise** : deux silhouettes au même endroit, au même moment, dehors
+     * et à leurs affaires. Jamais plus de trois conversations par jour, jamais à l'aube.
+     */
+    public function testOnSeParleQuandOnSeCroise(): void
+    {
+        $photo = $this->photoDeFoule();
+        $film = Choregraphie::pour($photo, [], 3);
+
+        self::assertNotEmpty($film['paroles'], 'Dans une ville peuplée, on se parle.');
+
+        $parJour = [];
+
+        foreach ($film['paroles'] as $parole) {
+            $parJour[$parole['jour']] = ($parJour[$parole['jour']] ?? 0) + 1;
+
+            self::assertContains($parole['moment'], [1, 2, 3], 'Jamais à l\'aube.');
+            self::assertNotSame($parole['a'], $parole['b']);
+            self::assertNotSame('', $parole['texteA']);
+            self::assertNotSame('', $parole['texteB']);
+
+            // Les deux sont bien au même endroit, à ce moment-là.
+            foreach ([$parole['a'], $parole['b']] as $indice) {
+                $pas = $film['pas'][$photo['candidats'][$indice]['cle']][$parole['jour']][$parole['moment']];
+                self::assertSame($parole['lieu'], $pas['lieu']);
+                self::assertFalse($pas['couchee']);
+            }
+        }
+
+        self::assertNotEmpty($parJour);
+        self::assertLessThanOrEqual(3, max([0, ...array_values($parJour)]));
+    }
+
+    /**
+     * **Chacun dit ce qui est vrai** : une situation de fait n'est proposée que si le fait est
+     * vrai cette quinzaine. Sans fièvre, sans chantier, sans convoi, sans rival, on ne parle
+     * que de la saison — toujours vraie — ou d'ambiance.
+     */
+    public function testOnNeParleQueDeCeQuiEstVrai(): void
+    {
+        $situations = [];
+
+        foreach (range(1, 80) as $graine) {
+            foreach (Choregraphie::pour($this->photoDeFoule(), [], $graine)['paroles'] as $parole) {
+                $situations[$parole['situation']] = true;
+            }
+        }
+
+        self::assertNotEmpty($situations);
+
+        foreach (array_keys($situations) as $situation) {
+            self::assertContains($situation, ['saison_peret', 'ambiance', 'ambiance_soir'], 'Rien de faux : '.$situation);
+        }
+    }
+
+    /**
+     * Et quand le fait **est** vrai, on en parle : chaque situation apparaît avec son fait.
+     */
+    public function testOnParleDesFaitsVrais(): void
+    {
+        $photo = $this->photoDeFoule([
+            'epidemie' => true, 'malades' => 4,
+            'chantiers' => [['id' => 1, 'lieu' => 'temple']],
+            'convois' => [['id' => 1, 'partenaire' => 'Byblos', 'quinzaines' => 3]],
+            'rival' => ['cle' => 'rival', 'libelle' => 'Panehsy le marchand'],
+        ]);
+        $vues = [];
+
+        foreach (range(1, 120) as $graine) {
+            foreach (Choregraphie::pour($photo, [], $graine)['paroles'] as $parole) {
+                $vues[$parole['situation']] = $parole;
+            }
+        }
+
+        foreach (['fievre', 'chantier', 'convoi', 'rival'] as $situation) {
+            self::assertArrayHasKey($situation, $vues, $situation.' est vrai : on doit en parler.');
+            self::assertSame('fait', $vues[$situation]['nature']);
+        }
+
+        self::assertStringContainsString('Byblos', implode(' ', array_column(array_filter($vues, static fn (array $p): bool => 'convoi' === $p['situation']), 'texteA')) ?: 'Byblos');
+    }
+
+    /**
+     * Le jour de fête, la procession se parle ; un autre jour, jamais de fête.
+     */
+    public function testLaFeteNeSeDitQueLeJourDeFete(): void
+    {
+        $photo = $this->photoDeFoule(['fete' => ['cle' => 'opet', 'libelle' => 'Opet']]);
+        $faits = [$this->fait(TypeDeFait::Fete, null, null, ['libelle' => 'Opet', 'fete' => 'opet'])];
+        $vue = false;
+
+        foreach (range(1, 120) as $graine) {
+            $film = Choregraphie::pour($photo, $faits, $graine);
+
+            foreach ($film['paroles'] as $parole) {
+                if ('fete' === $parole['situation']) {
+                    $vue = true;
+                    self::assertSame($film['jourDeFete'], $parole['jour'], 'La fête ne se dit que le jour de fête.');
+                    self::assertSame('temple', $parole['lieu'], 'On en parle à la procession.');
+                    self::assertStringContainsString('Opet', $parole['texteA'].$parole['texteB'].implode('', [$parole['libelleA']]) ?: 'Opet');
+                }
+            }
+        }
+
+        self::assertTrue($vue);
+    }
+
+    /**
+     * Celui qui n'a pas d'ouvrage est celui qui s'en plaint — et seulement s'il y en a un.
+     */
+    public function testLeSansOuvrageSePlaintEtSeulSiIlYEnADeux(): void
+    {
+        $photo = $this->photoDeFoule(['candidats' => [
+            ...array_map(fn (int $i): array => $this->candidat('maison-'.$i, 'foyer', 'quartier_habitation'), range(1, 3)),
+            $this->candidat('sans-poste', 'sans_poste', 'marche'),
+            $this->candidat('sans-poste', 'sans_poste', 'marche'),
+        ]]);
+        $vue = false;
+
+        foreach (range(1, 120) as $graine) {
+            foreach (Choregraphie::pour($photo, [], $graine)['paroles'] as $parole) {
+                if ('sans_ouvrage' === $parole['situation']) {
+                    $vue = true;
+                    self::assertSame('sans-poste', $parole['libelleA'], 'C\'est lui qui se plaint.');
+                }
+            }
+        }
+
+        self::assertTrue($vue);
+
+        foreach (range(1, 60) as $graine) {
+            foreach (Choregraphie::pour($this->photoDeFoule(), [], $graine)['paroles'] as $parole) {
+                self::assertNotSame('sans_ouvrage', $parole['situation'], 'Personne n\'est sans ouvrage.');
+            }
+        }
+    }
+
+    /**
+     * Un alité ne bavarde pas ; et une silhouette qui joue un fait non plus.
+     */
+    public function testUnAliteNeBavardePasEtUnFaitPrimeSurLaParole(): void
+    {
+        $photo = $this->photoDeFoule();
+        $photo['candidats'][] = $this->candidat('maison-9', 'foyer', 'quartier_habitation', true);
+        $faits = [$this->fait(TypeDeFait::ChantierAcheve, 'grenier', 'chantier-1')];
+
+        foreach (range(1, 60) as $graine) {
+            $film = Choregraphie::pour($photo, $faits, $graine);
+
+            foreach ($film['paroles'] as $parole) {
+                $participants = array_map(static fn (int $i): string => $photo['candidats'][$i]['cle'], [$parole['a'], $parole['b']]);
+
+                self::assertNotContains('maison-9', $participants);
+
+                if ('grenier' === $parole['lieu'] && 15 === $parole['jour'] && \in_array($parole['moment'], [1, 2], true)) {
+                    self::fail('Un chantier s\'achève au Grenier ce jour-là : on n\'y bavarde pas.');
+                }
+            }
+        }
+    }
+
+    /**
+     * Ce qui s'est dit se lit dans le journal de celui qui l'a dit : **le même texte que la
+     * bulle**, avec à qui.
+     */
+    public function testLaParoleSeLitDansLeJournal(): void
+    {
+        $photo = $this->photoDeFoule();
+        $film = Choregraphie::pour($photo, [], 3);
+        $parole = $film['paroles'][0];
+        $cleA = $photo['candidats'][$parole['a']]['cle'];
+        $lignes = [];
+
+        foreach (Choregraphie::journal($film['pas'][$cleA]) as $jour) {
+            $lignes = [...$lignes, ...$jour['lignes']];
+        }
+
+        self::assertNotEmpty(array_filter($lignes, static fn (string $l): bool => str_contains($l, '« '.$parole['texteA'].' »') && str_contains($l, 'dit à '.$parole['libelleB'])));
+    }
+
+    /**
+     * Sans personne au même endroit, on ne se parle pas ; et la conversation se rejoue
+     * à l'identique.
+     */
+    public function testPersonneNeParleSeulEtLaConversationEstStable(): void
+    {
+        self::assertSame([], Choregraphie::pour($this->photo(), [], 3)['paroles'], 'Chacun est ailleurs : personne à qui parler.');
+        self::assertEquals(Choregraphie::pour($this->photoDeFoule(), [], 7)['paroles'], Choregraphie::pour($this->photoDeFoule(), [], 7)['paroles']);
+    }
+
+    /**
      * @param array<int, array<int, array{lieu: ?string, geste: GesteDeLaVille, fait: ?TypeDeFait, couchee: bool}>> $jours
      *
      * @return array{lieu: ?string, geste: GesteDeLaVille, fait: ?TypeDeFait, couchee: bool}|null
@@ -529,5 +719,29 @@ final class ChoregraphieTest extends TestCase
     private function fait(TypeDeFait $type, ?string $lieu = null, ?string $acteur = null, array $details = [], ?int $quantite = null): array
     {
         return ['type' => $type, 'lieu' => $lieu, 'acteur' => $acteur, 'quantite' => $quantite, 'details' => $details];
+    }
+
+    /**
+     * Une ville où l'on se croise : plusieurs travailleurs au même poste, plusieurs maisons au
+     * même quartier, un chef parmi eux.
+     *
+     * @param array<string, mixed> $surcharge
+     *
+     * @return Photo
+     */
+    private function photoDeFoule(array $surcharge = []): array
+    {
+        return $this->photo($surcharge + [
+            'candidats' => [
+                $this->candidat('chef-1', 'chef', 'grenier'),
+                $this->candidat('poste-grenier', 'travailleur', 'grenier'),
+                $this->candidat('poste-grenier', 'travailleur', 'grenier'),
+                $this->candidat('poste-grenier', 'travailleur', 'grenier'),
+                $this->candidat('maison-1', 'foyer', 'quartier_habitation'),
+                $this->candidat('maison-2', 'foyer', 'quartier_habitation'),
+                $this->candidat('maison-3', 'foyer', 'quartier_habitation'),
+                $this->candidat('maison-4', 'foyer', 'quartier_habitation'),
+            ],
+        ]);
     }
 }

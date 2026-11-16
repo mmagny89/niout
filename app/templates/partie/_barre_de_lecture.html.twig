@@ -51,6 +51,14 @@
         </select>
     </label>
 
+    {# Lire les conversations : la lecture s'arrête le temps de les lire. Hors du téléphone, où les bulles n'existent pas. #}
+    {% if filmDeLaVille.paroles %}
+        <label class="flex min-h-11 items-center gap-2 text-sm text-encre-700 max-md:hidden">
+            <input type="checkbox" data-ville-vivante-target="ecouter" class="size-5 accent-terre-500">
+            <span>Lire les conversations <span class="text-encre-500">(la lecture s'arrête)</span></span>
+        </label>
+    {% endif %}
+
     <button type="button" hidden data-ville-vivante-target="maintenant" data-action="ville-vivante#maintenant"
             class="inline-flex min-h-11 items-center rounded-sm border border-lapis-500/40 bg-sable-50 px-3 text-sm text-lapis-500
                    hover:bg-lapis-500/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">

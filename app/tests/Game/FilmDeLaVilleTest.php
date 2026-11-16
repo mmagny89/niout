@@ -160,6 +160,56 @@ final class FilmDeLaVilleTest extends TestCase
     }
 
     /**
+     * Les conversations du film : chacune a ses deux silhouettes, et la bulle se pose à l'endroit
+     * où elles se tiennent — dans le visuel, et sur le chemin que le film leur fait suivre.
+     */
+    public function testLesConversationsPortentLesBullesEtLeursPositions(): void
+    {
+        $candidats = [
+            ['cle' => 'chef-1', 'role' => 'chef', 'libelle' => 'Chef 1', 'lieu' => 'grenier', 'couchee' => false],
+            ['cle' => 'poste-grenier', 'role' => 'travailleur', 'libelle' => 'Travailleur', 'lieu' => 'grenier', 'couchee' => false],
+            ['cle' => 'poste-grenier', 'role' => 'travailleur', 'libelle' => 'Travailleur', 'lieu' => 'grenier', 'couchee' => false],
+            ['cle' => 'maison-1', 'role' => 'foyer', 'libelle' => 'Maison 1', 'lieu' => 'quartier_habitation', 'couchee' => false],
+            ['cle' => 'maison-2', 'role' => 'foyer', 'libelle' => 'Maison 2', 'lieu' => 'quartier_habitation', 'couchee' => false],
+        ];
+        $photo = [
+            'cycle' => 3, 'jours' => 15, 'saison' => 'peret', 'fete' => null, 'candidats' => $candidats,
+            'chantiers' => [], 'fabrications' => [], 'convois' => [], 'expeditions' => [],
+            'epidemie' => false, 'malades' => 0, 'maisons' => 0, 'chefs' => [], 'medjays' => [], 'rival' => null,
+        ];
+        $chore = Choregraphie::pour($photo, [], 4);
+        $lots = [];
+
+        foreach (EmplacementsDeLaVille::tous() as $lot) {
+            if (null !== $lot['type']) {
+                $lots[$lot['type']->value] = $lot;
+            }
+        }
+
+        $film = FilmDeLaVille::construire($candidats, $chore['pas'], 15, $lots, 4, $chore['paroles']);
+
+        self::assertCount(\count($chore['paroles']), $film['paroles']);
+        self::assertNotEmpty($film['paroles']);
+
+        $dernier = -1.0;
+
+        foreach ($film['paroles'] as $rang => $parole) {
+            self::assertGreaterThanOrEqual($dernier, $parole['t'], 'Dans l\'ordre du temps.');
+            $dernier = $parole['t'];
+
+            foreach (['a', 'b'] as $cote) {
+                self::assertLessThan(\count($film['figures']), $parole[$cote]['i']);
+                self::assertGreaterThanOrEqual(0.0, $parole[$cote]['x']);
+                self::assertLessThanOrEqual(100.0, $parole[$cote]['x']);
+                self::assertGreaterThanOrEqual(0.0, $parole[$cote]['y']);
+                self::assertLessThanOrEqual(100.0, $parole[$cote]['y']);
+            }
+
+            self::assertSame($chore['paroles'][$rang]['texteA'], $parole['texteA'], 'Le même texte que dans la fenêtre.');
+        }
+    }
+
+    /**
      * @param list<array{type: TypeDeFait, lieu: ?string, acteur: ?string, quantite: ?int, details: array<string, mixed>}> $faits
      *
      * @return array<string, mixed>

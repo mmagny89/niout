@@ -47,4 +47,25 @@
             </svg>
         </a>
     {% endfor %}
+
+    {# Les bulles des conversations : cachées, posées au-dessus de celui qui parle. Le contrôleur
+       les montre quand la lecture est arrêtée sur le moment, ou — si on l'a demandé — en
+       s'arrêtant pour qu'on les lise. **Du décor** : le texte est aussi dans la fenêtre, et sous
+       `md` elles sont absentes, trop petites pour se lire. #}
+    {% for parole in filmDeLaVille.paroles %}
+        {% set rang = loop.index0 %}
+        {% for cote in ['a', 'b'] %}
+            {% set qui = parole[cote] %}
+            {# Les deux bulles s'écartent l'une de l'autre : celui qui est le plus à gauche parle vers la
+               gauche, l'autre vers la droite — deux silhouettes voisines ne cachent pas leurs mots. #}
+            {% set versLaGauche = (parole.a.x <= parole.b.x) == ('a' == cote) %}
+            <div data-ville-vivante-target="bulle" data-parole="{{ rang }}" data-cote="{{ cote }}"
+                 class="pointer-events-none absolute w-max max-w-[13rem] rounded-sm border border-ocre-500/40 bg-sable-50 px-2 py-1 text-xs
+                        leading-snug text-encre-900 shadow-sm max-md:hidden"
+                 style="left: {{ qui.x + filmDeLaVille.largeur / 2 }}%; top: {{ qui.y }}%; transform: translate({{ versLaGauche ? '-100%' : '0' }}, calc(-100% - 4px));
+                        opacity: 0; z-index: 3000;">
+                {{ 'a' == cote ? parole.texteA : parole.texteB }}
+            </div>
+        {% endfor %}
+    {% endfor %}
 </div>

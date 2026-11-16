@@ -77,6 +77,22 @@
                 {% else %}
                     <p class="mt-1 text-encre-600">Un jour ordinaire : chacun à son métier.</p>
                 {% endif %}
+
+                {# Les conversations du jour, en texte : **les mêmes que les bulles** de la ville, pour qui
+                   ne les voit pas — téléphone, lecteur d'écran. Un fait dit vrai, ou une ambiance déclarée. #}
+                {% if frise.conversations[jour] is defined %}
+                    <p class="mt-3 text-xs font-medium uppercase tracking-wide text-encre-500">Ce qu'on s'est dit</p>
+                    <ul class="mt-1 list-none space-y-2 p-0">
+                        {% for conversation in frise.conversations[jour] %}
+                            <li class="text-encre-700">
+                                <span class="text-encre-500">{{ conversation.moment }}, {{ conversation.lieu|lower }}{{ 'ambiance' == conversation.nature ? ' (ambiance)' : '' }} :</span>
+                                {% for ligne in conversation.lignes %}
+                                    <br><span class="font-medium text-encre-900">{{ ligne.qui }}</span> — « {{ ligne.texte }} »
+                                {% endfor %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
             </div>
         {% endif %}
 
