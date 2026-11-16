@@ -233,7 +233,7 @@ final class TraceDeQuinzaineTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertCount(15, $crawler->filter('ol[class*="flex"] a[aria-label^="Jour "]'));
-        self::assertCount(1, $crawler->filter('a[aria-label="Jour 3"][aria-current="true"]'));
+        self::assertCount(1, $crawler->filter('a[aria-label^="Jour 3"][aria-current="true"]'));
         self::assertSelectorTextContains('body', 'sans valeur de règle');
         self::assertSelectorTextContains('body', 'Jour 3 sur 15');
 

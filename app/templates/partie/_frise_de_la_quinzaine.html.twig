@@ -12,6 +12,7 @@
    Variables : `frise` (la quinzaine, ou null), `jour` (le jour affiché, ou null pour
    « maintenant »), `moment`, `cle` (la fiche ouverte, ou null), `moments`. #}
 {% if frise %}
+    {% import 'partie/_icones_de_lecture.html.twig' as icones %}
     {% macro adresse(partie, jour, moment, cle) %}
         {{- path('app_partie_carte', {
             id: partie.id, vue: 'ville', jour: jour, moment: moment,
@@ -41,30 +42,66 @@
                     <a href="{{ _self.adresse(partie, j, moment, cle) }}" data-turbo-frame="_top"
                        {{ j == jour ? 'aria-current="true"' }}
                        title="Jour {{ j }}{{ j == frise.jourDeFete ? ' — jour de fête : ' ~ frise.fete : '' }}"
-                       aria-label="Jour {{ j }}{{ j == frise.jourDeFete ? ', jour de fête' : '' }}"
+                       aria-label="Jour {{ j }}{{ j == frise.jourDeFete ? ', jour de fête' : '' }}{{ frise.evenements[j] is defined ? ', des événements' : '' }}{{ frise.conversations[j] is defined ? ', des conversations' : '' }}"
                        class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm border px-2 text-sm
                               {{ j == jour ? 'border-terre-500 bg-ocre-300/40 text-encre-900' : 'border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20' }}
                               focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
-                        {{ j }}{% if j == frise.jourDeFete %}<span aria-hidden="true" class="ml-0.5 text-or-500">★</span>{% endif %}
+                        <span class="flex flex-col items-center leading-none">
+                            <span>{{ j }}{% if j == frise.jourDeFete %}<span aria-hidden="true" class="ml-0.5 text-or-500">★</span>{% endif %}</span>
+                            {# Ce que le jour porte : un point pour ce qui s'y est passé, un second pour ce qui s'y est dit. #}
+                            <span aria-hidden="true" class="mt-1 flex h-1.5 gap-0.5">
+                                {% if frise.evenements[j] is defined %}<span class="size-1.5 rounded-full bg-terre-500"></span>{% endif %}
+                                {% if frise.conversations[j] is defined %}<span class="size-1.5 rounded-full bg-lapis-500"></span>{% endif %}
+                            </span>
+                        </span>
                     </a>
                 </li>
             {% endfor %}
         </ol>
+        <p class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-encre-500" aria-hidden="true">
+            <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-terre-500"></span>un événement</span>
+            <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-lapis-500"></span>une conversation</span>
+            <span class="inline-flex items-center gap-1.5"><span class="text-or-500">★</span>jour de fête</span>
+        </p>
 
         {% if jour %}
-            <ol class="mt-2 flex list-none flex-wrap gap-1.5 p-0" aria-label="Moment de la journée">
-                {% for m in moments %}
-                    <li>
-                        <a href="{{ _self.adresse(partie, jour, m.value, cle) }}" data-turbo-frame="_top"
-                           {{ m.value == moment ? 'aria-current="true"' }}
-                           class="inline-flex min-h-11 items-center rounded-sm border px-3 text-sm
-                                  {{ m.value == moment ? 'border-terre-500 bg-ocre-300/40 text-encre-900' : 'border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20' }}
-                                  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
-                            {{ m.libelle }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ol>
+            {% set couleurs = ['#f4a261', '#f6d365', '#f0a030', '#4b5fa8'] %}
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                {% set precedent = jour > 1 ? jour - 1 : null %}
+                {% set suivant = jour < frise.jours ? jour + 1 : null %}
+                {% set bouton = 'inline-flex size-11 items-center justify-center rounded-sm border border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20
+                                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500' %}
+                {% if precedent %}
+                    <a href="{{ _self.adresse(partie, precedent, moment, cle) }}" data-turbo-frame="_top" aria-label="Revenir au jour précédent" title="Jour précédent" class="{{ bouton }}">
+                        {{ icones.icone('jour-precedent') }}
+                    </a>
+                {% else %}
+                    <span class="{{ bouton }} opacity-40" aria-hidden="true">{{ icones.icone('jour-precedent') }}</span>
+                {% endif %}
+
+                {% if suivant %}
+                    <a href="{{ _self.adresse(partie, suivant, moment, cle) }}" data-turbo-frame="_top" aria-label="Passer au jour suivant" title="Jour suivant" class="{{ bouton }}">
+                        {{ icones.icone('jour-suivant') }}
+                    </a>
+                {% else %}
+                    <span class="{{ bouton }} opacity-40" aria-hidden="true">{{ icones.icone('jour-suivant') }}</span>
+                {% endif %}
+                <ol class="flex list-none flex-wrap gap-1.5 p-0" aria-label="Moment de la journée">
+                    {% for m in moments %}
+                        <li>
+                            <a href="{{ _self.adresse(partie, jour, m.value, cle) }}" data-turbo-frame="_top"
+                               {{ m.value == moment ? 'aria-current="true"' }}
+                               class="inline-flex min-h-11 items-center gap-2 rounded-sm border px-3 text-sm
+                                      {{ m.value == moment ? 'border-terre-500 bg-ocre-300/40 text-encre-900' : 'border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20' }}
+                                      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
+                                <span aria-hidden="true" class="size-2.5 rounded-full" style="background-color: {{ couleurs[m.value] ?? '#999' }}"></span>
+                                {{ m.libelle }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ol>
+
+            </div>
 
             <div class="mt-4 rounded-sm border border-ocre-500/30 bg-sable-50 p-3 text-sm" role="status">
                 <p class="font-medium text-encre-900">Jour {{ jour }} sur {{ frise.jours }}</p>

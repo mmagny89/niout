@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Le rejeu de la quinzaine se commande par icônes, et se parcourt jour par jour.** Lecture, pause, jour précédent et suivant, vitesses et retour
+  à maintenant sont des pictogrammes ; la vitesse « Rapide » est choisie d'office. Le curseur des jours ne revient plus au jour d'avant quand on le
+  déplace une seconde fois. Dans la fenêtre, chaque jour de la frise marque ce qu'il porte (événement, conversation, fête), avec des flèches de jour en jour.
+
 - **On reconnaît des visages d'une partie à l'autre.** Les marchands rivaux et les chefs partis que vous avez croisés entrent dans la mémoire de votre
   lignée — douze au plus, le plus ancien cède. Une nouvelle partie en sème un seul, pas avant dix quinzaines : un marchand payé revient avec un accord de
   mémoire, un chef parti peut se présenter à une annonce. Aucune rancune ne se transmet, et courtisans et chefs de bande ne survivent pas à leur partie.

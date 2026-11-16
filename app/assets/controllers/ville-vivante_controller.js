@@ -17,7 +17,7 @@ import { Controller } from '@hotwired/stimulus';
  * rien, on n'anime rien, on ne montre aucune commande qui ne servirait pas.
  *
  * **Le temps.** Une quinzaine de 15 jours dure 60 s à la vitesse normale (4 s par
- * jour) ; « rapide » la fait en 30 s, « très rapide » en 10 s. Les points sont datés
+ * jour) ; « rapide » — la vitesse d'office — la fait en 30 s, « très rapide » en 10 s. Les points sont datés
  * en moments (quatre par jour) : un offset est `t / moments`.
  *
  * **Les conversations.** Le serveur a écrit chaque réplique et dit où se tient chacun ; ce
@@ -28,7 +28,7 @@ import { Controller } from '@hotwired/stimulus';
  * cela vaut mieux qu'une bulle qui clignote.
  *
  * **Après un passage de quinzaine** (`lancer`) : le film de la quinzaine qui vient de passer se joue tout
- * seul, à vitesse normale, quand on était sur la ville vue d'en haut — jamais pour qui demande moins de
+ * seul, à la vitesse choisie (rapide d'office), quand on était sur la ville vue d'en haut — jamais pour qui demande moins de
  * mouvement, ni si l'onglet est caché.
  *
  * **Politesse.** La lecture se met en pause quand l'onglet n'est plus visible, et quand
@@ -36,6 +36,8 @@ import { Controller } from '@hotwired/stimulus';
  * et atténue les autres : il ne déplace rien.
  */
 const MS_PAR_JOUR = 4000;
+// « Rapide » : la vitesse choisie d'office (le bouton marqué `aria-pressed` du gabarit doit dire la même chose).
+const VITESSE_PAR_DEFAUT = 2;
 // Un jour compte quatre moments ; à la mi-moment, chacun est arrivé (`FilmDeLaVille::MARCHE` et `AVANCE`).
 const MS_PAR_MOMENT = MS_PAR_JOUR / 4;
 
@@ -45,14 +47,14 @@ const TEINTES = ['rgb(255 226 210)', 'rgb(255 255 255)', 'rgb(255 242 214)', 'rg
 const PASTILLES = ['#f4a261', '#f6d365', '#f0a030', '#4b5fa8'];
 
 export default class extends Controller {
-    static targets = ['film', 'statique', 'barre', 'lecture', 'curseur', 'jour', 'suivi', 'maintenant', 'figure', 'bulle', 'ecouter', 'ciel', 'moment', 'momentPastille', 'momentTexte'];
+    static targets = ['film', 'statique', 'barre', 'lecture', 'iconeLecture', 'iconePause', 'precedent', 'suivant', 'curseur', 'jour', 'suivi', 'maintenant', 'figure', 'bulle', 'ecouter', 'ciel', 'moment', 'momentPastille', 'momentTexte'];
     static values = { film: Object, libelles: Object, lancer: Boolean };
 
     connect() {
         this.animations = null;
         this.enFilm = false;
         this.enLecture = false;
-        this.vitesseCourante = 1;
+        this.vitesseCourante = VITESSE_PAR_DEFAUT;
         this.image = null;
         this.enConversation = false;
         this.jeton = 0;
@@ -68,6 +70,7 @@ export default class extends Controller {
         }
 
         this.barreTarget.hidden = false;
+        this.verifierLesBornes();
         this.auChangementDeVisibilite = () => {
             if (document.hidden) {
                 this.pause();
@@ -75,7 +78,7 @@ export default class extends Controller {
         };
         document.addEventListener('visibilitychange', this.auChangementDeVisibilite);
 
-        // Revenu d'un passage de quinzaine : on joue le film qui vient de s'écrire, à vitesse normale.
+        // Revenu d'un passage de quinzaine : on joue le film qui vient de s'écrire.
         if (this.lancerValue && this.filmValue.jours > 0 && !document.hidden) {
             this.oublierLaDemande();
             requestAnimationFrame(() => {
@@ -146,15 +149,51 @@ export default class extends Controller {
     }
 
     aller() {
+        // Lu **avant** `pause()` : elle réaffiche le jour du film et écraserait le choix du curseur.
+        const jour = Number(this.curseurTarget.value);
+
         this.entrerEnFilm();
         this.pause();
 
         // Le curseur compte des jours. On se pose sur la première conversation du jour s'il y en
         // a une — c'est là qu'il y a quelque chose à lire —, sinon sur l'aube.
-        const debutDuJour = (Number(this.curseurTarget.value) - 1) * 4;
+        const debutDuJour = (jour - 1) * 4;
         const parole = (this.filmValue.paroles || []).find((p) => p.t >= debutDuJour && p.t < debutDuJour + 4);
         this.placer((parole ? parole.t + 0.5 : debutDuJour) * MS_PAR_MOMENT);
         this.afficher();
+    }
+
+    /**
+     * Les boutons « jour précédent » et « jour suivant » : un jour à la fois, sans toucher au curseur.
+     */
+    pas(evenement) {
+        const jour = Math.min(this.filmValue.jours, Math.max(1, this.jourCourant() + Number(evenement.currentTarget.dataset.pas)));
+
+        this.curseurTarget.value = String(jour);
+        this.aller();
+    }
+
+    jourCourant() {
+        return Number(this.curseurTarget.value);
+    }
+
+    verifierLesBornes() {
+        if (this.hasPrecedentTarget) {
+            this.precedentTarget.disabled = this.jourCourant() <= 1;
+            this.suivantTarget.disabled = this.jourCourant() >= this.filmValue.jours;
+        }
+    }
+
+    /**
+     * Le bouton de lecture : une icône (lecture ou pause) et un nom accessible qui dit ce qu'il fera.
+     */
+    montrerLaLecture(etat) {
+        const libelle = this.libellesValue[etat];
+
+        this.lectureTarget.setAttribute('aria-label', libelle);
+        this.lectureTarget.title = libelle;
+        this.iconeLectureTarget.hidden = 'pause' === etat;
+        this.iconePauseTarget.hidden = 'pause' !== etat;
     }
 
     suivre() {
@@ -186,7 +225,7 @@ export default class extends Controller {
             this.momentTarget.hidden = true;
         }
 
-        this.lectureTarget.textContent = this.libellesValue.lecture;
+        this.montrerLaLecture('lecture');
     }
 
     // ---- Le film ---------------------------------------------------------------------
@@ -326,9 +365,8 @@ export default class extends Controller {
         }
 
         const termine = !this.enLecture && this.image.currentTime >= film.jours * MS_PAR_JOUR - 1;
-        this.lectureTarget.textContent = this.enLecture
-            ? this.libellesValue.pause
-            : (termine ? this.libellesValue.lecture : (this.enFilm ? this.libellesValue.reprendre : this.libellesValue.lecture));
+        this.montrerLaLecture(this.enLecture ? 'pause' : (termine || !this.enFilm ? 'lecture' : 'reprendre'));
+        this.verifierLesBornes();
     }
 
     /**
