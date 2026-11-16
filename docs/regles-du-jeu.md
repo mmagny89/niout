@@ -746,6 +746,20 @@ Cinq pièges déjà payés, à ne pas refaire :
 
 ## Chefs, effectifs et recrutement
 
+**Un chef et un Medjaÿ portent un prénom, tiré une fois et gardé** (`Prenoms`, `Employee::prenom`,
+`Medjay::prenom`, décision de la joueuse du 2026-11-16, qui **remplace** « il n'a pas de nom »). La raison est
+double : un nom s'attache — c'est ce qui rend la ville habitée regardable —, et **un nom ne doit pas bouger sous
+les yeux du joueur**. D'où le choix de **le stocker** plutôt que de le déduire : déduit du rang, il se décalerait
+dès qu'un chef plus ancien part ; déduit de l'identifiant, il ne garantirait pas l'unicité avec si peu de
+prénoms. **Un prénom n'est porté qu'une fois dans une ville** (chefs, Medjaÿ, chef de famille, candidats d'une
+annonce ouverte, rival) ; fonds épuisé, on ajoute la **filiation** (« Hori, fils de Sennedjem »), qui est la
+manière dont les Égyptiens se distinguaient. Les Medjaÿ tirent dans le fonds **masculin**. Le fonds des gens
+**exclut les hauts fonctionnaires identifiés** de `PrenomEgyptien` (un chef de grenier ne doit pas laisser entendre
+qu'il *est* Rekhmirê) ; ils restent réservés aux héritiers, **dont l'ordre ne bouge pas** — `selonLaGraine()`
+indexe `tous()`. Les chefs d'avant le lot n'en ont pas : `Prenoms::completer()`, **idempotent**, leur en donne un
+au passage de quinzaine, et le gabarit se rabat d'ici là sur la désignation par bâtiment. Une annonce se lit encore
+sans la clé `prenom`.
+
 **Un bâtiment réclame ses travailleurs, chef ou non** (`Effectifs`, décision de
 la joueuse du 2026-10-08, qui remplace le « rien ne s'éteint faute d'employés »
 du lot 4.5). L'équipage de base d'un bâtiment — `travailleursParChef(type, niveau)` —

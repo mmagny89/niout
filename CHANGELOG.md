@@ -12,6 +12,14 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+### Ajouté
+
+- **Chaque chef et chaque Medjaÿ porte désormais un prénom**, tiré une fois et gardé. Il se lit à l'annonce
+  (on retient *quelqu'un*), sur la carte du chef, dans la Caserne et dans les messages — *« Hori, votre nouveau chef
+  (négociateur), s'installe avec les siens »*. Deux gens d'une même ville ne partagent jamais un prénom (la filiation
+  prend le relais quand le fonds est épuisé), et les Medjaÿ n'en reçoivent que d'hommes. Les chefs et les Medjaÿ des
+  parties en cours en reçoivent un à la prochaine quinzaine.
+
 ### Sécurité
 
 - **PHP 8.5.12** (correctifs de CVE-2026-109618 et CVE-2026-109619, exécution de code à distance) et FrankenPHP 1.13.2.

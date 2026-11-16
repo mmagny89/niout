@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 final readonly class PassageDeCycle
 {
     public function __construct(
+        private Prenoms $prenoms,
         private Successions $successions,
         private Chantiers $chantiers,
         private Explorations $explorations,
@@ -83,6 +84,11 @@ final readonly class PassageDeCycle
         // décide de combien de bras la quinzaine dispose, et il serait faux
         // de faire travailler des gens que la maladie couche le même jour.
         $fievre = $this->epidemies->avancerDUnCycle($partie);
+
+        // Qui n'a pas encore de prénom en reçoit un, **avant** que la quinzaine
+        // ne parle d'eux : les chefs et les Medjaÿ des parties commencées avant
+        // le lot N. Idempotent, et sans message — un nom n'est pas un événement.
+        $this->prenoms->completer($partie);
 
         $paie = $this->salaires->reglerLaQuinzaine($partie);
 

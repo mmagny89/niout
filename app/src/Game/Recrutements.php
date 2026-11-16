@@ -41,6 +41,7 @@ final readonly class Recrutements
     public function __construct(
         private GenerateurDeCandidat $generateur,
         private EntityManagerInterface $entityManager,
+        private Prenoms $prenoms,
     ) {
     }
 
@@ -70,7 +71,7 @@ final readonly class Recrutements
             throw new RecrutementImpossible(\sprintf('Le %s a déjà ses %d chef%s. Montez-le d\'un niveau pour en employer davantage.', $type->libelle(), $batiment->nombreDeChefs(), $batiment->nombreDeChefs() > 1 ? 's' : ''));
         }
 
-        $offre = new JobOffer($ville, $type, $this->generateur->pourUneOffre($type));
+        $offre = new JobOffer($ville, $type, $this->prenoms->nommerLesCandidats($partie, $this->generateur->pourUneOffre($type)));
         $ville->ajouterOffre($offre);
 
         $this->entityManager->persist($offre);

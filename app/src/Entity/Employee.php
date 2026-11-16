@@ -19,8 +19,9 @@ use Doctrine\ORM\Mapping as ORM;
  * propre — c'est la même règle que pour la population, qui se compte en
  * nombres et non en individus.
  *
- * Il n'a pas de nom (décision de la joueuse) : on le désigne par son bâtiment
- * et sa spécialité.
+ * Il porte un prénom (`Game\Prenoms`), que la désignation par bâtiment et
+ * spécialité suit — « Nakhtmin, chef du Grenier ». Il n'en avait pas : la
+ * décision a été levée pour que la ville habitée ait des gens qu'on retienne.
  *
  * **Chiffré en interne, qualitatif à l'affichage** : `competence` sert aux
  * calculs de production (lot 4.8), les gabarits n'impriment que des étoiles.
@@ -59,6 +60,15 @@ class Employee
     private ?SpecialiteDeChef $specialite = null;
 
     /**
+     * Son prénom, tiré **une fois** et gardé (`Game\Prenoms`). Nul pour un chef
+     * embauché avant que le jeu en distribue : `Prenoms::completer()` le lui
+     * donne à la quinzaine suivante, et le gabarit se rabat d'ici là sur sa
+     * désignation par bâtiment.
+     */
+    #[ORM\Column(length: 40, nullable: true)]
+    private ?string $prenom = null;
+
+    /**
      * La maisonnée qu'il a amenée, retenue telle quelle : c'est elle qui
      * repart s'il est renvoyé. Sans cette mémoire, embaucher puis renvoyer
      * serait un moyen gratuit de peupler la ville.
@@ -89,6 +99,7 @@ class Employee
             $candidat->traits,
         );
         $this->specialite = $candidat->specialite;
+        $this->prenom = $candidat->prenom;
         $this->actifsAmenes = $candidat->actifsAmenes;
         $this->inactifsAmenes = $candidat->inactifsAmenes;
         $this->prendPosteAuCycle = $prendPosteAuCycle;
@@ -107,6 +118,18 @@ class Employee
     public function getType(): TypeDeBatiment
     {
         return $this->type;
+    }
+
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
+
+    public function donnerUnPrenom(string $prenom): static
+    {
+        $this->prenom = $prenom;
+
+        return $this;
     }
 
     public function getCompetence(): int
@@ -194,6 +217,7 @@ class Employee
             specialite: $this->specialite,
             actifsAmenes: $this->actifsAmenes,
             inactifsAmenes: $this->inactifsAmenes,
+            prenom: $this->prenom,
         );
     }
 }
