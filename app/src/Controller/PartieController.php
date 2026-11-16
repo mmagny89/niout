@@ -24,6 +24,7 @@ use App\Game\AppelImpossible;
 use App\Game\CartoucheRoyal;
 use App\Game\ChantierImpossible;
 use App\Game\Chantiers;
+use App\Game\ChefsDeBande;
 use App\Game\Commerce;
 use App\Game\CommerceImpossible;
 use App\Game\Culture;
@@ -1283,6 +1284,28 @@ final class PartieController extends AbstractController
 
         try {
             $this->addFlash('succes', $rivaux->passerUnAccord($partie));
+        } catch (CommerceImpossible $impossible) {
+            $this->addFlash('erreur', $impossible->getMessage());
+        }
+
+        return $this->retourALaVille($request, $partie);
+    }
+
+    /**
+     * Verse un droit de passage aux bandes : la troisième issue du risque de pillage, après l'escorte et le
+     * combat. Il rabat le risque pour quelques quinzaines, sans l'éteindre.
+     */
+    #[Route('/{id}/ville/droit-de-passage', name: 'app_partie_droit_de_passage', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function payerLeDroitDePassage(Request $request, GameSave $partie, ChefsDeBande $bandes, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('droit-de-passage', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        try {
+            $this->addFlash('succes', $bandes->payerLeDroit($partie));
+            $entityManager->flush();
         } catch (CommerceImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
         }

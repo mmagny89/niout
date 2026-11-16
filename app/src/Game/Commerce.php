@@ -37,6 +37,7 @@ final readonly class Commerce
         private CarnetDeContacts $carnet,
         private ConjonctureDeMarche $conjoncture,
         private EtatsDesCites $cites,
+        private ChefsDeBande $bandes,
         private GameSaveRepository $parties,
         private Medjays $medjays,
         private Successions $successions,
@@ -181,7 +182,15 @@ final readonly class Commerce
         $garnison = \count($this->medjays->disponibles($partie));
         $couverture = min(100, self::PROTECTION_PAR_MEDJAY * $garnison);
 
-        return $risque - intdiv($risque * $couverture, 100);
+        $risque -= intdiv($risque * $couverture, 100);
+
+        // Le droit de passage est la troisième issue, après l'escorte et le combat : il rabat le risque, sans
+        // jamais l'éteindre.
+        if ($this->bandes->droitActif($partie)) {
+            $risque -= intdiv($risque * ChefsDeBande::REDUCTION_DU_DROIT, 100);
+        }
+
+        return $risque;
     }
 
     /**
@@ -406,12 +415,14 @@ final readonly class Commerce
             // entier — marchandise ou deben, selon le sens : on ne pille pas à
             // moitié.
             if ($this->hasard->getInt(1, 100) <= $this->risqueDePillage($partie)) {
+                $pillard = $this->bandes->attribuerUnPillage($partie, $convoi->getId() ?? 0);
                 $messages[] = \sprintf(
-                    'Votre %s de %s a été pillé en chemin : %d %s perdus. Des Medjaÿ sur les routes y auraient veillé.',
+                    'Votre %s de %s a été pillé en chemin : %d %s perdus. Des Medjaÿ sur les routes y auraient veillé.%s',
                     $route->getRoute()->convoi(),
                     $nom,
                     $convoi->getQuantite(),
                     $convoi->getRessource()->libelle(),
+                    null === $pillard ? '' : \sprintf(' C\'est le fait de %s.', $pillard),
                 );
 
                 $route->retirerConvoi($convoi);

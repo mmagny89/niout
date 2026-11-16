@@ -1,6 +1,6 @@
 # Niout — PNJ, palier B : des personnes qui ont un but
 
-**Statut : lots B1 à B3 livrés (2026-11-16) — le rival raisonné, sa fiche, les chefs voyageurs ; B4 à B6 cadrés, rien d'autre n'est codé.** Suite de
+**Statut : lots B1 à B4 livrés (2026-11-16) — le rival raisonné, sa fiche, les chefs voyageurs, les bandes parlantes ; B5 et B6 cadrés, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1) et de
 [`plan-pnj-palier-a.md`](plan-pnj-palier-a.md). **Dépend d'A** : la graine de
 partie, les faits de monde, la conjoncture et la fenêtre « Le monde » y sont
@@ -386,3 +386,21 @@ porté et le réserve. « Le monde » montre la fiche (où il travaille, de reto
 - Un chef sans prénom (parties anciennes) devient « Un chef de l'Entrepôt ».
 
 **Verrous** : le playtest de B2 reste à jouer ; B4 se cadre avec `Commerce::risqueDePillage`.
+
+## 16. Lot B4 — les bandes parlantes
+
+**Livré** : `ChefsDeBande` — `chefDe()` (nom **déduit** de la graine et de la case, huit noms ordinaires attestés, jamais un
+personnage historique), `attribuerUnPillage()` (le pillage va à l'une des bandes tenues, choisie par la graine, la quinzaine et le
+convoi : un `Npc` de rôle `ChefDeBande` naît à son premier pillage, `profil.convois` compte, `histoire` note `pille`),
+`payerLeDroit()` / `droitActif()` / `prixDuDroit()` (deux butins par bande tenue ; −40 % de risque, six quinzaines ; refusé s'il
+court déjà, sans bande, ou sans deben, **rien n'est débité avant vérification**). `GameSave::$droitDePassageJusqua` (défaut 0).
+`Commerce::risqueDePillage` applique le droit **après** la garnison et le message de pillage nomme le chef. Le panneau de
+l'Entrepôt montre le risque, les bandes et leur réputation, **avant l'engagement** ; « Le monde » liste les chefs de bande.
+
+**Écarts** :
+- **Le risque n'était affiché nulle part** avant ce lot (le plan le croyait « déjà vu ») : il l'est maintenant.
+- **Les bandes ne bougent pas** (décision du plan) : la réputation est un compteur du chef, pas un déplacement.
+- **Le test de la route POST du droit** ne passe pas par le jeton CSRF sans état (aucun test fonctionnel ne le peut, voir
+  `CLAUDE.md`) : la logique est testée par le service, le formulaire par son rendu.
+
+**Verrou suivant** : B5 (la cour) — **aucun nom de personnage historique avant vérification** ; sans source, des titres seuls.

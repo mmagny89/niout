@@ -43,11 +43,13 @@
                         <li class="rounded-sm border {{ f.choisi ? 'border-terre-500/60' : 'border-ocre-500/30' }} bg-sable-50 p-4">
                             <h4 class="font-display text-lg text-encre-900">{{ f.nom }}</h4>
                             <p class="mt-0.5 text-xs text-encre-500" data-chiffres>
-                                {{ f.role }}{% if not f.voyageur %} · {{ f.caractere.libelle|lower }}{% endif %}
+                                {{ f.role }}{% if not f.voyageur and not f.bande %} · {{ f.caractere.libelle|lower }}{% endif %}
                                 {% if f.accords > 0 %}· {{ f.accords }} accord{{ f.accords > 1 ? 's' : '' }} passé{{ f.accords > 1 ? 's' : '' }} avec vous{% endif %}
                             </p>
                             <p class="mt-2 text-sm text-encre-900" data-chiffres>
-                                {% if f.voyageur %}
+                                {% if f.bande %}
+                                    A inquiété {{ f.inquietes }} de vos convois.
+                                {% elseif f.voyageur %}
                                     {% if f.revenu %}
                                         De retour : il s'est présenté à une de vos annonces, plus aguerri.
                                     {% else %}
@@ -91,6 +93,7 @@
                                 {% elseif fait.type == 'lasse' %}se lasse et s'en va
                                 {% elseif fait.type == 'paye' %}est payé et s'écarte
                                 {% elseif fait.type == 'demonte' %}est démonté par votre enquête
+                                {% elseif fait.type == 'pille' %}pille un de vos convois
                                 {% elseif fait.type == 'part' %}quitte la ville{{ fait.route ? ' pour ' ~ fait.route : '' }}
                                 {% elseif fait.type == 'rentre' %}est de retour, plus aguerri
                                 {% endif %}.

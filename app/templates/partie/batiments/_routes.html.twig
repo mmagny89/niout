@@ -15,6 +15,39 @@
     {% set enChemin = routesDIci|filter(o => o.route and not o.route.estOuverte) %}
     {% set aOuvrir = routesDIci|filter(o => not o.route) %}
 
+    {# Les bandes de la région : ce qu'on court sur les pistes, qui le fait courir, et les trois réponses —
+       l'escorte (des Medjaÿ en garnison), le combat (la Caserne) et le droit de passage. **Le risque se lit avant
+       de s'engager** : un convoi pillé est perdu tout entier. #}
+    {% if bandes %}
+        <section class="mt-6 rounded-sm border-l-4 border-terre-500 bg-terre-500/5 px-5 py-4" aria-labelledby="bandes-titre">
+            <h4 id="bandes-titre" class="font-display text-lg text-encre-900">Les bandes de la région</h4>
+            <p class="mt-1 text-sm text-encre-700" data-chiffres>
+                Un convoi de retour risque <strong>{{ bandes.risque }} %</strong> d'être pillé.
+                {% if bandes.garnison > 0 %}Vos {{ bandes.garnison }} Medjaÿ en garnison en couvrent une part.{% else %}Aucun Medjaÿ ne couvre vos routes.{% endif %}
+                {% if bandes.droitActif %}Votre droit de passage court jusqu'à la quinzaine {{ bandes.droitJusqua - 1 }}.{% endif %}
+            </p>
+            <ul class="mt-2 list-none space-y-1 p-0 text-sm text-encre-800" data-chiffres>
+                {% for b in bandes.liste %}
+                    <li>{{ b.nom }}{% if b.inquietes > 0 %} — {{ b.inquietes }} de vos convois inquiété{{ b.inquietes > 1 ? 's' : '' }}{% endif %}</li>
+                {% endfor %}
+            </ul>
+            <p class="mt-2 text-sm text-encre-500">
+                Trois réponses : des Medjaÿ qui couvrent les routes, la Caserne qui nettoie une case, ou un droit de passage —
+                il rabat le risque de 40 % pendant 6 quinzaines, sans l'éteindre. Ne rien faire reste une décision.
+            </p>
+            {% if partie.estEnCours and not bandes.droitActif %}
+                <form method="post" action="{{ path('app_partie_droit_de_passage', {id: partie.id}) }}" class="mt-3">
+                    <input type="hidden" name="_token" value="{{ csrf_token('droit-de-passage') }}">
+                    <input type="hidden" name="onglet" value="{{ onglet.cle }}">
+                    <button type="submit"
+                            class="inline-flex min-h-11 items-center rounded-sm border border-ocre-500/40 px-4 text-sm text-encre-700 hover:bg-ocre-300/20">
+                        Acheter le passage — <span data-chiffres class="ml-1">{{ bandes.prixDuDroit }}</span>&nbsp;deben
+                    </button>
+                </form>
+            {% endif %}
+        </section>
+    {% endif %}
+
     <h3 class="mt-8 text-xl text-encre-900">Routes commerciales</h3>
     {# Le décompte en trois pastilles : on voit d'un coup d'œil ce qui roule, ce qui marche, ce qui reste à faire. #}
     <ul class="mt-3 flex list-none flex-wrap gap-2 p-0 text-sm" data-chiffres>
