@@ -38,22 +38,33 @@
                 </a>
             </li>
             {% for j in 1..frise.jours %}
-                {# Le détail du jour, en infobulle : ce qui s'y est passé, puis où l'on a parlé. Le même texte que la fiche du jour, en plus court. #}
-                {% set lignes = ['Jour ' ~ j ~ (j == frise.jourDeFete ? ' — jour de fête : ' ~ frise.fete : '')] %}
-                {% for phrase in frise.evenements[j] ?? [] %}
-                    {% set lignes = lignes|merge(['• ' ~ phrase]) %}
-                {% endfor %}
-                {% for conversation in frise.conversations[j] ?? [] %}
-                    {% set lignes = lignes|merge(['Conversation : ' ~ conversation.moment|lower ~ ', ' ~ conversation.lieu|lower ~ ('ambiance' == conversation.nature ? ' (ambiance)' : '')]) %}
-                {% endfor %}
-                {% if frise.evenements[j] is not defined and frise.conversations[j] is not defined %}
-                    {% set lignes = lignes|merge(['Un jour ordinaire : chacun à son métier.']) %}
-                {% endif %}
-                {% set detail_du_jour = lignes|join("\n") %}
-                <li>
+                {# Le détail du jour, en vraie infobulle (`infobulle_controller.js`) : ce qui s'y est passé, puis où l'on a parlé.
+                   Elle se montre au survol **et au focus clavier**, et le lien la désigne (`aria-describedby`) : même texte pour le lecteur d'écran. #}
+                <li data-controller="infobulle">
+                    <span id="detail-jour-{{ j }}" role="tooltip" hidden data-infobulle-target="contenu"
+                          class="pointer-events-none w-max max-w-64 rounded-sm border border-ocre-500/40 bg-encre-900 px-3 py-2 text-left text-xs leading-snug text-sable-50 shadow-md">
+                        <strong class="block text-sm font-medium">Jour {{ j }}{% if j == frise.jourDeFete %} · <span class="text-or-500">★ {{ frise.fete }}</span>{% endif %}</strong>
+                        {% if frise.evenements[j] is defined %}
+                            <ul class="mt-1 list-disc space-y-0.5 pl-4">
+                                {% for phrase in frise.evenements[j] %}<li>{{ phrase }}</li>{% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if frise.conversations[j] is defined %}
+                            <ul class="mt-1 list-none space-y-0.5 p-0 text-sable-200">
+                                {% for conversation in frise.conversations[j] %}
+                                    <li>Conversation : {{ conversation.moment|lower }}, {{ conversation.lieu|lower }}{{ 'ambiance' == conversation.nature ? ' (ambiance)' : '' }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if frise.evenements[j] is not defined and frise.conversations[j] is not defined %}
+                            <span class="mt-1 block text-sable-200">Un jour ordinaire : chacun à son métier.</span>
+                        {% endif %}
+                    </span>
                     <a href="{{ _self.adresse(partie, j, moment, cle) }}" data-turbo-frame="_top"
                        {{ j == jour ? 'aria-current="true"' }}
-                       title="{{ detail_du_jour }}"
+                       aria-describedby="detail-jour-{{ j }}"
+                       data-infobulle-target="ancre"
+                       data-action="mouseenter->infobulle#montrer mouseleave->infobulle#cacher focus->infobulle#montrer blur->infobulle#cacher keydown.esc->infobulle#cacher"
                        aria-label="Jour {{ j }}{{ j == frise.jourDeFete ? ', jour de fête' : '' }}{{ frise.evenements[j] is defined ? ', des événements' : '' }}{{ frise.conversations[j] is defined ? ', des conversations' : '' }}"
                        class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm border px-2 text-sm
                               {{ j == jour ? 'border-terre-500 bg-ocre-300/40 text-encre-900' : 'border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20' }}
