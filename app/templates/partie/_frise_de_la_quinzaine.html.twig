@@ -40,6 +40,8 @@
             {% for j in 1..frise.jours %}
                 {# Le détail du jour, en vraie infobulle (`infobulle_controller.js`) : ce qui s'y est passé, puis où l'on a parlé.
                    Elle se montre au survol **et au focus clavier**, et le lien la désigne (`aria-describedby`) : même texte pour le lecteur d'écran. #}
+                {# Le jour de fête est déjà marqué par ★ : son seul « événement » est la fête, pas un second point. #}
+                {% set autres_evenements = (frise.evenements[j] ?? [])|length - (j == frise.jourDeFete ? 1 : 0) > 0 %}
                 <li data-controller="infobulle">
                     <span id="detail-jour-{{ j }}" role="tooltip" hidden data-infobulle-target="contenu"
                           class="pointer-events-none w-max max-w-64 rounded-sm border border-ocre-500/40 bg-encre-900 px-3 py-2 text-left text-xs leading-snug text-sable-50 shadow-md">
@@ -65,7 +67,7 @@
                        aria-describedby="detail-jour-{{ j }}"
                        data-infobulle-target="ancre"
                        data-action="mouseenter->infobulle#montrer mouseleave->infobulle#cacher focus->infobulle#montrer blur->infobulle#cacher keydown.esc->infobulle#cacher"
-                       aria-label="Jour {{ j }}{{ j == frise.jourDeFete ? ', jour de fête' : '' }}{{ frise.evenements[j] is defined ? ', des événements' : '' }}{{ frise.conversations[j] is defined ? ', des conversations' : '' }}"
+                       aria-label="Jour {{ j }}{{ j == frise.jourDeFete ? ', jour de fête' : '' }}{{ autres_evenements ? ', des événements' : '' }}{{ frise.conversations[j] is defined ? ', des conversations' : '' }}"
                        class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm border px-2 text-sm
                               {{ j == jour ? 'border-terre-500 bg-ocre-300/40 text-encre-900' : 'border-ocre-500/40 bg-sable-50 text-lapis-500 hover:bg-ocre-300/20' }}
                               focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">
@@ -73,8 +75,8 @@
                             <span>{{ j }}{% if j == frise.jourDeFete %}<span aria-hidden="true" class="ml-0.5 text-or-500">★</span>{% endif %}</span>
                             {# Ce que le jour porte : un point pour ce qui s'y est passé, un second pour ce qui s'y est dit. #}
                             <span aria-hidden="true" class="mt-1 flex h-1.5 gap-0.5">
-                                {% if frise.evenements[j] is defined %}<span class="size-1.5 rounded-full bg-terre-500"></span>{% endif %}
-                                {% if frise.conversations[j] is defined %}<span class="size-1.5 rounded-full bg-lapis-500"></span>{% endif %}
+                                {% if autres_evenements %}<span class="size-1.5 rotate-45 bg-terre-500"></span>{% endif %}
+                                {% if frise.conversations[j] is defined %}<span class="size-1.5 rounded-full border border-lapis-500"></span>{% endif %}
                             </span>
                         </span>
                     </a>
@@ -82,8 +84,8 @@
             {% endfor %}
         </ol>
         <p class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-encre-500" aria-hidden="true">
-            <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-terre-500"></span>un événement</span>
-            <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full bg-lapis-500"></span>une conversation</span>
+            <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rotate-45 bg-terre-500"></span>un événement</span>
+            <span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full border border-lapis-500"></span>une conversation</span>
             <span class="inline-flex items-center gap-1.5"><span class="text-or-500">★</span>jour de fête</span>
         </p>
 
