@@ -24,6 +24,12 @@ use App\Entity\GameSave;
  *     avantageMaximal: int,
  *     avantageMinimal: int,
  *     plancherDAchat: int,
+ *     sommeDesEcarts: int,
+ *     marquees: int,
+ *     quinzainesAvecEvenement: int,
+ *     quinzaines: int,
+ *     arbitrageMaximal: int,
+ *     arbitrageDeReference: int,
  *     violations: list<string>
  * }
  */
@@ -52,18 +58,32 @@ final readonly class BancDEssaiDuMonde
             'avantageMaximal' => 0,
             'avantageMinimal' => 0,
             'plancherDAchat' => PHP_INT_MAX,
+            'sommeDesEcarts' => 0,
+            'marquees' => 0,
+            'quinzainesAvecEvenement' => 0,
+            'quinzaines' => 0,
+            'arbitrageMaximal' => 0,
+            'arbitrageDeReference' => 0,
             'violations' => [],
         ];
 
         foreach ($this->partenaires() as $partenaire) {
             foreach ($graines as $graine) {
                 for ($cycle = 0; $cycle < $quinzaines; ++$cycle) {
+                    ++$rapport['quinzaines'];
+
+                    if (null !== $this->conjoncture->evenementEnCours($graine, $partenaire->cle, $cycle)) {
+                        ++$rapport['quinzainesAvecEvenement'];
+                    }
+
                     foreach (QualiteDeCrue::cases() as $crue) {
                         $this->mesurerUne($rapport, $graine, $crue, $partenaire, $cycle);
                     }
                 }
             }
         }
+
+        $this->mesurerLArbitrage($rapport, $graines, $quinzaines);
 
         if (PHP_INT_MAX === $rapport['plancherDAchat']) {
             $rapport['plancherDAchat'] = 0;
@@ -95,6 +115,60 @@ final readonly class BancDEssaiDuMonde
     }
 
     /**
+     * **Pas d'arbitrage nouveau** (`docs/plan-pnj-palier-a.md` § 10) : pour chaque couple (cité qui
+     * vend, cité qui achète) d'une même marchandise, la marge d'un aller-retour — ce que l'acheteuse
+     * paie au plus, moins ce que la vendeuse réclame au moins. La référence est la marge **au plafond
+     * d'avantage sans monde** : le monde ne doit jamais l'élargir. Sur les couples du catalogue, Thèbes
+     * (qui vend des tissus) et Pount (qui en achète) en sont le témoin.
+     *
+     * @param Rapport   $rapport
+     * @param list<int> $graines
+     */
+    private function mesurerLArbitrage(array &$rapport, array $graines, int $quinzaines): void
+    {
+        $partenaires = $this->partenaires();
+
+        foreach ($partenaires as $vendeuse) {
+            foreach ($partenaires as $acheteuse) {
+                if ($vendeuse->cite() === $acheteuse->cite()) {
+                    continue;
+                }
+
+                foreach (Ressource::cases() as $ressource) {
+                    if (!$vendeuse->vendDe($ressource) || !$acheteuse->acheteDe($ressource)) {
+                        continue;
+                    }
+
+                    $reference = $this->marge($vendeuse, $acheteuse, $ressource, AvantageDeNegoce::PLAFOND_TOTAL, AvantageDeNegoce::PLAFOND_TOTAL);
+                    $rapport['arbitrageDeReference'] = max($rapport['arbitrageDeReference'], $reference);
+
+                    foreach ($graines as $graine) {
+                        for ($cycle = 0; $cycle < $quinzaines; ++$cycle) {
+                            $v = $this->conjoncture->calculer($graine, QualiteDeCrue::Normale, $vendeuse, $ressource, $cycle)->points;
+                            $a = $this->conjoncture->calculer($graine, QualiteDeCrue::Normale, $acheteuse, $ressource, $cycle)->points;
+                            // La famille la mieux outillée : renommée pleine et Négociateur, monde compris.
+                            $marge = $this->marge($vendeuse, $acheteuse, $ressource, AvantageDeNegoce::total(100, 25, $v), AvantageDeNegoce::total(100, 25, $a));
+                            $rapport['arbitrageMaximal'] = max($rapport['arbitrageMaximal'], $marge);
+
+                            if ($marge > $reference) {
+                                $rapport['violations'][] = \sprintf('Arbitrage élargi par le monde : %d > %d (%s vers %s, %s, quinzaine %d)', $marge, $reference, $vendeuse->cle, $acheteuse->cle, $ressource->value, $cycle);
+
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function marge(PartenaireCommercial $vendeuse, PartenaireCommercial $acheteuse, Ressource $ressource, int $avantageDeLaVendeuse, int $avantageDeLAcheteuse): int
+    {
+        return ($acheteuse->prixMaximumALaVente($ressource, $avantageDeLAcheteuse) ?? 0)
+            - ($vendeuse->prixMinimumALAchat($ressource, $avantageDeLaVendeuse) ?? 0);
+    }
+
+    /**
      * @param Rapport $rapport
      */
     private function mesurerUne(array &$rapport, int $graine, QualiteDeCrue $crue, PartenaireCommercial $partenaire, int $cycle): void
@@ -111,6 +185,12 @@ final readonly class BancDEssaiDuMonde
 
             if (0 !== $c->points) {
                 ++$rapport['nonNulles'];
+            }
+
+            $rapport['sommeDesEcarts'] += abs($c->points);
+
+            if (abs($c->points) >= 10) {
+                ++$rapport['marquees'];
             }
 
             if (null !== $c->evenement) {

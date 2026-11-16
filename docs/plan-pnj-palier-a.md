@@ -1,6 +1,6 @@
 # Niout — PNJ, palier A : le monde commerçant qui bouge
 
-**Statut : lots A1, A2 et A3 livrés (2026-11-16) — conjoncture dérivée, avantage signé, banc d'essai ; le reste est cadré, rien d'autre n'est codé.** Suite de
+**Statut : lots A1 à A4 livrés (2026-11-16) — conjoncture dérivée, avantage signé, banc d'essai ; le reste est cadré, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1, palier A). Ce document dit
 **quoi** faire des partenaires commerciaux, **où** cela s'accroche dans le code
 existant, **jusqu'où** cela peut peser sur le joueur, et **comment on le
@@ -480,3 +480,23 @@ lire la capacité d'un convoi. L'Auberge ne figure que comme *source de rumeurs*
 
 **À contrôler au navigateur** (non fait) : la fenêtre à 390 px et en desktop, le bouton « Le monde » sur la ville.
 **Verrou suivant** : playtest d'A3, puis A4 (calibrage des valeurs du § 12) avant le palier B.
+
+## 17. Lot A4 — le calibrage, et ce qu'il ne dit pas
+
+**Mesuré** (`app:monde:banc-d-essai --graines=20`, 27 partenaires, 200 quinzaines, 1,6 million de mesures) :
+
+| Mesure | Résultat | Lecture |
+|---|---|---|
+| Bornes de la conjoncture | −20 à +20 | tenues |
+| Avantage total | −20 à 40 | plafond et plancher tenus |
+| Écart moyen | 4,6 points ; 7 % des mesures à 10 points ou plus | un monde qui se sent sans écraser la renommée (20) |
+| Quinzaines avec un événement | 17 % | conforme à l'attente (une fenêtre sur deux × 4/12) |
+| Marge d'aller-retour | 39 deben au plus, **égale** à celle du plafond sans monde | **pas d'arbitrage nouveau** : le monde ne l'élargit pas |
+
+**Aucune valeur n'a été changée.** Le banc dit que les bornes tiennent et que la dispersion est raisonnable ; il ne dit pas
+si le monde est **lu**, ni si 17 % d'événements est trop ou trop peu pour qui joue. Ce calibrage-là se fait sur des parties
+réelles, et les valeurs sont au § 6 du plan de bataille pour qu'on les retouche. Les leviers, par ordre d'effet : l'amplitude
+du fond (±10), la fréquence des fenêtres (1 sur 2), le poids des événements (12).
+
+**Palier A complet**, hors le deuil de cour, les troubles et la guerre (§ 4.4), reportés faute d'une lecture du joueur qui dirait
+s'ils sont voulus. Le palier B commence par un playtest : il n'a de sens que si le monde d'A est regardé.
