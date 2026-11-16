@@ -68,7 +68,7 @@ l'**extension dans le temps**.
 | **Chaque bâtiment a son lot, fixe** : « on ne choisit pas où bâtir, on choisit quoi — la ville se gère, elle ne se dessine pas » (doc 15) | `EmplacementsDeLaVille` | Les **lieux de travail** sont connus et **ne bougent pas** : c'est ce qui rend le panneau faisable |
 | **Il n'existe aucun graphe de rues** : les chemins sont dans l'image, pas dans les données | `AncragesDesSprites` (généré) | **Seule vraie donnée à créer** : des points de passage (§ 5) |
 | `Maisonnees` répartit la population en **foyers déterministes**, sans rien stocker | `Maisonnees`, `Population::foyersPour()` | La **strate des foyers** (§ 4) : déjà là |
-| Les **chefs** sont suivis un par un : compétence (affichée en étoiles), salaire, spécialité, traits, **foyer amené** ; les **Medjaÿ** aussi : spécialisation, expérience, équipement, **mort permanente** au combat. **Aucun des deux n'a de nom, par décision de la joueuse** : on les désigne par leur bâtiment et leur spécialité, ou par leur spécialisation | `Employee`, `Medjay` | La **strate des désignés** : déjà là, **sans nom** — voir § 4 et § 14 |
+| Les **chefs** sont suivis un par un : compétence (affichée en étoiles), salaire, spécialité, traits, **foyer amené** ; les **Medjaÿ** aussi : spécialisation, expérience, équipement, **mort permanente** au combat. **Aucun des deux n'a de nom aujourd'hui** (décision de la joueuse, **levée le 2026-11-16** : voir § 16) | `Employee`, `Medjay` | La **strate des désignés** : déjà là ; **le prénom est à créer** (lot N) |
 | Les **effectifs** par bâtiment se **dérivent** (nombre de travailleurs requis, rendement) | `Effectifs` | Combien de **silhouettes** au travail dans chaque bâtiment, sans rien inventer |
 | Le **calendrier** compte **15 jours par quinzaine**, 25 cycles par an — **le dernier ne dure que 5 jours** (épagomènes) — et trois **fêtes attestées** : Opet, mystères d'Osiris, Belle Fête de la Vallée | `DateDeJeu`, `FeteCalendaire` | **La frise du rejeu** : 15 jours, **5 en fin d'année** ; les fêtes en sont des **jours marqués** |
 | **La corvée d'Akhèt** mobilise les paysans que la crue désœuvre ; sans Nil, pas de corvée | `PassageDeCycle`, `GeographieDeLaPartie` | Une scène qui **n'est pas décorative** : on voit les paysans aux chantiers |
@@ -80,7 +80,7 @@ l'**extension dans le temps**.
 
 | Strate | Qui | Ce que c'est | Cliquable |
 |---|---|---|---|
-| **Désignés** | Chefs en poste, Medjaÿ, **chef de famille** (le seul qui ait un prénom, en Aventure) et le **rival** installé ; plus tard, les **visiteurs** des paliers B et C | **De vraies personnes** : leurs données existent dans le jeu. **Sans nom** pour les chefs et les Medjaÿ (« le chef du Grenier, gestionnaire ») | Oui — fiche |
+| **Désignés** | Chefs en poste, Medjaÿ, **chef de famille** (le seul qui ait un prénom, en Aventure) et le **rival** installé ; plus tard, les **visiteurs** des paliers B et C | **De vraies personnes** : leurs données existent dans le jeu. **Un prénom chacun** (lot N, § 16) : *« Nakhtmin, chef du Grenier »* | Oui — fiche |
 | **Foyers** | Les maisonnées de `Maisonnees` | **Représentatifs** : une **maison numérotée**, ses membres (actif, enfant, ancien, malade). Un nom déduit d'une graine (`PrenomEgyptien`) reste possible, **mais le jeu n'en donne à personne d'autre** : question ouverte (§ 14) | Oui — fiche de foyer, dite *représentative* |
 | **Foule** | Les silhouettes qui animent les rues | **Décor** : un échantillon, jamais le compte | Non — mais **la foule montre l'état** (§ 6.2) |
 
@@ -324,6 +324,7 @@ la question du playtest de V3.
 | Lot | Contenu | Sortie | Verrou |
 |---|---|---|---|
 | **V0** | Ce document, les décisions du § 14 | Cadrage validé | — |
+| **N** | **Un prénom pour chaque chef et chaque Medjaÿ** (§ 16) : colonne, attribution à la création, rattrapage des existants, affichage. **Livrable seul**, avant V1 | Les gens ont un nom, **dans tout le jeu** | Migration jouée sur la base de test, suite complète |
 | **V1** | **« La ville habitée »** : le calque de figures **à l'instant**, chacun **à sa place** (désignés, foyers, foule), **sans temps ni trace**. Les points de passage ne sont **pas** nécessaires. Fiche d'un désigné et d'un foyer | **Du visuel, tout de suite**, avec **les seules données qui existent** | **Playtest : regarde-t-on ?** |
 | **V2** | **La trace** (`InstantaneDeQuinzaine`, `FaitDeMonde` de ville) et la **chorégraphie pure** ; **frise** de 15 jours, curseur, **journal jour par jour** dans la fiche. **Les figures sautent**, elles ne marchent pas | Le **jour par jour**, en texte et en lieux | Déterminisme, ordre du cycle, compte des gens |
 | **V3** | **Les chemins** (graphe des deux visuels, outil de contrôle), **le rejeu animé**, vitesses, suivi, `prefers-reduced-motion` | **Le film de la quinzaine** | **Playtest : vivant ou factice ?** Fluidité à 390 px |
@@ -359,7 +360,7 @@ V1 regardé.
 | **Par quel lot commence-t-on ?** | **V1**, sans trace ni chemins |
 | **Pictogrammes SVG ou sprites ?** | SVG au début, de profil ; sprites plus tard si la direction artistique le veut |
 | **Les décès ordinaires sont-ils un jour mis en scène ?** | Non : un chiffre dans la fiche |
-| **Les chefs et les Medjaÿ reçoivent-ils un nom ?** Aujourd'hui non, **décision de la joueuse** (`Employee`, `Medjay`) | Non : on garde la désignation par bâtiment et spécialité ; à rouvrir seulement si le panneau le réclame |
+| **Les chefs et les Medjaÿ reçoivent-ils un nom ?** | **Décidé le 2026-11-16 : oui**, stocké, attribué à la création (§ 16, lot N) |
 | **Les désignés ont-ils un portrait ?** | Oui, **déduit** du métier et du trait, sans image par personne |
 | **Rejouer plus de trois quinzaines ?** | Non : le contrat dit que la trace se purge |
 | **Une ville sans Port (variante sans eau) montre-t-elle un autre visuel ?** | Oui, comme aujourd'hui : un graphe par visuel |
@@ -370,7 +371,7 @@ V1 regardé.
 
 ## 15. Lot V1 — « La ville habitée » : la spécification
 
-**Retenu le 2026-11-16 comme premier lot.** Ce qui suit est ce qu'on écrira, fichier
+**Retenu le 2026-11-16 comme premier lot, après le lot N (§ 16) : les désignés y portent un prénom.** Ce qui suit est ce qu'on écrira, fichier
 par fichier, **quand le code sera autorisé** — rien n'est codé à ce jour.
 
 ### 15.1 Ce que V1 est, et ce qu'il n'est pas
@@ -395,6 +396,7 @@ une fonction déterministe, comme `Maisonnees`.
 |---|---|
 | Où se dresse chaque bâtiment (centre du lot, classe de lot) | `EmplacementsDeLaVille::tous()`, en pixels de 1376 × 768 |
 | Quel bâtiment est dressé | `City::batimentDeType()`, `VueDeLaVille` |
+| **Le prénom** d'un chef ou d'un Medjaÿ | **N'existe pas encore** : lot N (§ 16) |
 | Les chefs en poste, leur bâtiment, leur spécialité, leurs traits | `City::getEmployes()`, `Employee::estEnPoste($cycle)`, `getType()`, `getSpecialite()` |
 | Les Medjaÿ, **disponibles ou blessés** | `City::getMedjays()`, `Medjay::estDisponible($cycle)`, `getRetabliAuCycle()` |
 | Combien de travailleurs **à chaque poste** | `Effectifs::repartir($ville, $cycle)` → `affectes`, `requis` |
@@ -433,8 +435,8 @@ figures** (valeur inventée, § 13) :
 
 1. **Le chef de famille**, à la Résidence. Son prénom s'il existe (Aventure), sinon
    « le chef de la famille ».
-2. **Les chefs en poste**, **un par chef**, à leur bâtiment — *« Chef du Grenier,
-   gestionnaire »*. **Sans nom** (décision de la joueuse, `Employee`).
+2. **Les chefs en poste**, **un par chef**, à leur bâtiment — *« Nakhtmin, chef du Grenier »*,
+   par son **prénom** (lot N).
 3. **Les Medjaÿ**, à la Caserne s'ils sont disponibles ; **couchés au Quartier**
    s'ils sont blessés.
 4. **Le rival**, au Marché, s'il est installé.
@@ -495,8 +497,8 @@ s'y lit**, sans image.
 
 | Cible | Contenu |
 |---|---|
-| **Chef** | Bâtiment (**lien vers sa fenêtre**), spécialité, **compétence en étoiles** (jamais en nombre : *« chiffré en interne, qualitatif à l'affichage »*), traits, foyer amené |
-| **Medjaÿ** | Spécialisation, expérience (qualitative), équipement, **disponible ou blessé jusqu'à** |
+| **Chef** | **Prénom**, bâtiment (**lien vers sa fenêtre**), spécialité, **compétence en étoiles** (jamais en nombre : *« chiffré en interne, qualitatif à l'affichage »*), traits, foyer amené |
+| **Medjaÿ** | **Prénom**, spécialisation, expérience (qualitative), équipement, **disponible ou blessé jusqu'à** |
 | **Chef de famille** | Prénom ou titre, génération, trait de lignée |
 | **Rival** | Nom, route disputée, ce qu'il prend, **les trois issues** (lien vers l'écran du commerce) |
 | **Maison** | `Maisonnees::decrire()`, **dite représentative** |
@@ -545,8 +547,7 @@ concernés**.
 
 1. **Une ville neuve** : le chef de famille à la Résidence, quelques maisons au
    Quartier, **aucun chef, aucun travailleur** — une ville calme, et c'est vrai.
-2. **Un chef au Grenier** : une silhouette au Grenier, étiquetée *« Chef du Grenier,
-   gestionnaire »* ; le clic ouvre sa fiche ; la fiche **renvoie** à la fenêtre du
+2. **Un chef au Grenier** : une silhouette au Grenier, étiquetée *« Nakhtmin, chef du Grenier »* ; le clic ouvre sa fiche ; la fiche **renvoie** à la fenêtre du
    Grenier.
 3. **Une épidémie** : des silhouettes **couchées** au Quartier, **moins** de
    travailleurs aux postes ; la liste le dit.
@@ -563,9 +564,114 @@ concernés**.
 
 | Question | Penchant |
 |---|---|
-| **Les chefs et les Medjaÿ restent-ils sans nom ?** (décision de la joueuse, jusqu'ici) | **Oui** : désignés par bâtiment et spécialité. Une ville peuplée de « chef du Grenier » est moins vivante qu'avec un prénom, et c'est **un choix à rouvrir en connaissance de cause**, pas à contourner |
+| ~~Les chefs et les Medjaÿ restent-ils sans nom ?~~ | **Tranché le 2026-11-16 : ils reçoivent un prénom.** V1 **dépend du lot N** (§ 16) |
 | **Les maisons ont-elles un nom** ? | **Numérotées** (« maison 7 ») : le jeu ne nomme personne d'autre |
 | **Silhouettes en SVG faits main, ou sprites générés ?** | SVG : léger, sans pipeline, cohérent avec les pictogrammes ; les sprites viendraient avec V6 |
 | **Le rival et les bras sans poste dans V1 ?** | **Oui** : ce sont des **données vraies** qui rendent le panneau utile, et non un décor |
 | **Figures cliquables sur desktop seulement ?** | **Oui** ; le bouton et la liste font le reste |
 | **Un plafond de 40 est-il juste ?** | **À mesurer** au navigateur, à 390 px surtout |
+
+## 16. Lot N — un prénom pour chaque chef et chaque Medjaÿ
+
+**Décidé le 2026-11-16.** Jusqu'ici, `Employee` et `Medjay` n'avaient pas de nom,
+par décision de la joueuse : *« on le désigne par son bâtiment et sa spécialité »*.
+Cette décision est **levée**, parce que le panneau visuel est précisément le lieu où
+une silhouette sans nom ne se laisse pas attacher. Elle ne se contourne pas : elle
+se **remplace**, et ses traces — docblocks, règles, gabarits — se réécrivent.
+
+### 16.1 Stocké, pas déduit
+
+On aurait pu **déduire** le prénom d'une graine, comme les héritiers. **Ce n'est pas
+retenu**, et la raison est précise : un prénom déduit **du rang** d'un chef dans la
+ville change dès qu'un chef plus ancien part (`DepartsNaturels`) — tous les suivants
+se décalent. Déduit **de l'identifiant**, il ne garantit pas l'unicité : trente
+prénoms, des collisions certaines. **Un nom qui change sous les yeux du joueur est
+pire que pas de nom.** Il est donc **gardé**, comme l'est déjà le prénom du chef de
+famille (`Family::chefDeFamille`).
+
+### 16.2 Ce qui change
+
+| Où | Quoi |
+|---|---|
+| `Employee`, `Medjay` | Une colonne **`prenom`**, **nullable**, `VARCHAR(40)` |
+| `Candidat`, `JobOffer` | Le **candidat porte déjà son prénom à l'annonce** : on embauche *quelqu'un*, on ne découvre pas son nom après. La sérialisation des candidatures accepte l'**absence** de la clé (offres déjà affichées) |
+| `GenerateurDeCandidat` | Tire le prénom **avec** le reste du candidat, par le `Randomizer` injecté |
+| `Medjays::lever()` | Tire le prénom de la recrue |
+| `PrenomEgyptien` | Sépare **masculins** et **féminins** selon les blocs déjà écrits ; ajoute les accès |
+| Un service d'attribution (nom provisoire `Prenoms`) | **Une seule** règle : choisir un prénom **libre** dans la ville |
+| `PassageDeCycle` | Une étape qui **donne un prénom à qui n'en a pas** (§ 16.4) |
+| Gabarits et messages | Le prénom **précède** la désignation : *« Nakhtmin — chef du Grenier, gestionnaire »* |
+
+### 16.3 L'attribution
+
+- **Un prénom libre** : parmi ceux que ne portent ni un chef en poste, ni un Medjaÿ,
+  ni le chef de famille, ni un candidat d'une annonce ouverte, **ni le rival** installé.
+- **Les Medjaÿ tirent dans le fonds masculin**, les chefs dans l'ensemble.
+- **Quand les trente prénoms sont pris** — une grande ville, tard —, on ajoute **la
+  filiation** : *« Hori, fils de Sennedjem »*. C'est la **façon dont les Égyptiens se
+  distinguaient** ; ce n'est pas une invention. Au-delà d'un cas absurde, un numéro
+  d'ordre plutôt qu'une boucle infinie.
+- **Le rival** garde son propre fonds (`Rivaux::unNom()`, « *X le marchand* ») ; la
+  règle d'unicité **le lit**, pour qu'on ne rencontre pas deux « Hori ».
+- **Déterminisme** : le tirage passe par le `Randomizer` injecté, **semé en test**.
+
+### 16.4 Les gens déjà là
+
+Les parties en cours ont des chefs **sans prénom**. Pas de migration qui les remplisse
+(elle ne saurait pas appeler la règle d'unicité), pas d'écriture pendant une
+consultation. **Une étape idempotente de `PassageDeCycle`** donne un prénom, **dans
+l'ordre des identifiants**, à qui n'en a pas, et passe au même `flush` que le reste.
+**Entre-temps**, le gabarit retombe sur la désignation actuelle : *« Chef du
+Grenier »*. Aucune partie ne montre un trou.
+
+### 16.5 Ce qu'il faut vérifier avant d'écrire
+
+- **Les prénoms de `PrenomEgyptien`** viennent de deux sources : des gens ordinaires
+  de Deir el-Médineh, et **des hauts fonctionnaires identifiés** de la nécropole
+  thébaine (le fonds cite par exemple Rekhmirê, Ineni, Sennefer). Les donner à un
+  chef de grenier **laisse entendre** que c'est *lui*. **À relire, nom par nom**, avant
+  de les étendre aux chefs ; en cas de doute, **on retire** plutôt qu'on affiche une
+  approximation — la règle du projet.
+- **Les Medjaÿ étaient à l'origine un peuple de Nubie**, devenu un corps de
+  police. Un fonds de noms **propre à eux** serait plus juste ; il demande des
+  sources. **Question ouverte** (§ 16.8) : en attendant, le fonds masculin commun.
+- **Le sexe d'un prénom** : le fonds répartit déjà ses blocs (les épouses et les
+  filles sont à part). On s'y tient, sans rien affirmer de plus.
+
+### 16.6 Les tests
+
+| Test | Ce qu'il prouve |
+|---|---|
+| **Unicité** | Dans une ville, **aucun prénom n'est porté deux fois** — chefs, Medjaÿ, chef de famille, rival, candidats ouverts |
+| **Stabilité** | Un chef **garde** son prénom quand un autre part ou arrive |
+| **Filiation** | Quand le fonds est épuisé, on **n'échoue pas** et le nom reste unique |
+| **Medjaÿ** | Un Medjaÿ **ne reçoit jamais** un prénom du fonds féminin |
+| **Rattrapage** | L'étape donne un prénom à qui n'en a pas, **une seule fois** : l'appeler deux fois ne change rien |
+| **Candidat** | Le prénom **vu à l'annonce** est **celui du chef embauché** |
+| **Rétrocompatibilité** | Une annonce **sans** clé `prenom` se lit encore |
+| **Gabarits** | Aucun gabarit ne montre un prénom **vide** ; la désignation de repli s'affiche |
+| **Migration** | Jouée sur la base **de développement et de test** (`--env=test`), puis **la suite complète** avant de merger : c'est l'un des cas où elle se justifie |
+
+Les tests existants qui **comparent les désignations** (`Chef du …`) se mettent à jour
+**avec** le lot, pas après.
+
+### 16.7 La documentation à réécrire avec le code
+
+- Les **docblocks** de `Employee` et de `Medjay`, qui affirment *« il n'a pas de nom »*.
+- `docs/regles-du-jeu.md` : la règle des chefs et des Medjaÿ ; **ajouter la raison de
+  ce choix** (un nom qui s'attache, un nom qui ne bouge pas).
+- `docs/interface.md` : l'ordre *prénom, puis désignation*.
+- `CHANGELOG.md`, sous « Non publié », **dans le commit** : *« Chaque chef et chaque
+  Medjaÿ porte désormais un prénom »*.
+- **Le palier B** : *« notre Négociateur »* peut redevenir *« Ouserhat, notre
+  Négociateur »* ; la question du prénom d'un chef voyageur y est **tranchée**.
+
+### 16.8 Ce qui reste ouvert
+
+| Question | Penchant |
+|---|---|
+| **Un fonds de prénoms propre aux Medjaÿ** (origine nubienne) ? | Le fonds commun d'abord ; un fonds propre quand on aura **les sources** |
+| **Les prénoms de hauts fonctionnaires identifiés** dans le fonds ? | **Les retirer du fonds des chefs** : ils désignent des personnes réelles |
+| **Un chef renvoyé ou parti garde-t-il son prénom** s'il revient comme candidat (palier B) ? | **Oui** : c'est tout l'intérêt de B |
+| **Les travailleurs et les foyers ont-ils un prénom ?** | **Non** : le jeu ne les suit pas ; ils restent représentatifs et numérotés |
+| **Le prénom entre-t-il dans les messages du récapitulatif** (« X s'en va ») ? | **Oui**, c'est là qu'il se fait sentir ; la désignation suit |
