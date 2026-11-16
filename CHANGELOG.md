@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les marchés lointains ont une conjoncture.** Chaque cité commerçante a ses bonnes et ses mauvaises quinzaines — un fond qui varie
+  doucement, la saison et la crue du fleuve sur les vivres, et parfois un événement de deux à six quinzaines (disette, bonne récolte,
+  foire, besoin d'un ouvrage). Elle élargit ou rogne la fourchette d'une route, de −20 à +20 points, sous le plafond de 40 qui borne déjà
+  la renommée et le Négociateur. Un convoi déjà parti n'en subit rien. Rien ne s'affiche encore : l'étal viendra au lot suivant.
 - **On nomme ceux qui n'ont pas de prénom.** La fiche d'un chef ou d'un Medjaÿ sans prénom propose six prénoms égyptiens libres, ou un champ pour
   taper le sien (2 à 24 lettres, jamais un nom déjà porté dans la ville). Une seule fois : qui a un prénom ne se renomme pas. Les silhouettes
   représentatives (maisons, postes, enfants) n'ont pas d'identité à nommer.

@@ -48,6 +48,13 @@ final readonly class AvantageDeNegoce
     public const int PLAFOND_TOTAL = 40;
 
     /**
+     * Ce que le monde peut retirer au plus : l'amplitude de la conjoncture
+     * (`ConjonctureDeMarche::AMPLITUDE`). Un marché défavorable **rogne** l'avantage acquis,
+     * jusqu'à rendre la fourchette moins large que le cours — jamais davantage.
+     */
+    public const int PLANCHER_TOTAL = -ConjonctureDeMarche::AMPLITUDE;
+
+    /**
      * Ce que vaut une renommée donnée, en points de pourcentage. Vingt au plus,
      * la jauge étant bornée à cent.
      */
@@ -57,14 +64,20 @@ final readonly class AvantageDeNegoce
     }
 
     /**
-     * L'avantage total, plafonné. `$autresSources` porte ce que le Négociateur
-     * arrache, et accueillera le carnet de contacts.
+     * L'avantage total, borné des deux côtés. `$autresSources` porte ce que le Négociateur
+     * arrache et le carnet de contacts : jamais négatif. **`$monde` est la conjoncture du
+     * marché** (palier A) : **signée**, de −20 à +20, elle s'ajoute comme une source de
+     * plus et passe sous le même plafond de quarante — un monde qui s'ajouterait au plafond
+     * le rendrait caduc.
      */
-    public static function total(int $renommee, int $autresSources = 0): int
+    public static function total(int $renommee, int $autresSources = 0, int $monde = 0): int
     {
-        return min(
-            self::PLAFOND_TOTAL,
-            self::deLaRenommee($renommee) + max(0, $autresSources),
+        return max(
+            self::PLANCHER_TOTAL,
+            min(
+                self::PLAFOND_TOTAL,
+                self::deLaRenommee($renommee) + max(0, $autresSources) + $monde,
+            ),
         );
     }
 }

@@ -1,6 +1,6 @@
 # Niout — PNJ, palier A : le monde commerçant qui bouge
 
-**Statut : cadrage détaillé, rien n'est codé.** Suite de
+**Statut : lot A1 livré (2026-11-16) — conjoncture dérivée, avantage signé, banc d'essai ; le reste est cadré, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1, palier A). Ce document dit
 **quoi** faire des partenaires commerciaux, **où** cela s'accroche dans le code
 existant, **jusqu'où** cela peut peser sur le joueur, et **comment on le
@@ -429,3 +429,20 @@ le penchant initial**, à la demande de la joueuse ; elles ont chacune leur sect
 - **Le principe général** (`plan-pnj-autonomes.md` § 2) est précisé en
   conséquence : *un PNJ ne détruit rien de ce que le joueur possède* ; il peut, dans
   des bornes écrites, **suspendre une capacité**.
+
+## 14. Lot A1 — ce qui est livré, et ce qui reste
+
+**Livré** : `GameSave::$graine` (migration, rattrapage dérivé de l'identifiant) ; `ConjonctureDeMarche`
+(météo + saison/crue sur les vivres + événement par fenêtre de 12 quinzaines) ; `EvenementDeMarche`
+(**disette, bonne récolte, foire, besoin d'un ouvrage**) ; l'avantage **signé** dans
+`AvantageDeNegoce::total(renommée, autres, monde)`, plancher −20, plafond 40 ; `Commerce::avantageDeNegoce()`
+reçoit le partenaire, donc volumes et fourchettes bougent ; `app:monde:banc-d-essai` (27 partenaires,
+5 graines, 200 quinzaines, bornes exactes dont le plancher d'achat à 110 % arrondi compris).
+
+**Reporté, volontairement** — ce qui ne se réduit pas à un nombre sur le prix : le deuil de cour (route
+ralentie, plancher 50 %), les troubles (pillage), la **guerre et son cadre § 4.4** (préavis, convoi épargné,
+jamais la dernière route, partenaires vitaux). Ils demandent une lecture au départ des convois et un
+affichage avant l'engagement : ils s'écrivent avec A2, quand l'étal peut les dire.
+
+**Piège évité** : `plancher d'achat ≥ 110 %` ne se mesure pas en ratio sur les cours bon marché (un cours de
+13 donne 107 % à l'entier) ; le banc compare au `intdiv(cours × 110, 100)` exact.
