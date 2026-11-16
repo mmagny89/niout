@@ -34,6 +34,12 @@ use App\Game\VoixDesAides;
  */
 final readonly class PanneauDeLaMaisonDesScribes implements FournisseurDePanneau
 {
+    /**
+     * La plus grande graine tirée (2^30 − 1) : la valeur que donnait `PHP_INT_MAX >> 33` sur 64 bits, écrite en
+     * dur parce que l'analyse statique ne sait pas la taille d'un entier — et que sur 32 bits ce décalage valait 0.
+     */
+    private const int GRAINE_MAX = 1_073_741_823;
+
     public function __construct(
         private Dechiffrage $dechiffrage,
         private Enquetes $enquetes,
@@ -57,8 +63,8 @@ final readonly class PanneauDeLaMaisonDesScribes implements FournisseurDePanneau
         // Les deux exercices d'écriture, tirés à l'affichage : la graine part
         // avec le formulaire, et le serveur recompose la même série pour
         // corriger. Rien n'est stocké entre les deux.
-        $graineDesSons = random_int(1, \PHP_INT_MAX >> 33);
-        $graineDeLecture = random_int(1, \PHP_INT_MAX >> 33);
+        $graineDesSons = random_int(1, self::GRAINE_MAX);
+        $graineDeLecture = random_int(1, self::GRAINE_MAX);
 
         return [
             'graineDesSons' => $graineDesSons,
