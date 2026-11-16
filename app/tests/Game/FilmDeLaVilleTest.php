@@ -8,6 +8,7 @@ use App\Fenetre\FilmDeLaVille;
 use App\Fenetre\GensDeLaVille;
 use App\Game\Choregraphie;
 use App\Game\EmplacementsDeLaVille;
+use App\Game\GesteDeLaVille;
 use App\Game\ReseauDeRues;
 use App\Game\TypeDeFait;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -61,17 +62,18 @@ final class FilmDeLaVilleTest extends TestCase
 
     /**
      * Un chef qui passe de chez lui à son poste **marche** : des points intermédiaires,
-     * pendant le début du moment, et il arrive à l'instant dit.
+     * d'une mi-moment à l'autre, et il arrive à la mi-moment du lieu qu'il rejoint.
      */
-    public function testUnChefQuiChangeDeLieuMarchePendantLeDebutDuMoment(): void
+    public function testUnChefQuiChangeDeLieuMarcheJusquALaMiMoment(): void
     {
         $figure = $this->figure($this->film(), 'chef-1');
         // Aube du jour 1 → matin du jour 1 : du moment 0 au moment 1.
-        $marche = array_values(array_filter($figure['points'], static fn (array $p): bool => $p[0] >= 1.0 && $p[0] <= 1.0 + FilmDeLaVille::MARCHE));
+        $depart = 1.0 - FilmDeLaVille::AVANCE;
+        $marche = array_values(array_filter($figure['points'], static fn (array $p): bool => $p[0] >= $depart && $p[0] <= $depart + FilmDeLaVille::MARCHE));
 
         self::assertGreaterThanOrEqual(3, \count($marche), 'Un départ, au moins un carrefour, une arrivée.');
-        self::assertSame(1.0, $marche[0][0]);
-        self::assertSame(round(1.0 + FilmDeLaVille::MARCHE, 3), $marche[array_key_last($marche)][0]);
+        self::assertSame($depart, $marche[0][0]);
+        self::assertSame(round($depart + FilmDeLaVille::MARCHE, 3), $marche[array_key_last($marche)][0]);
 
         // Les points d'entre-deux sont des carrefours du réseau.
         $carrefours = array_map(
@@ -84,6 +86,51 @@ final class FilmDeLaVilleTest extends TestCase
 
         foreach (\array_slice($marche, 1, -1) as $point) {
             self::assertContains([$point[1], $point[2]], $carrefours, 'On marche par les rues.');
+        }
+    }
+
+    /**
+     * **Qui change de lieu à chaque moment ne s'arrête jamais** : ses points se suivent sans plateau, chaque
+     * intervalle de temps déplaçant la silhouette. Seul qui reste plusieurs moments au même endroit est immobile.
+     */
+    public function testQuiChangeDeLieuAChaqueMomentNeSArretePasEtQuiResteEstImmobile(): void
+    {
+        $lots = [];
+
+        foreach (EmplacementsDeLaVille::tous() as $lot) {
+            if (null !== $lot['type']) {
+                $lots[$lot['type']->value] = $lot;
+            }
+        }
+
+        $candidats = [
+            ['cle' => 'errant', 'role' => 'sans_poste', 'libelle' => 'Errant', 'lieu' => 'marche', 'couchee' => false],
+            ['cle' => 'posé', 'role' => 'sans_poste', 'libelle' => 'Posé', 'lieu' => 'marche', 'couchee' => false],
+        ];
+        $pas = ['errant' => [], 'posé' => []];
+
+        foreach (range(1, 15) as $jour) {
+            foreach (range(0, 3) as $moment) {
+                $s = ($jour - 1) * 4 + $moment;
+                $lieux = ['marche', 'grenier', 'temple', 'caserne'];
+                $pas['errant'][$jour][$moment] = ['lieu' => $lieux[$s % 4], 'geste' => GesteDeLaVille::Course, 'fait' => null, 'couchee' => false];
+                $pas['posé'][$jour][$moment] = ['lieu' => 'marche', 'geste' => GesteDeLaVille::Oisif, 'fait' => null, 'couchee' => false];
+            }
+        }
+
+        $film = FilmDeLaVille::construire($candidats, $pas, 15, $lots, 3);
+        $errant = $this->figure($film, 'errant')['points'];
+        $pose = $this->figure($film, 'posé')['points'];
+
+        // Entre la première mi-moment et la dernière, chaque intervalle déplace l'errant.
+        $enMarche = array_values(array_filter($errant, static fn (array $p): bool => $p[0] >= 0.5 && $p[0] <= 59.5));
+
+        for ($k = 1; $k < \count($enMarche); ++$k) {
+            self::assertNotSame([$enMarche[$k - 1][1], $enMarche[$k - 1][2]], [$enMarche[$k][1], $enMarche[$k][2]], \sprintf('Plateau entre t=%s et t=%s', $enMarche[$k - 1][0], $enMarche[$k][0]));
+        }
+
+        foreach ($pose as $point) {
+            self::assertSame([$pose[0][1], $pose[0][2]], [$point[1], $point[2]], 'Qui reste ne bouge pas.');
         }
     }
 
@@ -144,11 +191,11 @@ final class FilmDeLaVilleTest extends TestCase
         $film = $this->film();
         $parLieu = [];
 
-        // Au matin du premier jour (t = 1,4 : arrivés), trois silhouettes sont au Grenier.
+        // À la mi-moment du matin du premier jour (t = 1,5 : arrivés), trois silhouettes sont au Grenier.
         foreach ($film['figures'] as $figure) {
             if (\in_array($figure['cle'], ['chef-1', 'poste-grenier'], true)) {
                 foreach ($figure['points'] as $point) {
-                    if (1.4 === $point[0]) {
+                    if (1.5 === $point[0]) {
                         $parLieu[] = $point[1].'/'.$point[2];
                     }
                 }

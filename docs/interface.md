@@ -435,6 +435,18 @@ Quatre choses à ne pas défaire :
   porte un `aria-valuetext` (« Jour 4 sur 15, le matin »), le texte à côté est masqué aux lecteurs d'écran pour ne pas annoncer
   chaque jour de la lecture.
 
+**Le déplacement du film** (`FilmDeLaVille::MARCHE` et `AVANCE`). Un trajet dure **un moment entier** et part une demi-unité avant le moment du nouveau lieu :
+à la **mi-moment** — là où le film s'arrête, où les bulles se posent (`+ 0,5`) — chacun est à sa place. Qui change de lieu à chaque moment ne s'arrête jamais ; qui reste est immobile.
+Le départ d'un trajet est l'arrivée du précédent : un seul point.
+
+**Le moment de la journée sur la ville** (`ville-vivante_controller.js`, cibles `ciel`, `moment`). Pendant le film, un voile (`mix-blend-mode: multiply`, blanc le matin, donc sans effet)
+prend la teinte du moment (aube rosée, après-midi dorée, soir bleuté) et une pastille dit le moment en toutes lettres ; la barre l'écrit aussi (« Jour 3 sur 15 · L'après-midi »).
+Hors du film, rien : la ville statique est celle d'à présent.
+
+**Le journal d'une fiche** (`Choregraphie::journal()` → `segments`, `fenetre/gens.html.twig`). Une carte par jour, **quatre cases** — aube, matin, après-midi, soir — teintées par la famille du geste
+(`GesteDeLaVille::famille()` : travail, foyer, sortie, repos, départ) ; le jour marquant a une étoile et un filet d'or ; toucher un jour montre la ville ce jour-là. Le texte en toutes lettres
+reste dans les cases : la couleur n'est qu'un repère. `journal()` garde ses `lignes` (texte) à côté des `segments` (structure).
+
 **La mission du pharaon dans l'en-tête** (`ResumeDeMission`, fonction Twig `resume_de_mission()`, `_barre.html.twig`). En tête de la rangée de
 pastilles, **toujours en campagne** : une pastille d'or (`ring-2 ring-or-400`) « Mission N/10 · a/b objectifs », complétée de « requête : N q. »
 quand une requête du pharaon est en cours — `signal--mauvais` à une quinzaine de l'échéance, avec le pictogramme qui pulse. C'est un volet

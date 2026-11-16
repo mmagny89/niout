@@ -31,6 +31,23 @@ enum GesteDeLaVille: string
     case Course = 'course';
     case Visite = 'visite';
     case Detente = 'detente';
+    case Joue = 'joue';
+
+    /**
+     * La famille du geste, pour qu'un journal se lise d'un coup d'œil : le travail, le foyer, les sorties, le
+     * repos de qui est alité, ou le départ. Aucune règle : c'est une couleur.
+     */
+    public function famille(): string
+    {
+        return match ($this) {
+            self::Poste, self::Fabrique, self::Construit, self::Acheve, self::ConvoiParti, self::ConvoiRentre,
+            self::Ronde, self::Veille, self::Paie, self::Corvee => 'travail',
+            self::Chez, self::Habite => 'foyer',
+            self::Repos => 'repos',
+            self::Part => 'depart',
+            self::Procession, self::Course, self::Visite, self::Detente, self::Rode, self::Oisif, self::Joue => 'sortie',
+        };
+    }
 
     public function libelle(): string
     {
@@ -55,6 +72,7 @@ enum GesteDeLaVille: string
             self::Course => 'Fait une course',
             self::Visite => 'Rend visite',
             self::Detente => 'Se détend',
+            self::Joue => 'Joue dans les ruelles',
         };
     }
 }

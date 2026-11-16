@@ -62,6 +62,7 @@ use App\Game\OffrandeImpossible;
 use App\Game\Offrandes;
 use App\Game\PassageDeCycle;
 use App\Game\PlafondDePartiesAtteint;
+use App\Game\Prenoms;
 use App\Game\PrixDuMarche;
 use App\Game\Progression;
 use App\Game\QueteImpossible;
@@ -268,6 +269,60 @@ final class PartieController extends AbstractController
             'frise' => $gens->frise($partie),
             'moments' => MomentDeLaJournee::cases(),
         ] + $gens->pour($partie, $jour, $moment));
+    }
+
+    /**
+     * Donne un prénom à un chef ou à un Medjaÿ qui n'en a pas : celui qu'on tape, ou l'un de ceux que l'Égypte
+     * ancienne portait (`Prenoms::propositions()`). **Une seule fois** : qui a un prénom ne se renomme pas — un
+     * nom donné n'est pas un champ de formulaire — et **jamais deux fois le même** dans la ville.
+     */
+    #[Route('/{id}/ville/gens/nommer', name: 'app_partie_gens_nommer', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function nommer(Request $request, GameSave $partie, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('nommer', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $cle = (string) $request->request->get('cle', '');
+        $ville = $partie->getVille();
+        $personne = null;
+
+        if (1 === preg_match('/^(chef|medjay)-(\d+)$/', $cle, $m)) {
+            $recherche = 'chef' === $m[1] ? $ville->getEmployes() : $ville->getMedjays();
+
+            foreach ($recherche as $candidat) {
+                if ((int) $m[2] === $candidat->getId()) {
+                    $personne = $candidat;
+                }
+            }
+        }
+
+        if (null === $personne) {
+            throw $this->createNotFoundException('Personne ne répond à ce nom.');
+        }
+
+        // Celui qu'on tape l'emporte sur celui qu'on a coché.
+        $saisi = trim((string) $request->request->get('prenom', ''));
+        $prenom = '' !== $saisi ? $saisi : trim((string) $request->request->get('choix', ''));
+
+        $erreur = match (true) {
+            null !== $personne->getPrenom() => \sprintf('%s a déjà un prénom.', $personne->getPrenom()),
+            '' === $prenom => 'Choisissez un prénom, ou tapez-en un.',
+            1 !== preg_match('/^\p{L}[\p{L}\' -]{1,23}$/u', $prenom) => 'Un prénom : des lettres, un tiret ou une apostrophe, de 2 à 24 signes.',
+            Prenoms::estPris($partie, $prenom) => \sprintf('%s est déjà porté dans la ville.', $prenom),
+            default => null,
+        };
+
+        if (null !== $erreur) {
+            $this->addFlash('erreur', $erreur);
+        } else {
+            $personne->donnerUnPrenom(mb_convert_case($prenom, \MB_CASE_TITLE));
+            $entityManager->flush();
+            $this->addFlash('succes', \sprintf('Désormais, on l\'appelle %s.', $personne->getPrenom()));
+        }
+
+        return $this->redirectToRoute('app_partie_gens', ['id' => $partie->getId(), 'cle' => $cle]);
     }
 
     /**

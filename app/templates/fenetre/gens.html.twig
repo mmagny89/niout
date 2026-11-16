@@ -39,6 +39,41 @@
                     {% endfor %}
                 </dl>
 
+                {# **Nommer** : un chef ou un Medjaÿ sans prénom en reçoit un — celui qu'on tape, ou l'un de ceux que
+                   l'Égypte ancienne portait. Une seule fois : un nom donné ne se reprend pas. #}
+                {% if fiche.nommer is defined and fiche.nommer %}
+                    <form method="post" action="{{ path('app_partie_gens_nommer', {id: partie.id}) }}"
+                          class="mt-4 rounded-sm border border-or-400/50 bg-or-300/10 p-3" aria-labelledby="nommer-titre">
+                        <input type="hidden" name="_token" value="{{ csrf_token('nommer') }}">
+                        <input type="hidden" name="cle" value="{{ fiche.nommer.cle }}">
+                        <h4 id="nommer-titre" class="text-sm font-medium text-encre-900">Il n'a pas encore de prénom</h4>
+                        <p class="mt-1 text-xs text-encre-600">Choisissez-en un parmi ceux de l'Égypte ancienne, ou tapez le vôtre.</p>
+
+                        <fieldset class="mt-2">
+                            <legend class="sr-only">Prénoms égyptiens proposés</legend>
+                            <div class="flex flex-wrap gap-1.5">
+                                {% for proposition in fiche.nommer.propositions %}
+                                    <label class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-sm border border-ocre-500/40 bg-sable-50 px-3 text-sm text-encre-800
+                                                  has-[:checked]:border-terre-500 has-[:checked]:bg-ocre-300/40 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-lapis-500">
+                                        <input type="radio" name="choix" value="{{ proposition }}" class="size-4 accent-terre-500" {{ loop.first ? 'checked' }}>
+                                        {{ proposition }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+
+                        <label for="prenom-saisi" class="mt-3 block text-sm text-encre-700">Ou le vôtre</label>
+                        <input id="prenom-saisi" type="text" name="prenom" maxlength="24" autocomplete="off" placeholder="par exemple Nefer"
+                               class="mt-1 min-h-11 w-full rounded-sm border border-ocre-500/40 bg-sable-50 px-3 text-sm text-encre-900
+                                      focus-visible:outline-2 focus-visible:outline-lapis-500">
+
+                        <button type="submit"
+                                class="mt-3 inline-flex min-h-11 items-center rounded-sm bg-lapis-500 px-4 py-2 text-sm font-medium text-sable-50 hover:bg-lapis-600">
+                            Lui donner ce prénom
+                        </button>
+                    </form>
+                {% endif %}
+
                 {% if fiche.lien %}
                     <p class="mt-4">
                         <a href="{{ path('app_partie_ville', {id: partie.id, onglet: fiche.lien.onglet}) }}"
@@ -50,18 +85,79 @@
                 {% endif %}
             </section>
 
-            {# Son journal : ce que la chorégraphie lui fait faire, jour après jour. #}
+            {# Son journal : ce que la chorégraphie lui fait faire, jour après jour.
+
+               **Une carte par jour**, quatre cases — aube, matin, après-midi, soir — teintées par la famille du geste
+               (le travail, le foyer, une sortie, le repos, un départ) : on voit d'un regard où la journée a basculé.
+               Le jour marquant porte une étoile et un filet d'or ; le jour affiché sur la ville, un cadre. **Toucher
+               un jour montre la ville ce jour-là.** Tout est aussi écrit en toutes lettres dans les cases : la couleur
+               n'est qu'un repère. Le moment a la même couleur que sur la ville (la pastille). #}
             {% if fiche.journal %}
+                {% set pastilles = ['#f4a261', '#f6d365', '#f0a030', '#4b5fa8'] %}
+                {% set familles = {
+                    travail: 'border-lapis-500/40 bg-lapis-500/10',
+                    foyer: 'border-ocre-500/30 bg-sable-100',
+                    sortie: 'border-or-400/60 bg-or-300/20',
+                    repos: 'border-terre-500/50 bg-terre-500/10',
+                    depart: 'border-encre-500/40 bg-encre-500/10',
+                } %}
                 <section class="mt-5" aria-labelledby="journal-titre">
                     <h3 id="journal-titre" class="text-xs font-medium uppercase tracking-wide text-encre-500">Sa quinzaine passée, jour par jour</h3>
-                    <p class="mt-1 text-sm text-encre-600">Reconstituée : le jeu ne suit pas ses journées.</p>
-                    <ol class="mt-2 list-none space-y-1.5 p-0 text-sm" data-chiffres>
+                    <p class="mt-1 text-sm text-encre-600">Reconstituée : le jeu ne suit pas ses journées. Touchez un jour pour voir la ville ce jour-là.</p>
+
+                    <ul class="mt-2 flex list-none flex-wrap gap-x-3 gap-y-1 p-0 text-xs text-encre-600" aria-hidden="true">
+                        {% for nom, classes in {'Travail': 'travail', 'Foyer': 'foyer', 'Sortie': 'sortie', 'Repos': 'repos'} %}
+                            <li class="inline-flex items-center gap-1"><span class="size-3 rounded-sm border {{ familles[classes] }}"></span>{{ nom }}</li>
+                        {% endfor %}
+                        <li class="inline-flex items-center gap-1"><span class="text-or-500">★</span>Jour marquant</li>
+                    </ul>
+
+                    <ol class="mt-3 list-none space-y-2.5 p-0 text-sm" data-chiffres>
                         {% for ligne in fiche.journal %}
-                            <li class="rounded-sm border px-3 py-1.5 {{ ligne.jour == jour ? 'border-terre-500 bg-ocre-300/30' : 'border-ocre-500/20' }}"
-                                {{ ligne.jour == jour ? 'aria-current="true"' }}>
-                                <span class="font-medium text-encre-900">Jour {{ ligne.jour }}</span>
-                                {% if ligne.fait %}<span class="text-or-500" aria-label="jour marquant">★</span>{% endif %}
-                                <span class="text-encre-700"> — {{ ligne.lignes|join(' ; ') }}</span>
+                            {% set courant = ligne.jour == jour %}
+                            {% set parMoment = {} %}
+                            {% for segment in ligne.segments %}
+                                {% for m in segment.moments %}
+                                    {% set parMoment = parMoment|merge({(m): segment}) %}
+                                {% endfor %}
+                            {% endfor %}
+                            <li class="overflow-hidden rounded-sm border
+                                       {{ courant ? 'border-terre-500 bg-ocre-300/25 ring-1 ring-terre-500/40' : (ligne.fait ? 'border-or-400/70 border-l-4 bg-or-300/10' : 'border-ocre-500/25 bg-sable-50') }}"
+                                {{ courant ? 'aria-current="true"' }}>
+                                <a href="{{ path('app_partie_carte', {id: partie.id, vue: 'ville', jour: ligne.jour, moment: 1, ouvre: path('app_partie_gens', {id: partie.id, jour: ligne.jour, moment: 1, cle: cle})}) }}"
+                                   data-turbo-frame="_top" aria-label="Jour {{ ligne.jour }} : voir la ville ce jour-là"
+                                   class="flex min-h-11 items-center gap-2 px-3 py-1.5 hover:bg-ocre-300/20
+                                          focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-lapis-500">
+                                    <span class="grid size-8 shrink-0 place-items-center rounded-full border border-ocre-500/40 bg-sable-50 font-display text-base text-encre-900">{{ ligne.jour }}</span>
+                                    <span class="font-medium text-encre-900">Jour {{ ligne.jour }}</span>
+                                    {% if ligne.fait %}<span class="text-or-500" role="img" aria-label="jour marquant">★</span>{% endif %}
+                                    <span class="ml-auto text-xs text-lapis-500">{{ courant ? 'affiché sur la ville' : 'voir la ville' }}</span>
+                                </a>
+
+                                <ul class="m-0 grid list-none grid-cols-2 gap-1 p-1.5 pt-0 sm:grid-cols-4">
+                                    {% for m in 0..3 %}
+                                        {% set seg = parMoment[m] ?? null %}
+                                        <li class="rounded-sm border px-2 py-1 {{ seg ? familles[seg.famille] : 'border-ocre-500/15 bg-sable-50' }}">
+                                            <span class="flex items-center gap-1 text-[11px] uppercase tracking-wide text-encre-500">
+                                                <span class="size-2 rounded-full" style="background-color: {{ pastilles[m] }}" aria-hidden="true"></span>{{ moments[m].court }}
+                                            </span>
+                                            {% if seg %}
+                                                <span class="block text-xs leading-tight text-encre-900">{{ seg.geste }}</span>
+                                                {% if seg.lieu %}<span class="block text-xs leading-tight text-encre-500">{{ seg.lieu }}</span>{% endif %}
+                                            {% else %}
+                                                <span class="block text-xs text-encre-500">—</span>
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+
+                                {% for segment in ligne.segments %}
+                                    {% if segment.parole %}
+                                        <p class="mx-1.5 mb-1.5 rounded-sm bg-sable-100 px-2 py-1 text-xs italic text-encre-700">
+                                            {{ segment.quand|capitalize }}, dit à {{ segment.parole.avec }} : « {{ segment.parole.texte }} »
+                                        </p>
+                                    {% endif %}
+                                {% endfor %}
                             </li>
                         {% endfor %}
                     </ol>

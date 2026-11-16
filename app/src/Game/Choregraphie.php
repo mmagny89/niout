@@ -129,7 +129,7 @@ final class Choregraphie
      *
      * @param array<int, array<int, Pas>> $pasDeLaFigure
      *
-     * @return list<array{jour: int, lignes: list<string>, fait: bool}>
+     * @return list<array{jour: int, lignes: list<string>, fait: bool, segments: list<array{moments: list<int>, quand: string, geste: string, famille: string, lieu: ?string, parole: ?array{avec: string, texte: string}}>}>
      */
     public static function journal(array $pasDeLaFigure): array
     {
@@ -151,6 +151,7 @@ final class Choregraphie
             }
 
             $lignes = [];
+            $segments = [];
 
             foreach ($groupes as $groupe) {
                 $lieu = null === $groupe['pas']['lieu'] ? null : TypeDeBatiment::tryFrom($groupe['pas']['lieu'])?->libelle();
@@ -165,9 +166,21 @@ final class Choregraphie
                 }
 
                 $lignes[] = $ligne;
+
+                // La même chose, **structurée**, pour qu'un écran la mette en page : les moments, le geste, sa famille
+                // (une couleur), le lieu quand il dit quelque chose, et ce qui s'est dit. Le texte ci-dessus reste le
+                // même pour qui ne voit pas la mise en page.
+                $segments[] = [
+                    'moments' => array_map(static fn (MomentDeLaJournee $m): int => $m->value, $groupe['moments']),
+                    'quand' => $quand,
+                    'geste' => $geste,
+                    'famille' => $groupe['pas']['couchee'] ? 'repos' : $groupe['pas']['geste']->famille(),
+                    'lieu' => '' === $ou ? null : $lieu,
+                    'parole' => null === $groupe['pas']['parole'] ? null : ['avec' => $groupe['pas']['parole']['avec'], 'texte' => $groupe['pas']['parole']['texte']],
+                ];
             }
 
-            $journal[] = ['jour' => $jour, 'lignes' => [] === $lignes ? ['N\'est plus en ville.'] : $lignes, 'fait' => $fait];
+            $journal[] = ['jour' => $jour, 'lignes' => [] === $lignes ? ['N\'est plus en ville.'] : $lignes, 'fait' => $fait, 'segments' => $segments];
         }
 
         return $journal;
@@ -303,7 +316,7 @@ final class Choregraphie
                 foreach ($candidats as $i => $candidat) {
                     $pasDuMoment = $pas[$candidat['cle']][$jour][$moment] ?? null;
 
-                    if (null !== $pasDuMoment && null !== $pasDuMoment['lieu'] && !$pasDuMoment['couchee'] && !isset($occupes[$jour.'|'.$moment.'|'.$i]) && self::causant($pasDuMoment)) {
+                    if (RoleDeFigure::Enfant->value !== $candidat['role'] && null !== $pasDuMoment && null !== $pasDuMoment['lieu'] && !$pasDuMoment['couchee'] && !isset($occupes[$jour.'|'.$moment.'|'.$i]) && self::causant($pasDuMoment)) {
                         $groupes[$pasDuMoment['lieu']][] = $i;
                     }
                 }
@@ -560,7 +573,7 @@ final class Choregraphie
         // alité. Le Temple, ou la Résidence s'il n'est pas bâti (repli du placement).
         $procession = $jour === $c['fete'] && 1 === $moment
             && !$candidat['couchee']
-            && \in_array($role, [RoleDeFigure::ChefDeFamille, RoleDeFigure::Chef, RoleDeFigure::Travailleur, RoleDeFigure::Foyer], true);
+            && \in_array($role, [RoleDeFigure::ChefDeFamille, RoleDeFigure::Chef, RoleDeFigure::Travailleur, RoleDeFigure::Foyer, RoleDeFigure::Enfant, RoleDeFigure::Ancien], true);
 
         if ($procession) {
             return self::pas(TypeDeBatiment::Temple->value, GesteDeLaVille::Procession, TypeDeFait::Fete);
@@ -585,6 +598,8 @@ final class Choregraphie
             },
             RoleDeFigure::Medjay => self::pasDuMedjay($candidat, $jour, $moment, $enJournee, $c),
             RoleDeFigure::Rival => self::pasDuRival($jour, $enJournee, $lieu, $c),
+            RoleDeFigure::Enfant => self::pasDeLEnfant($cle, $jour, $moment, $enJournee, $c),
+            RoleDeFigure::Ancien => self::pasDeLAncien($cle, $jour, $moment, $enJournee, $c),
             RoleDeFigure::Macon => self::pasDuMacon((string) $lieu, $cle, $jour, $moment, $enJournee, $c),
             RoleDeFigure::Foyer => self::pasDuFoyer($candidat, $jour, $moment, $enJournee, $c),
             // Les silhouettes de passage ne sont jamais dans une photographie : elles dépendent de la ville
@@ -669,6 +684,40 @@ final class Choregraphie
         }
 
         return self::pas($lieu, GesteDeLaVille::Poste);
+    }
+
+    /**
+     * Un enfant joue : dans les ruelles du Quartier, et parfois — l'après-midi comme le matin — sur la place du Marché.
+     * Il ne cause jamais (la sélection des conversations l'écarte par son rôle) : l'ambiance est une affaire d'adultes.
+     * Le soir et à l'aube, il est chez lui.
+     *
+     * @param array<string, mixed> $c
+     *
+     * @return Pas
+     */
+    private static function pasDeLEnfant(string $cle, int $jour, int $moment, bool $enJournee, array $c): array
+    {
+        if ($enJournee && self::existe($c, TypeDeBatiment::Marche) && self::tirage($c, $cle, $jour, $moment) < 30) {
+            return self::pas(TypeDeBatiment::Marche->value, GesteDeLaVille::Joue);
+        }
+
+        return self::pas(self::CHEZ_SOI, $enJournee ? GesteDeLaVille::Joue : GesteDeLaVille::Habite);
+    }
+
+    /**
+     * Un ancien reste autour des maisons, et l'après-midi va parfois au Temple, quand il y en a un.
+     *
+     * @param array<string, mixed> $c
+     *
+     * @return Pas
+     */
+    private static function pasDeLAncien(string $cle, int $jour, int $moment, bool $enJournee, array $c): array
+    {
+        if (2 === $moment && self::existe($c, TypeDeBatiment::Temple) && self::tirage($c, $cle, $jour, $moment) < 35) {
+            return self::pas(TypeDeBatiment::Temple->value, GesteDeLaVille::Visite);
+        }
+
+        return self::pas(self::CHEZ_SOI, GesteDeLaVille::Habite);
     }
 
     /**

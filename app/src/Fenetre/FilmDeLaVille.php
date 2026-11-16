@@ -24,8 +24,11 @@ use App\Game\TypeDeBatiment;
  *
  * **Le temps se compte en moments.** Une quinzaine de 15 jours compte 60 moments (quatre
  * par jour) ; un point porte son instant `t` dans cette échelle. Entre deux moments où
- * l'on change de lieu, la silhouette **marche pendant les `MARCHE` premiers centièmes**
- * du moment, puis reste là : elle arrive vite, elle n'erre pas.
+ * l'on change de lieu, la silhouette **marche pendant tout un moment**, de la mi-moment
+ * précédent à la mi-moment du lieu qu'elle rejoint : à la **mi-moment** (là où le film
+ * s'arrête et où les bulles se posent) chacun est à sa place, et qui change de lieu à chaque
+ * moment **ne s'arrête jamais** — seul qui reste plusieurs moments au même endroit
+ * est immobile.
  *
  * **Un point** : `[t, gauche, haut, visible, couchée, tourné]`. Les positions sont celles
  * de l'angle supérieur gauche de la silhouette debout, **en pourcentages du visuel** —
@@ -63,11 +66,17 @@ use App\Game\TypeDeBatiment;
 final readonly class FilmDeLaVille
 {
     /**
-     * La part d'un moment passée à marcher quand on change de lieu. **Valeur
-     * inventée** : assez pour qu'on voie un trajet, pas assez pour qu'il dure
-     * plus qu'un moment.
+     * La durée d'un trajet, en moments : **un moment entier**, pour qu'une silhouette qui
+     * change de lieu à chaque moment marche sans jamais s'arrêter. Le trajet part une demi-
+     * unité avant le moment du nouveau lieu (`AVANCE`) et s'y termine une demi-unité après :
+     * à la mi-moment, on est arrivé.
      */
-    public const float MARCHE = 0.4;
+    public const float MARCHE = 1.0;
+
+    /**
+     * De combien le trajet précède le début du moment du nouveau lieu.
+     */
+    public const float AVANCE = 0.5;
 
     public function __construct(
         private GensDeLaVille $gens,
@@ -194,7 +203,8 @@ final readonly class FilmDeLaVille
             }
 
             $debut = (float) (($parole['jour'] - 1) * 4 + $parole['moment']);
-            $instant = $debut + self::MARCHE + 0.05;
+            // À la mi-moment, tout le monde est arrivé : c'est là que la conversation se tient.
+            $instant = $debut + self::MARCHE - self::AVANCE;
             $bulles[] = [
                 't' => $debut,
                 'nature' => $parole['nature'],
@@ -262,9 +272,9 @@ final readonly class FilmDeLaVille
             }
 
             if ($visible && $courant['visible'] && $cleDuLot !== $courant['lot']) {
-                // On marche d'un lot à l'autre, par les rues, pendant le début du moment.
+                // On marche d'un lot à l'autre, par les rues, d'une mi-moment à la suivante.
                 $trajet = self::trajet($lots, $courant, $place, $etat['lieu']);
-                $depart = (float) $s;
+                $depart = (float) $s - self::AVANCE;
                 $longueur = 0.0;
 
                 for ($k = 1; $k < \count($trajet); ++$k) {
@@ -283,20 +293,23 @@ final readonly class FilmDeLaVille
                         $tourne = abs($dx) < 0.05 ? $tourne : ($dx < 0 ? 1 : 0);
                     }
 
-                    $points[] = [
-                        round($depart + self::MARCHE * ($longueur > 0 ? $parcouru / $longueur : 1.0), 3),
-                        round($trajet[$k][0], 2),
-                        round($trajet[$k][1], 2),
-                        1,
-                        $courant['couchee'],
-                        $tourne,
-                    ];
+                    $instant = round($depart + self::MARCHE * ($longueur > 0 ? $parcouru / $longueur : 1.0), 3);
+                    $x = round($trajet[$k][0], 2);
+                    $y = round($trajet[$k][1], 2);
+                    $precedent = $points[array_key_last($points)];
+
+                    // Le départ d'un trajet est l'arrivée du précédent : un seul point, pas deux superposés.
+                    if (0 === $k && $precedent[0] === $instant && $precedent[1] === $x && $precedent[2] === $y) {
+                        continue;
+                    }
+
+                    $points[] = [$instant, $x, $y, 1, $courant['couchee'], $tourne];
                 }
 
                 $courant = ['lot' => $cleDuLot, 'gauche' => $place[0], 'haut' => $place[1], 'visible' => true, 'couchee' => $couchee];
 
                 if ($couchee !== $points[array_key_last($points)][4]) {
-                    $points[] = [(float) $s + self::MARCHE, $place[0], $place[1], 1, $couchee, $tourne];
+                    $points[] = [round($depart + self::MARCHE, 3), $place[0], $place[1], 1, $couchee, $tourne];
                 }
 
                 continue;
