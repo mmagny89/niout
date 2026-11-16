@@ -26,6 +26,12 @@
                             <div class="flex items-start gap-3">
                                 {{ include('partie/_pictogramme.html.twig', {nom: 'chef', taille: 44}) }}
                                 <div class="min-w-0 flex-1">
+                                    {# Son prénom d'abord : qui est ce chef, avant ce qu'il vaut.
+                                       Absent pour un chef d'avant le lot N, que le prochain
+                                       passage de quinzaine nomme. #}
+                                    {% if chef.prenom %}
+                                        <p class="font-display text-base text-encre-900">{{ chef.prenom }}</p>
+                                    {% endif %}
                                     {{ _self.etoiles(chef.etoiles) }}
                                     <p class="mt-0.5 text-sm text-encre-700">
                                         {% if chef.specialite %}
@@ -114,6 +120,9 @@
                 <ul class="mt-3 grid list-none grid-cols-1 gap-3 p-0 md:grid-cols-2 2xl:grid-cols-3">
                     {% for candidat in direction.offre.candidats %}
                         <li class="carte-vivante flex flex-col gap-2 rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+                            {% if candidat.prenom %}
+                                <p class="font-display text-base text-encre-900">{{ candidat.prenom }}</p>
+                            {% endif %}
                             <div class="flex flex-wrap items-center justify-between gap-2">
                                 {{ _self.etoiles(candidat.etoiles) }}
                                 {% if loop.index0 == direction.rangDuPlusCompetent or loop.index0 == direction.rangDuMoinsCher %}

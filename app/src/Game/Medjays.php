@@ -43,6 +43,7 @@ final readonly class Medjays
 
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private Prenoms $prenoms,
     ) {
     }
 
@@ -108,7 +109,7 @@ final readonly class Medjays
             throw new MedjayImpossible(\sprintf('Lever un %s demande %d deben ; il vous en manque %d.', mb_strtolower($specialisation->libelle()), $cout, $cout - $ville->getDeben()));
         }
 
-        $medjay = new Medjay($ville, $specialisation);
+        $medjay = new Medjay($ville, $specialisation, $this->prenoms->libre($partie, true));
         $ville->leverUnMedjay($medjay);
 
         $this->entityManager->persist($medjay);

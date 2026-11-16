@@ -540,7 +540,7 @@ final class PartieController extends AbstractController
         }
 
         try {
-            $medjays->lever($partie, $specialisation);
+            $recrue = $medjays->lever($partie, $specialisation);
         } catch (MedjayImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
 
@@ -548,8 +548,10 @@ final class PartieController extends AbstractController
         }
 
         $this->addFlash('succes', \sprintf(
-            'Un %s rejoint votre troupe.',
-            mb_strtolower($specialisation->libelle()),
+            '%s rejoint votre troupe.',
+            null !== $recrue->getPrenom()
+                ? $recrue->getPrenom().', un '.mb_strtolower($specialisation->libelle()).','
+                : 'Un '.mb_strtolower($specialisation->libelle()),
         ));
 
         return $this->retourALaVille($request, $partie);
@@ -749,8 +751,9 @@ final class PartieController extends AbstractController
         try {
             $employe = $recrutements->embaucher($partie, $offre, $request->request->getInt('rang', -1));
             $this->addFlash('succes', \sprintf(
-                'Votre nouveau chef %s s\'installe avec les siens. Il prendra son poste à la prochaine quinzaine.',
-                null !== $employe->getSpecialite() ? '('.mb_strtolower($employe->getSpecialite()->libelle()).')' : '',
+                '%s s\'installe avec les siens. Il prendra son poste à la prochaine quinzaine.',
+                (null !== $employe->getPrenom() ? $employe->getPrenom().', v' : 'V').'otre nouveau chef'
+                    .(null !== $employe->getSpecialite() ? ' ('.mb_strtolower($employe->getSpecialite()->libelle()).')' : ''),
             ));
         } catch (RecrutementImpossible $impossible) {
             $this->addFlash('erreur', $impossible->getMessage());
@@ -782,8 +785,11 @@ final class PartieController extends AbstractController
             throw $this->createNotFoundException('Ce chef n\'est pas à votre service.');
         }
 
+        $prenom = $employe->getPrenom();
         $recrutements->renvoyer($employe);
-        $this->addFlash('succes', 'Le chef et les siens ont quitté la ville.');
+        $this->addFlash('succes', null !== $prenom
+            ? \sprintf('%s et les siens ont quitté la ville.', $prenom)
+            : 'Le chef et les siens ont quitté la ville.');
 
         return $this->retourALaVille($request, $partie);
     }

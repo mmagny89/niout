@@ -219,7 +219,7 @@ final readonly class Rivaux
         $rival = new RivalCommercial(
             $ville,
             $route->getPartenaire(),
-            $this->unNom(),
+            $this->unNom($partie),
             $this->hasard->getInt(self::MALUS_MINIMAL, self::MALUS_MAXIMAL),
             $this->hasard->getInt(self::QUINZAINES_MINIMALES, self::QUINZAINES_MAXIMALES),
         );
@@ -238,9 +238,15 @@ final readonly class Rivaux
      * Des noms attestés au Nouvel Empire, portés par des gens ordinaires —
      * scribes, contremaîtres, marchands de Deir el-Médineh.
      */
-    private function unNom(): string
+    private function unNom(GameSave $partie): string
     {
         $noms = ['Panehsy', 'Hori', 'Ipouy', 'Nakhtmin', 'Khâemouaset', 'Ramosé', 'Ounnefer', 'Pentaour'];
+
+        // On ne croise pas deux « Hori » dans la même ville : un nom que porte
+        // déjà un chef ou un Medjaÿ est écarté, sauf s'ils le sont tous.
+        $bases = array_map(static fn (string $nom): string => explode(',', $nom)[0], Prenoms::pris($partie));
+        $libres = array_values(array_diff($noms, $bases));
+        $noms = [] === $libres ? $noms : $libres;
 
         return $noms[$this->hasard->getInt(0, \count($noms) - 1)].' le marchand';
     }

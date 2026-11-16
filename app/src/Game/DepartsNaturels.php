@@ -67,12 +67,13 @@ final readonly class DepartsNaturels
             $ville->laisserPartir($chef->getActifsAmenes(), $chef->getInactifsAmenes());
             $ville->retirerEmploye($chef);
 
-            $evenements[] = \sprintf(
-                'Votre chef %s quitte son poste et emmène les siens.',
-                null !== $chef->getSpecialite()
-                    ? '('.mb_strtolower($chef->getSpecialite()->libelle()).')'
-                    : 'du '.mb_strtolower($chef->getType()->libelle()),
-            );
+            $designation = null !== $chef->getSpecialite()
+                ? '('.mb_strtolower($chef->getSpecialite()->libelle()).')'
+                : 'du '.mb_strtolower($chef->getType()->libelle());
+
+            $evenements[] = null !== $chef->getPrenom()
+                ? \sprintf('%s, votre chef %s, quitte son poste et emmène les siens.', $chef->getPrenom(), $designation)
+                : \sprintf('Votre chef %s quitte son poste et emmène les siens.', $designation);
         }
 
         return $evenements;

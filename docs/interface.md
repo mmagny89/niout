@@ -83,9 +83,9 @@ en haut à droite) — à droite, le niveau se confondait avec elle. Dessous, de
 
 **L'onglet Direction ne redit pas l'en-tête** (`_direction.html.twig`) : ni le nombre de chefs, ni celui des
 travailleurs, ni le rendement — ils sont dans les pastilles. Il ne garde que ce qui n'y tient pas : une carte par
-**chef en poste** (étoiles, spécialité, salaire, « Renvoyer »), ou, sans chef, **ce qu'un chef changerait en une jauge**
+**chef en poste** (**prénom**, étoiles, spécialité, salaire, « Renvoyer » ; le prénom d'abord, en `font-display` : qui est ce chef avant ce qu'il vaut, et **absent** pour un chef d'avant le lot N que la quinzaine suivante nomme), ou, sans chef, **ce qu'un chef changerait en une jauge**
 (le plafond à 50 % contre 100 %) ; les **spécialités possibles en pastilles** (infobulle pour leur effet, plus un repli) ;
-et les **candidats en cartes** — étoiles, « le plus compétent » / « le moins cher », spécialité, salaire et personnes amenées
+et les **candidats en cartes** — **prénom en tête** (on retient quelqu'un), étoiles, « le plus compétent » / « le moins cher », spécialité, salaire et personnes amenées
 en pastilles à pictogramme, traits en pastilles, « Retenir ce candidat » en bas de carte.
 
 ## Infobulles

@@ -18,7 +18,8 @@ use Doctrine\ORM\Mapping as ORM;
  * Les deux n'ont en commun qu'un salaire — les confondre aurait fait porter à
  * `Employee` deux modèles qui ne se ressemblent pas.
  *
- * Comme le chef, il **n'a pas de nom** : on le désigne par sa spécialisation.
+ * Comme le chef, il **porte un prénom** (`Game\Prenoms`), tiré une fois à la
+ * levée ; la spécialisation le suit.
  *
  * **L'expérience est ce qui donne son poids à la mort permanente** (doc 03) :
  * ce n'est pas le coût de recrutement qui fait mal, c'est de repartir à zéro.
@@ -88,10 +89,30 @@ class Medjay
         return $this;
     }
 
-    public function __construct(City $ville, SpecialisationMedjay $specialisation)
+    /**
+     * Son prénom, tiré une fois et gardé. Nul pour un homme levé avant que le
+     * jeu en distribue : `Prenoms::completer()` le lui donne.
+     */
+    #[ORM\Column(length: 40, nullable: true)]
+    private ?string $prenom = null;
+
+    public function __construct(City $ville, SpecialisationMedjay $specialisation, ?string $prenom = null)
     {
         $this->ville = $ville;
         $this->specialisation = $specialisation;
+        $this->prenom = $prenom;
+    }
+
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
+
+    public function donnerUnPrenom(string $prenom): static
+    {
+        $this->prenom = $prenom;
+
+        return $this;
     }
 
     public function getId(): ?int
