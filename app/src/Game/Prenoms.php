@@ -132,7 +132,21 @@ final readonly class Prenoms
         $nommes = [];
         $reserves = [];
 
+        // Un chef qui revient garde le prénom qu'il portait : on le réserve d'abord, pour que personne d'autre
+        // dans l'annonce ne le reçoive.
         foreach ($candidats as $candidat) {
+            if (null !== $candidat->prenom) {
+                $reserves[] = $candidat->prenom;
+            }
+        }
+
+        foreach ($candidats as $candidat) {
+            if (null !== $candidat->prenom) {
+                $nommes[] = $candidat;
+
+                continue;
+            }
+
             $prenom = $this->libre($partie, false, $reserves);
             $reserves[] = $prenom;
             $nommes[] = $candidat->avecPrenom($prenom);

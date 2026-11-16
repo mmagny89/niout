@@ -303,6 +303,7 @@ le calibrage du lot 4.6.
 | Retard d'une rumeur | 2 quinzaines | `LeMonde::RETARD_DES_RUMEURS` |
 | Retour d'un rival (lassé / payé / démonté) | 8 / 12 / 30 quinzaines avant de pouvoir reparaître, une fois sur deux | `Rivaux::DELAI_APRES_*` |
 | Mémoire d'un accord payé | −25 % sur le suivant, 3 accords retenus au plus, +4 de relation | `Rivaux::RABAIS_PAR_ACCORD_PASSE` |
+| Chef voyageur : retour et gain | retour dès 12 quinzaines, 1 fois sur 2 ; +8 de compétence ; Négociateur : +2 de relation par quinzaine, 10 au plus | `ChefsVoyageurs` |
 
 **Une leçon de méthode, payée en Phase 3** : quatre valeurs de population
 avaient été inventées alors que les docs 01 et 02 les chiffraient (consommation,
