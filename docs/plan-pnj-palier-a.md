@@ -1,6 +1,6 @@
 # Niout — PNJ, palier A : le monde commerçant qui bouge
 
-**Statut : lots A1 et A2 livrés (2026-11-16) — conjoncture dérivée, avantage signé, banc d'essai ; le reste est cadré, rien d'autre n'est codé.** Suite de
+**Statut : lots A1, A2 et A3 livrés (2026-11-16) — conjoncture dérivée, avantage signé, banc d'essai ; le reste est cadré, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1, palier A). Ce document dit
 **quoi** faire des partenaires commerciaux, **où** cela s'accroche dans le code
 existant, **jusqu'où** cela peut peser sur le joueur, et **comment on le
@@ -464,3 +464,19 @@ de ce avantage et du carnet**, jamais leur somme ; conjoncture et cause dans l'�
 - **Toujours reportés** : deuil de cour, troubles, guerre et son cadre (§ 4.4), qui demandent un affichage avant l'engagement.
 
 **À jouer avant A3** (verrou du plan) : le joueur lit-il l'étal enrichi, et en tire-t-il quelque chose ?
+
+## 16. Lot A3 — ce qui est livré, et ce qui reste
+
+**Livré** : `Fenetre\LeMonde` et la fenêtre `app_partie_monde` (une carte par cité : statut de la route, relation,
+événement, marchandises marquées) ; l'information qui se mérite — route ouverte = tout, Négociateur à l'Entrepôt = la
+quinzaine suivante, Auberge (ou Port pour l'eau) = rumeur **en retard de deux quinzaines**, rien sinon ;
+`Sollicitation` (stockée : proposée, acceptée, refusée, échue) et `Sollicitations` : tirage dérivé de la graine
+(une fenêtre de 4 quinzaines sur 3), une seule par cité, offre à 110 % du cours et demande à 140 %, 10 à 30 unités,
+quatre quinzaines pour répondre, relation +3 si acceptée, purge au-delà de 40 quinzaines. Ignorer ne coûte rien.
+
+**Écarts** : l'**occasion** (« une caravane part pour Pount, il reste de la place ») n'est pas codée — elle demande de
+lire la capacité d'un convoi. L'Auberge ne figure que comme *source de rumeurs* ; son panneau propre n'a pas changé.
+**Toujours reportés** : deuil de cour, troubles, guerre (§ 4.4), « sollicitation de paix » (A3 du plan, qui dépend de la guerre).
+
+**À contrôler au navigateur** (non fait) : la fenêtre à 390 px et en desktop, le bouton « Le monde » sur la ville.
+**Verrou suivant** : playtest d'A3, puis A4 (calibrage des valeurs du § 12) avant le palier B.

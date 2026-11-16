@@ -30,6 +30,7 @@ final readonly class PassageDeCycle
         private GeographieDeLaPartie $geographies,
         private Fabrication $fabrication,
         private Commerce $commerce,
+        private Sollicitations $sollicitations,
         private Marche $marche,
         private Impots $impots,
         private Mecontentement $mecontentement,
@@ -158,6 +159,7 @@ final readonly class PassageDeCycle
             // une route (doc 08).
             ...$de(CategorieDEvenement::Rivaux, $this->rivaux->avancerDUnCycle($partie)),
             ...$de(CategorieDEvenement::Lointain, $this->commerce->nouvellesDuMonde($partie)),
+            ...$de(CategorieDEvenement::Lointain, $this->sollicitations->avancerDUnCycle($partie)),
             // Et ce que le pharaon réclame pour ses propres chantiers.
             ...$de(CategorieDEvenement::Royaume, $this->quetes->avancerDUnCycle($partie)),
         ];

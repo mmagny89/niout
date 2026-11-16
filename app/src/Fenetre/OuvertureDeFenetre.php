@@ -37,7 +37,7 @@ final readonly class OuvertureDeFenetre
      * Les routes qui savent répondre en cadre. On l'allonge à mesure que les
      * écrans passent en fenêtre.
      */
-    public const array ROUTES_DE_CADRE = ['app_partie_ville', 'app_partie_commande', 'app_partie_case', 'app_partie_expeditions', 'app_partie_gens'];
+    public const array ROUTES_DE_CADRE = ['app_partie_ville', 'app_partie_commande', 'app_partie_case', 'app_partie_expeditions', 'app_partie_gens', 'app_partie_monde'];
 
     public const string CADRE = 'fenetre';
 

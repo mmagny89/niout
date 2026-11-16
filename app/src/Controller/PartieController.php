@@ -14,6 +14,7 @@ use App\Fenetre\BatimentsDeLaCite;
 use App\Fenetre\DetailDeCase;
 use App\Fenetre\FilmDeLaVille;
 use App\Fenetre\GensDeLaVille;
+use App\Fenetre\LeMonde;
 use App\Fenetre\OuvertureDeFenetre;
 use App\Fenetre\Panneau\PanneauxDeLaVille;
 use App\Fenetre\VueDeLaVille;
@@ -75,6 +76,8 @@ use App\Game\Ressource;
 use App\Game\Rivaux;
 use App\Game\RoleDExploration;
 use App\Game\SensDEchange;
+use App\Game\SollicitationImpossible;
+use App\Game\Sollicitations;
 use App\Game\SpecialisationMedjay;
 use App\Game\SuccessionFamiliale;
 use App\Game\SuccessionImpossible;
@@ -269,6 +272,62 @@ final class PartieController extends AbstractController
             'frise' => $gens->frise($partie),
             'moments' => MomentDeLaJournee::cases(),
         ] + $gens->pour($partie, $jour, $moment));
+    }
+
+    /**
+     * « Le monde » : une carte par cité atteignable, ce qu'on en sait selon ce qu'on a bâti, et les
+     * propositions qui attendent une réponse. Une fenêtre, pas une page.
+     */
+    #[Route('/{id}/ville/monde', name: 'app_partie_monde', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted(PartieVoter::VOIR, subject: 'partie')]
+    public function monde(Request $request, GameSave $partie, LeMonde $monde): Response
+    {
+        if (!OuvertureDeFenetre::estUneRequeteDeCadre($request)) {
+            return $this->forward(self::class.'::carte', ['id' => $partie->getId()], ['ouvre' => $request->getRequestUri()]);
+        }
+
+        return $this->render('fenetre/monde.html.twig', ['partie' => $partie, 'ville' => $partie->getVille()] + $monde->pour($partie));
+    }
+
+    /**
+     * Répond à une proposition d'une cité : on accepte, ou on décline. Ne rien faire reste une réponse,
+     * qui ne passe par aucune route.
+     */
+    #[Route('/{id}/ville/monde/repondre', name: 'app_partie_monde_repondre', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted(PartieVoter::JOUER, subject: 'partie')]
+    public function repondreAuMonde(Request $request, GameSave $partie, Sollicitations $sollicitations, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('sollicitation', (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton invalide.');
+        }
+
+        $sollicitation = null;
+
+        foreach ($sollicitations->enAttente($partie) as $candidate) {
+            if ($candidate->getId() === $request->request->getInt('sollicitation')) {
+                $sollicitation = $candidate;
+            }
+        }
+
+        if (null === $sollicitation) {
+            throw $this->createNotFoundException('Cette proposition n\'existe pas ou n\'est plus valable.');
+        }
+
+        try {
+            if ('accepter' === $request->request->get('reponse')) {
+                $sollicitations->accepter($partie, $sollicitation);
+                $this->addFlash('succes', 'Marché conclu.');
+            } else {
+                $sollicitations->refuser($partie, $sollicitation);
+                $this->addFlash('succes', 'Vous déclinez la proposition.');
+            }
+
+            $entityManager->flush();
+        } catch (SollicitationImpossible $e) {
+            $this->addFlash('erreur', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_partie_monde', ['id' => $partie->getId()]);
     }
 
     /**

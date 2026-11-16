@@ -1,0 +1,116 @@
+{# « Le monde » : une carte par cité atteignable (`docs/plan-pnj-palier-a.md` § 6.3).
+
+   **L'information se mérite** : une route ouverte dit tout de la quinzaine, un Négociateur à l'Entrepôt
+   ajoute la suivante, l'Auberge (ou le Port, pour l'eau) fait entendre des rumeurs **vieilles de deux
+   quinzaines** sur les cités dont la route n'est pas ouverte. Sans rien de tout cela, on ne sait rien.
+
+   **Jamais une couleur seule** : chaque conjoncture porte son signe (▲ ▼), son chiffre et ses mots.
+   Feuille posée à droite, comme les gens de la ville ; plein écran sous la barre sur téléphone. #}
+{% macro points(valeur) %}
+    <span aria-hidden="true">{{ valeur > 0 ? '▲' : '▼' }}</span>
+    <span class="sr-only">{{ valeur > 0 ? 'Favorable' : 'Défavorable' }} :</span>
+    {{ valeur > 0 ? '+' : '' }}{{ valeur }}
+{% endmacro %}
+{% import _self as m %}
+
+<turbo-frame id="fenetre" class="block h-full">
+    <div data-forme="feuille" class="flex h-full min-h-0 flex-col overflow-y-auto p-4 pr-14 md:p-6 md:pr-14">
+        <h2 id="fenetre-titre" class="font-display text-xl text-encre-900">Le monde</h2>
+        <p class="mt-1 text-sm text-encre-600">
+            Ce que vous savez des cités avec qui vous pouvez commercer. Tout est inventé : le jeu ne date pas d'événement réel.
+        </p>
+
+        {% for type in ['erreur', 'succes'] %}
+            {% for message in app.flashes(type) %}
+                <p class="mt-3 rounded-sm border px-3 py-2 text-sm {{ type == 'erreur' ? 'border-terre-500/50 bg-terre-500/10 text-terre-600' : 'border-lapis-500/40 bg-lapis-500/5 text-lapis-600' }}" role="status">{{ message }}</p>
+            {% endfor %}
+        {% endfor %}
+
+        <p class="mt-3 text-sm text-encre-600">
+            {% if voitLoin %}
+                Votre Négociateur voit loin : les cités dont la route est ouverte montrent aussi la quinzaine suivante.
+            {% else %}
+                Un Négociateur à l'Entrepôt vous ferait voir la quinzaine suivante.
+            {% endif %}
+        </p>
+
+        <ul class="mt-4 space-y-4 list-none p-0">
+            {% for carte in cartes %}
+                {% set p = carte.partenaire %}
+                <li class="rounded-sm border border-ocre-500/30 bg-sable-50 p-4">
+                    <h3 class="font-display text-lg text-encre-900">{{ p.nom }}</h3>
+                    <p class="mt-0.5 text-xs text-encre-500" data-chiffres>
+                        {{ p.route.libelle }} · {{ p.distanceEnQuinzaines }} quinzaine{{ p.distanceEnQuinzaines > 1 ? 's' : '' }} de trajet
+                        · {{ carte.statut == 'ouverte' ? 'route ouverte' : (carte.statut == 'en-chemin' ? 'première caravane en chemin' : 'route à ouvrir') }}
+                        {% if carte.relation is not null %}· relation {{ carte.relation }}/100{% endif %}
+                    </p>
+
+                    {% if carte.maintenant %}
+                        {% set m1 = carte.maintenant %}
+                        <p class="mt-3 text-sm text-encre-900">
+                            {% if m1.evenement %}<strong>{{ m1.evenement.libelle }}</strong> en cours.{% else %}Pas d'événement en cours.{% endif %}
+                        </p>
+                        {% if m1.marchandises %}
+                            <ul class="mt-2 flex list-none flex-wrap gap-2 p-0 text-sm" data-chiffres>
+                                {% for l in m1.marchandises %}
+                                    <li class="rounded-full border border-ocre-500/40 px-2.5 py-0.5 text-encre-800">
+                                        {{ l.ressource.libelle|capitalize }} {{ m.points(l.points) }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+                        {% if carte.demain %}
+                            <p class="mt-3 border-t border-ocre-500/20 pt-2 text-sm text-encre-700" data-chiffres>
+                                <span class="font-medium">Quinzaine suivante</span> —
+                                {% if carte.demain.evenement %}{{ carte.demain.evenement.libelle }}{% else %}pas d'événement{% endif %}
+                                {% for l in carte.demain.marchandises|slice(0, 2) %}
+                                    · {{ l.ressource.libelle|capitalize }} {{ m.points(l.points) }}
+                                {% endfor %}
+                            </p>
+                        {% endif %}
+
+                        {% if carte.sollicitation %}
+                            {% set s = carte.sollicitation %}
+                            <form method="post" action="{{ path('app_partie_monde_repondre', {id: partie.id}) }}"
+                                  class="mt-4 rounded-sm border border-or-400/50 bg-or-300/10 p-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token('sollicitation') }}">
+                                <input type="hidden" name="sollicitation" value="{{ s.id }}">
+                                <p class="text-sm font-medium text-encre-900">{{ s.nature.libelle }}</p>
+                                <p class="mt-1 text-sm text-encre-800" data-chiffres>
+                                    {{ p.nom }}
+                                    {% if s.nature.value == 'offre' %}
+                                        cède {{ s.quantite }} {{ s.ressource.libelle }} à {{ s.prix }} deben pièce — {{ s.total }} deben en tout.
+                                    {% else %}
+                                        réclame {{ s.quantite }} {{ s.ressource.libelle }} et les paie {{ s.prix }} deben pièce — {{ s.total }} deben en tout.
+                                    {% endif %}
+                                    Valable jusqu'à la quinzaine {{ s.echeance - 1 }}.
+                                </p>
+                                <p class="mt-1 text-xs text-encre-600">Ne rien répondre est une réponse : la proposition s'éteint, sans coût.</p>
+                                {% if partie.estEnCours %}
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        <button type="submit" name="reponse" value="accepter"
+                                                class="inline-flex min-h-11 items-center rounded-sm bg-lapis-500 px-4 text-sm text-sable-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">Accepter</button>
+                                        <button type="submit" name="reponse" value="refuser"
+                                                class="inline-flex min-h-11 items-center rounded-sm border border-ocre-500/50 px-4 text-sm text-encre-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lapis-500">Décliner</button>
+                                    </div>
+                                {% endif %}
+                            </form>
+                        {% endif %}
+                    {% elseif carte.rumeur %}
+                        <p class="mt-3 text-sm text-encre-800">
+                            {% if carte.rumeur.evenement %}
+                                Selon {{ carte.rumeur.source }}, {{ carte.rumeur.evenement.libelle|lower }} se serait fait sentir là-bas.
+                            {% else %}
+                                Selon {{ carte.rumeur.source }}, rien de notable là-bas.
+                            {% endif %}
+                        </p>
+                        <p class="mt-1 text-xs text-encre-500">Nouvelles vieilles de deux quinzaines : le temps qu'elles arrivent.</p>
+                    {% else %}
+                        <p class="mt-3 text-sm text-encre-600">Aucune nouvelle. Une Auberge ou un Port — ou une route ouverte — vous en apporterait.</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</turbo-frame>
