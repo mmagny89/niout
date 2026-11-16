@@ -70,6 +70,15 @@ class Npc
     #[ORM\Column(type: 'json', options: ['default' => '[]'])]
     private array $histoire = [];
 
+    /**
+     * Ce qui ne tient pas dans les colonnes communes, propre à son rôle : pour un chef voyageur, la candidature
+     * qu'il était (`Candidat::enTableau()`), son bâtiment, sa destination, ce qu'il y a gagné.
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: 'json', options: ['default' => '{}'])]
+    private array $profil = [];
+
     public function __construct(GameSave $partie, int $identite, RoleDePnj $role, string $nom, TraitDeCandidat $caractere)
     {
         $this->partie = $partie;
@@ -121,6 +130,22 @@ class Npc
     {
         $this->histoire[] = ['q' => $quinzaine, 't' => $type, 'r' => $route];
         $this->histoire = \array_slice($this->histoire, -self::HISTOIRE_MAX);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getProfil(): array
+    {
+        return $this->profil;
+    }
+
+    /**
+     * @param array<string, mixed> $profil
+     */
+    public function definirLeProfil(array $profil): void
+    {
+        $this->profil = $profil;
     }
 
     public function peutParaitre(int $quinzaine): bool

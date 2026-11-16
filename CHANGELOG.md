@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Un chef qui part va quelque part.** Il rejoint une cité de votre monde (« Il rejoint Byblos »), figure dans « Le monde » avec sa chronique, et un
+  Négociateur y rapproche la cité de votre famille (jusqu'à 10 points, pas davantage). Il peut revenir, au plus tôt douze quinzaines plus tard, parmi
+  les candidats d'une annonce de son bâtiment : même prénom, même spécialité, huit points de compétence de mieux — une seule fois. Il part toujours
+  de lui-même : aucune cité ne débauche vos chefs.
 - **Les personnes ont une fiche.** La fenêtre « Le monde » liste les marchands que vous avez croisés : leur caractère, les accords passés avec vous, où ils sont
   (sur votre route, ou ailleurs jusqu'à quelle quinzaine), et leur chronique — que l'on peut isoler pour une seule personne. Ce qu'ils ont fait se lit
   toujours ; pourquoi, seulement avec une Auberge.

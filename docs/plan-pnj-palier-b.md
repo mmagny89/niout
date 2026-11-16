@@ -1,6 +1,6 @@
 # Niout — PNJ, palier B : des personnes qui ont un but
 
-**Statut : lots B1 et B2 livrés (2026-11-16) — le rival raisonné, sa fiche ; B3 à B6 cadrés, rien d'autre n'est codé.** Suite de
+**Statut : lots B1 à B3 livrés (2026-11-16) — le rival raisonné, sa fiche, les chefs voyageurs ; B4 à B6 cadrés, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1) et de
 [`plan-pnj-palier-a.md`](plan-pnj-palier-a.md). **Dépend d'A** : la graine de
 partie, les faits de monde, la conjoncture et la fenêtre « Le monde » y sont
@@ -365,3 +365,24 @@ quinzaines) — une colonne bornée suffit tant qu'un seul rôle existe. Les ren
 « Rivaux » du récapitulatif plutôt que « Au loin ». **« Portrait »** : aucun visuel — un pictogramme ou un sprite attend la passe V6.
 
 **Verrou** : **playtest — s'attache-t-on à lui ?** Il conditionne B3 (chefs voyageurs), B4 (bandes) et B5 (cour).
+
+## 15. Lot B3 — les chefs voyageurs
+
+**Livré** : `ChefsVoyageurs` — `emmener()` (appelé par `DepartsNaturels` : destination déduite de la graine parmi les cités
+atteignables, `Npc` de rôle `ChefVoyageur` dont le `profil` JSON garde la candidature, le bâtiment, la destination, ce qui a été
+gagné), `avancerDUnCycle()` (un **Négociateur** parti gagne 2 points de relation par quinzaine à sa cité, **10 au plus** en tout,
+par `EtatDePartenaire::gagnerLaRelation` : le canal existant, pas un facteur de plus), `auRetour()` (à une annonce de son
+bâtiment, au plus tôt 12 quinzaines après son départ, une fois sur deux : il remplace le dernier candidat tiré, **+8 de
+compétence** plafonné à 100, même prénom, même spécialité ; une seule fois). `Prenoms::nommerLesCandidats` garde un prénom déjà
+porté et le réserve. « Le monde » montre la fiche (où il travaille, de retour) et sa chronique (part, rentre).
+
+**Écarts** :
+- **Le Logisticien parti n'est pas écrit** : raccourcir un trajet vers sa cité touche `Commerce::trajetVers` et le plancher d'une
+  quinzaine, qui méritent leur cadrage.
+- **+2 par quinzaine plutôt que +1** : la relation retombe d'un point par quinzaine vers son plancher (palier A) ; à +1 le gain
+  aurait été annulé et le Négociateur sans effet. Le plafond de 10 est celui du plan.
+- **Le pool de candidats n'est pas une « population stable de N profils »** : le plan en parlait, mais seuls les chefs que le joueur
+  a employés reviennent. Une vraie population déduite reste à cadrer si le playtest réclame plus de revenants.
+- Un chef sans prénom (parties anciennes) devient « Un chef de l'Entrepôt ».
+
+**Verrous** : le playtest de B2 reste à jouer ; B4 se cadre avec `Commerce::risqueDePillage`.

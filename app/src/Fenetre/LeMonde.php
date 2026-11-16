@@ -119,8 +119,10 @@ final readonly class LeMonde
         $fiches = [];
         $chronique = [];
 
-        foreach ($this->entityManager->getRepository(Npc::class)->findBy(['partie' => $partie, 'role' => RoleDePnj::Rival], ['id' => 'ASC']) as $npc) {
-            $ici = null !== $present && $present->getIdentite() === $npc->getIdentite();
+        foreach ($this->entityManager->getRepository(Npc::class)->findBy(['partie' => $partie], ['id' => 'ASC']) as $npc) {
+            $voyageur = RoleDePnj::ChefVoyageur === $npc->getRole();
+            $profil = $npc->getProfil();
+            $ici = !$voyageur && null !== $present && $present->getIdentite() === $npc->getIdentite();
             $presentIci = $ici ? $present : null;
 
             $fiches[] = [
@@ -131,7 +133,10 @@ final readonly class LeMonde
                 'accords' => $npc->getAccords(),
                 'ici' => $ici,
                 'route' => null === $presentIci ? null : $this->commerce->partenaireDe($partie, $presentIci->getPartenaire())?->nom,
-                'ailleurs' => !$ici && !$npc->peutParaitre($partie->getCycle()) ? $npc->getIndisponibleJusqua() : null,
+                'ailleurs' => !$voyageur && !$ici && !$npc->peutParaitre($partie->getCycle()) ? $npc->getIndisponibleJusqua() : null,
+                'voyageur' => $voyageur,
+                'destination' => $voyageur ? $this->commerce->partenaireDe($partie, (string) ($profil['destination'] ?? ''))?->nom : null,
+                'revenu' => true === ($profil['revenu'] ?? false),
                 'pourquoi' => $saitPourquoi && null !== $presentIci ? $this->rivaux->raconter($presentIci) : null,
                 'choisi' => $filtre === $npc->getIdentite(),
             ];
