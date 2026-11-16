@@ -358,6 +358,23 @@ final readonly class GensDeLaVille
             return null;
         }
 
+        if (str_starts_with($cle, 'macon-')) {
+            foreach ($ville->getChantiers() as $chantier) {
+                if ('macon-'.$chantier->getType()->value === $cle) {
+                    return [
+                        'titre' => 'Maçons du chantier',
+                        'sousTitre' => \sprintf('Au chantier du %s', mb_strtolower($chantier->getType()->libelle())),
+                        'lignes' => [['libelle' => 'Reste à bâtir', 'valeur' => \sprintf('%d quinzaine%s', $chantier->cyclesRestants(), $chantier->cyclesRestants() > 1 ? 's' : '')]],
+                        'lien' => ['libelle' => 'Voir les chantiers', 'onglet' => TypeDeBatiment::ResidenceFamiliale->value],
+                        // Le jeu compte l'avancement d'un chantier, pas ses ouvriers un à un.
+                        'representatif' => true,
+                    ];
+                }
+            }
+
+            return null;
+        }
+
         foreach (VisiteurDePassage::pour($ville) as $visiteur) {
             if ($visiteur['cle'] === $cle) {
                 return [
@@ -592,12 +609,24 @@ final readonly class GensDeLaVille
         foreach (EmplacementsDeLaVille::tous() as $lot) {
             $type = $lot['type'];
 
-            if (null !== $type && (null !== $ville->batimentDeType($type) || $type->estLeBatimentDeDepart())) {
+            // Un chantier en cours a son lot, même si rien n'y est encore dressé : c'est là que les maçons travaillent.
+            if (null !== $type && (null !== $ville->batimentDeType($type) || $type->estLeBatimentDeDepart() || self::enChantier($ville, $type))) {
                 $lots[$type->value] = $lot;
             }
         }
 
         return $lots;
+    }
+
+    private static function enChantier(\App\Entity\City $ville, TypeDeBatiment $type): bool
+    {
+        foreach ($ville->getChantiers() as $chantier) {
+            if ($chantier->getType() === $type) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function borner(float $valeur, float $maximum): float
@@ -670,6 +699,17 @@ final readonly class GensDeLaVille
                     if ($medjay->estDisponible($cycle)) {
                         $lignes[] = ['texte' => PhotoDeLaVille::libelleDuMedjay($medjay, $cycle), 'cle' => 'medjay-'.$medjay->getId()];
                     }
+                }
+            }
+
+            foreach ($ville->getChantiers() as $chantier) {
+                if ($chantier->getType() === $type) {
+                    $lignes[] = [
+                        'texte' => \sprintf('Chantier : des maçons au travail, encore %d quinzaine%s', $chantier->cyclesRestants(), $chantier->cyclesRestants() > 1 ? 's' : ''),
+                        'cle' => 'macon-'.$type->value,
+                    ];
+
+                    break;
                 }
             }
 

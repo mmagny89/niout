@@ -69,6 +69,65 @@ final class ChoregraphieTest extends TestCase
     }
 
     /**
+     * **Les maçons bâtissent le chantier** : le matin et l'après-midi, sur le lot, tous les jours qu'il dure ;
+     * le jour où il s'achève, ils l'achèvent ; ensuite ils rentrent. L'aube et le soir, ils sont chez eux.
+     */
+    public function testLesMaconsBatissentLeChantierPuisRentrent(): void
+    {
+        $photo = $this->photo(['candidats' => [
+            $this->candidat('famille', 'chef_de_famille', 'residence_familiale'),
+            $this->candidat('macon-forge', 'macon', 'forge'),
+        ]]);
+
+        // Un chantier qui dure toute la quinzaine.
+        $enCours = Choregraphie::pour($photo, [$this->fait(TypeDeFait::ChantierAvance, 'forge', 'chantier-1')], 4)['pas']['macon-forge'];
+
+        foreach ([1, 7, 15] as $jour) {
+            foreach ([1, 2] as $moment) {
+                self::assertSame('forge', $enCours[$jour][$moment]['lieu']);
+                self::assertSame(GesteDeLaVille::Construit, $enCours[$jour][$moment]['geste']);
+                self::assertSame(TypeDeFait::ChantierAvance, $enCours[$jour][$moment]['fait']);
+            }
+
+            self::assertNotSame('forge', $enCours[$jour][0]['lieu'] ?? null, 'À l\'aube, on n\'est pas au chantier.');
+        }
+
+        // Un chantier qui s'achève au jour 9.
+        $fini = Choregraphie::pour($photo, [$this->fait(TypeDeFait::ChantierAcheve, 'forge', 'chantier-1')], 4);
+        $jourDeFin = (int) array_key_last($fini['evenements']);
+        $pas = $fini['pas']['macon-forge'];
+
+        self::assertSame(GesteDeLaVille::Acheve, $pas[$jourDeFin][1]['geste']);
+        self::assertSame(GesteDeLaVille::Construit, $pas[1][1]['geste'], 'Avant la fin, on bâtit.');
+
+        if ($jourDeFin < 15) {
+            self::assertNotSame('forge', $pas[$jourDeFin + 1][1]['lieu'], 'Le chantier est fini : on rentre.');
+        }
+    }
+
+    /**
+     * **Un maçon ne flâne pas** : pendant la journée il est au chantier, sans course au Marché ni détour — quelle
+     * que soit la graine. Sans chantier, il n'y a pas de maçon (la photographie n'en pose aucun).
+     */
+    public function testUnMaconNeQuittePasSonChantierEnJournee(): void
+    {
+        $photo = $this->photo(['candidats' => [
+            $this->candidat('famille', 'chef_de_famille', 'residence_familiale'),
+            $this->candidat('macon-forge', 'macon', 'forge'),
+        ], 'batiments' => ['marche', 'temple', 'auberge', 'forge']]);
+
+        foreach (range(1, 40) as $graine) {
+            $pas = Choregraphie::pour($photo, [$this->fait(TypeDeFait::ChantierAvance, 'forge', 'chantier-1')], $graine)['pas']['macon-forge'];
+
+            foreach ([1, 4, 8, 12, 15] as $jour) {
+                foreach ([1, 2] as $moment) {
+                    self::assertSame('forge', $pas[$jour][$moment]['lieu'], \sprintf('Graine %d, jour %d, moment %d', $graine, $jour, $moment));
+                }
+            }
+        }
+    }
+
+    /**
      * **L'ordre du cycle** : un convoi ne repart qu'après être rentré, quelle que
      * soit la graine.
      */

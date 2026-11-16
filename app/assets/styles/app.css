@@ -262,6 +262,11 @@
     /* Le récapitulatif de la quinzaine : il descend, la lune fait un tour. */
     .recapitulatif { animation: recap-entre 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
     .recapitulatif__lune { animation: lune-tourne 900ms cubic-bezier(0.34, 1.2, 0.64, 1) both 120ms; }
+    /* Un chantier en cours sur la ville vue d'en haut : la poussière monte et s'efface, l'échafaudage tressaille. */
+    .chantier svg { transform-origin: 50% 100%; animation: chantier-tressaille 1.4s ease-in-out infinite; }
+    .chantier__poussiere { position: absolute; bottom: 4%; width: 14%; aspect-ratio: 1; border-radius: 9999px; background: rgb(214 190 150 / 0.75); animation: chantier-poussiere 2.1s ease-out infinite; animation-delay: var(--d, 0s); }
+    @keyframes chantier-tressaille { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(0.6deg) scaleY(1.01); } }
+    @keyframes chantier-poussiere { from { opacity: 0.85; transform: translateY(0) scale(0.5); } to { opacity: 0; transform: translateY(-120%) scale(1.5); } }
     @keyframes recap-entre { from { opacity: 0; transform: translateY(-24px); } }
     @keyframes lune-tourne { from { opacity: 0; transform: rotate(-200deg) scale(0.4); } }
 

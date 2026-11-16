@@ -14,6 +14,15 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Un chantier en cours se voit.** Sur la ville vue d'en haut, le lot d'un chantier (construction ou amélioration) porte un
+  échafaudage qui tressaille et de la poussière qui monte ; **trois maçons** y travaillent, matin et après-midi, tous les jours
+  qu'il dure — et dans le film de la quinzaine ils l'achèvent le jour dit, puis rentrent. Leur fiche dit ce qu'il reste à bâtir.
+- **Passer la quinzaine amène à la ville.** Depuis le territoire ou depuis une fenêtre (un bâtiment, une case), « Quinzaine
+  suivante » referme la fenêtre, passe sur la ville vue d'en haut et y joue le film : on voit la ville et ses habitants se
+  promener. (Depuis un écran de bâtiment qui n'est pas une fenêtre, on reste où l'on est.)
+- **La mission du pharaon ne se perd plus de vue.** Une pastille d'or est toujours en tête des pastilles de l'en-tête —
+  « Mission 3/10 · 2/4 objectifs » — et s'y ajoute « requête : 2 q. » quand le pharaon réclame quelque chose, en rouge à une
+  quinzaine de l'échéance. Un clic ouvre le décret : fil rouge, objectifs avec leurs jauges, requête et son délai.
 - **Le récapitulatif de quinzaine se replie sur téléphone.** Il recouvrait presque toute la ville — et le film qui démarre derrière.
   Sous la largeur d'une tablette, seul son en-tête reste (« Une quinzaine passe », la date), avec un bouton « Détails » pour le
   déplier ; il se pose aussi **sous la barre de jeu** telle qu'elle est, au lieu de passer dessous quand elle tient sur deux rangées.

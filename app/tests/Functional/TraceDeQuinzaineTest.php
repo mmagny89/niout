@@ -279,21 +279,36 @@ final class TraceDeQuinzaineTest extends WebTestCase
     }
 
     /**
-     * Hors de la ville vue d'en haut, il n'y a pas de film à jouer : le retour n'en parle pas.
+     * **Depuis le territoire, ou depuis une fenêtre, on arrive sur la ville** : la fenêtre se referme (elle
+     * masquerait le film), la case choisie est laissée, et le film se lance. Depuis la ville (l'écran des
+     * bâtiments), on reste où l'on est : il n'y a pas de ville à regarder derrière un panneau.
      */
-    public function testPasserLaQuinzaineAilleursNeLanceRien(): void
+    public function testPasserLaQuinzaineDepuisLeTerritoireOuUneFenetreMeneALaVille(): void
     {
         $client = static::createClient();
-        $partie = $this->lancerConnecte($client, 'film-ailleurs@example.com');
+        $partie = $this->lancerConnecte($client, 'film-territoire@example.com');
         $id = $partie->getId();
 
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $id));
         $jeton = (string) $crawler->filter('form[action$="/cycle"] input[name="_token"]')->first()->attr('value');
 
-        $client->request('POST', \sprintf('/partie/%d/cycle', $id), ['_token' => $jeton, 'retour' => 'app_partie_carte', 'ouvre' => '']);
+        // Territoire, avec une case choisie et une fenêtre ouverte.
+        $client->request('POST', \sprintf('/partie/%d/cycle', $id), ['_token' => $jeton, 'retour' => 'app_partie_carte', 'zone' => '1-1', 'ouvre' => '/partie/'.$id.'/ville/gens']);
 
         self::assertResponseRedirects();
-        self::assertStringNotContainsString('film=1', (string) $client->getResponse()->headers->get('Location'));
+        $adresse = (string) $client->getResponse()->headers->get('Location');
+        self::assertStringContainsString('vue=ville', $adresse);
+        self::assertStringContainsString('film=1', $adresse);
+        self::assertStringNotContainsString('ouvre=', $adresse, 'La fenêtre masquerait le film.');
+        self::assertStringNotContainsString('zone=', $adresse);
+
+        // L'écran des bâtiments : on y reste.
+        $client->request('POST', \sprintf('/partie/%d/cycle', $id), ['_token' => $jeton, 'retour' => 'app_partie_ville', 'onglet' => 'residence_familiale']);
+
+        self::assertResponseRedirects();
+        $adresse = (string) $client->getResponse()->headers->get('Location');
+        self::assertStringContainsString('/ville', $adresse);
+        self::assertStringNotContainsString('film=1', $adresse);
     }
 
     /**

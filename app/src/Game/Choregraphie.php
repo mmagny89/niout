@@ -585,6 +585,7 @@ final class Choregraphie
             },
             RoleDeFigure::Medjay => self::pasDuMedjay($candidat, $jour, $moment, $enJournee, $c),
             RoleDeFigure::Rival => self::pasDuRival($jour, $enJournee, $lieu, $c),
+            RoleDeFigure::Macon => self::pasDuMacon((string) $lieu, $cle, $jour, $moment, $enJournee, $c),
             RoleDeFigure::Foyer => self::pasDuFoyer($candidat, $jour, $moment, $enJournee, $c),
             // Les silhouettes de passage ne sont jamais dans une photographie : elles dépendent de la ville
             // d'à présent, pas d'une quinzaine rejouée. Sur place, par prudence.
@@ -668,6 +669,34 @@ final class Choregraphie
         }
 
         return self::pas($lieu, GesteDeLaVille::Poste);
+    }
+
+    /**
+     * Un maçon travaille au chantier **le matin et l'après-midi**, tous les jours qu'il dure ; le jour
+     * où le chantier s'achève, il l'achève ; ensuite il rentre chez lui — il n'y a plus de chantier.
+     *
+     * @param array<string, mixed> $c
+     *
+     * @return Pas
+     */
+    private static function pasDuMacon(string $lieu, string $cle, int $jour, int $moment, bool $enJournee, array $c): array
+    {
+        if (!$enJournee) {
+            return self::pasDeLAube($cle, $jour, $moment, $c);
+        }
+
+        if (isset($c['achevement'][$lieu])) {
+            if ($jour === $c['achevement'][$lieu]) {
+                return self::pas($lieu, GesteDeLaVille::Acheve, TypeDeFait::ChantierAcheve);
+            }
+
+            // Le chantier est fini : plus rien à bâtir ici.
+            if ($jour > $c['achevement'][$lieu]) {
+                return self::pas(self::CHEZ_SOI, GesteDeLaVille::Chez);
+            }
+        }
+
+        return self::pas($lieu, GesteDeLaVille::Construit, isset($c['chantierAvance'][$lieu]) ? TypeDeFait::ChantierAvance : null);
     }
 
     /**

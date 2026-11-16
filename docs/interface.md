@@ -435,6 +435,22 @@ Quatre choses à ne pas défaire :
   porte un `aria-valuetext` (« Jour 4 sur 15, le matin »), le texte à côté est masqué aux lecteurs d'écran pour ne pas annoncer
   chaque jour de la lecture.
 
+**La mission du pharaon dans l'en-tête** (`ResumeDeMission`, fonction Twig `resume_de_mission()`, `_barre.html.twig`). En tête de la rangée de
+pastilles, **toujours en campagne** : une pastille d'or (`ring-2 ring-or-400`) « Mission N/10 · a/b objectifs », complétée de « requête : N q. »
+quand une requête du pharaon est en cours — `signal--mauvais` à une quinzaine de l'échéance, avec le pictogramme qui pulse. C'est un volet
+`<details>` comme les compteurs (fixe sur téléphone, flottant dès `md`) : fil rouge, jauges des objectifs, requête, lien vers le décret complet
+(Résidence familiale). Absent en Aventure, et sur une partie achevée ou perdue. Le résumé ne pose aucune règle : tout est lu sur l'état.
+
+**Chantiers sur la ville vue d'en haut** (`VueDeLaVille` : `chantier`, `.chantier` dans `app.css`). Le lot d'un chantier porte un échafaudage SVG et
+trois pastilles de poussière animés (`chantier-tressaille`, `chantier-poussiere`), **seulement hors `prefers-reduced-motion`** — sans mouvement
+demandé, ils restent invisibles. Décor `aria-hidden` : la liste « Les gens de la ville » dit « Chantier : des maçons au travail, encore N
+quinzaines ». Les maçons sont des silhouettes (`fig-macon`, un maillet) au lot du chantier.
+
+**Passer la quinzaine amène à la ville** (`PartieController::retourDemande()`). Depuis la carte — territoire, fenêtre ouverte, case choisie —, le
+retour est `?vue=ville&film=1` : **`ouvre` et `zone` sont abandonnés** (une fenêtre masquerait le film), le film se joue à vitesse normale. Depuis
+un écran de bâtiment qui n'est pas une fenêtre (`retour=app_partie_ville`), on reste où l'on est. Les tests qui attendaient « la fenêtre se rouvre » attendent
+désormais l'inverse.
+
 **Le récapitulatif se replie sous `md`** (`flash_controller.js`, `_recapitulatif_de_quinzaine.html.twig`). Le corps porte
 `data-flash-target="corps"` ; un bouton « Détails / Replier » (`aria-expanded`, `aria-controls`, 44 px) ne s'affiche que sous `md`. Sans
 JavaScript il reste entier. La pile des messages flotte à 6 rem du haut, ce qui suppose une barre d'une rangée : sur téléphone le

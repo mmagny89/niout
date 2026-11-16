@@ -71,6 +71,8 @@ final readonly class VueDeLaVille
                 // Où mène le clic : le bâtiment s'il existe, sinon la liste de
                 // ce qu'il reste à bâtir.
                 'onglet' => $dresse ? $type->value : TypeDeBatiment::ResidenceFamiliale->value,
+                // Un chantier en cours (construction ou amélioration) : l'échafaudage et la poussière s'animent dessus.
+                'chantier' => null !== $type && self::enChantier($ville, $type),
                 'libelle' => $type?->libelle(),
             ];
         }
@@ -82,6 +84,17 @@ final readonly class VueDeLaVille
             'avecPort' => $avecPort,
             'emplacements' => $emplacements,
         ];
+    }
+
+    private static function enChantier(\App\Entity\City $ville, TypeDeBatiment $type): bool
+    {
+        foreach ($ville->getChantiers() as $chantier) {
+            if ($chantier->getType() === $type) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function pourcent(float|int $valeur, int $total): float

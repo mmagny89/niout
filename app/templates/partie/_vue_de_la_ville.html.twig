@@ -60,6 +60,18 @@
                    style="left: {{ e.gauche }}%; top: {{ e.haut }}%; width: {{ e.largeur }}%; z-index: {{ e.profondeur }};">
                     <img src="{{ asset(e.sprite) }}" alt="" loading="lazy" decoding="async"
                          class="block w-full select-none">
+                    {# Un chantier en cours : un échafaudage, de la poussière qui monte, un coup de maillet. Pur décor
+                       (`aria-hidden`), immobile sous `prefers-reduced-motion` ; ce qu'il dit est au texte de la liste. #}
+                    {% if e.chantier %}
+                        <span class="chantier pointer-events-none absolute inset-x-[18%] bottom-[8%] block" aria-hidden="true" style="height: 62%;">
+                            <svg viewBox="0 0 100 70" class="size-full" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="color: rgb(120 72 36);">
+                                <path d="M10 68 V12 M90 68 V12 M10 24 H90 M10 46 H90 M10 68 L50 24 L90 68 M10 24 L50 46 L90 24"/>
+                            </svg>
+                            <span class="chantier__poussiere" style="left: 22%; --d: 0s;"></span>
+                            <span class="chantier__poussiere" style="left: 48%; --d: 0.7s;"></span>
+                            <span class="chantier__poussiere" style="left: 70%; --d: 1.4s;"></span>
+                        </span>
+                    {% endif %}
                 </a>
             {% endif %}
         {% endfor %}

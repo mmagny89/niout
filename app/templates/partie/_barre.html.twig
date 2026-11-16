@@ -200,8 +200,63 @@
        rechargée. #}
     {% if signaux is defined %}
         {% set expeditions = partie.ville.expeditions|length %}
-        {% if signaux is not empty or expeditions > 0 %}
+        {# **La mission du pharaon se voit toujours**, en tête des pastilles : on y repense à chaque quinzaine, et
+           une requête qui expire ne doit pas se découvrir en rouvrant la Résidence. Le résumé vient de
+           `ResumeDeMission` ; le décret complet reste à la Résidence familiale. #}
+        {% set mission = resume_de_mission(partie) %}
+        {% if signaux is not empty or expeditions > 0 or mission %}
             <ul class="defile-ombre flex list-none flex-nowrap items-center gap-2 overflow-x-auto border-t border-ocre-500/15 px-3 py-1.5 md:flex-wrap md:overflow-visible md:px-4">
+                {% if mission %}
+                    <li class="shrink-0">
+                        <details class="relative">
+                            <summary class="signal group min-h-8 cursor-pointer list-none bg-or-300/35 ring-2 ring-or-400 md:min-h-0 {{ mission.quete and mission.quete.urgent ? 'signal--mauvais' : 'signal--neutre' }}"
+                                     data-infobulle="Ce que le pharaon attend de vous. Cliquez pour le détail.">
+                                <span class="{{ mission.quete ? 'motion-safe:animate-pulse' : '' }}">{{ include('partie/_pictogramme.html.twig', {nom: 'pharaon', taille: 20, classe: 'signal__image'}) }}</span>
+                                <span class="font-medium" data-chiffres>Mission {{ mission.numero }}/10</span>
+                                <span data-chiffres>· {{ mission.atteints }}/{{ mission.total }} objectifs</span>
+                                {% if mission.quete %}
+                                    <span class="font-medium" data-chiffres>· requête : {{ mission.quete.restantes }} q.</span>
+                                {% endif %}
+                            </summary>
+
+                            <div class="fixed inset-x-3 top-28 z-10 w-auto rounded-sm border border-or-400/50 bg-sable-50 p-4 text-sm shadow-lg md:absolute md:inset-x-auto md:left-0 md:top-full md:mt-1 md:w-[26rem]">
+                                <p class="font-display text-lg leading-tight text-encre-900">Mission <span data-chiffres>{{ mission.numero }}</span> sur 10 — {{ mission.ville }}</p>
+                                <p class="mt-1 text-encre-500">Commandée par <strong class="text-encre-700">{{ mission.pharaon }}</strong>.</p>
+
+                                {% if mission.filRouge %}
+                                    <p class="mt-3 flex items-center justify-between gap-3 rounded-sm px-3 py-2 {{ mission.filRouge.accompli ? 'bg-lapis-500/10' : 'bg-terre-500/10' }}">
+                                        <span class="text-encre-800">Fil rouge de la mission</span>
+                                        <span class="signal {{ mission.filRouge.accompli ? 'signal--bon' : 'signal--neutre' }}">{{ mission.filRouge.accompli ? '✓ ' : '' }}{{ mission.filRouge.libelle }}</span>
+                                    </p>
+                                {% endif %}
+
+                                <ul class="mt-3 list-none space-y-2 p-0">
+                                    {% for ligne in mission.objectifs %}
+                                        <li>
+                                            <div class="flex items-baseline justify-between gap-3">
+                                                <span class="min-w-0 text-encre-800">{{ ligne.libelle }}</span>
+                                                <span class="shrink-0 text-xs {{ ligne.atteint ? 'text-lapis-600' : 'text-encre-500' }}" data-chiffres>{{ ligne.atteint ? '✓ ' : '' }}{{ ligne.avancement }} / {{ ligne.seuil }}</span>
+                                            </div>
+                                            <div class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-ocre-500/20" aria-hidden="true">
+                                                <div class="h-full rounded-full {{ ligne.atteint ? 'bg-lapis-500' : 'bg-terre-500' }}" style="width: {{ ligne.pourcent }}%"></div>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+
+                                {% if mission.quete %}
+                                    <p class="mt-3 rounded-sm border-l-4 px-3 py-2 {{ mission.quete.urgent ? 'border-terre-500 bg-terre-500/10' : 'border-or-300 bg-or-300/10' }}">
+                                        <strong class="text-encre-900">Requête du pharaon.</strong> {{ mission.quete.texte }}
+                                        <span class="block text-xs text-encre-500" data-chiffres>Encore {{ mission.quete.restantes }} quinzaine{{ mission.quete.restantes > 1 ? 's' : '' }} — laisser filer le délai revient à décliner.</span>
+                                    </p>
+                                {% endif %}
+
+                                <a href="{{ path('app_partie_ville', {id: partie.id, onglet: 'residence_familiale'}) }}" data-turbo-frame="fenetre"
+                                   class="mt-3 inline-flex min-h-11 items-center text-lapis-600 underline md:min-h-0">Ouvrir le décret à la Résidence familiale</a>
+                            </div>
+                        </details>
+                    </li>
+                {% endif %}
                 {% for signal in signaux %}
                     <li>
                         <a href="{{ path('app_partie_ville', {id: partie.id, onglet: signal.onglet ?? 'residence_familiale'}) }}"
