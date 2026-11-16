@@ -435,6 +435,12 @@ Quatre choses à ne pas défaire :
   porte un `aria-valuetext` (« Jour 4 sur 15, le matin »), le texte à côté est masqué aux lecteurs d'écran pour ne pas annoncer
   chaque jour de la lecture.
 
+**Le récapitulatif se replie sous `md`** (`flash_controller.js`, `_recapitulatif_de_quinzaine.html.twig`). Le corps porte
+`data-flash-target="corps"` ; un bouton « Détails / Replier » (`aria-expanded`, `aria-controls`, 44 px) ne s'affiche que sous `md`. Sans
+JavaScript il reste entier. La pile des messages flotte à 6 rem du haut, ce qui suppose une barre d'une rangée : sur téléphone le
+contrôleur la pose sous la barre mesurée (`getBoundingClientRect`), faute de quoi les pastilles recouvraient le titre. Vu à 606 px (le
+minimum de Chrome), pas à 390 px.
+
 **Le film se lance après la quinzaine.** Le formulaire de cycle depuis la ville vue d'en haut (`vue=ville`) revient sur `?vue=ville&film=1` ;
 la page porte alors `data-ville-vivante-lancer-value` et le contrôleur joue le film (`basculer()`), vitesse normale, puis **retire `film`
 de l'adresse** (`history.replaceState`) pour qu'un rechargement ne le rejoue pas. Le paramètre voyage dans l'adresse et non en message

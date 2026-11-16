@@ -36,6 +36,14 @@ final class RecapitulatifDeQuinzaineTest extends WebTestCase
         self::assertStringContainsString('Nous voici en', $recap->text());
         self::assertCount(1, $recap->filter('[data-action="flash#fermer"]'), 'Il se ferme au geste, comme tout message.');
 
+        // Sur téléphone il se replie : un corps ciblé, un bouton qui le pilote et qui le dit (aria-expanded).
+        // Le client de test n'exécute pas de JavaScript : seule la structure se garde ici, le repli se voit au navigateur.
+        self::assertCount(1, $recap->filter('#corps-du-recapitulatif[data-flash-target="corps"]'));
+        $bascule = $recap->filter('button[data-flash-target="bascule"][data-action="flash#basculer"]');
+        self::assertCount(1, $bascule);
+        self::assertSame('corps-du-recapitulatif', $bascule->attr('aria-controls'));
+        self::assertSame('true', $bascule->attr('aria-expanded'), 'Sans JavaScript, le récapitulatif est entier.');
+
         $crawler = $client->request('GET', \sprintf('/partie/%d/carte', $partie->getId()));
         self::assertCount(0, $crawler->filter('section[aria-label="Récapitulatif de la quinzaine"]'), 'Un message flash ne se lit qu\'une fois.');
     }

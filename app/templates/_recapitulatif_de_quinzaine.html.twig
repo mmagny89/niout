@@ -18,14 +18,17 @@
             <h2 class="font-display text-xl leading-tight text-encre-900">Une quinzaine passe</h2>
             <p class="text-sm text-encre-600">Nous voici en {{ recap.date }}.</p>
         </div>
+        {# Sur téléphone seulement : le corps se replie (`flash_controller.js`), l'en-tête reste. #}
+        <button type="button" data-flash-target="bascule" data-action="flash#basculer" aria-expanded="true" aria-controls="corps-du-recapitulatif"
+                class="min-h-11 shrink-0 rounded-sm px-2 text-sm text-lapis-600 hover:bg-ocre-300/20 md:hidden">Replier</button>
         <button type="button" data-action="flash#fermer"
-                class="shrink-0 rounded-sm px-2 text-2xl leading-none text-encre-500 hover:text-terre-600"
+                class="shrink-0 rounded-sm px-2 text-2xl leading-none text-encre-500 hover:text-terre-600 max-md:min-h-11 max-md:min-w-11"
                 aria-label="Fermer le récapitulatif">
             <span aria-hidden="true">&times;</span>
         </button>
     </header>
 
-    <div class="max-h-[60vh] overflow-y-auto px-4 py-3">
+    <div id="corps-du-recapitulatif" data-flash-target="corps" class="max-h-[60vh] overflow-y-auto px-4 py-3">
         {% if recap.ecarts is not empty %}
             <ul class="flex list-none flex-wrap gap-2 p-0" aria-label="Ce qui a changé">
                 {% for ecart in recap.ecarts %}
