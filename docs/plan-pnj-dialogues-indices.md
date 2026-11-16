@@ -124,3 +124,18 @@ test d'écran ne le voie.
 | **Un voyageur de passage est-il une « personne » du palier B ?** | Non : une silhouette de décor attachée à une énigme, sans nom ni mémoire |
 | **Les dialogues doivent-ils aider pour le déchiffrage d'écriture ?** | **Non en V4** : les jetons sont mélangés au rendu, la réponse ne doit pas se lire, et le doc 10 ne prévoit aucune aide hors Déchiffreur et Thot |
 | **Une énigme jouable peut-elle se lire dans la ville sans ouvrir l'Auberge ?** | Seulement par le marqueur d'I2, qui ouvre l'énigme existante : jamais son texte dans une bulle |
+
+## 7. Livré
+
+### Lot I3 — les témoignages parlés (2026-11-16, dans `develop`)
+
+- **Contenu** : `Indice::temoin()` et `parole()` pour les seize témoignages (`null` pour le terrain). La parole reprend le texte
+  de l'indice à la première personne, sans rien y ajouter : c'est la réponse à « rejouer le libellé existant d'abord ».
+- **Mécanisme** : un témoignage de plus dans les dossiers d'une photographie à l'autre devient le fait `TemoignageRecueilli`
+  (`DifferenceDeQuinzaine`, clé `temoignages` de la photographie, absente des traces plus anciennes — testé). La chorégraphie
+  le joue l'après-midi du jour : le chef de la Maison des scribes (sinon la famille) parle, un autre répond ; les deux sont
+  exclus des conversations d'ambiance ce moment-là.
+- **Dossier** : « Témoin : « parole » » pour un témoignage, texte inchangé pour le terrain — même gabarit, le ton ne trahit pas la nature.
+- **Verrous tenus** : `IndiceTest` (aucun mot de nature, aucun chiffre, fidélité au texte) ; la trace ne garde que la valeur de l'indice.
+- **Piège payé** : la première parole du charpentier s'écartait du texte (un seul mot commun) — c'est le test de fidélité qui l'a vu.
+- **Reste** : I1 et I5 (voix des aides), I2 (voyageur, prêtre), I4 (mémoire du dossier, en dernier).
