@@ -125,7 +125,10 @@ mêmes règles.
 (choisi le 2026-11-16). On y découvre que A n'a pas besoin du score d'utilité :
 c'est un monde qui subit et réagit, les agents viennent avec B.
 Le palier B est cadré dans [`plan-pnj-palier-b.md`](plan-pnj-palier-b.md), le palier C
-dans [`plan-pnj-palier-c.md`](plan-pnj-palier-c.md).
+dans [`plan-pnj-palier-c.md`](plan-pnj-palier-c.md). Le **panneau visuel** — la ville
+habitée, la fiche d'un habitant jour après jour, le rejeu de la quinzaine — est cadré
+dans [`plan-pnj-ville-vivante.md`](plan-pnj-ville-vivante.md) : il regarde **ici**
+quand les paliers regardent **ailleurs**, et peut commencer avant eux.
 
 **On commence par A, on prouve que le joueur regarde, puis on monte.** C'est la
 seule marche qui ressemble à une « civilisation autonome » ; la bâtir avant de
