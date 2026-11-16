@@ -57,6 +57,19 @@ class Npc
     #[ORM\Column]
     private int $indisponibleJusqua = 0;
 
+    /** Combien de faits une personne retient dans sa chronique : les plus récents. */
+    public const int HISTOIRE_MAX = 12;
+
+    /**
+     * Ce qui lui est arrivé avec la famille, **en faits** (`{q: quinzaine, t: type, r: route}`), jamais en
+     * phrases : le texte se rend à l'affichage. C'est la chronique filtrée par personne
+     * (`docs/plan-pnj-palier-b.md` § 8). Bornée, comme sa mémoire.
+     *
+     * @var list<array{q: int, t: string, r: string|null}>
+     */
+    #[ORM\Column(type: 'json', options: ['default' => '[]'])]
+    private array $histoire = [];
+
     public function __construct(GameSave $partie, int $identite, RoleDePnj $role, string $nom, TraitDeCandidat $caractere)
     {
         $this->partie = $partie;
@@ -94,6 +107,20 @@ class Npc
     public function getIndisponibleJusqua(): int
     {
         return $this->indisponibleJusqua;
+    }
+
+    /**
+     * @return list<array{q: int, t: string, r: string|null}> du plus récent au plus ancien
+     */
+    public function getHistoire(): array
+    {
+        return array_reverse($this->histoire);
+    }
+
+    public function noter(int $quinzaine, string $type, ?string $route = null): void
+    {
+        $this->histoire[] = ['q' => $quinzaine, 't' => $type, 'r' => $route];
+        $this->histoire = \array_slice($this->histoire, -self::HISTOIRE_MAX);
     }
 
     public function peutParaitre(int $quinzaine): bool

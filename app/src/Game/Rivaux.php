@@ -124,6 +124,7 @@ final readonly class Rivaux
 
             $ville->chasserLeRival();
             $this->memoire($partie, $rival)?->seLasser($partie->getCycle(), self::DELAI_APRES_LASSITUDE);
+            $this->memoire($partie, $rival)?->noter($partie->getCycle(), 'lasse', $rival->getPartenaire());
 
             return [\sprintf('%s se lasse et quitte votre route.', $rival->getNom())];
         }
@@ -197,6 +198,7 @@ final readonly class Rivaux
 
         $ville->chasserLeRival();
         $this->memoire($partie, $rival)?->etrePaye($partie->getCycle(), self::DELAI_APRES_UN_ACCORD);
+        $this->memoire($partie, $rival)?->noter($partie->getCycle(), 'paye', $rival->getPartenaire());
         $disputee = $this->partenaireDe($partie, $rival->getPartenaire());
 
         if (null !== $disputee) {
@@ -222,6 +224,7 @@ final readonly class Rivaux
 
         $partie->getVille()->chasserLeRival();
         $this->memoire($partie, $rival)?->etreDemonte($partie->getCycle(), self::DELAI_APRES_L_ENQUETE);
+        $this->memoire($partie, $rival)?->noter($partie->getCycle(), 'demonte', $rival->getPartenaire());
 
         return \sprintf('%s quitte la route sans demander son reste.', $rival->getNom());
     }
@@ -258,9 +261,13 @@ final readonly class Rivaux
         $partenaire = $this->partenaireDe($partie, $choix['cle']);
         $nom = $revenant?->getNom() ?? $this->unNom($partie, $identite);
 
+        $memoire = $revenant ?? new Npc($partie, $identite, RoleDePnj::Rival, $nom, $caractere);
+
         if (null === $revenant) {
-            $this->entityManager->persist(new Npc($partie, $identite, RoleDePnj::Rival, $nom, $caractere));
+            $this->entityManager->persist($memoire);
         }
+
+        $memoire->noter($cycle, null !== $revenant ? 'revient' : 'installe', $choix['cle']);
 
         $rival = new RivalCommercial(
             $ville,

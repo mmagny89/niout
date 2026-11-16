@@ -1,6 +1,6 @@
 # Niout — PNJ, palier B : des personnes qui ont un but
 
-**Statut : lot B1 livré (2026-11-16) — le rival raisonné ; B2 à B6 cadrés, rien d'autre n'est codé.** Suite de
+**Statut : lots B1 et B2 livrés (2026-11-16) — le rival raisonné, sa fiche ; B3 à B6 cadrés, rien d'autre n'est codé.** Suite de
 [`plan-pnj-autonomes.md`](plan-pnj-autonomes.md) (§ 5.1) et de
 [`plan-pnj-palier-a.md`](plan-pnj-palier-a.md). **Dépend d'A** : la graine de
 partie, les faits de monde, la conjoncture et la fenêtre « Le monde » y sont
@@ -352,3 +352,16 @@ l'Entrepôt **avec une Auberge**.
   requête), mais les tests doivent rafraîchir la ville entre deux quinzaines.
 
 **Verrou suivant** : B2 (fiche de personne dans « Le monde », chronique filtrée), puis **playtest : s'attache-t-on à lui ?**
+
+## 14. Lot B2 — la fiche de personne
+
+**Livré** : `Npc::$histoire` (JSON `'[]'`, 12 faits au plus, `{q, t, r}` : quinzaine, type, route — des faits, jamais des
+phrases) alimentée par `Rivaux` (s'installe, revient, se lasse, est payé, est démonté) ; `LeMonde` porte une section
+« Les personnes que vous connaissez » (fiche : rôle, caractère, accords, où il est) et une **chronique** du plus récent au plus
+ancien, **filtrable** (`?personne=<identité>`) ; le « pourquoi » n'apparaît qu'avec une **Auberge**.
+
+**Écarts** : la chronique est **portée par la personne**, pas par `FaitDeMonde` (qui est la trace de ville de V2, trois
+quinzaines) — une colonne bornée suffit tant qu'un seul rôle existe. Les rencontres restent annoncées par leur catégorie
+« Rivaux » du récapitulatif plutôt que « Au loin ». **« Portrait »** : aucun visuel — un pictogramme ou un sprite attend la passe V6.
+
+**Verrou** : **playtest — s'attache-t-on à lui ?** Il conditionne B3 (chefs voyageurs), B4 (bandes) et B5 (cour).

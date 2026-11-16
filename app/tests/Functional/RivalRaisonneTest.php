@@ -71,6 +71,7 @@ final class RivalRaisonneTest extends KernelTestCase
 
         self::assertNotNull($npc);
         self::assertSame(1, $npc->getAccords());
+        self::assertSame(['paye', 'installe'], array_slice(array_column($npc->getHistoire(), 't'), 0, 2), 'Sa chronique garde ce qui lui est arrivé.');
         self::assertSame($partie->getCycle() + Rivaux::DELAI_APRES_UN_ACCORD, $npc->getIndisponibleJusqua());
         self::assertFalse($npc->peutParaitre($partie->getCycle() + Rivaux::DELAI_APRES_UN_ACCORD - 1), 'Jamais avant son délai plancher.');
         self::assertTrue($npc->peutParaitre($partie->getCycle() + Rivaux::DELAI_APRES_UN_ACCORD));

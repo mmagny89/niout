@@ -286,7 +286,9 @@ final class PartieController extends AbstractController
             return $this->forward(self::class.'::carte', ['id' => $partie->getId()], ['ouvre' => $request->getRequestUri()]);
         }
 
-        return $this->render('fenetre/monde.html.twig', ['partie' => $partie, 'ville' => $partie->getVille()] + $monde->pour($partie));
+        $personne = $request->query->has('personne') ? $request->query->getInt('personne') : null;
+
+        return $this->render('fenetre/monde.html.twig', ['partie' => $partie, 'ville' => $partie->getVille()] + $monde->pour($partie, $personne));
     }
 
     /**

@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace App\Fenetre;
 
 use App\Entity\GameSave;
+use App\Entity\Npc;
 use App\Game\Commerce;
 use App\Game\ConjonctureDeMarche;
 use App\Game\EtatsDesCites;
 use App\Game\EvenementDeMarche;
 use App\Game\PartenaireCommercial;
 use App\Game\Ressource;
+use App\Game\Rivaux;
+use App\Game\RoleDePnj;
 use App\Game\Sollicitations;
 use App\Game\TypeDeBatiment;
 use App\Game\TypeDeRoute;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * La fenêtre « Le monde » : une carte par cité atteignable (`docs/plan-pnj-palier-a.md` § 6.3).
@@ -42,16 +46,21 @@ final readonly class LeMonde
         private ConjonctureDeMarche $conjoncture,
         private EtatsDesCites $cites,
         private Sollicitations $sollicitations,
+        private Rivaux $rivaux,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
     /**
      * @return array{
      *     cartes: list<array<string, mixed>>,
-     *     voitLoin: bool
+     *     voitLoin: bool,
+     *     personnes: list<array<string, mixed>>,
+     *     chronique: list<array<string, mixed>>,
+     *     filtre: int|null
      * }
      */
-    public function pour(GameSave $partie): array
+    public function pour(GameSave $partie, ?int $personne = null): array
     {
         $ville = $partie->getVille();
         $voitLoin = $this->commerce->avantageDuNegociateur($ville, $partie->getCycle()) > 0;
@@ -90,7 +99,62 @@ final readonly class LeMonde
             $cartes[] = $carte;
         }
 
-        return ['cartes' => $cartes, 'voitLoin' => $voitLoin];
+        [$personnes, $chronique] = $this->personnes($partie, $personne);
+
+        return ['cartes' => $cartes, 'voitLoin' => $voitLoin, 'personnes' => $personnes, 'chronique' => $chronique, 'filtre' => $personne];
+    }
+
+    /**
+     * Les personnes que la famille a rencontrées, et leur chronique — celle d'une seule si `$filtre`
+     * la désigne. **Ce qu'elles ont fait se voit toujours ; pourquoi, seulement avec une Auberge**
+     * (`docs/plan-pnj-palier-b.md` § 8) : l'information se mérite.
+     *
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>}
+     */
+    private function personnes(GameSave $partie, ?int $filtre): array
+    {
+        $ville = $partie->getVille();
+        $saitPourquoi = null !== $ville->batimentDeType(TypeDeBatiment::Auberge);
+        $present = $ville->getRival();
+        $fiches = [];
+        $chronique = [];
+
+        foreach ($this->entityManager->getRepository(Npc::class)->findBy(['partie' => $partie, 'role' => RoleDePnj::Rival], ['id' => 'ASC']) as $npc) {
+            $ici = null !== $present && $present->getIdentite() === $npc->getIdentite();
+            $presentIci = $ici ? $present : null;
+
+            $fiches[] = [
+                'identite' => $npc->getIdentite(),
+                'nom' => $npc->getNom(),
+                'role' => $npc->getRole()->libelle(),
+                'caractere' => $npc->getCaractere(),
+                'accords' => $npc->getAccords(),
+                'ici' => $ici,
+                'route' => null === $presentIci ? null : $this->commerce->partenaireDe($partie, $presentIci->getPartenaire())?->nom,
+                'ailleurs' => !$ici && !$npc->peutParaitre($partie->getCycle()) ? $npc->getIndisponibleJusqua() : null,
+                'pourquoi' => $saitPourquoi && null !== $presentIci ? $this->rivaux->raconter($presentIci) : null,
+                'choisi' => $filtre === $npc->getIdentite(),
+            ];
+
+            if (null !== $filtre && $filtre !== $npc->getIdentite()) {
+                continue;
+            }
+
+            foreach ($npc->getHistoire() as $fait) {
+                $lieu = null === $fait['r'] ? null : $this->commerce->partenaireDe($partie, $fait['r']);
+                $chronique[] = [
+                    'quinzaine' => $fait['q'],
+                    'type' => $fait['t'],
+                    'nom' => $npc->getNom(),
+                    'identite' => $npc->getIdentite(),
+                    'route' => null === $fait['r'] ? null : (null === $lieu ? $fait['r'] : $lieu->nom),
+                ];
+            }
+        }
+
+        usort($chronique, static fn (array $a, array $b): int => $b['quinzaine'] <=> $a['quinzaine']);
+
+        return [$fiches, $chronique];
     }
 
     /**
