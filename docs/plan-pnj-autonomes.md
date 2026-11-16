@@ -121,6 +121,10 @@ mêmes règles.
 | **B. Les personnes** | Rivaux persistants, chefs voyageurs, chefs de bande, courtisans | Moyen | Des visages, des arcs courts, des rencontres |
 | **C. Les cités autonomes** | D'autres familles qui fondent et gèrent une cité, en modèle abstrait | Élevé | Le vrai « monde vivant » ; un enjeu de comparaison et de compétition |
 
+**Le palier A est cadré en détail dans [`plan-pnj-palier-a.md`](plan-pnj-palier-a.md)**
+(choisi le 2026-11-16). On y découvre que A n'a pas besoin du score d'utilité :
+c'est un monde qui subit et réagit, les agents viennent avec B.
+
 **On commence par A, on prouve que le joueur regarde, puis on monte.** C'est la
 seule marche qui ressemble à une « civilisation autonome » ; la bâtir avant de
 savoir si l'écran du monde est lu serait payer le plus cher pour le moins
