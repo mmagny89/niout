@@ -369,6 +369,8 @@ V1 regardé.
 | **Le son ?** | Non : aucune ressource audio, et l'accessibilité d'abord |
 | **Et sur la carte isométrique**, des silhouettes aux cases ? | Non : la carte reste la carte ; la ville est dans sa fenêtre |
 
+**Lot V2 — livré et mergé dans `develop`** (branche `feat/trace-de-quinzaine`, `Game\PhotoDeLaVille`, `DifferenceDeQuinzaine`, `TraceDeQuinzaine`, `Choregraphie`, `InstantaneDeQuinzaine`, `FaitDeMonde`, migration `Version20261116140559`). Écarts avec le plan : les **faits se déduisent de deux photographies** (avant, après) et non d'une instrumentation des services du cycle ; `RoleDeFigure` est passé de `Fenetre` à `Game` ; la **frise est faite de liens** qui rechargent la ville sur un jour (`?jour=4&moment=1`, la fenêtre restant ouverte par `ouvre`), sans JavaScript — la lecture animée est V3 ; les silhouettes **sautent** d'un lieu à l'autre, faute de chemins ; **les faits n'ont pas de jour en base** : la chorégraphie le choisit, par un hachage de (partie, fait). **Vérifié au navigateur à 1728 px** : frise de 15 jours, jour 4 matin et soir (les gens rentrent), journal d'un chef ; **pas à 390 px**.
+
 ## 15. Lot V1 — « La ville habitée » : la spécification
 
 **Retenu le 2026-11-16 comme premier lot, après le lot N (§ 16) : les désignés y portent un prénom.** Ce qui suit est ce qu'on écrira, fichier
