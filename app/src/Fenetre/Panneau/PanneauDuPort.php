@@ -17,6 +17,7 @@ final readonly class PanneauDuPort implements FournisseurDePanneau
         private Commerce $commerce,
         private EtalsDesRoutes $etals,
         private DirectionDesBatiments $direction,
+        private BandesDeLaRegion $bandes,
     ) {
     }
 
@@ -30,6 +31,7 @@ final readonly class PanneauDuPort implements FournisseurDePanneau
         return [
             'routes' => $this->commerce->offrePour($partie),
             'etals' => $this->etals->pour($partie),
+            'bandes' => $this->bandes->pour($partie),
             'exploitations' => ExploitationsParGouvernant::pour($partie),
         ] + $this->direction->donnees($partie);
     }

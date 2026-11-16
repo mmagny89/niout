@@ -135,6 +135,8 @@ final readonly class LeMonde
                 'route' => null === $presentIci ? null : $this->commerce->partenaireDe($partie, $presentIci->getPartenaire())?->nom,
                 'ailleurs' => !$voyageur && !$ici && !$npc->peutParaitre($partie->getCycle()) ? $npc->getIndisponibleJusqua() : null,
                 'voyageur' => $voyageur,
+                'bande' => RoleDePnj::ChefDeBande === $npc->getRole(),
+                'inquietes' => (int) ($profil['convois'] ?? 0),
                 'destination' => $voyageur ? $this->commerce->partenaireDe($partie, (string) ($profil['destination'] ?? ''))?->nom : null,
                 'revenu' => true === ($profil['revenu'] ?? false),
                 'pourquoi' => $saitPourquoi && null !== $presentIci ? $this->rivaux->raconter($presentIci) : null,

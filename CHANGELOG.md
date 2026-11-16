@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Le risque de pillage a un visage, et une troisième réponse.** Le panneau de l'Entrepôt montre avant l'engagement le risque qu'un convoi de retour soit
+  pillé, les chefs des bandes de la région (un nom par bande, déduit de la partie) et combien de vos convois chacun a inquiétés — leurs fiches sont aussi
+  dans « Le monde ». Aux Medjaÿ et à la Caserne s'ajoute un droit de passage : des deben, au prix de deux butins par bande, contre 40 % de risque en moins
+  pendant six quinzaines. Il réduit le risque sans l'éteindre, ne se cumule pas avec lui-même, et ne rien faire reste une décision.
 - **Un chef qui part va quelque part.** Il rejoint une cité de votre monde (« Il rejoint Byblos »), figure dans « Le monde » avec sa chronique, et un
   Négociateur y rapproche la cité de votre famille (jusqu'à 10 points, pas davantage). Il peut revenir, au plus tôt douze quinzaines plus tard, parmi
   les candidats d'une annonce de son bâtiment : même prénom, même spécialité, huit points de compétence de mieux — une seule fois. Il part toujours

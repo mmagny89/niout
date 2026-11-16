@@ -13,12 +13,14 @@ enum RoleDePnj: string
 {
     case Rival = 'rival';
     case ChefVoyageur = 'chef-voyageur';
+    case ChefDeBande = 'chef-de-bande';
 
     public function libelle(): string
     {
         return match ($this) {
             self::Rival => 'Marchand rival',
             self::ChefVoyageur => 'Ancien chef de la ville',
+            self::ChefDeBande => 'Chef de bande',
         };
     }
 }

@@ -118,6 +118,14 @@ class GameSave
     #[ORM\Column(options: ['default' => 0])]
     private int $graine = 0;
 
+    /**
+     * La première quinzaine où le droit de passage payé aux bandes ne vaut plus (`docs/plan-pnj-palier-b.md`
+     * § 5.3). Zéro : rien n'a été payé. Un droit dont l'échéance est passée n'est qu'un nombre qu'on n'efface
+     * pas — il ne vaut rien, et c'est ce qui rend son achat possible à nouveau.
+     */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $droitDePassageJusqua = 0;
+
     private function __construct(User $joueur, GameMode $mode, Family $famille, City $ville)
     {
         $this->graine = random_int(1, 2147483646);
@@ -144,6 +152,18 @@ class GameSave
     public static function pourAventure(User $joueur, Family $famille, City $ville): self
     {
         return new self($joueur, GameMode::Aventure, $famille, $ville);
+    }
+
+    public function getDroitDePassageJusqua(): int
+    {
+        return $this->droitDePassageJusqua;
+    }
+
+    public function acheterLeDroitDePassage(int $jusqua): static
+    {
+        $this->droitDePassageJusqua = $jusqua;
+
+        return $this;
     }
 
     public function getGraine(): int
