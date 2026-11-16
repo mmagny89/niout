@@ -123,6 +123,12 @@ final class DifferenceDeQuinzaine
             }
         }
 
+        // Un témoignage de plus dans un dossier : l'émissaire en a rapporté un. Les traces d'avant
+        // ce champ n'en connaissent aucun, donc n'en inventent aucun.
+        foreach (array_diff($apres['temoignages'] ?? [], $avant['temoignages'] ?? []) as $indice) {
+            $faits[] = self::fait(TypeDeFait::TemoignageRecueilli, null, null, null, ['indice' => $indice]);
+        }
+
         if (null !== $avant['fete']) {
             $faits[] = self::fait(TypeDeFait::Fete, null, null, null, ['libelle' => $avant['fete']['libelle'], 'fete' => $avant['fete']['cle']]);
         }

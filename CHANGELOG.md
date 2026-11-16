@@ -14,6 +14,10 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Les témoignages se disent.** Quand l'émissaire rapporte un témoignage, **le chef de la Maison des scribes** (sinon la
+  famille) le répète l'après-midi du jour, **dans les mots du témoin**, et un autre lui répond — dans le film, en bulles ; au
+  journal, en toutes lettres. Au dossier d'enquête, un témoignage se lit « Le paysan : « … » » ; un indice de terrain garde sa
+  formule. **Rien n'est créé** : c'est le même indice, dit autrement, et sa nature (vrai, trompeur, à vérifier) reste cachée.
 - **Les gens se parlent.** Quand deux silhouettes se croisent au même endroit, elles échangent quelques mots : **une
   bulle** au-dessus de chacune quand la lecture est arrêtée sur le moment (au curseur, ou en pause), et, si l'on coche
   « Lire les conversations », **la lecture s'arrête d'elle-même** le temps de les lire. Ce qui se dit est **un fait vrai**

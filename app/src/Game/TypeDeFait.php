@@ -32,6 +32,7 @@ enum TypeDeFait: string
     case RivalParti = 'rival_parti';
     case MedjayBlesse = 'medjay_blesse';
     case Fete = 'fete';
+    case TemoignageRecueilli = 'temoignage_recueilli';
 
     /**
      * La phrase du fait, au présent, pour le journal d'un jour.
@@ -58,6 +59,8 @@ enum TypeDeFait: string
             self::RivalParti => \sprintf('%s se lasse et s\'en va.', $details['libelle'] ?? 'Le marchand rival'),
             self::MedjayBlesse => \sprintf('%s est blessé.', $details['libelle'] ?? 'Un Medjaÿ'),
             self::Fete => \sprintf('Jour de fête : %s.', $details['libelle'] ?? 'une fête du calendrier'),
+            // Le témoin se lit dans l'indice, pas dans la trace : elle ne garde que sa valeur.
+            self::TemoignageRecueilli => \sprintf('L\'émissaire rapporte un témoignage : %s.', mb_strtolower(Indice::tryFrom((string) ($details['indice'] ?? ''))?->temoin() ?? 'quelqu\'un')),
         };
     }
 }

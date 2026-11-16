@@ -62,7 +62,7 @@ final class DialoguesTest extends TestCase
 
     public function testLesVariablesSeRemplacentEtRienNeReste(): void
     {
-        $variables = ['fete' => 'Opet', 'partenaire' => 'Byblos', 'rival' => 'Panehsy le marchand'];
+        $variables = ['fete' => 'Opet', 'partenaire' => 'Byblos', 'rival' => 'Panehsy le marchand', 'temoin' => 'Un berger', 'parole' => 'La crue a été faible.'];
 
         foreach (Dialogues::catalogue() as $situation => $lignes) {
             foreach (['a', 'b'] as $qui) {

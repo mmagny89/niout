@@ -197,6 +197,66 @@ enum Indice: string
         };
     }
 
+    /**
+     * Qui parle, quand l'indice est un **témoignage** : celui que l'émissaire a recueilli.
+     * Nul pour un indice de terrain, qui se fouille et ne parle pas.
+     */
+    public function temoin(): ?string
+    {
+        return match ($this) {
+            self::OstraconDeGarnison => 'Un scribe de la garnison, par écrit',
+            self::PlainteDunPaysan => 'Un paysan',
+            self::RefusDuCharpentier => 'Le maître charpentier',
+            self::ColereDeLequipage => 'Un homme d\'équipage',
+            self::MurmureDeGarnison => 'Un garde, à mi-voix',
+            self::ScribeTropRiche => 'Un marchand du camp',
+            self::DireDunBerger => 'Un berger',
+            self::RecitDuBatelier => 'Un batelier',
+            self::ColereDesCureurs => 'Un cureur',
+            self::PeurDesBandits => 'Quelqu\'un du camp',
+            self::PresageDuTemple => 'Le prêtre d\'Hathor',
+            self::MaisonDuPeseur => 'Un voisin du peseur',
+            self::RecitDuPremierCaravanier => 'Le premier caravanier',
+            self::RecitDuSecond => 'Le second caravanier',
+            self::RegistreDuPeage => 'Le scribe du péage',
+            self::PlainteDunPorteur => 'Un porteur',
+            default => null,
+        };
+    }
+
+    /**
+     * Ce que dit le témoin, à la première personne : **ce que `texte()` dit déjà, rien de
+     * plus** (`docs/plan-pnj-dialogues-indices.md`, I3). Un témoignage rejoué en paroles n'est
+     * pas un indice de plus, c'est le même, dit par quelqu'un.
+     *
+     * **Le même ton pour un indice qui concorde et pour une fausse piste** : un témoin se
+     * trompe, ment ou dit vrai, et c'est au joueur de lire — le doc 10 interdit que l'écran
+     * en trahisse la nature, et une phrase qui sonnerait plus sûre le ferait. Nul pour un
+     * indice de terrain.
+     */
+    public function parole(): ?string
+    {
+        return match ($this) {
+            self::OstraconDeGarnison => 'À la garnison, rien à signaler depuis deux saisons.',
+            self::PlainteDunPaysan => 'Le fleuve a tout bougé, je le jure. Je n\'en dirai pas davantage.',
+            self::RefusDuCharpentier => 'Je refuse de signer cette coque. Je ne m\'en explique qu\'à demi-mot.',
+            self::ColereDeLequipage => 'Nous réclamons notre solde. Le registre dit qu\'on nous l\'a versée.',
+            self::MurmureDeGarnison => 'On murmure qu\'un officier cananéen resté en poste renseignerait les siens.',
+            self::ScribeTropRiche => 'Le scribe de la garnison porte du lin fin et paie en cuivre neuf. Sa solde ne le permet pas.',
+            self::DireDunBerger => 'La crue a été faible, et la nappe est basse partout.',
+            self::RecitDuBatelier => 'On détrousse les convois à la cataracte. Je n\'étais pas du voyage, mais on me l\'a raconté.',
+            self::ColereDesCureurs => 'Les crocodiles nous empêchent de travailler.',
+            self::PeurDesBandits => 'Au camp, on raconte que des bandits du ouadi enlèvent les traînards.',
+            self::PresageDuTemple => 'On n\'a rien offert à la déesse depuis deux saisons. Je le rappelle.',
+            self::MaisonDuPeseur => 'La maison du peseur s\'est agrandie de deux pièces cette année.',
+            self::RecitDuPremierCaravanier => 'La piste est sûre, je le jure : je l\'ai prise le mois dernier.',
+            self::RecitDuSecond => 'Je jure le contraire. J\'ai vu un ouadi que l\'autre n\'a pas nommé.',
+            self::RegistreDuPeage => 'Le registre du péage ne porte aucun passage depuis deux quinzaines.',
+            self::PlainteDunPorteur => 'On m\'a payé en grain gâté. Je m\'en prends à tout le monde.',
+            default => null,
+        };
+    }
+
     public function nature(): NatureDIndice
     {
         return match ($this) {

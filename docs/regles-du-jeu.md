@@ -757,8 +757,17 @@ silhouettes, on coupe la foule, jamais un chef ni un Medjaÿ. **Un dialogue dit 
 joueur. Une réplique de situation n'est choisie que si le fait est vrai dans la quinzaine ; une réplique d'ambiance ne dit rien
 du jeu. **Aucune réplique ne donne un chiffre, un prix, un lieu de gisement ni une réponse d'énigme** : ce qu'elle porte, le jeu le
 sait déjà et le montre ailleurs. Écrire de nouvelles répliques, c'est enrichir `Dialogues::catalogue()`, jamais composer du texte à la
-volée ; les garde-fous sont dans `DialoguesTest`. **Ce lot ne touche ni aux enquêtes ni aux énigmes** : y faire parler les gens
-(témoignages, aides à la lecture) est un autre lot, qui demande de relire le doc 10.
+volée ; les garde-fous sont dans `DialoguesTest`. **Ce lot ne touche ni aux enquêtes ni aux énigmes.**
+
+**Un témoignage se dit sans changer de nature** (lot I3, `Indice::temoin()`/`parole()`, `TypeDeFait::TemoignageRecueilli`). Les 16
+indices de source « témoignage » portent un témoin et une parole à la première personne ; les indices de terrain n'en ont pas.
+**La parole reprend le texte de l'indice sans rien y ajouter** — ni mot de nature (vrai, faux, trompeur), ni chiffre, ni ton
+différent d'un témoin à l'autre : `IndiceTest` le vérifie, et vérifie que la parole reste fidèle au texte (doc 10 : la nature
+reste « à vérifier »). **La mise en scène ne crée aucun indice** : l'indice est versé au dossier par l'émissaire, comme avant ;
+la trace garde seulement sa valeur (`details['indice']`), jamais le texte. Le fait se déduit de deux photographies
+(`DifferenceDeQuinzaine`, clé `temoignages`, absente des traces d'avant). Il se joue l'après-midi, entre le chef de la Maison des
+scribes (sinon la famille) et un autre ; ces deux-là ne bavardent pas ce moment-là ; personne à qui le dire, ou un indice de
+terrain, ne met rien en scène — le dossier suffit.
 
 **La variété d'une journée est de la routine, pas un fait** (`Choregraphie`, lot V3b) : une course au Marché, une visite au
 Temple, un détour par l'Auberge ne correspondent à aucune règle du jeu — personne ne « va au Marché » dans l'état —, et le

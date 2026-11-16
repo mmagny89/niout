@@ -604,6 +604,118 @@ final class ChoregraphieTest extends TestCase
     }
 
     /**
+     * **Un témoignage rapporté se dit, et se lit** : l'après-midi du jour, la famille — ou le chef de la
+     * Maison des scribes, s'il y en a un — répète ce que l'émissaire a rapporté, dans les mots du
+     * témoin ; l'autre répond. C'est un fait vrai, et le même texte est au journal.
+     */
+    public function testUnTemoignageRapporteSeDitEtSeLitAuJournal(): void
+    {
+        $faits = [$this->fait(TypeDeFait::TemoignageRecueilli, null, null, ['indice' => 'plainte_dun_paysan'])];
+        $film = Choregraphie::pour($this->photo(), $faits, 5);
+        $temoignages = array_values(array_filter($film['paroles'], static fn (array $p): bool => 'temoignage' === $p['situation']));
+
+        self::assertCount(1, $temoignages);
+        self::assertSame('fait', $temoignages[0]['nature']);
+        self::assertSame(2, $temoignages[0]['moment']);
+        self::assertStringContainsString('Un paysan', $temoignages[0]['texteA']);
+        self::assertStringContainsString('Le fleuve a tout bougé', $temoignages[0]['texteA']);
+        self::assertSame('famille', $temoignages[0]['libelleA'], 'Sans scribe, c\'est la famille qui rapporte.');
+
+        $lignes = [];
+
+        foreach (Choregraphie::journal($film['pas']['famille']) as $jour) {
+            $lignes = [...$lignes, ...$jour['lignes']];
+        }
+
+        self::assertNotEmpty(array_filter($lignes, static fn (string $l): bool => str_contains($l, 'Le fleuve a tout bougé')));
+        self::assertContains('L\'émissaire rapporte un témoignage : un paysan.', $film['evenements'][$temoignages[0]['jour']] ?? []);
+    }
+
+    /**
+     * Le chef de la Maison des scribes rapporte, et la famille répond.
+     */
+    public function testLeScribeRapporteEtLaFamilleRepond(): void
+    {
+        $photo = $this->photo();
+        $photo['candidats'][] = $this->candidat('chef-9', 'chef', 'maison_des_scribes');
+        $faits = [$this->fait(TypeDeFait::TemoignageRecueilli, null, null, ['indice' => 'dire_dun_berger'])];
+
+        foreach (range(1, 30) as $graine) {
+            $temoignages = array_values(array_filter(Choregraphie::pour($photo, $faits, $graine)['paroles'], static fn (array $p): bool => 'temoignage' === $p['situation']));
+
+            self::assertCount(1, $temoignages);
+            self::assertSame('chef-9', $temoignages[0]['libelleA']);
+            self::assertSame('famille', $temoignages[0]['libelleB']);
+        }
+    }
+
+    /**
+     * Ceux qui rapportent ne bavardent pas ce moment-là : la parole du témoignage n'est jamais
+     * recouverte par une conversation d'ambiance, et il n'y en a qu'une.
+     */
+    public function testLeTemoignageNEstJamaisRecouvertParUneConversation(): void
+    {
+        $photo = $this->photoDeFoule();
+        $photo['candidats'][] = $this->candidat('famille', 'chef_de_famille', 'residence_familiale');
+        $faits = [$this->fait(TypeDeFait::TemoignageRecueilli, null, null, ['indice' => 'recit_du_batelier'])];
+
+        foreach (range(1, 60) as $graine) {
+            $film = Choregraphie::pour($photo, $faits, $graine);
+            $temoignage = array_values(array_filter($film['paroles'], static fn (array $p): bool => 'temoignage' === $p['situation']));
+
+            self::assertCount(1, $temoignage, 'Graine '.$graine);
+
+            foreach ($film['paroles'] as $parole) {
+                if ('temoignage' !== $parole['situation'] && $parole['jour'] === $temoignage[0]['jour'] && 2 === $parole['moment']) {
+                    self::assertNotContains($temoignage[0]['a'], [$parole['a'], $parole['b']]);
+                    self::assertNotContains($temoignage[0]['b'], [$parole['a'], $parole['b']]);
+                }
+            }
+
+            $ordre = array_map(static fn (array $p): array => [$p['jour'], $p['moment']], $film['paroles']);
+            $trie = $ordre;
+            sort($trie);
+            self::assertSame($trie, $ordre, 'Dans l\'ordre du temps.');
+        }
+    }
+
+    /**
+     * Personne à qui le dire, ou un indice inconnu : on ne met rien en scène — le témoignage se lit
+     * au dossier.
+     */
+    public function testSansPersonneOuSansIndiceOnNeMetRienEnScene(): void
+    {
+        $seul = $this->photo(['candidats' => [$this->candidat('famille', 'chef_de_famille', 'residence_familiale')]]);
+        $faits = [$this->fait(TypeDeFait::TemoignageRecueilli, null, null, ['indice' => 'plainte_dun_paysan'])];
+
+        self::assertSame([], Choregraphie::pour($seul, $faits, 3)['paroles']);
+        self::assertSame([], Choregraphie::pour($this->photo(), [$this->fait(TypeDeFait::TemoignageRecueilli, null, null, ['indice' => 'inconnu'])], 3)['paroles']);
+        self::assertSame([], Choregraphie::pour($this->photo(), [$this->fait(TypeDeFait::TemoignageRecueilli, null, null, ['indice' => 'borne_renversee'])], 3)['paroles'], 'Un indice de terrain ne parle pas.');
+    }
+
+    /**
+     * Un témoignage de plus dans les dossiers, d'une photographie à l'autre : l'émissaire l'a rapporté.
+     * Une trace d'avant ce champ n'en invente aucun.
+     */
+    public function testUnTemoignageDeMoinsAvantEstUnFait(): void
+    {
+        $avant = $this->photo(['temoignages' => []]);
+        $apres = $this->photo(['temoignages' => ['plainte_dun_paysan']]);
+        $faits = DifferenceDeQuinzaine::faits($avant, $apres);
+
+        $temoignages = array_values(array_filter($faits, static fn (array $f): bool => TypeDeFait::TemoignageRecueilli === $f['type']));
+        self::assertCount(1, $temoignages);
+        self::assertSame('plainte_dun_paysan', $temoignages[0]['details']['indice']);
+        self::assertSame(['indice' => 'plainte_dun_paysan'], $temoignages[0]['details'], 'La trace ne garde que la valeur de l\'indice, jamais le texte.');
+
+        $ancien = $this->photo();
+        unset($ancien['temoignages']);
+        $nouveaux = array_filter(DifferenceDeQuinzaine::faits($ancien, $this->photo(['temoignages' => ['dire_dun_berger']])), static fn (array $f): bool => TypeDeFait::TemoignageRecueilli === $f['type']);
+        self::assertCount(1, $nouveaux, 'Une trace d\'avant le champ se compare sans erreur.');
+        self::assertSame([], array_filter(DifferenceDeQuinzaine::faits($ancien, $ancien), static fn (array $f): bool => TypeDeFait::TemoignageRecueilli === $f['type']));
+    }
+
+    /**
      * @param array<int, array<int, array{lieu: ?string, geste: GesteDeLaVille, fait: ?TypeDeFait, couchee: bool}>> $jours
      *
      * @return array{lieu: ?string, geste: GesteDeLaVille, fait: ?TypeDeFait, couchee: bool}|null
