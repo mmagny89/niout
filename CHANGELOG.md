@@ -14,6 +14,9 @@ la lecture de référence pour comprendre le code.
 
 ### Ajouté
 
+- **Le récapitulatif de quinzaine se replie sur téléphone.** Il recouvrait presque toute la ville — et le film qui démarre derrière.
+  Sous la largeur d'une tablette, seul son en-tête reste (« Une quinzaine passe », la date), avec un bouton « Détails » pour le
+  déplier ; il se pose aussi **sous la barre de jeu** telle qu'elle est, au lieu de passer dessous quand elle tient sur deux rangées.
 - **Passer la quinzaine joue son film.** Depuis la ville vue d'en haut, « Quinzaine suivante » lance tout seul le film de la quinzaine
   qui vient de passer, à vitesse normale (60 s). On peut le mettre en pause, l'accélérer ou revenir à maintenant comme avant. Rien
   ne se lance pour qui demande moins de mouvement, ni depuis la carte ou un onglet de bâtiment, ni en rechargeant la page.
