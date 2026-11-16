@@ -12,6 +12,8 @@ la lecture de référence pour comprendre le code.
 
 ## [Non publié]
 
+## [0.16.0] - 2026-11-16
+
 ### Ajouté
 
 - **Les messages de la partie sont de petites cartes**, comme le récapitulatif de la quinzaine : un pictogramme, un titre, un détail (« Une maisonnée
@@ -637,7 +639,8 @@ au journal des phases.
 - Déploiement par clé SSH restreinte à un script unique (*forced command*),
   empreinte d'hôte épinglée.
 
-[Non publié]: https://github.com/mmagny89/niout/compare/v0.15.0...HEAD
+[Non publié]: https://github.com/mmagny89/niout/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/mmagny89/niout/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/mmagny89/niout/releases/tag/v0.15.0
 [0.14.0]: https://github.com/mmagny89/niout/releases/tag/v0.14.0
 [0.13.0]: https://github.com/mmagny89/niout/releases/tag/v0.13.0
